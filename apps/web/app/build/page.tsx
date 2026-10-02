@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { ACTIVITY_KINDS, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, removeWorkstream, setAllocation, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@studio/engine";
+import { ACTIVITY_KINDS, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, peakAllocation, removeWorkstream, setAllocation, setAllocationWindow, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@studio/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select } from "@/components/ui";
 import { Explain } from "@/components/explain";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
@@ -253,16 +253,26 @@ function WorkstreamPanel({ id, onRemoved, onOpen }: { id: string; onRemoved: () 
       <div>
         <h3 className="mb-1.5 text-sm font-semibold">People</h3>
         <table className="data">
-          <thead><tr><th>Team line</th><th className="n">Share of their time</th></tr></thead>
+          <thead><tr><th>Team line</th><th className="n">Share of their time</th><th className="n">From month</th><th className="n">To month</th></tr></thead>
           <tbody>
             {project.build.team.map((t, seat) => {
               const share = t.allocations?.find((a) => a.workstreamId === id)?.share ?? 0;
-              const total = (t.allocations ?? []).reduce((s, a) => s + a.share, 0);
+              const total = peakAllocation(project, seat);
               return (
                 <tr key={seat} style={share ? undefined : { opacity: 0.6 }}>
                   <td>{t.name ? `${t.name} (${rates.get(t.roleId) ?? t.roleId})` : `${t.people} × ${rates.get(t.roleId) ?? t.roleId}`}{t.phase ? <small className="text-muted"> · {t.phase}</small> : null}
-                    {total > 1.005 && share > 0 && <small className="block text-crit">{Math.round(total * 100)}% allocated in total, so every share is scaled down: effectively {Math.round((share / total) * 100)}% here</small>}</td>
+                    {total > 1.005 && share > 0 && <small className="block text-crit">Up to {Math.round(total * 100)}% allocated in some months, so shares are scaled down then (to {Math.round((share / total) * 100)}% here)</small>}</td>
                   <td className="n w-36"><NumberInput value={Math.round(share * 100)} max={100} suffix="%" onChange={(v) => edit((d) => setAllocation(d, seat, id, v / 100))} /></td>
+                  {share > 0 ? (() => {
+                    const a = t.allocations!.find((x) => x.workstreamId === id)!;
+                    const B = project.timeline.buildMonths;
+                    return (
+                      <>
+                        <td className="n w-24"><NumberInput value={a.fromMonth ?? 1} min={1} max={B} onChange={(v) => edit((d) => setAllocationWindow(d, seat, id, Math.round(v), a.toMonth))} /></td>
+                        <td className="n w-24"><NumberInput value={a.toMonth ?? B} min={1} max={B} onChange={(v) => edit((d) => setAllocationWindow(d, seat, id, a.fromMonth, Math.round(v)))} /></td>
+                      </>
+                    );
+                  })() : <><td /><td /></>}
                 </tr>
               );
             })}
@@ -372,20 +382,22 @@ function AllocationMatrix() {
         <thead><tr><th>Team line</th>{ws.map((w) => <th key={w.id} className="n">{w.label}</th>)}<th className="n">Project-wide</th></tr></thead>
         <tbody>
           {project.build.team.map((t, seat) => {
-            const total = (t.allocations ?? []).reduce((s, a) => s + a.share, 0);
+            const total = peakAllocation(project, seat);
+            const varies = (t.allocations ?? []).some((a) => a.fromMonth || a.toMonth);
             return (
               <tr key={seat}>
                 <td className="whitespace-nowrap">{t.name ?? `${t.people} × ${rates.get(t.roleId) ?? t.roleId}`}{t.phase ? <small className="text-muted"> · {t.phase}</small> : null}</td>
                 {ws.map((w) => (
-                  <td key={w.id} className="n max-w-[104px]"><NumberInput value={Math.round((t.allocations?.find((a) => a.workstreamId === w.id)?.share ?? 0) * 100)} max={100} suffix="%" onChange={(v) => edit((d) => setAllocation(d, seat, w.id, v / 100))} /></td>
+                  <td key={w.id} className="n max-w-[104px]"><NumberInput value={Math.round((t.allocations?.find((a) => a.workstreamId === w.id)?.share ?? 0) * 100)} max={100} suffix="%" onChange={(v) => edit((d) => setAllocation(d, seat, w.id, v / 100))} />
+                    {(() => { const a = t.allocations?.find((x) => x.workstreamId === w.id); return a && (a.fromMonth || a.toMonth) ? <small className="block text-[10.5px] text-muted">M{a.fromMonth ?? 1}–{a.toMonth ?? project.timeline.buildMonths}</small> : null; })()}</td>
                 ))}
-                <td className="n" style={total > 1.005 ? { color: "var(--crit)", fontWeight: 600 } : undefined}>{total > 1.005 ? `${Math.round(total * 100)}% (scaled to 100%)` : `${Math.round((1 - total) * 100)}%`}</td>
+                <td className="n" style={total > 1.005 ? { color: "var(--crit)", fontWeight: 600 } : undefined}>{total > 1.005 ? `${Math.round(total * 100)}%${varies ? " in some months" : ""} (scaled to 100%)` : varies ? `at least ${Math.round(Math.max(0, 1 - total) * 100)}%` : `${Math.round(Math.max(0, 1 - total) * 100)}%`}{varies ? <small className="block text-[10.5px] font-normal text-muted">varies by month</small> : null}</td>
               </tr>
             );
           })}
         </tbody>
       </table>
-      <p className="mt-1.5 text-[11.5px] text-muted">Labour follows these shares. Iterations and playground work in a workstream scale with the people on it; bake-offs, regression and red teaming in a workstream run once, however many people share it.</p>
+      <p className="mt-1.5 text-[11.5px] text-muted">Set the months someone spends on a workstream in its panel (e.g. moves from one feature to another in month 4). Labour follows these shares. Iterations and playground work in a workstream scale with the people on it; bake-offs, regression and red teaming in a workstream run once, however many people share it.</p>
     </div>
   );
 }

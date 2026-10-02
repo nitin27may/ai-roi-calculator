@@ -144,8 +144,18 @@ export function removeWorkstream(p: Project, id: string): void {
 export function setAllocation(p: Project, seat: number, workstreamId: string, share: number): void {
   const t = p.build.team[seat];
   if (!t) return;
+  const cur = t.allocations?.find((x) => x.workstreamId === workstreamId);
   const rest = (t.allocations ?? []).filter((x) => x.workstreamId !== workstreamId);
-  t.allocations = share > 0 ? [...rest, { workstreamId, share }] : rest;
+  // Keep the month window when only the share changes.
+  t.allocations = share > 0 ? [...rest, { ...cur, workstreamId, share }] : rest;
+}
+
+/** Limit a team line's time on a workstream to build months from–to (undefined = open-ended). */
+export function setAllocationWindow(p: Project, seat: number, workstreamId: string, fromMonth: number | undefined, toMonth: number | undefined): void {
+  const a = p.build.team[seat]?.allocations?.find((x) => x.workstreamId === workstreamId);
+  if (!a) return;
+  if (fromMonth && fromMonth > 1) a.fromMonth = fromMonth; else delete a.fromMonth;
+  if (toMonth && toMonth < p.timeline.buildMonths) a.toMonth = toMonth; else delete a.toMonth;
 }
 
 export const WORKSTREAM_TEMPLATES = [
@@ -207,4 +217,16 @@ export function addWorkstreamFromTemplate(p: Project, templateId: WorkstreamTemp
       break;
   }
   return w.id;
+}
+
+/** The highest total share a team line is allocated in any one build month (only months it works). */
+export function peakAllocation(p: Project, seat: number): number {
+  const t = p.build.team[seat];
+  if (!t) return 0;
+  let peak = 0;
+  for (let m = 1; m <= p.timeline.buildMonths; m++) {
+    const s = (t.allocations ?? []).filter((a) => m >= (a.fromMonth ?? 1) && m <= (a.toMonth ?? Infinity)).reduce((x, a) => x + a.share, 0);
+    peak = Math.max(peak, s);
+  }
+  return peak;
 }
