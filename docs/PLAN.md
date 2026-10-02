@@ -368,14 +368,70 @@ A person reviews and merges. Merging bumps the catalog version and redeploys.
 ---
 
 ## 6. Snowflake Cortex (secondary model provider)
-_Section to be finalized when the Snowflake research report lands; see `docs/research/07-snowflake-cortex.md`._
+Full research: [research/07](./research/07-snowflake-cortex.md).
 
-Planned modelling:
-- Cortex usage is billed in **credits**, priced per 1M tokens per model or function, then converted at the project's **$/credit**, which depends on edition, region and contract.
-- **Warehouse compute** used to run the AI SQL functions is a separate line (warehouse size × hours × credits/hr).
-- **Cortex Search** has serving cost per GB of indexed data per month, plus embedding cost at index time.
-- **Cortex Analyst** is billed per message. **Cortex Agents** are billed as orchestration tokens plus tool costs.
-- A Snowflake component reuses the same token-estimation pipeline (pages, emails, transcripts → tokens). That makes "same workload: Azure OpenAI vs Claude on Foundry vs Claude on Snowflake Cortex" a single comparison view.
+### How Snowflake is modelled
+Snowflake is treated as a **provider with two credit currencies**. It is not a separate calculator.
+- **AI Credits** (since 2026-04-01) cover AI Functions, Cortex Search, Parse Document, Agents, CoWork, Cortex Code and the REST API.
+  - Price: **$2.00** with global cross-region routing; **$2.20** with regional or disabled routing.
+  - The price is the same for every edition. ACV discounts apply; capacity discounts do not.
+- **Platform Credits** cover warehouses, storage, Cortex Analyst direct ("legacy") and fine-tuning.
+  - The price depends on edition and region, for example Enterprise in Azure East US 2 is $3.00, or it comes from the customer's contract.
+- Project assumptions add:
+  - `snowflake.edition`
+  - `snowflake.region`
+  - `snowflake.crossRegion` (ANY_REGION / AZURE_US / AZURE_EU / DISABLED), which sets the AI Credit price
+  - `snowflake.platformCreditPrice`
+  - `snowflake.acvDiscountPct`
+
+### Catalog entries
+`snowflake-cortex.json` holds, per model and per function:
+- credits per 1M tokens, with input and output separate
+- REST API USD rates, including cache read
+- credits per 1K pages for Parse Document LAYOUT and OCR
+- tokens per second for AI_TRANSCRIBE
+- availability per cross-region setting
+
+`snowflake-platform.json` holds:
+- warehouse credits per hour by size
+- the Cortex Search serving rate of 6.3 AI Credits per GB-month
+- Analyst at 67 Platform Credits per 1,000 messages
+
+Sync source: the Consumption Table PDF, parsed for Table 6(a)/(b)/(c)/(e)/(g).
+
+### Lines a Snowflake workload produces
+- AI_COMPLETE or REST tokens, priced as credits × P_ai.
+- Fixed-rate AI SQL functions (AI_CLASSIFY, AI_EXTRACT…).
+  - Includes the **hidden system-prompt overhead** and per-row label re-billing.
+  - AI_EXTRACT counts each document page as 970 input tokens.
+- AI_PARSE_DOCUMENT pages, as an alternative to Document Intelligence.
+- AI_TRANSCRIBE hours, about $0.35/hr, as an alternative to MAI-Transcribe or Azure Speech.
+- AI_EMBED tokens.
+- Cortex Search:
+  - serving: **fixed monthly** cost of 6.3 × GB indexed, where GB = rows × (vectors × dims × 4 + row bytes)
+  - re-embedding on change
+- **Warehouse overhead.** Size (MEDIUM by default, 4 credits/hr) × runtime hours × Platform Credit price. Runtime is a user input with a heuristic default; it often dominates cost for cheap models.
+- Cortex Analyst messages and Agents orchestration tokens. The orchestration rates are unverified, so they are flagged.
+
+### Rules and warnings the engine enforces
+- **Claude is not available under AZURE_US or AZURE_EU.** Selecting Claude on an Azure-hosted Snowflake account forces ANY_REGION or AWS_* routing. The UI warns that data leaves Azure, crossing to AWS over the public internet with mTLS.
+- **Gemini requires ANY_REGION.**
+- **Native-region model lists differ.** West Europe natively serves only Llama and Mistral models.
+
+### Comparison view
+A workload component can target Azure OpenAI, Claude on Foundry and Snowflake Cortex side by side, using the same token estimate. Each target applies its own tokenizer multiplier. Each target adds its own platform overhead: Snowflake warehouse time, or Foundry Data Zone ×1.1.
+
+### Verify first
+Most Snowflake model rates have medium or low confidence.
+- These Claude and GPT-5.x AI_COMPLETE rates are derived, not confirmed:
+  - Claude Opus 5 and 5.5
+  - Claude Sonnet 5 and 5.5
+  - GPT-5.5, 5.6 and 6
+- Agents orchestration, fine-tuning, provisioned throughput and Batch Search rates are missing.
+- AI_PARSE_DOCUMENT has conflicting figures: 3.33 credits per 1K pages vs "$0.04 per page".
+- A reported +50% "promotional" price change on 2026-09-01 is unconfirmed.
+
+These must be confirmed from the PDF in P1, or from the customer's `RATE_SHEET_DAILY` view, before any Snowflake number is quoted.
 
 ---
 
