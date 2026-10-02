@@ -204,7 +204,7 @@ export function teamLines(p: Project, team: Project["build"]["team"], stream: "l
     if (!allocs.length) return [line({ ...base, id, label, quantity: hours, formula: formula(1) })];
     const total = sum(allocs.map((a) => a.share));
     const scale = total > 1 ? 1 / total : 1;
-    const parts = allocs.map((a) => line({ ...base, id: `${id}:${a.workstreamId}`, label: `${label} → ${wsLabel.get(a.workstreamId) ?? a.workstreamId}`, quantity: hours * a.share * scale, workstreamId: a.workstreamId, formula: formula(a.share * scale) }));
+    const parts = allocs.map((a, k) => line({ ...base, id: `${id}:${a.workstreamId}:${k}`, label: `${label} → ${wsLabel.get(a.workstreamId) ?? a.workstreamId}`, quantity: hours * a.share * scale, workstreamId: a.workstreamId, formula: formula(a.share * scale) }));
     const rest = 1 - Math.min(1, total);
     return rest > 1e-9 ? [...parts, line({ ...base, id, label: `${label} → project-wide`, quantity: hours * rest, formula: formula(rest) })] : parts;
   });

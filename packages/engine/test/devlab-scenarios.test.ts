@@ -113,13 +113,65 @@ describe("edge cases", () => {
 });
 
 describe("allocation editing", () => {
-  it("keeps the month window when the share changes, and sets windows", async () => {
-    const { setAllocation, setAllocationWindow } = await import("../src/index.js");
+  it("keeps the month window when the share changes, and edits a period's months", async () => {
+    const { setAllocation, allocationPeriods, updateAllocationPeriod } = await import("../src/index.js");
     const p = team();
     setAllocation(p, 1, "B", 0.5);
     expect(p.build.team[1]!.allocations!.find((a) => a.workstreamId === "B")).toEqual({ workstreamId: "B", share: 0.5, fromMonth: 4 });
-    setAllocationWindow(p, 1, "B", 2, 6);
+    const [b] = allocationPeriods(p, 1, "B");
+    updateAllocationPeriod(p, 1, b!.index, { fromMonth: 2, toMonth: 6 });
     expect(p.build.team[1]!.allocations!.find((a) => a.workstreamId === "B")).toEqual({ workstreamId: "B", share: 0.5, fromMonth: 2 });
+  });
+});
+
+describe("someone leaves a feature and comes back", () => {
+  // Priya: Intake (A) months 1–2, Summary (B) months 3–4, back on Intake months 5–6.
+  const priya = async () => {
+    const { addAllocationPeriod, allocationPeriods, updateAllocationPeriod } = await import("../src/index.js");
+    const p = team();
+    p.build.team[1] = { roleId: "dev", name: "Priya", people: 1, hoursPerMonth: 160, experiments: true, allocations: [{ workstreamId: "A", share: 1, toMonth: 2 }, { workstreamId: "B", share: 1, fromMonth: 3, toMonth: 4 }] };
+    expect(addAllocationPeriod(p, 1, "A")).toBe(true); // month 4 is taken by Summary, so it starts in month 5
+    const back = allocationPeriods(p, 1, "A")[1]!;
+    expect(back).toMatchObject({ fromMonth: 5, toMonth: 6, share: 1 });
+    updateAllocationPeriod(p, 1, back.index, { fromMonth: 5 });
+    return p;
+  };
+
+  it("puts her on Intake in months 1–2 and 5–6 and on Summary in 3–4", async () => {
+    const p = await priya();
+    const on = (m: number, ws: string) => seatEffort(p, m)[1]!.byWorkstream[ws] ?? 0;
+    expect([1, 2, 3, 4, 5, 6].map((m) => on(m, "A"))).toEqual([1, 1, 0, 0, 1, 1]);
+    expect([1, 2, 3, 4, 5, 6].map((m) => on(m, "B"))).toEqual([0, 0, 1, 1, 0, 0]);
+  });
+
+  it("bills her labour once a month, to the feature she is on", async () => {
+    const p = await priya();
+    const L = buildLedger(p, cat);
+    for (let m = 1; m <= 6; m++) {
+      const lines = L.months[m - 1]!.lines.filter((l) => l.stream === "labour" && l.seat === 1);
+      expect(lines.reduce((s, l) => s + l.quantity, 0)).toBeCloseTo(160, 6);
+      expect(new Set(lines.map((l) => l.id)).size).toBe(lines.length);
+      expect(lines.map((l) => l.workstreamId)).toEqual([m <= 2 || m >= 5 ? "A" : "B"]);
+    }
+  });
+
+  it("flags overlapping periods, and refuses a period when the build has no room", async () => {
+    const { addAllocationPeriod, overlappingPeriods, updateAllocationPeriod, allocationPeriods } = await import("../src/index.js");
+    const p = await priya();
+    expect(overlappingPeriods(p, 1, "A")).toBe(false);
+    updateAllocationPeriod(p, 1, allocationPeriods(p, 1, "A")[1]!.index, { fromMonth: 2 });
+    expect(overlappingPeriods(p, 1, "A")).toBe(true);
+    expect(addAllocationPeriod(p, 1, "A")).toBe(false); // last period ends in month 6
+  });
+
+  it("setting a share on the feature changes every period; 0 removes them all", async () => {
+    const { setAllocation, allocationPeriods } = await import("../src/index.js");
+    const p = await priya();
+    setAllocation(p, 1, "A", 0.5);
+    expect(allocationPeriods(p, 1, "A").map((x) => x.share)).toEqual([0.5, 0.5]);
+    setAllocation(p, 1, "A", 0);
+    expect(allocationPeriods(p, 1, "A")).toHaveLength(0);
+    expect(allocationPeriods(p, 1, "B")).toHaveLength(1);
   });
 });
 

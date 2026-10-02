@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { ACTIVITY_KINDS, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, peakAllocation, removeWorkstream, setAllocation, setAllocationWindow, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@studio/engine";
+import { ACTIVITY_KINDS, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, addAllocationPeriod, allocationPeriods, overlappingPeriods, peakAllocation, removeAllocationPeriod, removeWorkstream, setAllocation, updateAllocationPeriod, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@studio/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select } from "@/components/ui";
 import { Explain } from "@/components/explain";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
@@ -253,31 +253,44 @@ function WorkstreamPanel({ id, onRemoved, onOpen }: { id: string; onRemoved: () 
       <div>
         <h3 className="mb-1.5 text-sm font-semibold">People</h3>
         <table className="data">
-          <thead><tr><th>Team line</th><th className="n">Share of their time</th><th className="n">From month</th><th className="n">To month</th></tr></thead>
+          <thead><tr><th>Team line</th><th className="n">Share of their time</th><th className="n">From month</th><th className="n">To month</th><th /></tr></thead>
           <tbody>
-            {project.build.team.map((t, seat) => {
-              const share = t.allocations?.find((a) => a.workstreamId === id)?.share ?? 0;
+            {project.build.team.flatMap((t, seat) => {
+              const B = project.timeline.buildMonths;
+              const who = <>{t.name ? `${t.name} (${rates.get(t.roleId) ?? t.roleId})` : `${t.people} × ${rates.get(t.roleId) ?? t.roleId}`}{t.phase ? <small className="text-muted"> · {t.phase}</small> : null}</>;
+              const periods = allocationPeriods(project, seat, id);
+              if (!periods.length) {
+                return [(
+                  <tr key={`${seat}-none`} style={{ opacity: 0.6 }}>
+                    <td>{who}</td>
+                    <td className="n w-36"><NumberInput value={0} max={100} suffix="%" onChange={(v) => edit((d) => setAllocation(d, seat, id, v / 100))} /></td>
+                    <td /><td /><td />
+                  </tr>
+                )];
+              }
               const total = peakAllocation(project, seat);
-              return (
-                <tr key={seat} style={share ? undefined : { opacity: 0.6 }}>
-                  <td>{t.name ? `${t.name} (${rates.get(t.roleId) ?? t.roleId})` : `${t.people} × ${rates.get(t.roleId) ?? t.roleId}`}{t.phase ? <small className="text-muted"> · {t.phase}</small> : null}
-                    {total > 1.005 && share > 0 && <small className="block text-crit">Up to {Math.round(total * 100)}% allocated in some months, so shares are scaled down then (to {Math.round((share / total) * 100)}% here)</small>}</td>
-                  <td className="n w-36"><NumberInput value={Math.round(share * 100)} max={100} suffix="%" onChange={(v) => edit((d) => setAllocation(d, seat, id, v / 100))} /></td>
-                  {share > 0 ? (() => {
-                    const a = t.allocations!.find((x) => x.workstreamId === id)!;
-                    const B = project.timeline.buildMonths;
-                    return (
-                      <>
-                        <td className="n w-24"><NumberInput value={a.fromMonth ?? 1} min={1} max={B} onChange={(v) => edit((d) => setAllocationWindow(d, seat, id, Math.round(v), a.toMonth))} /></td>
-                        <td className="n w-24"><NumberInput value={a.toMonth ?? B} min={1} max={B} onChange={(v) => edit((d) => setAllocationWindow(d, seat, id, a.fromMonth, Math.round(v)))} /></td>
-                      </>
-                    );
-                  })() : <><td /><td /></>}
+              const overlap = overlappingPeriods(project, seat, id);
+              const roomLeft = periods.at(-1)!.toMonth + 2 <= B;
+              return periods.map((a, k) => (
+                <tr key={`${seat}-${a.index}`}>
+                  <td>
+                    {k === 0 ? who : <span className="pl-3 text-muted">↳ back on this workstream</span>}
+                    {k === periods.length - 1 && total > 1.005 && <small className="block text-crit">Up to {Math.round(total * 100)}% allocated in some months, so shares are scaled down then</small>}
+                    {k === periods.length - 1 && overlap && <small className="block text-crit">These periods overlap: the shares add up in the shared months</small>}
+                    {k === periods.length - 1 && roomLeft && (
+                      <button type="button" className="mt-0.5 block text-[11.5px] text-accent underline" onClick={() => edit((d) => { addAllocationPeriod(d, seat, id); })}>Add another period (comes back later)</button>
+                    )}
+                  </td>
+                  <td className="n w-36"><NumberInput value={Math.round(a.share * 100)} max={100} suffix="%" onChange={(v) => edit((d) => { if (v > 0) updateAllocationPeriod(d, seat, a.index, { share: v / 100 }); else removeAllocationPeriod(d, seat, a.index); })} /></td>
+                  <td className="n w-24"><NumberInput value={a.fromMonth} min={1} max={B} onChange={(v) => edit((d) => updateAllocationPeriod(d, seat, a.index, { fromMonth: Math.round(v) }))} /></td>
+                  <td className="n w-24"><NumberInput value={a.toMonth} min={1} max={B} onChange={(v) => edit((d) => updateAllocationPeriod(d, seat, a.index, { toMonth: Math.round(v) }))} /></td>
+                  <td>{periods.length > 1 && <button type="button" aria-label="Remove period" onClick={() => edit((d) => removeAllocationPeriod(d, seat, a.index))}><Trash2 size={14} /></button>}</td>
                 </tr>
-              );
+              ));
             })}
           </tbody>
         </table>
+        <p className="mt-1.5 text-[11.5px] text-muted">Someone who leaves this workstream and returns later gets a second period. Months outside every period are spent elsewhere (another workstream or project-wide).</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
@@ -389,7 +402,7 @@ function AllocationMatrix() {
                 <td className="whitespace-nowrap">{t.name ?? `${t.people} × ${rates.get(t.roleId) ?? t.roleId}`}{t.phase ? <small className="text-muted"> · {t.phase}</small> : null}</td>
                 {ws.map((w) => (
                   <td key={w.id} className="n max-w-[104px]"><NumberInput value={Math.round((t.allocations?.find((a) => a.workstreamId === w.id)?.share ?? 0) * 100)} max={100} suffix="%" onChange={(v) => edit((d) => setAllocation(d, seat, w.id, v / 100))} />
-                    {(() => { const a = t.allocations?.find((x) => x.workstreamId === w.id); return a && (a.fromMonth || a.toMonth) ? <small className="block text-[10.5px] text-muted">M{a.fromMonth ?? 1}–{a.toMonth ?? project.timeline.buildMonths}</small> : null; })()}</td>
+                    {(() => { const ps = allocationPeriods(project, seat, w.id); return ps.length > 1 || (ps[0] && (ps[0].fromMonth > 1 || ps[0].toMonth < project.timeline.buildMonths)) ? <small className="block text-[10.5px] text-muted">{ps.map((x) => `M${x.fromMonth}–${x.toMonth}`).join(", ")}</small> : null; })()}</td>
                 ))}
                 <td className="n" style={total > 1.005 ? { color: "var(--crit)", fontWeight: 600 } : undefined}>{total > 1.005 ? `${Math.round(total * 100)}%${varies ? " in some months" : ""} (scaled to 100%)` : varies ? `at least ${Math.round(Math.max(0, 1 - total) * 100)}%` : `${Math.round(Math.max(0, 1 - total) * 100)}%`}{varies ? <small className="block text-[10.5px] font-normal text-muted">varies by month</small> : null}</td>
               </tr>

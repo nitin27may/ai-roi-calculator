@@ -141,21 +141,68 @@ export function removeWorkstream(p: Project, id: string): void {
 }
 
 /** Set one team line's share of a workstream (0 removes the allocation). */
+/**
+ * Set a team line's share of a workstream. When the person has several periods on it, every
+ * period takes the new share; 0 removes them all.
+ */
 export function setAllocation(p: Project, seat: number, workstreamId: string, share: number): void {
   const t = p.build.team[seat];
   if (!t) return;
-  const cur = t.allocations?.find((x) => x.workstreamId === workstreamId);
+  const mine = (t.allocations ?? []).filter((x) => x.workstreamId === workstreamId);
   const rest = (t.allocations ?? []).filter((x) => x.workstreamId !== workstreamId);
-  // Keep the month window when only the share changes.
-  t.allocations = share > 0 ? [...rest, { ...cur, workstreamId, share }] : rest;
+  if (share <= 0) { t.allocations = rest; return; }
+  // Keep the month windows when only the share changes.
+  t.allocations = [...rest, ...(mine.length ? mine.map((a) => ({ ...a, share })) : [{ workstreamId, share }])];
 }
 
-/** Limit a team line's time on a workstream to build months from–to (undefined = open-ended). */
-export function setAllocationWindow(p: Project, seat: number, workstreamId: string, fromMonth: number | undefined, toMonth: number | undefined): void {
-  const a = p.build.team[seat]?.allocations?.find((x) => x.workstreamId === workstreamId);
+/** The periods (allocation entries) a team line has on a workstream, with their index in `allocations`. */
+export function allocationPeriods(p: Project, seat: number, workstreamId: string): { index: number; share: number; fromMonth: number; toMonth: number }[] {
+  const B = p.timeline.buildMonths;
+  return (p.build.team[seat]?.allocations ?? []).flatMap((a, index) => (a.workstreamId === workstreamId ? [{ index, share: a.share, fromMonth: a.fromMonth ?? 1, toMonth: Math.min(a.toMonth ?? B, B) }] : []))
+    .sort((x, y) => x.fromMonth - y.fromMonth);
+}
+
+/** Edit one period: its share, or its months (1 and the last build month are stored as open ends). */
+export function updateAllocationPeriod(p: Project, seat: number, index: number, patch: { share?: number; fromMonth?: number; toMonth?: number }): void {
+  const a = p.build.team[seat]?.allocations?.[index];
   if (!a) return;
-  if (fromMonth && fromMonth > 1) a.fromMonth = fromMonth; else delete a.fromMonth;
-  if (toMonth && toMonth < p.timeline.buildMonths) a.toMonth = toMonth; else delete a.toMonth;
+  if (patch.share !== undefined) a.share = patch.share;
+  if (patch.fromMonth !== undefined) { if (patch.fromMonth > 1) a.fromMonth = patch.fromMonth; else delete a.fromMonth; }
+  if (patch.toMonth !== undefined) { if (patch.toMonth < p.timeline.buildMonths) a.toMonth = patch.toMonth; else delete a.toMonth; }
+}
+
+/** Remove one period. */
+export function removeAllocationPeriod(p: Project, seat: number, index: number): void {
+  const t = p.build.team[seat];
+  if (t?.allocations) t.allocations.splice(index, 1);
+}
+
+/**
+ * Add another period on a workstream for a team line (someone who comes back to a feature).
+ * It starts after the person's last period there, runs to the end of the build, and keeps the share.
+ * Returns false when there is no room left in the build.
+ */
+export function addAllocationPeriod(p: Project, seat: number, workstreamId: string): boolean {
+  const t = p.build.team[seat];
+  if (!t) return false;
+  const B = p.timeline.buildMonths;
+  const periods = allocationPeriods(p, seat, workstreamId);
+  const last = periods.at(-1);
+  // Leave at least a month away, then start at the first month the person has time free.
+  const earliest = last ? last.toMonth + 2 : 1;
+  if (earliest > B) return false;
+  const busy = (m: number) => (t.allocations ?? []).filter((a) => a.workstreamId !== workstreamId && m >= (a.fromMonth ?? 1) && m <= (a.toMonth ?? Infinity)).reduce((x, a) => x + a.share, 0);
+  let from = earliest;
+  while (from <= B && busy(from) >= 1 - 1e-9) from++;
+  if (from > B) from = earliest;
+  t.allocations = [...(t.allocations ?? []), { workstreamId, share: last?.share ?? 1, ...(from > 1 ? { fromMonth: from } : {}) }];
+  return true;
+}
+
+/** Months in which two periods of the same team line on the same workstream overlap. */
+export function overlappingPeriods(p: Project, seat: number, workstreamId: string): boolean {
+  const ps = allocationPeriods(p, seat, workstreamId);
+  return ps.some((a, i) => ps.slice(i + 1).some((b) => a.fromMonth <= b.toMonth && b.fromMonth <= a.toMonth));
 }
 
 export const WORKSTREAM_TEMPLATES = [
