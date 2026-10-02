@@ -20,7 +20,11 @@ export default function Run() {
   const { project, ledger } = useLedger();
   const percentile = useStudio((s) => s.percentile);
   const setPercentile = useStudio((s) => s.setPercentile);
-  const [sel, setSel] = useState(project.workloads[0]?.id ?? "maintenance");
+  const [sel, setSel] = useState(() => {
+    const f = useStudio.getState().focus;
+    if (f) useStudio.setState({ focus: null });
+    return f ?? project.workloads[0]?.id ?? "maintenance";
+  });
   const steady = ledger.months.find((m) => m.phase === "production" && m.adoption >= 1) ?? ledger.months.at(-1)!;
   const costOf = (id: string) => steady.lines.filter((l) => l.componentId === id).reduce((s, l) => s + l.cost, 0);
   const groups = ORDER.map((g) => [g, project.workloads.filter((w) => GROUP[w.kind] === g)] as const).filter(([, ws]) => ws.length);

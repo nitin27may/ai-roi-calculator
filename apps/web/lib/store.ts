@@ -14,6 +14,8 @@ interface State {
   project: Project;
   percentile: Percentile;
   problem: string | null;
+  /** A workload the Run page should select when it opens (set by "Add to project"). */
+  focus: string | null;
   hydrated: boolean;
   hydrate: () => void;
   /** Apply an edit to a copy of the active project; refused (and reported) if it no longer validates. */
@@ -52,6 +54,7 @@ export const useStudio = create<State>((set, get) => {
     project: initial.project,
     percentile: "p50",
     problem: null,
+    focus: null,
     hydrated: false,
     hydrate: () => {
       if (get().hydrated) return;
