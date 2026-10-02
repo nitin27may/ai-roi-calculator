@@ -83,6 +83,7 @@ export const ACTIVITY_SPECS: Record<string, Spec[]> = {
     { key: "fromMonth", label: "From month", type: "number", min: 1 },
     { key: "cacheHit", label: "Cache hit", type: "percent" },
     { key: "batchShare", label: "Sent through Batch", type: "percent" },
+    { key: "monthFactors", label: "Intensity by month", type: "list", hint: "1 = full" },
   ],
   evaluation: [
     { key: "judgeModelId", label: "Judge model", type: "model" },
@@ -99,6 +100,7 @@ export const ACTIVITY_SPECS: Record<string, Spec[]> = {
     { key: "strategies", label: "Attack strategies", type: "number", max: 24 },
     { key: "multiTurnShare", label: "Multi-turn share", type: "percent" },
     { key: "fromMonth", label: "From month", type: "number", min: 1 },
+    { key: "monthFactors", label: "Intensity by month", type: "list", hint: "1 = full" },
   ],
   playground: [
     { key: "modelId", label: "Model", type: "model" },
@@ -106,12 +108,14 @@ export const ACTIVITY_SPECS: Record<string, Spec[]> = {
     { key: "inputTokens", label: "Input tokens / call", type: "number" },
     { key: "outputTokens", label: "Output tokens / call", type: "number" },
     { key: "workingDays", label: "Working days / month", type: "number", max: 31 },
+    { key: "monthFactors", label: "Intensity by month", type: "list", hint: "1 = full" },
   ],
   tooling: [
     { key: "copilotSeatsPerDev", label: "Copilot seats per developer", type: "number", max: 2 },
     { key: "copilotPlan", label: "Copilot plan", type: "select", options: [{ value: "copilot-business", label: "Business" }, { value: "copilot-enterprise", label: "Enterprise" }] },
     { key: "codingModelId", label: "Coding agent model", type: "model" },
     { key: "workingDays", label: "Working days / month", type: "number", max: 31 },
+    { key: "monthFactors", label: "Intensity by month", type: "list", hint: "1 = full" },
   ],
 };
 

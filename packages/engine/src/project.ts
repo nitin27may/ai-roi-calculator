@@ -34,6 +34,8 @@ export const DevActivitySchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("regression"), id, label: z.string(), harnessId: id, modelIds: z.array(id).min(1),
     runsPerMonth: n0, cases: z.number().int().positive(), cacheHit: share, batchShare: share, ...Window,
+    /** Intensity per month (1 = full); last value repeats. */
+    monthFactors: z.array(n0).default([1]),
   }),
   z.object({
     kind: z.literal("evaluation"), id, label: z.string(), judgeModelId: id, evaluators: z.array(z.string()),
@@ -46,15 +48,21 @@ export const DevActivitySchema = z.discriminatedUnion("kind", [
     kind: z.literal("redteam"), id, label: z.string(), targetModelId: id, scansPerMonth: n0,
     categories: z.number().int().positive(), objectivesPerCategory: z.number().int().positive(), strategies: z.number().int().nonnegative(),
     multiTurnShare: share, ...Window,
+    /** Intensity per month (1 = full); last value repeats. */
+    monthFactors: z.array(n0).default([1]),
   }),
   z.object({
     kind: z.literal("playground"), id, label: z.string(), modelId: id,
     callsPerDevPerDay: n0, inputTokens: n0, outputTokens: n0, workingDays: n0,
+    /** Intensity per month (1 = full); last value repeats. */
+    monthFactors: z.array(n0).default([1]),
   }),
   z.object({
     kind: z.literal("tooling"), id, label: z.string(),
     copilotSeatsPerDev: n0, copilotPlan: z.enum(["copilot-business", "copilot-enterprise"]),
     codingModelId: id, codingTokensPerDevPerDay: z.object({ input: n0, cachedInput: n0, output: n0 }), workingDays: n0,
+    /** Intensity per month (1 = full); last value repeats. */
+    monthFactors: z.array(n0).default([1]),
   }),
 ]);
 export type DevActivity = z.infer<typeof DevActivitySchema>;

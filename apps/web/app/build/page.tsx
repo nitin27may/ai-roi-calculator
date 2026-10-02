@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { ACTIVITY_KINDS, newActivity, type DevActivity } from "@studio/engine";
+import { ACTIVITY_KINDS, PLAN_SHAPES, applyShape, hasPlan, inPlanWindow, newActivity, planValues, setPlanValue, type DevActivity, type PlanShape } from "@studio/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select } from "@/components/ui";
 import { Explain } from "@/components/explain";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
@@ -64,7 +64,7 @@ function describe(a: DevActivity): string {
 
 function AllActivities() {
   const { project, ledger } = useLedger();
-  const [view, setView] = useState<"chart" | "grid">("chart");
+  const [view, setView] = useState<"chart" | "grid" | "plan">("chart");
   const B = project.timeline.buildMonths, months = ledger.months.slice(0, B), acts = project.build.activities;
   const rows = months.map((m) => Object.fromEntries(acts.map((a) => [a.id, m.lines.filter((l) => l.componentId === a.id && l.stream === "devlab").reduce((s, l) => s + l.cost, 0)])));
   const series = acts.map((a, i) => ({ key: a.id, label: a.label, color: COLORS[i % COLORS.length]! }));
@@ -74,13 +74,13 @@ function AllActivities() {
     <>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div><h2 className="text-base font-bold">AI Dev Lab by month</h2><div className="text-xs text-muted">Labour is shown separately</div></div>
-        <Seg label="View" value={view} onChange={setView} options={[{ value: "chart", label: "Chart" }, { value: "grid", label: "Month grid" }]} />
+        <Seg label="View" value={view} onChange={setView} options={[{ value: "chart", label: "Chart" }, { value: "grid", label: "Cost grid" }, { value: "plan", label: "Plan" }]} />
       </div>
       <div className="rounded-r-md border-l-[3px] border-accent bg-accent-soft px-3 py-2 text-[12.5px]">
         <b>{cad(ledger.totals.devLab)} over {B} months</b>, the same as <b>{fmt(ledger.totals.devLab / Math.max(1, runRate), 1)} months</b> of production run cost including maintenance. The largest activity is <b>{top?.label}</b>.
       </div>
       <Legend items={series.map((s) => ({ label: s.label, color: s.color }))} />
-      {view === "chart" ? (
+      {view === "plan" ? <PlanGrid /> : view === "chart" ? (
         <StackedBars rows={rows} series={series} xLabel={(i) => `Month ${i + 1}`} className="relative min-h-[280px] flex-1" />
       ) : (
         <div className="overflow-auto">
@@ -97,6 +97,45 @@ function AllActivities() {
         </div>
       )}
     </>
+  );
+}
+
+/** Editable activity × month plan: sweeps for bake-offs, intensity (1 = full) for the rest. */
+function PlanGrid() {
+  const { project, ledger } = useLedger();
+  const edit = useStudio((s) => s.edit);
+  const B = project.timeline.buildMonths;
+  const months = Array.from({ length: B }, (_, i) => i + 1);
+  const cost = (id: string, m: number) => ledger.months[m - 1]!.lines.filter((l) => l.componentId === id && l.stream === "devlab").reduce((s, l) => s + l.cost, 0);
+  const update = (id: string, fn: (a: Exclude<DevActivity, { kind: "evaluation" }>) => void) => edit((d) => { const a = d.build.activities.find((x) => x.id === id); if (a && hasPlan(a)) fn(a); });
+  return (
+    <div className="overflow-auto">
+      <p className="mb-2 text-xs text-muted">Bake-offs plan <b>sweeps</b> per month; other activities plan <b>intensity</b> (1 = the volumes set on the activity, 0 = off). Greyed months are outside the activity&apos;s window. Evaluation follows the runs it scores.</p>
+      <table className="data">
+        <thead><tr><th>Activity</th><th>Shape</th>{months.map((m) => <th key={m} className="n">M{m}</th>)}</tr></thead>
+        <tbody>
+          {project.build.activities.map((a) => {
+            if (!hasPlan(a)) return <tr key={a.id}><td>{a.label}</td><td className="text-xs text-muted">follows runs</td>{months.map((m) => <td key={m} className="n text-xs text-muted">{cad(cost(a.id, m))}</td>)}</tr>;
+            const vals = planValues(a, B);
+            return (
+              <tr key={a.id}>
+                <td className="whitespace-nowrap">{a.label}<small className="block text-muted">{a.kind === "bakeoff" ? "sweeps" : "intensity"}</small></td>
+                <td className="w-32"><Select value="" options={[{ value: "", label: "Apply…" }, ...PLAN_SHAPES.map((s) => ({ value: s.id, label: s.label }))]} onChange={(v) => v && update(a.id, (x) => applyShape(x, v as PlanShape, B))} /></td>
+                {months.map((m) => {
+                  const on = inPlanWindow(a, m, B);
+                  return (
+                    <td key={m} className="n w-20" style={on ? undefined : { opacity: 0.4 }} title={on ? `${cad(cost(a.id, m))} in month ${m}` : "Outside the activity's window"}>
+                      <NumberInput value={vals[m - 1]!} step={a.kind === "bakeoff" ? 1 : 0.1} onChange={(v) => update(a.id, (x) => setPlanValue(x, m, v, B))} />
+                      <small className="block text-[10.5px] text-muted">{cad(cost(a.id, m))}</small>
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

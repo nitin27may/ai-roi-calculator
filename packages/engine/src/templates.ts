@@ -62,11 +62,11 @@ export function newActivity(p: Project, kind: DevActivity["kind"]): DevActivity 
   switch (kind) {
     case "bakeoff": return { kind, id, label, harnessId: ensureHarness(p), candidates: [{ modelId: DEFAULT_MODEL, fromMonth: 1 }, { modelId: "claude-sonnet-5-5", fromMonth: 1, toMonth: Math.min(2, B) }], cases: 200, repeats: 3, sweepsPerMonth: [4, 4, 2], cacheHit: 0.3, batchShare: 0 };
     case "iterations": return { kind, id, label, harnessId: ensureHarness(p), modelId: DEFAULT_MODEL, runsPerDevPerDay: 10, subsetCases: 20, workingDays: 21, cacheHit: 0.3, monthFactors: [1] };
-    case "regression": return { kind, id, label, harnessId: ensureHarness(p), modelIds: [DEFAULT_MODEL], runsPerMonth: 30, cases: 200, cacheHit: 0.5, batchShare: 1, fromMonth: Math.min(3, B) };
+    case "regression": return { kind, id, label, harnessId: ensureHarness(p), modelIds: [DEFAULT_MODEL], runsPerMonth: 30, cases: 200, cacheHit: 0.5, batchShare: 1, fromMonth: Math.min(3, B), monthFactors: [1] };
     case "evaluation": return { kind, id, label, judgeModelId: JUDGE_MODEL, evaluators: ["groundedness", "relevance", "coherence", "taskAdherence"], queryTokens: 150, contextTokens: 2500, responseTokens: 600, scoredShare: { bakeoff: 1, iterations: 0.3, regression: 1 }, safetyEvaluators: 4 };
-    case "redteam": return { kind, id, label, targetModelId: DEFAULT_MODEL, scansPerMonth: 4, categories: 4, objectivesPerCategory: 10, strategies: 5, multiTurnShare: 0.2, fromMonth: Math.max(1, B - 1) };
-    case "playground": return { kind, id, label, modelId: DEFAULT_MODEL, callsPerDevPerDay: 40, inputTokens: 3000, outputTokens: 600, workingDays: 21 };
-    case "tooling": return { kind, id, label, copilotSeatsPerDev: 1, copilotPlan: "copilot-business", codingModelId: "claude-sonnet-5-5", codingTokensPerDevPerDay: { input: 400000, cachedInput: 2400000, output: 60000 }, workingDays: 21 };
+    case "redteam": return { kind, id, label, targetModelId: DEFAULT_MODEL, scansPerMonth: 4, categories: 4, objectivesPerCategory: 10, strategies: 5, multiTurnShare: 0.2, fromMonth: Math.max(1, B - 1), monthFactors: [1] };
+    case "playground": return { kind, id, label, modelId: DEFAULT_MODEL, callsPerDevPerDay: 40, inputTokens: 3000, outputTokens: 600, workingDays: 21, monthFactors: [1] };
+    case "tooling": return { kind, id, label, copilotSeatsPerDev: 1, copilotPlan: "copilot-business", codingModelId: "claude-sonnet-5-5", codingTokensPerDevPerDay: { input: 400000, cachedInput: 2400000, output: 60000 }, workingDays: 21, monthFactors: [1] };
   }
 }
 

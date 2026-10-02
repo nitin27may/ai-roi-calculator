@@ -53,41 +53,50 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
       case "regression": {
         if (!inWindow(a)) break;
         const h = harness(a);
+        const f = at(a.monthFactors, m - 1);
         for (const modelId of a.modelIds) {
-          const n = a.runsPerMonth * a.cases;
+          const n = a.runsPerMonth * a.cases * f;
+          if (n === 0) continue;
           const r = runCost(h, modelId, a.cacheHit);
           const disc = 1 - a.batchShare * book.chatModel(modelId).batchDiscount;
           runs.regression += n;
           out.push(line({ id: `${a.id}:${modelId}`, componentId: a.id, label: `${a.label}: ${book.chatModel(modelId).label}`, stream: "devlab", behaviour: "usage", meter: modelId, quantity: n, unit: "harness run", unitPrice: r.cost * disc,
-            formula: `${a.runsPerMonth} runs × ${a.cases} cases${a.batchShare ? ` · ${Math.round(a.batchShare * 100)}% Batch (−${Math.round(book.chatModel(modelId).batchDiscount * 100)}%)` : ""}` }));
+            formula: `${a.runsPerMonth} runs × ${a.cases} cases${f !== 1 ? ` × ${f}` : ""}${a.batchShare ? ` · ${Math.round(a.batchShare * 100)}% Batch (−${Math.round(book.chatModel(modelId).batchDiscount * 100)}%)` : ""}` }));
         }
         break;
       }
       case "playground": {
-        const n = devs * a.callsPerDevPerDay * a.workingDays;
+        const f = at(a.monthFactors, m - 1);
+        const n = devs * a.callsPerDevPerDay * a.workingDays * f;
+        if (n === 0) break;
         const tk = book.tokenizerMultiplier(a.modelId);
         const per = book.chatCost(a.modelId, { input: a.inputTokens * tk, output: a.outputTokens * tk }, date);
-        out.push(line({ id: a.id, componentId: a.id, label: a.label, stream: "devlab", behaviour: "usage", meter: a.modelId, quantity: n, unit: "call", unitPrice: per, formula: `${devs} devs × ${a.callsPerDevPerDay} calls/day × ${a.workingDays} days` }));
+        out.push(line({ id: a.id, componentId: a.id, label: a.label, stream: "devlab", behaviour: "usage", meter: a.modelId, quantity: n, unit: "call", unitPrice: per, formula: `${devs} devs × ${a.callsPerDevPerDay} calls/day × ${a.workingDays} days${f !== 1 ? ` × ${f}` : ""}` }));
         break;
       }
       case "tooling": {
+        // Seats are billed in any month the activity is on; the factor scales coding-agent tokens.
+        const f = at(a.monthFactors, m - 1);
+        if (f === 0) break;
         const seats = devs * a.copilotSeatsPerDev;
         if (seats > 0) out.push(line({ id: `${a.id}:copilot`, componentId: a.id, label: book.unit(a.copilotPlan).label, stream: "devlab", behaviour: "fixed", meter: a.copilotPlan, quantity: seats, unit: "seat-month", unitPrice: book.unitPrice(a.copilotPlan), formula: `${seats} seats` }));
         const t = a.codingTokensPerDevPerDay;
         const per = book.chatCost(a.codingModelId, { input: t.input, cachedInput: t.cachedInput, output: t.output }, date);
-        out.push(line({ id: `${a.id}:coding`, componentId: a.id, label: `Coding agent tokens (${book.chatModel(a.codingModelId).label})`, stream: "devlab", behaviour: "usage", meter: a.codingModelId, quantity: devs * a.workingDays, unit: "developer-day", unitPrice: per,
-          formula: `${devs} devs × ${a.workingDays} days × (${fmtInt(t.input)} in + ${fmtInt(t.cachedInput)} cached + ${fmtInt(t.output)} out)` }));
+        out.push(line({ id: `${a.id}:coding`, componentId: a.id, label: `Coding agent tokens (${book.chatModel(a.codingModelId).label})`, stream: "devlab", behaviour: "usage", meter: a.codingModelId, quantity: devs * a.workingDays * f, unit: "developer-day", unitPrice: per,
+          formula: `${devs} devs × ${a.workingDays} days${f !== 1 ? ` × ${f}` : ""} × (${fmtInt(t.input)} in + ${fmtInt(t.cachedInput)} cached + ${fmtInt(t.output)} out)` }));
         break;
       }
       case "redteam": {
         if (!inWindow(a)) break;
-        const probes = a.scansPerMonth * a.categories * a.objectivesPerCategory * (1 + a.strategies);
+        const f = at(a.monthFactors, m - 1);
+        const probes = a.scansPerMonth * a.categories * a.objectivesPerCategory * (1 + a.strategies) * f;
+        if (probes === 0) break;
         const turns = 1 + a.multiTurnShare * (heuristics.redTeam.multiTurnFactor - 1);
         const rt = heuristics.redTeam;
         const target = book.chatCost(a.targetModelId, { input: rt.probeInputTokens * turns, output: rt.probeOutputTokens * turns }, date);
         const scoring = ((rt.probeInputTokens + rt.probeOutputTokens) * turns * book.unitPrice("eval-safety-input") + 200 * book.unitPrice("eval-safety-output")) / 1e6;
         out.push(line({ id: a.id, componentId: a.id, label: a.label, stream: "devlab", behaviour: "usage", meter: "eval-safety-input", quantity: probes, unit: "probe", unitPrice: target + scoring,
-          formula: `${a.scansPerMonth} scans × ${a.categories} categories × ${a.objectivesPerCategory} objectives × (1 + ${a.strategies} strategies) = ${fmtInt(probes)} probes` }));
+          formula: `${a.scansPerMonth} scans × ${a.categories} categories × ${a.objectivesPerCategory} objectives × (1 + ${a.strategies} strategies)${f !== 1 ? ` × ${f}` : ""} = ${fmtInt(probes)} probes` }));
         break;
       }
       case "evaluation":
