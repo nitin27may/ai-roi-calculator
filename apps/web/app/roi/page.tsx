@@ -1,9 +1,9 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { LEVERS, applyScenario, avoidedMonthly, capabilityFromBenchmark, capabilityHours, compareScenarios, computeAllocation, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
+import { LEVERS, applyScenario, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityHours, compareScenarios, computeAllocation, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Seg, Select } from "@/components/ui";
-import { CumulativeLine } from "@/components/charts";
+import { CumulativeLine, Legend } from "@/components/charts";
 import { catalog, modelOptions, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { AddMenu } from "@/components/add-menu";
@@ -15,7 +15,7 @@ const BASES = [
   { value: "full", label: "Full lifecycle", hint: "Build labour + AI Dev Lab + dev environment + run + maintenance + transition." },
 ] as const;
 
-type Tab = "cash" | "years" | "capabilities" | "scenarios";
+type Tab = "cash" | "years" | "capabilities" | "beforeAfter" | "scenarios";
 
 export default function Roi() {
   const [tab, setTab] = useState<Tab>("cash");
@@ -24,12 +24,12 @@ export default function Roi() {
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Assumptions />
       <Card>
-        <CardHead title={{ cash: "Cumulative cash position", years: "By year", capabilities: "ROI by capability", scenarios: "Scenarios" }[tab]}
+        <CardHead title={{ cash: "Cumulative cash position", years: "By year", capabilities: "ROI by capability", beforeAfter: "Today vs with AI", scenarios: "Scenarios" }[tab]}
           sub={tab === "scenarios" ? "What-ifs compared with the baseline on the selected cost basis" : `Benefit minus ${BASES.find((b) => b.value === project.roi.basis)!.label.toLowerCase()} · NPV at ${project.roi.discountRatePct}%: ${cad(roi.npv)}`}>
-          <Seg label="View" value={tab} onChange={setTab} options={[{ value: "cash", label: "Cash" }, { value: "years", label: "By year" }, { value: "capabilities", label: "By capability" }, { value: "scenarios", label: "Scenarios" }]} />
+          <Seg label="View" value={tab} onChange={setTab} options={[{ value: "cash", label: "Cash" }, { value: "years", label: "By year" }, { value: "capabilities", label: "By capability" }, { value: "beforeAfter", label: "Before / after" }, { value: "scenarios", label: "Scenarios" }]} />
         </CardHead>
         {tab === "cash" ? <div className="flex min-h-0 flex-1 px-1.5 pb-1.5"><CumulativeLine values={roi.cumulative} payback={roi.paybackMonth} /></div>
-          : <div className="min-h-0 flex-1 overflow-auto px-3.5 pb-3.5">{tab === "years" ? <Years /> : tab === "capabilities" ? <Capabilities /> : <Scenarios />}</div>}
+          : <div className="min-h-0 flex-1 overflow-auto px-3.5 pb-3.5">{tab === "years" ? <Years /> : tab === "capabilities" ? <Capabilities /> : tab === "beforeAfter" ? <BeforeAfterView /> : <Scenarios />}</div>}
       </Card>
     </div>
   );
@@ -119,6 +119,50 @@ function Assumptions() {
           onRemove={(i) => edit((d) => { d.roi.transitionCosts.splice(i, 1); })} amountLabel="CAD / month" H={H} />
       </div>
     </Card>
+  );
+}
+
+function BeforeAfterView() {
+  const { project, ledger } = useLedger();
+  const ba = beforeAfter(project, catalog.benchmarks, ledger.totals);
+  const withBase = ba.rows.filter((r) => r.baselineHours !== null);
+  const max = Math.max(ba.before, ba.after, 1);
+  const bar = (parts: { label: string; value: number; color: string }[]) => (
+    <div className="flex h-7 w-full overflow-hidden rounded bg-surface-2">
+      {parts.filter((x) => x.value > 0).map((x) => <div key={x.label} title={`${x.label}: ${cad(x.value)}`} style={{ width: `${(x.value / max) * 100}%`, background: x.color }} className="border-r-2 border-surface last:border-r-0" />)}
+    </div>
+  );
+  const labourBefore = withBase.reduce((s, r) => s + r.before, 0), labourAfter = withBase.reduce((s, r) => s + r.after, 0);
+  const change = ba.before > 0 ? (ba.after - ba.before) / ba.before : 0;
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="rounded-r-md border-l-[3px] border-accent bg-accent-soft px-3 py-2 text-[12.5px]">
+        At full rollout the work costs <b>{cad(ba.before)}/month today</b> and <b>{cad(ba.after)}/month with AI</b>{ba.before > 0 ? <> ({change <= 0 ? "" : "+"}{fmt(change * 100)}%)</> : null}, AI usage and maintenance included. Build cost is not in this view; the Cash tab pays it back.
+      </div>
+      <div className="grid grid-cols-[90px_1fr_auto] items-center gap-x-3 gap-y-2 text-[12.5px]">
+        <span className="text-muted">Today</span>
+        {bar([{ label: "People's time", value: labourBefore, color: "var(--s1)" }, { label: "Avoidable costs", value: ba.avoided, color: "var(--s4)" }])}
+        <span className="num font-semibold">{cad(ba.before)}</span>
+        <span className="text-muted">With AI</span>
+        {bar([{ label: "People's time", value: Math.max(0, labourAfter - ba.savedWithoutBaseline), color: "var(--s1)" }, { label: "AI usage and platform", value: ba.ai, color: "var(--s2)" }, { label: "Maintenance", value: ba.maint, color: "var(--s3)" }])}
+        <span className="num font-semibold">{cad(ba.after)}</span>
+      </div>
+      <Legend items={[{ label: "People's time", color: "var(--s1)" }, { label: "Avoidable costs", color: "var(--s4)" }, { label: "AI usage and platform", color: "var(--s2)" }, { label: "Maintenance", color: "var(--s3)" }]} />
+      <table className="data">
+        <thead><tr><th>Capability</th><th className="n">Hours today</th><th className="n">Hours saved</th><th className="n">Reduction</th><th className="n">Today</th><th className="n">With AI</th></tr></thead>
+        <tbody>
+          {withBase.map((r) => (
+            <tr key={r.id}><td>{r.label}</td><td className="n">{fmt(r.baselineHours!)}</td><td className="n">{fmt(r.savedHours)}</td><td className="n">{fmt((r.savedHours / Math.max(1, r.baselineHours!)) * 100)}%</td><td className="n">{cad(r.before)}</td><td className="n">{cad(r.after)}</td></tr>
+          ))}
+          {ba.avoided > 0 && <tr><td>Avoided costs</td><td /><td /><td /><td className="n">{cad(ba.avoided)}</td><td className="n">{cad(0)}</td></tr>}
+          <tr><td>AI usage and platform</td><td /><td /><td /><td className="n">–</td><td className="n">{cad(ba.ai)}</td></tr>
+          <tr><td>Maintenance</td><td /><td /><td /><td className="n">–</td><td className="n">{cad(ba.maint)}</td></tr>
+          {ba.savedWithoutBaseline > 0 && <tr><td>Time saved without a baseline<small className="block text-muted">{ba.rows.filter((r) => r.baselineHours === null).map((r) => r.label).join(", ")}</small></td><td /><td /><td /><td className="n">–</td><td className="n">−{cad(ba.savedWithoutBaseline)}</td></tr>}
+          <tr className="total"><td>Total per month</td><td /><td /><td /><td className="n">{cad(ba.before)}</td><td className="n">{cad(ba.after)}</td></tr>
+        </tbody>
+      </table>
+      <p className="text-[11.5px] text-muted">Today&apos;s hours come from each capability&apos;s baseline minutes across all its users or items (not only adopters). Capabilities entered as net hours have no baseline: their saving is shown as a single line. Growth and rate escalation are left out so the two sides compare like for like.</p>
+    </div>
   );
 }
 

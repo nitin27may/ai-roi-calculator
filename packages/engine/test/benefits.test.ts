@@ -102,3 +102,16 @@ describe("avoided headcount", () => {
     expect(L2.months[B + 12]!.benefitBy.avoided).toBe(4000);
   });
 });
+
+describe("before and after", () => {
+  it("reconciles: before − after = net monthly benefit − run − maintenance at full rollout", async () => {
+    const { beforeAfter } = await import("../src/index.js");
+    const p = withPreset("typical");
+    const L = buildLedger(p, cat);
+    const ba = beforeAfter(p, lib, L.totals);
+    const notes = ba.rows.find((r) => r.id === "notes")!;
+    expect(notes.baselineHours).toBeCloseTo((800 * 0.5 * 21 * 30) / 60, 6);
+    expect(ba.rows.find((r) => r.id === "ask")!.baselineHours).toBeNull();
+    expect(ba.before - ba.after).toBeCloseTo(L.totals.benefitRate - L.totals.runRate - L.totals.maintRate, 4);
+  });
+});

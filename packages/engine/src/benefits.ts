@@ -98,3 +98,43 @@ export function avoidedMonthly(p: Project, a: Project["benefits"]["avoidedCosts"
   const rate = p.rateCard.find((r) => r.id === a.roleId)?.hourlyRate ?? 0;
   return a.fte * (a.hoursPerMonth ?? 160) * rate;
 }
+
+export interface BeforeAfterRow { id: string; label: string; baselineHours: number | null; savedHours: number; before: number; after: number }
+export interface BeforeAfter {
+  rows: BeforeAfterRow[];
+  avoided: number;
+  /** Production AI usage + platform, and maintenance, at the first full-adoption month. */
+  ai: number;
+  maint: number;
+  before: number;
+  after: number;
+  /** Savings from capabilities entered as hours, which have no baseline to show "before". */
+  savedWithoutBaseline: number;
+}
+
+/**
+ * Monthly cost of the work today against the same work with the AI solution, at full rollout
+ * (no growth or escalation). Today's time comes from each capability's baseline minutes across
+ * all its users or items, valued at the role's rate; avoided costs are part of today's cost.
+ */
+export function beforeAfter(p: Project, lib: Library, ledgerTotals: { runRate: number; maintRate: number }): BeforeAfter {
+  const days = p.roi.workingDaysPerMonth ?? DEFAULT_WORKING_DAYS;
+  const rates = new Map(p.rateCard.map((r) => [r.id, r.hourlyRate]));
+  const rows: BeforeAfterRow[] = p.benefits.capabilities.map((c) => {
+    const h = capabilityHours(p, c, lib);
+    const rate = rates.get(c.roleId) ?? 0;
+    const baseline = c.baselineMinutes ?? (c.benchmarkId ? lib.capabilities.find((b) => b.id === c.benchmarkId)?.baselineMinutes : undefined) ?? 0;
+    let hours: number | null = null;
+    if (h.driver === "perTask") hours = ((c.users ?? 0) * (c.tasksPerUserPerDay ?? 0) * days * baseline) / 60;
+    else if (h.driver === "perUserWeek") hours = ((c.users ?? 0) * baseline * WEEKS_PER_MONTH) / 60;
+    else if (h.driver === "perVolume") hours = ((c.itemsPerMonth ?? 0) * baseline) / 60;
+    if (hours === null) return { id: c.id, label: c.label, baselineHours: null, savedHours: h.net, before: 0, after: -h.net * rate };
+    return { id: c.id, label: c.label, baselineHours: hours, savedHours: h.net, before: hours * rate, after: Math.max(0, hours - h.net) * rate };
+  });
+  const avoided = p.benefits.avoidedCosts.reduce((s, a) => s + avoidedMonthly(p, a), 0);
+  const withBase = rows.filter((r) => r.baselineHours !== null);
+  const savedWithoutBaseline = rows.filter((r) => r.baselineHours === null).reduce((s, r) => s - r.after, 0);
+  const before = withBase.reduce((s, r) => s + r.before, 0) + avoided;
+  const after = withBase.reduce((s, r) => s + r.after, 0) + ledgerTotals.runRate + ledgerTotals.maintRate - savedWithoutBaseline;
+  return { rows, avoided, ai: ledgerTotals.runRate, maint: ledgerTotals.maintRate, before, after, savedWithoutBaseline };
+}
