@@ -6,7 +6,7 @@ import { useStudio } from "@/lib/store";
 export type Spec =
   | { key: string; label: string; type: "number"; min?: number; max?: number; step?: number; suffix?: string }
   | { key: string; label: string; type: "percent" }
-  | { key: string; label: string; type: "model" | "embedding" | "speech" | "harness" | "unitPrice" }
+  | { key: string; label: string; type: "model" | "embedding" | "speech" | "harness" | "unitPrice" | "sfModel" | "sfFunction" | "sfEmbedding" | "extractor" }
   | { key: string; label: string; type: "select"; options: { value: string; label: string }[]; numeric?: boolean }
   | { key: string; label: string; type: "toggle" }
   | { key: string; label: string; type: "list"; hint: string };
@@ -23,6 +23,10 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
     if (t === "embedding") return catalog.embeddingModels.map((m) => ({ value: m.id, label: m.label }));
     if (t === "speech") return catalog.speechEngines.map((m) => ({ value: m.id, label: `${m.label} · ${m.via}` }));
     if (t === "harness") return harnesses.map((h) => ({ value: h.id, label: h.label }));
+    if (t === "sfModel") return modelOptions((m) => m.platform === "snowflake");
+    if (t === "sfEmbedding") return catalog.embeddingModels.filter((m) => m.platform === "snowflake").map((m) => ({ value: m.id, label: m.label }));
+    if (t === "sfFunction") return catalog.unitPrices.filter((u) => u.platform === "snowflake" && u.unit === "1M tokens").map((u) => ({ value: u.id, label: u.label }));
+    if (t === "extractor") return catalog.unitPrices.filter((u) => u.unit === "1K pages").map((u) => ({ value: u.id, label: `${u.label}${u.platform === "snowflake" ? " (Snowflake)" : ""}` }));
     return catalog.unitPrices.map((u) => ({ value: u.id, label: `${u.label} (${u.unit})` }));
   };
   return (
@@ -181,6 +185,35 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
     { key: "batchShare", label: "Sent through Batch", type: "percent" },
   ],
 };
+
+Object.assign(WORKLOAD_SPECS, {
+  snowflakeComplete: [
+    { key: "modelId", label: "Cortex model", type: "sfModel" },
+    { key: "rowsPerMonth", label: "Rows / month", type: "number" },
+    { key: "inputTokens", label: "Input tokens per row", type: "number" },
+    { key: "outputTokens", label: "Output tokens per row", type: "number" },
+  ],
+  snowflakeFunction: [
+    { key: "functionId", label: "AI function", type: "sfFunction" },
+    { key: "rowsPerMonth", label: "Rows / month", type: "number" },
+    { key: "tokensPerRow", label: "Input tokens per row (incl. labels)", type: "number" },
+    { key: "hiddenPromptTokens", label: "Hidden prompt tokens", type: "number" },
+    { key: "outputTokensPerRow", label: "Output tokens per row", type: "number" },
+  ],
+  cortexSearch: [
+    { key: "rows", label: "Indexed rows", type: "number" },
+    { key: "vectorColumns", label: "Vector columns", type: "number", min: 1, max: 8 },
+    { key: "embeddingModelId", label: "Embedding model", type: "sfEmbedding" },
+    { key: "avgRowBytes", label: "Average row bytes", type: "number" },
+    { key: "tokensPerRow", label: "Tokens per row", type: "number" },
+    { key: "changedShareMonthly", label: "Rows changed per month", type: "percent" },
+  ],
+} satisfies Record<string, Spec[]>);
+
+export const WAREHOUSE_SPECS: Spec[] = [
+  { key: "size", label: "Warehouse size", type: "select", options: [{ value: "xs", label: "X-Small (1 credit/h)" }, { value: "s", label: "Small (2)" }, { value: "m", label: "Medium (4)" }, { value: "l", label: "Large (8)" }, { value: "xl", label: "X-Large (16)" }] },
+  { key: "hoursPerMonth", label: "Running hours / month", type: "number" },
+];
 
 export const HARNESS_SPECS: Spec[] = [
   { key: "systemPromptTokens", label: "System prompt tokens", type: "number" },

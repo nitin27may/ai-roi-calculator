@@ -62,6 +62,9 @@ export type DevActivity = z.infer<typeof DevActivitySchema>;
 /** A fixed or metered catalogue item: quantity of unitPriceId per month. */
 export const FixedItemSchema = z.object({ id, label: z.string(), unitPriceId: id, quantity: n0 });
 
+/** A Snowflake virtual warehouse: size and running hours per month at full volume. */
+export const Warehouse = z.object({ size: z.enum(["xs", "s", "m", "l", "xl"]), hoursPerMonth: n0 });
+
 export const WorkloadSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("transcription"), id, label: z.string(), hoursPerMonth: n0, engineId: id, diarize: z.boolean(),
@@ -75,6 +78,8 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
       z.object({ type: z.literal("direct"), modelId: id }),
     ]),
     enrich: z.object({ modelId: id, pagesPerDoc: z.number().positive(), outputTokensPerDoc: n0 }).optional(),
+    /** Snowflake virtual warehouse that runs AI_PARSE_DOCUMENT (platform credits). */
+    warehouse: Warehouse.optional(),
   }),
   z.object({
     kind: z.literal("email"), id, label: z.string(), emailsPerMonth: n0, bodyExtractorId: id, attachmentExtractorId: id,
@@ -110,6 +115,19 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
     inputTokens: n0, cachedInputTokens: n0, outputTokens: n0, batchShare: share,
   }),
   z.object({ kind: z.literal("fixed"), id, label: z.string(), group: z.string(), items: z.array(FixedItemSchema) }),
+  z.object({
+    kind: z.literal("snowflakeComplete"), id, label: z.string(), modelId: id, rowsPerMonth: n0,
+    inputTokens: n0, outputTokens: n0, warehouse: Warehouse,
+  }),
+  z.object({
+    kind: z.literal("snowflakeFunction"), id, label: z.string(), functionId: id, rowsPerMonth: n0,
+    /** Billed tokens per row: your text plus labels/examples; the function's hidden prompt is added on top. */
+    tokensPerRow: n0, hiddenPromptTokens: n0, outputTokensPerRow: n0, warehouse: Warehouse,
+  }),
+  z.object({
+    kind: z.literal("cortexSearch"), id, label: z.string(), rows: n0, vectorColumns: z.number().int().positive(),
+    embeddingModelId: id, avgRowBytes: n0, tokensPerRow: n0, changedShareMonthly: share, warehouse: Warehouse,
+  }),
 ]);
 export type Workload = z.infer<typeof WorkloadSchema>;
 

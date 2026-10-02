@@ -33,6 +33,9 @@ export const WORKLOAD_KINDS: { kind: Workload["kind"]; label: string; detail: st
   { kind: "contentSafety", label: "Content Safety", detail: "Moderation and Prompt Shields per request" },
   { kind: "llm", label: "Other LLM calls", detail: "Any calls with known token sizes; Batch optional" },
   { kind: "fixed", label: "Platform & infrastructure", detail: "Fixed monthly services (APIM, storage, logs…)" },
+  { kind: "snowflakeComplete", label: "Snowflake AI_COMPLETE", detail: "Cortex LLM calls over table rows, plus warehouse time" },
+  { kind: "snowflakeFunction", label: "Snowflake AI function", detail: "AI_CLASSIFY, AI_EXTRACT, AI_TRANSLATE… plus warehouse time" },
+  { kind: "cortexSearch", label: "Snowflake Cortex Search", detail: "Serving per GB, re-embedding and refresh warehouse" },
 ];
 
 /** An id not used by any activity, workload or harness in the project. */
@@ -81,6 +84,9 @@ export function newWorkload(p: Project, kind: Workload["kind"]): Workload {
     case "continuousEval": return { kind, id, label, interactionsPerMonth: 50_000, sampleShare: 0.05, judgeModelId: JUDGE_MODEL, evaluators: ["groundedness", "relevance", "coherence"], contextTokens: 2500, responseTokens: 400, safetyEvaluators: 0 };
     case "contentSafety": return { kind, id, label, requestsPerMonth: 50_000, charsPerRequest: 3000, unitPriceIds: ["safety-text", "safety-prompt-shields"] };
     case "llm": return { kind, id, label, callsPerMonth: 10_000, modelId: DEFAULT_MODEL, inputTokens: 2000, cachedInputTokens: 0, outputTokens: 500, batchShare: 0 };
+    case "snowflakeComplete": return { kind, id, label, modelId: "sf:openai-gpt-5", rowsPerMonth: 50_000, inputTokens: 800, outputTokens: 200, warehouse: { size: "m", hoursPerMonth: 20 } };
+    case "snowflakeFunction": return { kind, id, label, functionId: "sf-ai-classify", rowsPerMonth: 100_000, tokensPerRow: 300, hiddenPromptTokens: 150, outputTokensPerRow: 10, warehouse: { size: "m", hoursPerMonth: 10 } };
+    case "cortexSearch": return { kind, id, label, rows: 1_000_000, vectorColumns: 1, embeddingModelId: "sf:snowflake-arctic-embed-m-v1.5", avgRowBytes: 1000, tokensPerRow: 400, changedShareMonthly: 0.05, warehouse: { size: "m", hoursPerMonth: 8 } };
     case "fixed": return { kind, id, label, group: "Platform", items: [{ id: "apim", label: "API Management Basic v2", unitPriceId: "apim-basic-v2", quantity: 1 }, { id: "logs", label: "Application Insights ingestion", unitPriceId: "log-analytics-ingest", quantity: 20 }] };
   }
 }

@@ -1,10 +1,10 @@
 "use client";
 import { useMemo, useState } from "react";
 import { PriceBook, WORKLOAD_KINDS, newWorkload, removeWorkload, simulateHarness, sizeSearch, type Workload } from "@studio/engine";
-import { Card, CardHead, GroupHead, ListRow, Pill, Seg } from "@/components/ui";
+import { Card, CardHead, Field, GroupHead, ListRow, Pill, Seg, Select } from "@/components/ui";
 import { Explain } from "@/components/explain";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
-import { Fields, HARNESS_SPECS, WORKLOAD_SPECS } from "@/components/fields";
+import { Fields, HARNESS_SPECS, WAREHOUSE_SPECS, WORKLOAD_SPECS } from "@/components/fields";
 import { catalog, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad, fmt } from "@/lib/format";
@@ -12,15 +12,16 @@ import { cad, fmt } from "@/lib/format";
 const GROUP: Record<Workload["kind"], string> = {
   transcription: "Ingestion", documents: "Ingestion", email: "Ingestion", embeddings: "Retrieval", aiSearch: "Retrieval", retrieval: "Retrieval",
   chat: "Conversation", agent: "Agents", continuousEval: "Quality & safety", contentSafety: "Quality & safety", llm: "Other AI usage", fixed: "Platform",
+  snowflakeComplete: "Snowflake", snowflakeFunction: "Snowflake", cortexSearch: "Snowflake",
 };
-const ORDER = ["Ingestion", "Retrieval", "Conversation", "Agents", "Quality & safety", "Other AI usage", "Platform"];
+const ORDER = ["Ingestion", "Retrieval", "Conversation", "Agents", "Quality & safety", "Snowflake", "Other AI usage", "Platform"];
 
 export default function Run() {
   const { project, ledger } = useLedger();
   const percentile = useStudio((s) => s.percentile);
   const setPercentile = useStudio((s) => s.setPercentile);
   const [sel, setSel] = useState(project.workloads[0]?.id ?? "maintenance");
-  const steady = ledger.months.at(-1)!;
+  const steady = ledger.months.find((m) => m.phase === "production" && m.adoption >= 1) ?? ledger.months.at(-1)!;
   const costOf = (id: string) => steady.lines.filter((l) => l.componentId === id).reduce((s, l) => s + l.cost, 0);
   const groups = ORDER.map((g) => [g, project.workloads.filter((w) => GROUP[w.kind] === g)] as const).filter(([, ws]) => ws.length);
 
@@ -70,6 +71,9 @@ function summary(w: Workload): string {
     case "contentSafety": return `${fmt(w.requestsPerMonth)} requests`;
     case "llm": return `${fmt(w.callsPerMonth)} calls · ${w.modelId}`;
     case "fixed": return w.items.map((i) => i.label).join(" · ");
+    case "snowflakeComplete": return `${fmt(w.rowsPerMonth)} rows · ${w.modelId.replace(/^sf:/, "")}`;
+    case "snowflakeFunction": return `${fmt(w.rowsPerMonth)} rows · ${catalog.unitPrices.find((u) => u.id === w.functionId)?.label}`;
+    case "cortexSearch": return `${fmt(w.rows)} rows · ${w.changedShareMonthly * 100}% change monthly`;
   }
 }
 
@@ -88,7 +92,7 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
   const edit = useStudio((s) => s.edit);
   const { project, ledger } = useLedger();
   const percentile = useStudio((s) => s.percentile);
-  const steady = ledger.months.at(-1)!;
+  const steady = ledger.months.find((m) => m.phase === "production" && m.adoption >= 1) ?? ledger.months.at(-1)!;
   if (sel === "maintenance") {
     return (
       <>
@@ -121,11 +125,38 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
         onRemove={() => { edit((d) => removeWorkload(d, w.id)); onRemoved(); }} />
       <div className="font-display text-[26px] font-bold">{cad(total)}<span className="ml-1.5 font-sans text-xs font-normal text-muted">per month at full adoption{w.kind === "agent" ? ` · ${percentile.toUpperCase()}` : ""}</span></div>
       {WORKLOAD_SPECS[w.kind] && <Fields specs={WORKLOAD_SPECS[w.kind]!} value={w as unknown as Record<string, unknown>} locate={locate} />}
+      {w.kind === "documents" && <DocumentRoute id={w.id} />}
+      {"warehouse" in w && w.warehouse && (
+        <div>
+          <h3 className="mb-1.5 text-sm font-semibold">Snowflake warehouse</h3>
+          <Fields specs={WAREHOUSE_SPECS} value={w.warehouse as unknown as Record<string, unknown>} locate={(d) => (d.workloads.find((x) => x.id === w.id) as { warehouse?: Record<string, unknown> }).warehouse} />
+          <p className="mt-1.5 text-[11.5px] text-muted">Snowflake recommends MEDIUM or smaller for AI functions; a larger warehouse does not speed them up. Hours are billed per second with a 60-second minimum per resume, in platform credits.</p>
+        </div>
+      )}
       {w.kind === "transcription" && <SpeechCompare hours={w.hoursPerMonth} current={w.engineId} id={w.id} diarize={w.diarize} />}
       {w.kind === "agent" && <HarnessTable harnessId={w.harnessId} modelId={w.modelId} cacheHit={w.cacheHit} tasks={w.tasksPerMonth} />}
       {w.kind === "aiSearch" && <SearchSizing w={w} />}
       <Explain title="How this is calculated" lines={lines} months={1} />
     </>
+  );
+}
+
+function DocumentRoute({ id }: { id: string }) {
+  const project = useStudio((s) => s.project);
+  const edit = useStudio((s) => s.edit);
+  const w = project.workloads.find((x) => x.id === id);
+  if (w?.kind !== "documents") return null;
+  const extractors = catalog.unitPrices.filter((u) => u.unit === "1K pages").map((u) => ({ value: u.id, label: `${u.label}${u.platform === "snowflake" ? " (Snowflake)" : ""}` }));
+  const models = catalog.chatModels.filter((m) => m.platform === "azure").map((m) => ({ value: m.id, label: m.label }));
+  const set = (fn: (x: Extract<typeof w, { kind: "documents" }>) => void) => edit((d) => { const x = d.workloads.find((y) => y.id === id); if (x?.kind === "documents") fn(x); });
+  const route = w.route;
+  return (
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-2.5">
+      <Field label="Route"><Select value={route.type} options={[{ value: "extract", label: "Extract text first" }, { value: "direct", label: "PDF straight to a model" }]} onChange={(v) => set((x) => { x.route = v === "direct" ? { type: "direct", modelId: "gpt-5.4-mini" } : { type: "extract", extractorId: "di-layout", addOnIds: [] }; })} /></Field>
+      {route.type === "extract"
+        ? <Field label="Extraction service"><Select value={route.extractorId} options={extractors} onChange={(v) => set((x) => { if (x.route.type === "extract") x.route.extractorId = v; if (v.startsWith("sf-") && !x.warehouse) x.warehouse = { size: "m", hoursPerMonth: 10 }; if (!v.startsWith("sf-")) delete x.warehouse; })} /></Field>
+        : <Field label="Model"><Select value={route.modelId} options={models} onChange={(v) => set((x) => { if (x.route.type === "direct") x.route.modelId = v; })} /></Field>}
+    </div>
   );
 }
 
@@ -142,7 +173,7 @@ function SpeechCompare({ hours, current, id, diarize }: { hours: number; current
   const rows = catalog.speechEngines.map((e) => ({ e, rate: book.speechPerHour(e.id, date, diarize) })).sort((a, b) => a.rate - b.rate);
   return (
     <div>
-      <h3 className="mb-1.5 text-sm font-semibold">Every engine for the same {fmt(hours)} hours, priced at month {ledger.months.length}</h3>
+      <h3 className="mb-1.5 text-sm font-semibold">Every engine for the same {fmt(hours)} hours, priced at month {ledger.months.length} (end of plan)</h3>
       <table className="data">
         <thead><tr><th>Engine</th><th>Via</th><th className="n">CAD / hour</th><th className="n">CAD / month</th><th /></tr></thead>
         <tbody>

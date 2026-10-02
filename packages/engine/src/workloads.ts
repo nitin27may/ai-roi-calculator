@@ -50,6 +50,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
         const perPage = H.pages.directPdfTokensPerPage[book.chatModel(w.route.modelId).tokenizer] / book.tokenizerMultiplier(w.route.modelId);
         out.push(llm("direct", `${w.label}: direct to model`, w.route.modelId, w.pagesPerMonth, perPage, 0, 0));
       }
+      if (w.warehouse) out.push(warehouseLine(id, w.label, w.warehouse, book, "usage"));
       if (w.enrich) {
         const docs = w.pagesPerMonth / w.enrich.pagesPerDoc;
         const inTok = tokensForPages(w.enrich.pagesPerDoc, w.pageType) * H.pages.layoutMarkdownOverhead + H.chat.systemPrompt;
@@ -120,7 +121,42 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       return [llm("calls", w.label, w.modelId, w.callsPerMonth, w.inputTokens, w.cachedInputTokens, w.outputTokens, "usage", w.batchShare)];
     case "fixed":
       return w.items.map((it) => unit(it.id, it.label, it.unitPriceId, it.quantity, "fixed", "platform"));
+    case "snowflakeComplete": {
+      const m = book.chatModel(w.modelId);
+      if (m.platform !== "snowflake") throw new Error(`${w.label}: ${m.label} is not a Snowflake Cortex model`);
+      return [llm("complete", `${w.label}: AI_COMPLETE`, w.modelId, w.rowsPerMonth, w.inputTokens, 0, w.outputTokens), warehouseLine(id, w.label, w.warehouse, book, "usage")];
+    }
+    case "snowflakeFunction": {
+      const u = book.unit(w.functionId);
+      const tokens = w.rowsPerMonth * (w.tokensPerRow + w.hiddenPromptTokens + w.outputTokensPerRow);
+      return [
+        line({ id: `${id}:fn`, componentId: id, label: `${w.label}: ${u.label}`, stream: "run", behaviour: "usage", meter: w.functionId, quantity: tokens / unitDivisor(u.unit), unit: u.unit, unitPrice: book.unitPrice(w.functionId),
+          formula: `${fmtInt(w.rowsPerMonth)} rows × (${fmtInt(w.tokensPerRow)} input + ${fmtInt(w.hiddenPromptTokens)} hidden prompt + ${fmtInt(w.outputTokensPerRow)} output) tokens × ${u.credits} AI credits per ${u.unit}` }),
+        warehouseLine(id, w.label, w.warehouse, book, "usage"),
+      ];
+    }
+    case "cortexSearch": {
+      const dims = book.embeddingDims(w.embeddingModelId);
+      const gb = (w.rows * (w.vectorColumns * dims * 4 + w.avgRowBytes)) / 1e9;
+      const serving = book.unitPrice("sf-search-serving");
+      const embedTokens = w.rows * w.changedShareMonthly * w.tokensPerRow;
+      return [
+        line({ id: `${id}:serving`, componentId: id, label: `${w.label}: serving`, stream: "platform", behaviour: "fixed", meter: "sf-search-serving", quantity: gb, unit: "GB-month", unitPrice: serving,
+          formula: `${fmtInt(w.rows)} rows × (${w.vectorColumns} × ${dims} dims × 4 B + ${fmtInt(w.avgRowBytes)} B) = ${gb.toFixed(2)} GB × 6.3 AI credits` }),
+        line({ id: `${id}:embed`, componentId: id, label: `${w.label}: embedding changed rows`, stream: "run", behaviour: "usage", meter: w.embeddingModelId, quantity: embedTokens / 1e6, unit: "1M tokens", unitPrice: book.embeddingPer1M(w.embeddingModelId),
+          formula: `${Math.round(w.changedShareMonthly * 100)}% of ${fmtInt(w.rows)} rows × ${fmtInt(w.tokensPerRow)} tokens re-embedded per month` }),
+        warehouseLine(id, `${w.label}: refresh`, w.warehouse, book, "fixed"),
+      ];
+    }
   }
+}
+
+/** Platform-credit cost of a Snowflake warehouse running `hoursPerMonth` (per-second billing, so hours are averages). */
+export function warehouseLine(id: string, label: string, wh: { size: "xs" | "s" | "m" | "l" | "xl"; hoursPerMonth: number }, book: PriceBook, behaviour: "usage" | "fixed"): Line {
+  const cph = book.catalog.snowflake.warehouseCreditsPerHour[wh.size] ?? 4;
+  const credit = book.platformCreditCad();
+  return line({ id: `${id}:warehouse`, componentId: id, label: `${label}: ${wh.size.toUpperCase()} warehouse`, stream: "run", behaviour, meter: `sf-warehouse-${wh.size}`, quantity: wh.hoursPerMonth, unit: "warehouse hour", unitPrice: cph * credit,
+    formula: `${wh.hoursPerMonth} h × ${cph} credits/h × CAD ${credit.toFixed(2)} per platform credit` });
 }
 
 /** Divisor that turns a raw count into catalogue units ("1K transactions" → 1000). */
