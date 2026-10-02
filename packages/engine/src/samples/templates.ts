@@ -14,7 +14,7 @@ export function blankProject(name: string, startDate = nextMonth()): Project {
       { id: "knowledgeWorker", label: "Knowledge worker", hourlyRate: 62.5 },
     ],
     harnesses: [],
-    build: { team: [{ roleId: "dev", people: 2, hoursPerMonth: 160, experiments: true }, { roleId: "architect", people: 0.5, hoursPerMonth: 160, experiments: false }], contingencyPct: 10, activities: [], environment: [{ id: "logs", label: "App Insights (dev)", unitPriceId: "log-analytics-ingest", quantity: 5 }] },
+    build: { team: [{ roleId: "dev", people: 2, hoursPerMonth: 160, experiments: true }, { roleId: "architect", people: 0.5, hoursPerMonth: 160, experiments: false }], includeLabour: true, workstreams: [], contingencyPct: 10, activities: [], environment: [{ id: "logs", label: "App Insights (dev)", unitPriceId: "log-analytics-ingest", quantity: 5 }] },
     workloads: [],
     maintenance: { mode: "pctOfBuild", pctPerYear: 20 },
     benefits: { capabilities: [], avoidedCosts: [], oneOff: [] },

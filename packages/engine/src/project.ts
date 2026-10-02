@@ -15,50 +15,52 @@ export const HarnessSchema = z.object({
   compactAtTokens: n0, compactSummaryTokens: n0, retryRate: share,
 });
 
+/** Optional workstream the activity belongs to; absent means project-wide. */
+const Scope = { workstreamId: id.optional() };
 const Window = { fromMonth: z.number().int().positive().default(1), toMonth: z.number().int().positive().optional() };
 
 export const DevActivitySchema = z.discriminatedUnion("kind", [
   z.object({
-    kind: z.literal("bakeoff"), id, label: z.string(), harnessId: id,
+    kind: z.literal("bakeoff"), id, label: z.string(), ...Scope, harnessId: id,
     candidates: z.array(z.object({ modelId: id, ...Window })),
     cases: z.number().int().positive(), repeats: z.number().int().positive(),
     /** Sweeps per month; the last value repeats for later months. */
     sweepsPerMonth: z.array(n0).min(1), cacheHit: share, batchShare: share,
   }),
   z.object({
-    kind: z.literal("iterations"), id, label: z.string(), harnessId: id, modelId: id,
+    kind: z.literal("iterations"), id, label: z.string(), ...Scope, harnessId: id, modelId: id,
     runsPerDevPerDay: n0, subsetCases: z.number().int().positive(), workingDays: n0, cacheHit: share,
     /** Intensity per month (1 = full); last value repeats. */
     monthFactors: z.array(n0).default([1]),
   }),
   z.object({
-    kind: z.literal("regression"), id, label: z.string(), harnessId: id, modelIds: z.array(id).min(1),
+    kind: z.literal("regression"), id, label: z.string(), ...Scope, harnessId: id, modelIds: z.array(id).min(1),
     runsPerMonth: n0, cases: z.number().int().positive(), cacheHit: share, batchShare: share, ...Window,
     /** Intensity per month (1 = full); last value repeats. */
     monthFactors: z.array(n0).default([1]),
   }),
   z.object({
-    kind: z.literal("evaluation"), id, label: z.string(), judgeModelId: id, evaluators: z.array(z.string()),
+    kind: z.literal("evaluation"), id, label: z.string(), ...Scope, judgeModelId: id, evaluators: z.array(z.string()),
     queryTokens: n0, contextTokens: n0, responseTokens: n0,
     /** Share of the runs from other activities that are scored. */
     scoredShare: z.object({ bakeoff: share, iterations: share, regression: share }),
     safetyEvaluators: z.number().int().nonnegative(),
   }),
   z.object({
-    kind: z.literal("redteam"), id, label: z.string(), targetModelId: id, scansPerMonth: n0,
+    kind: z.literal("redteam"), id, label: z.string(), ...Scope, targetModelId: id, scansPerMonth: n0,
     categories: z.number().int().positive(), objectivesPerCategory: z.number().int().positive(), strategies: z.number().int().nonnegative(),
     multiTurnShare: share, ...Window,
     /** Intensity per month (1 = full); last value repeats. */
     monthFactors: z.array(n0).default([1]),
   }),
   z.object({
-    kind: z.literal("playground"), id, label: z.string(), modelId: id,
+    kind: z.literal("playground"), id, label: z.string(), ...Scope, modelId: id,
     callsPerDevPerDay: n0, inputTokens: n0, outputTokens: n0, workingDays: n0,
     /** Intensity per month (1 = full); last value repeats. */
     monthFactors: z.array(n0).default([1]),
   }),
   z.object({
-    kind: z.literal("tooling"), id, label: z.string(),
+    kind: z.literal("tooling"), id, label: z.string(), ...Scope,
     copilotSeatsPerDev: n0, copilotPlan: z.enum(["copilot-business", "copilot-enterprise"]),
     codingModelId: id, codingTokensPerDevPerDay: z.object({ input: n0, cachedInput: n0, output: n0 }), workingDays: n0,
     /** Intensity per month (1 = full); last value repeats. */
@@ -66,6 +68,7 @@ export const DevActivitySchema = z.discriminatedUnion("kind", [
   }),
 ]);
 export type DevActivity = z.infer<typeof DevActivitySchema>;
+export type Workstream = z.infer<typeof WorkstreamSchema>;
 
 /** A fixed or metered catalogue item: quantity of unitPriceId per month. */
 export const FixedItemSchema = z.object({ id, label: z.string(), unitPriceId: id, quantity: n0 });
@@ -147,8 +150,27 @@ export type Workload = z.infer<typeof WorkloadSchema>;
 
 export const RoleSchema = z.object({ id, label: z.string(), hourlyRate: n0 });
 /** `experiments`: these people run AI Dev Lab experiments (drives per-developer activity volumes). */
+/** A share of a team line's time on one workstream, optionally for some build months only. */
+export const AllocationSchema = z.object({ workstreamId: id, share, fromMonth: z.number().int().positive().optional(), toMonth: z.number().int().positive().optional() });
+
+/**
+ * A feature (one or more agents) built as a unit. Effort-driven Dev Lab activities in it scale
+ * with the people allocated to it; artefact-driven ones (bake-off, regression, red team) run
+ * once for it. A component shared by several features is its own workstream. Capabilities link
+ * to workstreams through their componentIds, which carries build cost into per-capability ROI.
+ */
+export const WorkstreamSchema = z.object({
+  id, label: z.string(), harnessIds: z.array(id).default([]),
+  /** When false, no evaluation activity scores this workstream's runs. */
+  evaluated: z.boolean().default(true),
+});
+
 export const TeamLineSchema = z.object({
   roleId: id, people: n0, hoursPerMonth: n0, experiments: z.boolean().default(false),
+  /** A named seat ("Priya", "Dev A"); unnamed lines are role counts. */
+  name: z.string().optional(),
+  /** Shares of this line's time per workstream; the rest is project-wide work. */
+  allocations: z.array(AllocationSchema).optional(),
   /** Delivery phase name and the build months it covers (defaults to the whole build). */
   phase: z.string().optional(),
   fromMonth: z.number().int().positive().optional(),
@@ -188,6 +210,11 @@ export const ProjectSchema = z.object({
   harnesses: z.array(HarnessSchema),
   build: z.object({
     team: z.array(TeamLineSchema),
+    /** When false, the team only drives Dev Lab volumes and no build labour is costed. */
+    includeLabour: z.boolean().default(true),
+    workstreams: z.array(WorkstreamSchema).default([]),
+    /** Optional AI Dev Lab budget per experimenting person per month (CAD). */
+    devBudgetPerMonth: n0.optional(),
     contingencyPct: n0,
     activities: z.array(DevActivitySchema),
     environment: z.array(FixedItemSchema),
@@ -196,6 +223,7 @@ export const ProjectSchema = z.object({
   maintenance: z.discriminatedUnion("mode", [
     z.object({ mode: z.literal("team"), team: z.array(TeamLineSchema) }),
     z.object({ mode: z.literal("pctOfBuild"), pctPerYear: n0 }),
+    z.object({ mode: z.literal("none") }),
   ]),
   benefits: z.object({
     /** Time saved at full adoption. `componentIds`: workloads this capability uses, for cost allocation. */

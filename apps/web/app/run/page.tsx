@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { PriceBook, WORKLOAD_KINDS, cascadeCall, harnessUsage, newHarness, newWorkload, removeWorkload, simulateHarness, sizeSearch, voiceCall, type Workload } from "@studio/engine";
-import { Card, CardHead, Field, GroupHead, ListRow, Pill, Seg, Select } from "@/components/ui";
+import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Pill, Seg, Select } from "@/components/ui";
+import { Plus, Trash2 } from "lucide-react";
 import { Explain } from "@/components/explain";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
 import { Fields, HARNESS_SPECS, WAREHOUSE_SPECS, WORKLOAD_SPECS } from "@/components/fields";
@@ -50,7 +51,7 @@ export default function Run() {
           {project.harnesses.map((h) => <ListRow key={h.id} selected={sel === `h:${h.id}`} onClick={() => setSel(`h:${h.id}`)} title={h.label} sub={`${h.tools} tools · ${h.steps} steps · max ${h.maxTurns} turns`} value="" />)}
           <div className="px-3.5 py-2.5"><AddHarness onAdded={(id) => setSel(`h:${id}`)} /></div>
           <GroupHead>Operations</GroupHead>
-          <ListRow selected={sel === "maintenance"} onClick={() => setSel("maintenance")} title="Maintenance" sub={project.maintenance.mode === "team" ? "support team" : `${project.maintenance.pctPerYear}% of build per year`} aside={<Pill>fixed</Pill>} value={cad(ledger.totals.maintRate)} />
+          <ListRow selected={sel === "maintenance"} onClick={() => setSel("maintenance")} title="Maintenance" sub={project.maintenance.mode === "team" ? "support team" : project.maintenance.mode === "none" ? "not costed" : `${project.maintenance.pctPerYear}% of build per year`} aside={<Pill>fixed</Pill>} value={cad(ledger.totals.maintRate)} />
         </div>
       </Card>
       <Card>
@@ -116,7 +117,29 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
       <>
         <h2 className="text-base font-bold">Maintenance</h2>
         <div className="font-display text-[26px] font-bold">{cad(ledger.totals.maintRate)}<span className="ml-1.5 font-sans text-xs font-normal text-muted">per month</span></div>
-        <Explain title="How this is calculated" lines={steady.lines.filter((l) => l.stream === "maint")} months={1} />
+        <Seg label="Maintenance mode" value={project.maintenance.mode} onChange={(mode) => edit((d) => {
+          if (mode === d.maintenance.mode) return;
+          d.maintenance = mode === "none" ? { mode } : mode === "pctOfBuild" ? { mode, pctPerYear: 20 } : { mode, team: [{ roleId: d.rateCard[0]!.id, people: 0.5, hoursPerMonth: 160, experiments: false }] };
+        })} options={[{ value: "none", label: "None" }, { value: "pctOfBuild", label: "% of build" }, { value: "team", label: "Support team" }]} />
+        {project.maintenance.mode === "none" && <p className="text-xs text-muted">No maintenance cost. Use this when support sits in another budget or you are costing tokens only.</p>}
+        {project.maintenance.mode === "pctOfBuild" && <Field label="Per year, as a share of build cost"><NumberInput value={project.maintenance.pctPerYear} max={100} suffix="%" onChange={(v) => edit((d) => { if (d.maintenance.mode === "pctOfBuild") d.maintenance.pctPerYear = v; })} /></Field>}
+        {project.maintenance.mode === "team" && (
+          <table className="data">
+            <thead><tr><th>Role</th><th className="n">People</th><th className="n">Hours / month</th><th /></tr></thead>
+            <tbody>
+              {project.maintenance.team.map((t, i) => (
+                <tr key={i}>
+                  <td><Select value={t.roleId} options={project.rateCard.map((r) => ({ value: r.id, label: r.label }))} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.roleId = v; })} /></td>
+                  <td className="n w-24"><NumberInput value={t.people} step={0.1} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.people = v; })} /></td>
+                  <td className="n w-28"><NumberInput value={t.hoursPerMonth} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.hoursPerMonth = v; })} /></td>
+                  <td><button type="button" aria-label="Remove line" onClick={() => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team.splice(i, 1); })}><Trash2 size={14} /></button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {project.maintenance.mode === "team" && <button type="button" className="flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2" onClick={() => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team.push({ roleId: d.rateCard[0]!.id, people: 0.5, hoursPerMonth: 160, experiments: false }); })}><Plus size={14} />Add support line</button>}
+        {project.maintenance.mode !== "none" && <Explain title="How this is calculated" lines={steady.lines.filter((l) => l.stream === "maint")} months={1} />}
       </>
     );
   }

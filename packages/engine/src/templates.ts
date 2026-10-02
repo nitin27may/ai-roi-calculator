@@ -41,7 +41,7 @@ export const WORKLOAD_KINDS: { kind: Workload["kind"]; label: string; detail: st
 
 /** An id not used by any activity, workload or harness in the project. */
 export function uniqueId(p: Project, base: string): string {
-  const taken = new Set([...p.build.activities.map((a) => a.id), ...p.workloads.map((w) => w.id), ...p.harnesses.map((h) => h.id)]);
+  const taken = new Set([...p.build.activities.map((a) => a.id), ...p.workloads.map((w) => w.id), ...p.harnesses.map((h) => h.id), ...p.build.workstreams.map((w) => w.id), ...p.benefits.capabilities.map((c) => c.id)]);
   if (!taken.has(base)) return base;
   let i = 2;
   while (taken.has(`${base}-${i}`)) i++;
@@ -110,4 +110,25 @@ export function harnessUsage(p: Project, id: string): string[] {
     ...p.build.activities.filter((a) => "harnessId" in a && a.harnessId === id).map((a) => `Build: ${a.label}`),
     ...p.workloads.filter((w) => w.kind === "agent" && w.harnessId === id).map((w) => `Run: ${w.label}`),
   ];
+}
+
+/** A new, empty workstream (feature). */
+export function newWorkstream(p: Project, label = "New workstream"): Project["build"]["workstreams"][number] {
+  return { id: uniqueId(p, "ws"), label, harnessIds: [], evaluated: true };
+}
+
+/** Remove a workstream and every reference to it: activities become project-wide, allocations and capability links go. */
+export function removeWorkstream(p: Project, id: string): void {
+  p.build.workstreams = p.build.workstreams.filter((w) => w.id !== id);
+  for (const a of p.build.activities) if (a.workstreamId === id) delete a.workstreamId;
+  for (const t of p.build.team) if (t.allocations) t.allocations = t.allocations.filter((x) => x.workstreamId !== id);
+  for (const c of p.benefits.capabilities) c.componentIds = c.componentIds.filter((x) => x !== id);
+}
+
+/** Set one team line's share of a workstream (0 removes the allocation). */
+export function setAllocation(p: Project, seat: number, workstreamId: string, share: number): void {
+  const t = p.build.team[seat];
+  if (!t) return;
+  const rest = (t.allocations ?? []).filter((x) => x.workstreamId !== workstreamId);
+  t.allocations = share > 0 ? [...rest, { workstreamId, share }] : rest;
 }

@@ -23,8 +23,16 @@ export const meetingIntelligence: Project = {
   build: {
     team: [
       { roleId: "architect", people: 1, hoursPerMonth: 160, experiments: false, phase: "Discovery", fromMonth: 1, toMonth: 1 },
-      { roleId: "dev", people: 3, hoursPerMonth: 160, experiments: true, phase: "Build", fromMonth: 1, toMonth: 6 },
+      { roleId: "dev", name: "Dev A", people: 1, hoursPerMonth: 160, experiments: true, phase: "Build", fromMonth: 1, toMonth: 6, allocations: [{ workstreamId: "ws-notes", share: 1 }] },
+      { roleId: "dev", name: "Dev B", people: 1, hoursPerMonth: 160, experiments: true, phase: "Build", fromMonth: 1, toMonth: 6, allocations: [{ workstreamId: "ws-ask", share: 0.7 }, { workstreamId: "ws-shared", share: 0.3 }] },
+      { roleId: "dev", name: "Dev C", people: 1, hoursPerMonth: 160, experiments: true, phase: "Build", fromMonth: 1, toMonth: 6, allocations: [{ workstreamId: "ws-notes", share: 0.5 }, { workstreamId: "ws-shared", share: 0.3 }] },
       { roleId: "architect", people: 0.5, hoursPerMonth: 160, experiments: false, phase: "Build", fromMonth: 2, toMonth: 6 },
+    ],
+    includeLabour: true,
+    workstreams: [
+      { id: "ws-notes", label: "Notes & follow-up agent", harnessIds: ["followup"], evaluated: true },
+      { id: "ws-ask", label: "Ask-my-meetings (RAG)", harnessIds: [], evaluated: true },
+      { id: "ws-shared", label: "Shared ingestion & retrieval", harnessIds: [], evaluated: false },
     ],
     contingencyPct: 0,
     activities: [
@@ -39,8 +47,8 @@ export const meetingIntelligence: Project = {
         ],
         cases: 200, repeats: 3, sweepsPerMonth: [4, 6, 4, 4, 2, 2], cacheHit: 0.3, batchShare: 0,
       },
-      { kind: "iterations", id: "iterations", label: "Harness iterations", harnessId: "followup", modelId: "gpt-5.4", runsPerDevPerDay: 12, subsetCases: 25, workingDays: 21, cacheHit: 0.3, monthFactors: [0.6, 0.6, 1] },
-      { kind: "regression", id: "regression", label: "Nightly regression", harnessId: "followup", modelIds: ["gpt-5.4"], runsPerMonth: 30, cases: 200, cacheHit: 0.5, batchShare: 0, fromMonth: 3, monthFactors: [1] },
+      { kind: "iterations", id: "iterations", workstreamId: "ws-notes", label: "Harness iterations", harnessId: "followup", modelId: "gpt-5.4", runsPerDevPerDay: 12, subsetCases: 25, workingDays: 21, cacheHit: 0.3, monthFactors: [0.6, 0.6, 1] },
+      { kind: "regression", id: "regression", workstreamId: "ws-notes", label: "Nightly regression", harnessId: "followup", modelIds: ["gpt-5.4"], runsPerMonth: 30, cases: 200, cacheHit: 0.5, batchShare: 0, fromMonth: 3, monthFactors: [1] },
       {
         kind: "evaluation", id: "evaluation", label: "Foundry evaluation", judgeModelId: "gpt-5.4-mini",
         evaluators: ["groundedness", "relevance", "coherence", "taskAdherence", "toolCallAccuracy"],
@@ -81,8 +89,8 @@ export const meetingIntelligence: Project = {
   maintenance: { mode: "team", team: [{ roleId: "dev", people: 0.4, hoursPerMonth: 160, experiments: false }] },
   benefits: {
     capabilities: [
-      { id: "notes", label: "Meeting notes and action items", hoursSavedPerMonth: 330, roleId: "knowledgeWorker", componentIds: ["stt", "agent", "email"] },
-      { id: "ask", label: "Ask-my-meetings answers", hoursSavedPerMonth: 140, roleId: "knowledgeWorker", componentIds: ["chat", "retrieval", "search", "embed", "docs"] },
+      { id: "notes", label: "Meeting notes and action items", hoursSavedPerMonth: 330, roleId: "knowledgeWorker", componentIds: ["stt", "agent", "email", "ws-notes", "ws-shared"] },
+      { id: "ask", label: "Ask-my-meetings answers", hoursSavedPerMonth: 140, roleId: "knowledgeWorker", componentIds: ["chat", "retrieval", "search", "embed", "docs", "ws-ask", "ws-shared"] },
     ],
     avoidedCosts: [{ id: "licence", label: "Retire third-party transcription licence", monthly: 4000, startMonth: 10 }],
     oneOff: [],

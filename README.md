@@ -3,6 +3,18 @@
 A local, offline calculator for what an AI use case costs to **build** and to **run**, and whether it pays back. Everything is priced in **CAD**, and the only providers are **Azure** (Foundry models including Claude on Foundry, Speech, Document Intelligence, Content Understanding, AI Search, Content Safety, evaluation) and **Snowflake Cortex**.
 
 - **Build.** Labour from a rate card by delivery phase, plus the **AI Dev Lab**: the tokens and AI services the team uses while building. That covers model bake-offs across candidate models, harness iterations, nightly regression, Foundry evaluation, AI red teaming, the playground and AI coding tools.
+- **Workstreams and people.**
+  - A workstream is a feature with one or more agents. Each team line (a named seat or a role count) gets a share of its time per workstream; whatever is left is project-wide work.
+  - Iterations and playground work in a workstream scale with the people on it.
+  - Bake-offs, regression and red teaming in a workstream run once, however many people share it, so a shared agent is not counted twice.
+  - Labour follows the shares.
+  - A capability that links a workstream carries that workstream's build cost into its own ROI.
+  - Breakdowns are available by workstream, by person (with an optional monthly AI budget per person and over-budget months highlighted) and by model.
+- **Month plan.** Every Dev Lab activity has an intensity per build month (sweeps for bake-offs), set in a grid or by applying a shape (ramp up, front-loaded, final third only).
+- **Optional labour, evaluation and maintenance.**
+  - Untick "Include labour cost" to cost AI spend only.
+  - Mark a workstream as not evaluated.
+  - Set maintenance to None.
 - **Add, remove and rename items.** Dev Lab activities and production workloads can be added from templates, removed or renamed.
 - **Run.** Production workloads: transcription with every speech engine side by side, documents, email, embeddings, AI Search sizing, retrieval, chat, agent harnesses at P50, P90 or worst case under caps, continuous evaluation, Content Safety and platform costs.
 - **Value & ROI.** Measure benefits against running cost only, running plus maintenance, or the full lifecycle. You get payback month, ROI, NPV at your discount rate, and cost and benefit by year.

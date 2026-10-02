@@ -28,18 +28,23 @@ const SHARED: Stream[] = ["labour", "devlab", "devenv", "platform", "maint", "tr
 
 /**
  * Splits the horizon's cost (under the chosen basis) across capabilities so each one gets its
- * own ROI. Workload costs follow the capability links; shared costs follow direct cost.
+ * own ROI. Workload costs and the build cost of linked workstreams follow the capability links;
+ * shared costs (including unlinked workstreams) follow direct cost.
  * Usage workloads nobody links are reported as unallocated rather than spread silently.
  * Allocated + unallocated always equals the total cost.
  */
 export function computeAllocation(p: Project, ledger: Ledger, basis: CostBasis): Allocation {
   const included = new Set<Stream>(basis === "run" ? ["run", "platform"] : basis === "runMaint" ? ["run", "platform", "maint", "transition"] : [...SHARED, "run"]);
   const byComponent = new Map<string, { label: string; cost: number; stream: Stream }>();
+  const linked = new Set(p.benefits.capabilities.flatMap((c) => c.componentIds));
   for (const mo of ledger.months) {
     for (const l of mo.lines) {
       if (!included.has(l.stream)) continue;
-      const key = l.stream === "run" ? l.componentId : `shared:${l.stream}`;
-      const e = byComponent.get(key) ?? { label: l.stream === "run" ? (p.workloads.find((w) => w.id === l.componentId)?.label ?? l.componentId) : l.stream, cost: 0, stream: l.stream };
+      // Build cost of a workstream a capability links to is direct cost of that capability.
+      const ws = l.workstreamId && linked.has(l.workstreamId) ? l.workstreamId : null;
+      const key = l.stream === "run" ? l.componentId : ws ?? `shared:${l.stream}`;
+      const label = l.stream === "run" ? (p.workloads.find((w) => w.id === l.componentId)?.label ?? l.componentId) : ws ? (p.build.workstreams.find((w) => w.id === ws)?.label ?? ws) : l.stream;
+      const e = byComponent.get(key) ?? { label, cost: 0, stream: l.stream };
       e.cost += l.cost;
       byComponent.set(key, e);
     }

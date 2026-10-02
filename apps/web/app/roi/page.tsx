@@ -84,9 +84,9 @@ function Assumptions() {
               <Field label="Hours saved / month"><NumberInput value={c.hoursSavedPerMonth} onChange={(v) => edit((d) => { d.benefits.capabilities[i]!.hoursSavedPerMonth = v; })} /></Field>
               <Field label="Valued at"><Select value={c.roleId} options={roles} onChange={(v) => edit((d) => { d.benefits.capabilities[i]!.roleId = v; })} /></Field>
               <details className="col-span-2 text-xs">
-                <summary className="cursor-pointer text-ink-2">Uses {c.componentIds.length} workload{c.componentIds.length === 1 ? "" : "s"} (for ROI by capability)</summary>
+                <summary className="cursor-pointer text-ink-2">Uses {c.componentIds.length} workload{c.componentIds.length === 1 ? "" : "s"} or workstream{c.componentIds.length === 1 ? "" : "s"} (for ROI by capability)</summary>
                 <div className="mt-1.5 grid grid-cols-2 gap-1">
-                  {project.workloads.filter((w) => w.kind !== "fixed").map((w) => (
+                  {[...project.workloads.filter((w) => w.kind !== "fixed"), ...project.build.workstreams.map((w) => ({ id: w.id, label: `Build: ${w.label}` }))].map((w) => (
                     <label key={w.id} className="flex items-center gap-1.5">
                       <input type="checkbox" checked={c.componentIds.includes(w.id)} onChange={(e) => edit((d) => { const cap = d.benefits.capabilities[i]!; cap.componentIds = e.target.checked ? [...cap.componentIds, w.id] : cap.componentIds.filter((x) => x !== w.id); })} />
                       <span className="truncate">{w.label}</span>
@@ -181,7 +181,7 @@ function Capabilities() {
         </tbody>
       </table>
       <div className="rounded-r-md border-l-[3px] border-accent bg-accent-soft px-3 py-2 text-[12.5px]">
-        Workload costs follow the links you set on each capability (shared equally when several capabilities use one workload). Build, platform, maintenance and transition costs are spread in proportion to each capability's direct cost. Allocated plus unallocated always equals the total.
+        Workload costs, and the build cost of linked workstreams, follow the links you set on each capability (shared equally when several capabilities use one). Build, platform, maintenance and transition costs are spread in proportion to each capability's direct cost. Allocated plus unallocated always equals the total.
       </div>
       {a.unallocated.cost > 0 && (
         <div>

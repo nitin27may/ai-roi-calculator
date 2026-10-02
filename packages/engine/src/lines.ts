@@ -20,6 +20,10 @@ export interface Line {
   /** CAD. */
   cost: number;
   formula: string;
+  /** Workstream the cost belongs to (build lines only); absent means project-wide. */
+  workstreamId?: string;
+  /** Index of the build team line a labour line comes from. */
+  seat?: number;
   /** For LLM lines: tokens per unit of quantity (per call, task or run). */
   tokens?: { input: number; cachedInput: number; output: number };
 }

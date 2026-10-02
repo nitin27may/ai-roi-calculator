@@ -64,7 +64,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
     let adoption = 0;
     const benefitBy: MonthBenefit = { capabilities: {}, avoided: 0, oneOff: 0 };
     if (m <= B) {
-      lines.push(...teamLines(p, p.build.team, "labour", "team", contingency, m));
+      if (p.build.includeLabour) lines.push(...teamLines(p, p.build.team, "labour", "team", contingency, m));
       lines.push(...devLabLines(p, m, book, date));
       lines.push(...p.build.environment.map((it) => line({ id: `devenv:${it.id}`, componentId: "devenv", label: it.label, stream: "devenv", behaviour: "fixed", meter: it.unitPriceId, quantity: it.quantity, unit: book.unit(it.unitPriceId).unit, unitPrice: book.unitPrice(it.unitPriceId), formula: `${it.quantity} × ${book.unit(it.unitPriceId).unit}` })));
       lines = lines.map((l) => ({ ...l, unitPrice: l.unitPrice * devCut, cost: l.cost * devCut }));
@@ -81,7 +81,8 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
           lines.push(l.behaviour === "usage" ? { ...l, quantity: l.quantity * usage, cost: l.cost * usage } : l);
         }
       }
-      const maint = p.maintenance.mode === "team"
+      const maint = p.maintenance.mode === "none" ? []
+        : p.maintenance.mode === "team"
         ? teamLines(p, p.maintenance.team, "maint", "maintenance", maintCut * esc)
         : [line({ id: "maintenance:pct", componentId: "maintenance", label: `Maintenance (${p.maintenance.pctPerYear}% of build per year)`, stream: "maint", behaviour: "fixed", meter: "maint-pct", quantity: 1, unit: "month", unitPrice: (buildTotal / devCut) * (p.maintenance.pctPerYear / 100 / 12) * maintCut, formula: `build × ${p.maintenance.pctPerYear}% ÷ 12` })];
       lines.push(...maint);

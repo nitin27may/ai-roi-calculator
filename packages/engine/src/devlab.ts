@@ -12,8 +12,11 @@ import { fmtInt, line, sum, type Line } from "./lines.js";
  */
 export function devLabLines(p: Project, m: number, book: PriceBook, date: string): Line[] {
   const harnesses = new Map(p.harnesses.map((h) => [h.id, h]));
-  const devs = developers(p, m);
-  const runs = { bakeoff: 0, iterations: 0, regression: 0 };
+  const allDevs = developers(p, m);
+  const efforts = seatEffort(p, m);
+  const wsEffort = (ws: string) => sum(efforts.map((e) => e.byWorkstream[ws] ?? 0));
+  type Runs = { bakeoff: number; iterations: number; regression: number };
+  const runsByScope = new Map<string, Runs>();
   const out: Line[] = [];
   const at = <T>(xs: T[], i: number) => xs[Math.min(i, xs.length - 1)]!;
   const inWindow = (a: { fromMonth: number; toMonth?: number | undefined }) => m >= a.fromMonth && m <= (a.toMonth ?? p.timeline.buildMonths);
@@ -25,6 +28,11 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
   };
 
   for (const a of p.build.activities) {
+    // Effort-driven activities scale with the people on the activity's workstream (everyone when project-wide).
+    const devs = a.workstreamId ? wsEffort(a.workstreamId) : allDevs;
+    const runs = runsByScope.get(a.workstreamId ?? "") ?? { bakeoff: 0, iterations: 0, regression: 0 };
+    runsByScope.set(a.workstreamId ?? "", runs);
+    const start = out.length;
     switch (a.kind) {
       case "bakeoff": {
         const h = harness(a);
@@ -102,12 +110,42 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
       case "evaluation":
         break;
     }
+    if (a.workstreamId) for (let k = start; k < out.length; k++) out[k]!.workstreamId = a.workstreamId;
   }
-  for (const a of p.build.activities.filter((x): x is Extract<DevActivity, { kind: "evaluation" }> => x.kind === "evaluation")) {
-    const n = runs.bakeoff * a.scoredShare.bakeoff + runs.iterations * a.scoredShare.iterations + runs.regression * a.scoredShare.regression;
-    if (n > 0) out.push(...evaluationLines(a.id, a.label, "devlab", n, a.judgeModelId, a.evaluators, a.queryTokens, a.contextTokens, a.responseTokens, a.safetyEvaluators, book, date));
+  // Evaluation scores runs in its own scope. A project-wide evaluation also scores the workstreams
+  // that have no evaluation of their own; workstreams marked not evaluated are never scored.
+  const evals = p.build.activities.filter((x): x is Extract<DevActivity, { kind: "evaluation" }> => x.kind === "evaluation");
+  const evaluated = (ws: string) => p.build.workstreams.find((w) => w.id === ws)?.evaluated !== false;
+  const ownEval = new Set(evals.flatMap((e) => (e.workstreamId ? [e.workstreamId] : [])));
+  for (const a of evals) {
+    const scopes = a.workstreamId
+      ? (evaluated(a.workstreamId) ? [a.workstreamId] : [])
+      : [...runsByScope.keys()].filter((k) => k === "" || (evaluated(k) && !ownEval.has(k)));
+    const n = sum(scopes.map((k) => { const r = runsByScope.get(k)!; return r.bakeoff * a.scoredShare.bakeoff + r.iterations * a.scoredShare.iterations + r.regression * a.scoredShare.regression; }));
+    if (n > 0) {
+      const ls = evaluationLines(a.id, a.label, "devlab", n, a.judgeModelId, a.evaluators, a.queryTokens, a.contextTokens, a.responseTokens, a.safetyEvaluators, book, date);
+      out.push(...(a.workstreamId ? ls.map((l) => ({ ...l, workstreamId: a.workstreamId })) : ls));
+    }
   }
   return out;
+}
+
+const activeIn = (m: number, x: { fromMonth?: number | undefined; toMonth?: number | undefined }) => m >= (x.fromMonth ?? 1) && m <= (x.toMonth ?? Infinity);
+
+/**
+ * Effort per build team line in month m: people on the line (0 outside its window) split into
+ * workstream shares and the project-wide remainder. Shares above 100% are scaled down to 100%.
+ */
+export function seatEffort(p: Project, m: number, onlyExperimenting = true): { seat: number; people: number; byWorkstream: Record<string, number>; projectWide: number }[] {
+  return p.build.team.map((t, seat) => {
+    const people = (!onlyExperimenting || t.experiments) && activeIn(m, t) ? t.people : 0;
+    const allocs = (t.allocations ?? []).filter((a) => activeIn(m, a));
+    const total = sum(allocs.map((a) => a.share));
+    const scale = total > 1 ? 1 / total : 1;
+    const byWorkstream: Record<string, number> = {};
+    for (const a of allocs) byWorkstream[a.workstreamId] = (byWorkstream[a.workstreamId] ?? 0) + people * a.share * scale;
+    return { seat, people, byWorkstream, projectWide: people * (1 - Math.min(1, total)) };
+  });
 }
 
 /** People running experiments in build month m (all build months when m is omitted). */
@@ -115,15 +153,29 @@ export function developers(p: Project, m?: number): number {
   return sum(p.build.team.filter((t) => t.experiments && (m === undefined || (m >= (t.fromMonth ?? 1) && m <= (t.toMonth ?? Infinity)))).map((t) => t.people));
 }
 
-/** Monthly labour lines for a team; lines with a month window only bill inside it (when `m` is given). */
+/**
+ * Monthly labour lines for a team; lines with a month window only bill inside it (when `m` is
+ * given). Build labour is split by the line's workstream allocations in that month.
+ */
 export function teamLines(p: Project, team: Project["build"]["team"], stream: "labour" | "maint", componentId: string, factor = 1, m?: number): Line[] {
   const rates = new Map(p.rateCard.map((r) => [r.id, r]));
-  const active = team.map((t, i) => [t, i] as const).filter(([t]) => m === undefined || (m >= (t.fromMonth ?? 1) && m <= (t.toMonth ?? Infinity)));
-  return active.map(([t, i]) => {
+  const wsLabel = new Map(p.build.workstreams.map((w) => [w.id, w.label]));
+  const active = team.map((t, i) => [t, i] as const).filter(([t]) => m === undefined || activeIn(m, t));
+  return active.flatMap(([t, i]) => {
     const r = rates.get(t.roleId);
     if (!r) throw new Error(`Unknown role ${t.roleId}`);
+    const who = t.name ? `${t.name} (${r.label})` : r.label;
+    const label = t.phase ? `${t.phase}: ${who}` : who;
     const hours = t.people * t.hoursPerMonth;
-    return line({ id: `${componentId}:${t.phase ?? ""}:${t.roleId}:${i}`, componentId, label: t.phase ? `${t.phase}: ${r.label}` : r.label, stream, behaviour: "fixed", meter: `role:${t.roleId}`, quantity: hours, unit: "hour", unitPrice: r.hourlyRate * factor,
-      formula: `${t.people} × ${t.hoursPerMonth} h × CAD ${r.hourlyRate}/h${factor !== 1 ? ` × ${factor.toFixed(2)}` : ""}` });
+    const base = { componentId, stream, behaviour: "fixed" as const, meter: `role:${t.roleId}`, unit: "hour", unitPrice: r.hourlyRate * factor, seat: stream === "labour" ? i : undefined };
+    const formula = (share: number) => `${t.people} × ${t.hoursPerMonth} h${share !== 1 ? ` × ${Math.round(share * 100)}%` : ""} × CAD ${r.hourlyRate}/h${factor !== 1 ? ` × ${factor.toFixed(2)}` : ""}`;
+    const id = `${componentId}:${t.phase ?? ""}:${t.roleId}:${i}`;
+    const allocs = stream === "labour" && m !== undefined ? (t.allocations ?? []).filter((a) => activeIn(m, a)) : [];
+    if (!allocs.length) return [line({ ...base, id, label, quantity: hours, formula: formula(1) })];
+    const total = sum(allocs.map((a) => a.share));
+    const scale = total > 1 ? 1 / total : 1;
+    const parts = allocs.map((a) => line({ ...base, id: `${id}:${a.workstreamId}`, label: `${label} → ${wsLabel.get(a.workstreamId) ?? a.workstreamId}`, quantity: hours * a.share * scale, workstreamId: a.workstreamId, formula: formula(a.share * scale) }));
+    const rest = 1 - Math.min(1, total);
+    return rest > 1e-9 ? [...parts, line({ ...base, id, label: `${label} → project-wide`, quantity: hours * rest, formula: formula(rest) })] : parts;
   });
 }
