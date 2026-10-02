@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
-import { Download, Upload, RotateCcw, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import { Download, Upload, RotateCcw, FileSpreadsheet, FileText, Printer, Undo2, Redo2 } from "lucide-react";
 import { exportCsv, exportXlsx } from "@/lib/export";
 import { ProjectSchema, meetingIntelligence } from "@studio/engine";
 import { useStudio } from "@/lib/store";
@@ -25,6 +25,18 @@ export function Shell({ children }: { children: ReactNode }) {
   const project = useStudio((s) => s.project);
   const problem = useStudio((s) => s.problem);
   useEffect(() => hydrate(), [hydrate]);
+  const canUndo = useStudio((s) => s.past.length > 0);
+  const canRedo = useStudio((s) => s.future.length > 0);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (t.closest("input, textarea, select, [contenteditable]")) return;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") { e.preventDefault(); if (e.shiftKey) useStudio.getState().redo(); else useStudio.getState().undo(); }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "y") { e.preventDefault(); useStudio.getState().redo(); }
+    };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, []);
   const isProject = PROJECT_VIEWS.some((v) => v.href === path);
   const B = project.timeline.buildMonths, H = project.timeline.horizonMonths;
 
@@ -64,7 +76,9 @@ export function Shell({ children }: { children: ReactNode }) {
             <div className="text-[11.5px] text-muted">{isProject || path === "/report" ? project.name : path === "/tokens" ? "Quick tools" : path === "/projects" ? "Library" : "Data"}</div>
             <h1 className="text-[21px] font-bold">{TITLES[path] ?? "Overview"}</h1>
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button type="button" aria-label="Undo" title="Undo (Ctrl/Cmd+Z)" disabled={!canUndo} onClick={() => useStudio.getState().undo()} className="rounded-md border border-line bg-surface p-1 text-ink-2 enabled:hover:bg-surface-2 disabled:opacity-40"><Undo2 size={15} /></button>
+            <button type="button" aria-label="Redo" title="Redo (Ctrl/Cmd+Shift+Z)" disabled={!canRedo} onClick={() => useStudio.getState().redo()} className="mr-1 rounded-md border border-line bg-surface p-1 text-ink-2 enabled:hover:bg-surface-2 disabled:opacity-40"><Redo2 size={15} /></button>
             {[["Currency", "CAD"], ["Azure", project.settings.azureDeployment === "global" ? "Global" : "Data Zone"], ["Snowflake", `${project.settings.snowflake.edition} · ${project.settings.snowflake.routing}`], ["Prices", catalog.meta.asOf]].map(([k, v]) => (
               <span key={k} className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-[11.5px] text-ink-2">{k} <b className="font-semibold text-ink">{v}</b></span>
             ))}

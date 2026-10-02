@@ -16,11 +16,17 @@ interface State {
   problem: string | null;
   /** A workload the Run page should select when it opens (set by "Add to project"). */
   focus: string | null;
+  /** Undo/redo stacks for the active project (in memory only). */
+  past: Project[];
+  future: Project[];
+  undo: () => void;
+  redo: () => void;
   hydrated: boolean;
   hydrate: () => void;
   /** Apply an edit to a copy of the active project; refused (and reported) if it no longer validates. */
   edit: (fn: (draft: Project) => void) => void;
-  replace: (p: Project) => void;
+  /** Replace the active project. `coalesce` merges it into the previous undo step when edits come in quick succession. */
+  replace: (p: Project, coalesce?: boolean) => void;
   setPercentile: (p: Percentile) => void;
   create: (templateId: string, name: string) => string;
   add: (p: Project) => string;
@@ -29,6 +35,7 @@ interface State {
   remove: (id: string) => void;
 }
 
+let lastEditAt = 0;
 const newId = () => `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 const now = () => new Date().toISOString();
 const firstEntry = (): LibraryEntry => ({ id: "sample", project: meetingIntelligence, updatedAt: now() });
@@ -55,6 +62,8 @@ export const useStudio = create<State>((set, get) => {
     percentile: "p50",
     problem: null,
     focus: null,
+    past: [],
+    future: [],
     hydrated: false,
     hydrate: () => {
       if (get().hydrated) return;
@@ -86,11 +95,26 @@ export const useStudio = create<State>((set, get) => {
         const i = parsed.error.issues[0];
         return set({ problem: `That change was not applied: ${i?.path.join(".")}: ${i?.message}` });
       }
-      get().replace(parsed.data);
+      get().replace(parsed.data, true);
     },
-    replace: (p) => {
-      const { library, activeId } = get();
-      commit(library.map((e) => (e.id === activeId ? { ...e, project: p, updatedAt: now() } : e)), activeId);
+    replace: (p, coalesce = false) => {
+      const { library, activeId, project, past } = get();
+      if (p === project) return;
+      const merge = coalesce && Date.now() - lastEditAt < 600 && past.length > 0;
+      lastEditAt = coalesce ? Date.now() : 0;
+      commit(library.map((e) => (e.id === activeId ? { ...e, project: p, updatedAt: now() } : e)), activeId, { past: merge ? past : [...past, project].slice(-50), future: [] });
+    },
+    undo: () => {
+      const { past, future, project, library, activeId } = get();
+      const prev = past.at(-1);
+      if (!prev) return;
+      commit(library.map((e) => (e.id === activeId ? { ...e, project: prev, updatedAt: now() } : e)), activeId, { past: past.slice(0, -1), future: [project, ...future].slice(0, 50) });
+    },
+    redo: () => {
+      const { past, future, project, library, activeId } = get();
+      const next = future[0];
+      if (!next) return;
+      commit(library.map((e) => (e.id === activeId ? { ...e, project: next, updatedAt: now() } : e)), activeId, { past: [...past, project].slice(-50), future: future.slice(1) });
     },
     setPercentile: (percentile) => set({ percentile }),
     create: (templateId, name) => {
@@ -99,10 +123,10 @@ export const useStudio = create<State>((set, get) => {
     },
     add: (p) => {
       const id = newId();
-      commit([...get().library, { id, project: p, updatedAt: now() }], id);
+      commit([...get().library, { id, project: p, updatedAt: now() }], id, { past: [], future: [] });
       return id;
     },
-    open: (id) => commit(get().library, id),
+    open: (id) => commit(get().library, id, { past: [], future: [] }),
     duplicate: (id) => {
       const src = get().library.find((e) => e.id === id);
       if (!src) return get().activeId;
