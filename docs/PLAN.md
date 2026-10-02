@@ -1,5 +1,7 @@
 # AI Token & Cost Calculator — Research Summary and Build Plan
 
+> **Update 2026-10-02:** the token calculator and the ROI calculator are now **one consolidated app**, running locally and offline, CAD only, with Azure and Snowflake as the only providers and no discounts. The structure is in [DESIGN.md](./DESIGN.md), and §9 decisions are resolved there. Where this plan conflicts with DESIGN.md, DESIGN.md wins.
+
 Status: **plan only, no code yet** · Date: 2026-10-02 · Research notes: [`docs/research/`](./research)
 
 Platform stance: **Azure is the primary AI platform**: models, ingestion, search, evaluation, safety and hosting. **Snowflake Cortex** is a secondary model-serving provider, billed in credits. Anthropic-direct and Google prices are kept as reference and comparison points only.
