@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { LEVERS, applyScenario, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityHours, compareScenarios, computeAllocation, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
+import { LEVERS, applyScenario, avoidedMonthly, beforeAfter, capabilityFromBenchmark, sensitivity, capabilityHours, compareScenarios, computeAllocation, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Seg, Select } from "@/components/ui";
 import { CumulativeLine, Legend } from "@/components/charts";
 import { catalog, modelOptions, useLedger } from "@/lib/compute";
@@ -15,7 +15,7 @@ const BASES = [
   { value: "full", label: "Full lifecycle", hint: "Build labour + AI Dev Lab + dev environment + run + maintenance + transition." },
 ] as const;
 
-type Tab = "cash" | "years" | "capabilities" | "beforeAfter" | "scenarios";
+type Tab = "cash" | "years" | "capabilities" | "beforeAfter" | "sensitivity" | "scenarios";
 
 export default function Roi() {
   const [tab, setTab] = useState<Tab>("cash");
@@ -24,12 +24,12 @@ export default function Roi() {
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Assumptions />
       <Card>
-        <CardHead title={{ cash: "Cumulative cash position", years: "By year", capabilities: "ROI by capability", beforeAfter: "Today vs with AI", scenarios: "Scenarios" }[tab]}
+        <CardHead title={{ cash: "Cumulative cash position", years: "By year", capabilities: "ROI by capability", beforeAfter: "Today vs with AI", sensitivity: "What moves NPV most", scenarios: "Scenarios" }[tab]}
           sub={tab === "scenarios" ? "What-ifs compared with the baseline on the selected cost basis" : `Benefit minus ${BASES.find((b) => b.value === project.roi.basis)!.label.toLowerCase()} · NPV at ${project.roi.discountRatePct}%: ${cad(roi.npv)}`}>
-          <Seg label="View" value={tab} onChange={setTab} options={[{ value: "cash", label: "Cash" }, { value: "years", label: "By year" }, { value: "capabilities", label: "By capability" }, { value: "beforeAfter", label: "Before / after" }, { value: "scenarios", label: "Scenarios" }]} />
+          <Seg label="View" value={tab} onChange={setTab} options={[{ value: "cash", label: "Cash" }, { value: "years", label: "By year" }, { value: "capabilities", label: "By capability" }, { value: "beforeAfter", label: "Before / after" }, { value: "sensitivity", label: "Sensitivity" }, { value: "scenarios", label: "Scenarios" }]} />
         </CardHead>
         {tab === "cash" ? <div className="flex min-h-0 flex-1 px-1.5 pb-1.5"><CumulativeLine values={roi.cumulative} payback={roi.paybackMonth} /></div>
-          : <div className="min-h-0 flex-1 overflow-auto px-3.5 pb-3.5">{tab === "years" ? <Years /> : tab === "capabilities" ? <Capabilities /> : tab === "beforeAfter" ? <BeforeAfterView /> : <Scenarios />}</div>}
+          : <div className="min-h-0 flex-1 overflow-auto px-3.5 pb-3.5">{tab === "years" ? <Years /> : tab === "capabilities" ? <Capabilities /> : tab === "beforeAfter" ? <BeforeAfterView /> : tab === "sensitivity" ? <Tornado /> : <Scenarios />}</div>}
       </Card>
     </div>
   );
@@ -119,6 +119,53 @@ function Assumptions() {
           onRemove={(i) => edit((d) => { d.roi.transitionCosts.splice(i, 1); })} amountLabel="CAD / month" H={H} />
       </div>
     </Card>
+  );
+}
+
+function Tornado() {
+  const project = useStudio((s) => s.project);
+  const { base, rows } = useMemo(() => sensitivity(project, catalog), [project]);
+  const lo = Math.min(base, ...rows.map((r) => Math.min(r.low, r.high)), 0);
+  const hi = Math.max(base, ...rows.map((r) => Math.max(r.low, r.high)), 0);
+  // Pad the range so the end labels fit inside the plot.
+  const pad = (hi - lo || 1) * 0.17;
+  const x = (v: number) => ((v - (lo - pad)) / (hi - lo + 2 * pad || 1)) * 100;
+  const top = rows[0];
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="rounded-r-md border-l-[3px] border-accent bg-accent-soft px-3 py-2 text-[12.5px]">
+        NPV is <b>{cad(base)}</b>. Each bar moves one input to a low and a high value with everything else held. {top && <>The biggest lever is <b>{top.label.toLowerCase()}</b>: NPV runs from {cad(Math.min(top.low, top.high))} to {cad(Math.max(top.low, top.high))}.</>}
+        {rows.some((r) => Math.min(r.low, r.high) < 0) && <> Inputs whose bar crosses zero can turn the case negative on their own.</>}
+      </div>
+      <div className="grid grid-cols-[minmax(150px,240px)_1fr] gap-x-3 gap-y-1.5 text-[12px]">
+        <span />
+        <div className="relative h-4 text-[10.5px] text-muted">
+          <span className="absolute -translate-x-1/2" style={{ left: `${x(base)}%` }}>base {cad(base)}</span>
+          {lo < 0 && <span className="absolute -translate-x-1/2" style={{ left: `${x(0)}%`, top: 0 }}>{x(base) - x(0) > 12 ? "0" : ""}</span>}
+        </div>
+        {rows.map((r) => {
+          const down = Math.min(r.low, r.high), up = Math.max(r.low, r.high);
+          return (
+            <div key={r.id} className="contents">
+              <span className="truncate py-1 text-ink-2" title={r.label}>{r.label}</span>
+              <div className="relative h-7" title={`${r.lowLabel}: ${cad(r.low)} · ${r.highLabel}: ${cad(r.high)}`}>
+                <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${x(0)}%` }} />
+                <div className="absolute top-1 bottom-1 rounded-l" style={{ left: `${x(down)}%`, width: `${Math.max(0.3, x(Math.min(base, up)) - x(down))}%`, background: "var(--crit)", opacity: 0.75 }} />
+                <div className="absolute top-1 bottom-1 rounded-r" style={{ left: `${x(Math.max(base, down))}%`, width: `${Math.max(0.3, x(up) - x(Math.max(base, down)))}%`, background: "var(--good)", opacity: 0.75 }} />
+                <div className="absolute inset-y-0 w-0.5 bg-ink" style={{ left: `${x(base)}%` }} />
+                <span className="num absolute top-1.5 -translate-x-full pr-1 text-[10.5px] text-ink-2" style={{ left: `${x(down)}%` }}>{r.low <= r.high ? r.lowLabel : r.highLabel}</span>
+                <span className="num absolute top-1.5 pl-1 text-[10.5px] text-ink-2" style={{ left: `${x(up)}%` }}>{r.low <= r.high ? r.highLabel : r.lowLabel}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <table className="data">
+        <thead><tr><th>Input</th><th className="n">Low</th><th className="n">NPV</th><th className="n">High</th><th className="n">NPV</th><th className="n">Swing</th></tr></thead>
+        <tbody>{rows.map((r) => <tr key={r.id}><td>{r.label}</td><td className="n">{r.lowLabel}</td><td className="n">{cad(r.low)}</td><td className="n">{r.highLabel}</td><td className="n">{cad(r.high)}</td><td className="n font-semibold">{cad(r.swing)}</td></tr>)}</tbody>
+      </table>
+      <p className="text-[11.5px] text-muted">Red: NPV below the base; green: above. Benefit inputs use the benchmark library&apos;s conservative and optimistic values; others move by the amounts shown. AI run volume scales production usage with the benefit held, so it isolates token and service cost.</p>
+    </div>
   );
 }
 

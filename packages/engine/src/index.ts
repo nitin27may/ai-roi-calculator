@@ -17,3 +17,4 @@ export { PROJECT_TEMPLATES, blankProject } from "./samples/templates.js";
 export * from "./plan.js";
 export * from "./workstreams.js";
 export * from "./benefits.js";
+export * from "./sensitivity.js";
