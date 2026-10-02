@@ -129,6 +129,7 @@ export const UnitPrice = z.object({
   price: z.number().nonnegative().optional(),
   credits: z.number().nonnegative().optional(),
   creditType: z.enum(["ai", "platform"]).optional(),
+  /** Free allowance per month, in this entry's own unit (e.g. 1 for "1K queries" = 1,000 queries). */
   freePerMonth: z.number().nonnegative().optional(),
   attrs: z.record(z.union([z.number(), z.string(), z.boolean()])).optional(),
   promo: Promo.optional(),

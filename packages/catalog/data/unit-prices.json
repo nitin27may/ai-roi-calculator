@@ -167,7 +167,7 @@
     },
     "confidence": "verified",
     "price": 1.3861,
-    "freePerMonth": 1000
+    "freePerMonth": 1
   },
   {
     "id": "search-agentic",
@@ -672,6 +672,117 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "search-su-free",
+    "label": "AI Search Free search unit",
+    "platform": "azure",
+    "unit": "SU-month",
+    "price": 0,
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Free Unit",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "search-su-basic",
+    "label": "AI Search Basic (15 GB/partition) search unit",
+    "platform": "azure",
+    "unit": "SU-month",
+    "price": 102.2,
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Azure AI Search / Basic Unit",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "search-su-s1",
+    "label": "AI Search Standard S1 (160 GB/partition) search unit",
+    "platform": "azure",
+    "unit": "SU-month",
+    "price": 339.96,
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Azure AI Search / Standard S1 Unit",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "search-su-s2",
+    "label": "AI Search Standard S2 (512 GB/partition) search unit",
+    "platform": "azure",
+    "unit": "SU-month",
+    "price": 1359.92,
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Azure AI Search / Standard S2 Unit",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "search-su-s3",
+    "label": "AI Search Standard S3 (1 TB/partition) search unit",
+    "platform": "azure",
+    "unit": "SU-month",
+    "price": 2719.76,
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Azure AI Search / Standard S3 Unit",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "search-su-s3hd",
+    "label": "AI Search Standard S3 HD search unit",
+    "platform": "azure",
+    "unit": "SU-month",
+    "price": 2719.76,
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "search-su-l1",
+    "label": "AI Search Storage Optimized L1 search unit",
+    "platform": "azure",
+    "unit": "SU-month",
+    "price": 3884.2234,
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/search/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "search-su-l2",
+    "label": "AI Search Storage Optimized L2 search unit",
+    "platform": "azure",
+    "unit": "SU-month",
+    "price": 7767.4351,
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/search/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "single-source"

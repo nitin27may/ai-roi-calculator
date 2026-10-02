@@ -1,4 +1,9 @@
 {
-  "files": [],
-  "references": [{ "path": "packages/catalog" }, { "path": "packages/engine" }]
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "packages/*/src",
+    "packages/*/test",
+    "scripts/**/*.ts",
+    "vitest.config.ts"
+  ]
 }

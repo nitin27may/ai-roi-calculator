@@ -150,7 +150,7 @@ units = [
     upu("cu-doc-minimal", "Content Understanding digital files (DOCX, EML, MSG…)", "1K pages", 0.01, CUURL, "unverified", "Pricing page shows '$-'; one secondary source says ~USD 0.01"),
     upu("cu-context-standard", "Content Understanding contextualization", "1M tokens", 1, CUURL, "cross-checked"),
     upu("cu-video", "Content Understanding video extraction", "hour", 1, CUURL, "cross-checked"),
-    up("search-semantic", "AI Search semantic ranker", "1K queries", sc("azure.ai-search.json")["semanticRankerPer1K"], freePerMonth=1000),
+    up("search-semantic", "AI Search semantic ranker", "1K queries", sc("azure.ai-search.json")["semanticRankerPer1K"], freePerMonth=1),
     upu("search-agentic", "AI Search agentic retrieval", "1M tokens", 0.022, SEARCHURL, "unverified", freePerMonth=50),
     upu("search-image-extract", "AI Search image extraction", "1K images", 1, SEARCHURL),
     upu("rerank-cohere-3.5", "Cohere Rerank 3.5", "1K searches", 2, "https://ai.azure.com"),
@@ -188,6 +188,9 @@ units = [
     sfu("sf-search-serving", "Cortex Search serving", "GB-month", 6.3, conf="cross-checked"),
     sfu("sf-analyst", "Cortex Analyst (direct API)", "1K messages", 67, "platform"),
 ]
+
+for t in search:
+    units.append({"id": f"search-su-{t['id']}", "label": f"AI Search {t['label']} search unit", "platform": "azure", "unit": "SU-month", "price": t["perSUMonth"], "source": t["source"], "confidence": t["confidence"]})
 
 snow = {"aiCreditGlobal": r(2.00 * FX), "aiCreditRegional": r(2.20 * FX),
         "platformCredit": {"standard": r(2 * FX), "enterprise": r(3 * FX), "businessCritical": r(4 * FX), "vps": r(6 * FX)},
