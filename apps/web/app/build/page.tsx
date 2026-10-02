@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { ACTIVITY_KINDS, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, hasPlan, inPlanWindow, newActivity, newWorkstream, planValues, removeWorkstream, setAllocation, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@studio/engine";
+import { ACTIVITY_KINDS, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, removeWorkstream, setAllocation, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@studio/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select } from "@/components/ui";
 import { Explain } from "@/components/explain";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
@@ -40,7 +40,11 @@ export default function Build() {
             <ListRow key={r.id} selected={sel === `ws:${r.id}`} onClick={() => setSel(`ws:${r.id}`)} title={r.label} sub={`${fmt(r.people, 1)} people · ${acts.filter((a) => a.workstreamId === r.id).length} activities`} aside={<Spark values={r.byMonth} color="var(--s3)" />} value={cad(r.total)} />
           ))}
           <div className="px-3.5 py-2.5">
-            <button type="button" className="flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2" onClick={() => { let id = ""; edit((d) => { const w = newWorkstream(d); id = w.id; d.build.workstreams.push(w); }); if (id) setSel(`ws:${id}`); }}><Plus size={14} />Add workstream</button>
+            <AddMenu label="Add workstream" items={WORKSTREAM_TEMPLATES.map((t) => ({ kind: t.id, label: t.label, detail: t.detail }))} onPick={(t) => {
+              let id = "";
+              edit((d) => { id = addWorkstreamFromTemplate(d, t, t === "empty" ? "New workstream" : WORKSTREAM_TEMPLATES.find((x) => x.id === t)!.label); });
+              if (id) setSel(`ws:${id}`);
+            }} />
             {project.build.workstreams.length === 0 && <p className="mt-1.5 text-[11.5px] text-muted">A workstream is a feature (one or more agents). Allocate people to it to cost the build per feature and per developer.</p>}
           </div>
           <GroupHead>AI Dev Lab activities</GroupHead>
@@ -54,7 +58,7 @@ export default function Build() {
       </Card>
       <Card>
         <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto p-3.5">
-          {sel === "all" ? <AllActivities /> : sel === "team" ? <Team /> : sel === "env" ? <Explain title="Dev environment" lines={buildMonths.flatMap((m) => m.lines.filter((l) => l.stream === "devenv"))} months={B} /> : sel.startsWith("ws:") ? <WorkstreamPanel id={sel.slice(3)} onRemoved={() => setSel("all")} onOpen={setSel} /> : <Activity id={sel} onRemoved={() => setSel("all")} />}
+          {sel === "all" ? <AllActivities /> : sel === "team" ? <Team /> : sel === "env" ? <DevEnvironment /> : sel.startsWith("ws:") ? <WorkstreamPanel id={sel.slice(3)} onRemoved={() => setSel("all")} onOpen={setSel} /> : <Activity id={sel} onRemoved={() => setSel("all")} />}
         </div>
       </Card>
     </div>
@@ -242,6 +246,9 @@ function WorkstreamPanel({ id, onRemoved, onOpen }: { id: string; onRemoved: () 
       <ItemHeader label={w.label} sub="A feature built as a unit: its people, activities and the capabilities it delivers" removeLabel="Remove workstream"
         onRename={(v) => upd((x) => { x.label = v; })}
         onRemove={() => { edit((d) => removeWorkstream(d, id)); onRemoved(); }} />
+      {row.people === 0 && acts.some((a) => a.kind === "iterations" || a.kind === "playground") && (
+        <div role="note" className="rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">Nobody is allocated to this workstream yet, so its iterations and playground work cost nothing. Give people a share of their time below.</div>
+      )}
       <div className="font-display text-[26px] font-bold">{cad(row.total)}<span className="ml-1.5 font-sans text-xs font-normal text-muted">{cad(row.labour)} labour · {cad(row.devlab)} AI Dev Lab · {fmt(row.people, 2)} people on average</span></div>
       <div>
         <h3 className="mb-1.5 text-sm font-semibold">People</h3>
@@ -250,9 +257,11 @@ function WorkstreamPanel({ id, onRemoved, onOpen }: { id: string; onRemoved: () 
           <tbody>
             {project.build.team.map((t, seat) => {
               const share = t.allocations?.find((a) => a.workstreamId === id)?.share ?? 0;
+              const total = (t.allocations ?? []).reduce((s, a) => s + a.share, 0);
               return (
                 <tr key={seat} style={share ? undefined : { opacity: 0.6 }}>
-                  <td>{t.name ? `${t.name} (${rates.get(t.roleId) ?? t.roleId})` : `${t.people} × ${rates.get(t.roleId) ?? t.roleId}`}{t.phase ? <small className="text-muted"> · {t.phase}</small> : null}</td>
+                  <td>{t.name ? `${t.name} (${rates.get(t.roleId) ?? t.roleId})` : `${t.people} × ${rates.get(t.roleId) ?? t.roleId}`}{t.phase ? <small className="text-muted"> · {t.phase}</small> : null}
+                    {total > 1.005 && share > 0 && <small className="block text-crit">{Math.round(total * 100)}% allocated in total, so every share is scaled down: effectively {Math.round((share / total) * 100)}% here</small>}</td>
                   <td className="n w-36"><NumberInput value={Math.round(share * 100)} max={100} suffix="%" onChange={(v) => edit((d) => setAllocation(d, seat, id, v / 100))} /></td>
                 </tr>
               );
@@ -378,6 +387,44 @@ function AllocationMatrix() {
       </table>
       <p className="mt-1.5 text-[11.5px] text-muted">Labour follows these shares. Iterations and playground work in a workstream scale with the people on it; bake-offs, regression and red teaming in a workstream run once, however many people share it.</p>
     </div>
+  );
+}
+
+/** Fixed and metered services the team runs while building (per month). */
+function DevEnvironment() {
+  const { project, ledger } = useLedger();
+  const edit = useStudio((s) => s.edit);
+  const B = project.timeline.buildMonths;
+  const lines = ledger.months.slice(0, B).flatMap((m) => m.lines.filter((l) => l.stream === "devenv"));
+  const options = catalog.unitPrices.filter((u) => u.platform === "azure").map((u) => ({ value: u.id, label: `${u.label} (${u.unit})` }));
+  const unitOf = (id: string) => catalog.unitPrices.find((u) => u.id === id);
+  return (
+    <>
+      <div><h2 className="text-base font-bold">Dev environment</h2><div className="text-xs text-muted">Services the team runs while building, billed every build month: dev search index, API gateway, logging, sandboxes.</div></div>
+      <div className="font-display text-[26px] font-bold">{cad(lines.reduce((s, l) => s + l.cost, 0))}<span className="ml-1.5 font-sans text-xs font-normal text-muted">over {B} months</span></div>
+      <div className="flex-none overflow-x-auto">
+        <table className="data">
+          <thead><tr><th>Item</th><th>Priced as</th><th className="n">Quantity / month</th><th className="n">Per month</th><th /></tr></thead>
+          <tbody>
+            {project.build.environment.map((it, i) => {
+              const u = unitOf(it.unitPriceId);
+              return (
+                <tr key={it.id}>
+                  <td><input aria-label="Item name" className="w-44 rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]" value={it.label} onChange={(e) => edit((d) => { d.build.environment[i]!.label = e.target.value; })} /></td>
+                  <td className="min-w-[220px]"><Select value={it.unitPriceId} options={options} onChange={(v) => edit((d) => { d.build.environment[i]!.unitPriceId = v; })} /></td>
+                  <td className="n min-w-[120px]"><NumberInput value={it.quantity} suffix={u?.unit} onChange={(v) => edit((d) => { d.build.environment[i]!.quantity = v; })} /></td>
+                  <td className="n">{cad(it.quantity * (u?.price ?? 0))}</td>
+                  <td><button type="button" aria-label="Remove item" onClick={() => edit((d) => { d.build.environment.splice(i, 1); })}><Trash2 size={14} /></button></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <button type="button" className="flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2" onClick={() => edit((d) => { let n = 1; while (d.build.environment.some((x) => x.id === `env-${n}`)) n++; d.build.environment.push({ id: `env-${n}`, label: "New item", unitPriceId: "log-analytics-ingest", quantity: 1 }); })}><Plus size={14} />Add item</button>
+      <p className="text-[11.5px] text-muted">The Per month column is before free allowances; the total above applies them.</p>
+      <Explain title="How this is calculated" lines={lines} months={B} />
+    </>
   );
 }
 

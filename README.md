@@ -10,6 +10,11 @@ A local, offline calculator for what an AI use case costs to **build** and to **
   - Labour follows the shares.
   - A capability that links a workstream carries that workstream's build cost into its own ROI.
   - Breakdowns are available by workstream, by person (with an optional monthly AI budget per person and over-budget months highlighted) and by model.
+- **Workstream templates.** Single agent, RAG feature, multi-agent feature (planner and worker harnesses) and shared component. Each sets up its harnesses and scoped activities across the build; people are allocated separately.
+- **Synthetic data and fine-tuning.**
+  - Synthetic data: generation ÷ pass rate, with an optional judge filter and Batch.
+  - Fine-tuning: training per 1M tokens (or per hour for RFT) plus hosting hours. Fine-tune prices are unverified list prices.
+- **Editable dev environment.** Add, remove and re-price the services the team runs while building.
 - **Month plan.** Every Dev Lab activity has an intensity per build month (sweeps for bake-offs), set in a grid or by applying a shape (ramp up, front-loaded, final third only).
 - **Optional labour, evaluation and maintenance.**
   - Untick "Include labour cost" to cost AI spend only.

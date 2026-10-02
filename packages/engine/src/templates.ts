@@ -136,3 +136,64 @@ export function setAllocation(p: Project, seat: number, workstreamId: string, sh
   const rest = (t.allocations ?? []).filter((x) => x.workstreamId !== workstreamId);
   t.allocations = share > 0 ? [...rest, { workstreamId, share }] : rest;
 }
+
+export const WORKSTREAM_TEMPLATES = [
+  { id: "empty", label: "Empty", detail: "Just the workstream; add people and activities yourself" },
+  { id: "agent", label: "Single agent", detail: "New agent harness, harness iterations and nightly regression" },
+  { id: "rag", label: "RAG feature", detail: "Prompt work and a synthetic question set for evaluation" },
+  { id: "multiAgent", label: "Multi-agent feature", detail: "Planner and worker harnesses, iterations on each, regression and red teaming" },
+  { id: "shared", label: "Shared component", detail: "A tool or service several features use; not evaluated on its own" },
+] as const;
+export type WorkstreamTemplateId = (typeof WORKSTREAM_TEMPLATES)[number]["id"];
+
+/**
+ * Add a workstream from a template: its harnesses and scoped activities, laid out over the build
+ * (iterations ramp up, regression from the middle, red teaming in the final third).
+ * Returns the new workstream's id. People are not allocated: that stays a deliberate choice.
+ */
+export function addWorkstreamFromTemplate(p: Project, templateId: WorkstreamTemplateId, label: string): string {
+  const B = p.timeline.buildMonths;
+  const w = { ...newWorkstream(p, label), evaluated: templateId !== "shared" };
+  p.build.workstreams.push(w);
+  const harness = (name: string, over: Partial<Harness> = {}) => {
+    const h = { ...newHarness(p), label: `${label}: ${name}`, ...over };
+    p.harnesses.push(h);
+    w.harnessIds.push(h.id);
+    return h.id;
+  };
+  const add = <K extends DevActivity["kind"]>(kind: K, name: string, patch: (a: Extract<DevActivity, { kind: K }>) => void = () => {}) => {
+    const a = newActivity(p, kind) as Extract<DevActivity, { kind: K }>;
+    a.workstreamId = w.id;
+    a.label = `${name} (${label})`;
+    patch(a);
+    p.build.activities.push(a);
+  };
+  const ramp = (n: number) => Array.from({ length: n }, (_, i) => Math.round((0.4 + (0.6 * i) / Math.max(1, n - 1)) * 100) / 100);
+  const fromMid = Math.max(1, Math.ceil(B / 2));
+  const lastThird = Math.max(1, B - Math.floor(B / 3) + 1);
+  switch (templateId) {
+    case "agent": {
+      const h = harness("agent");
+      add("iterations", "Harness iterations", (a) => { a.harnessId = h; a.monthFactors = ramp(B); });
+      add("regression", "Nightly regression", (a) => { a.harnessId = h; a.fromMonth = fromMid; });
+      break;
+    }
+    case "rag":
+      add("playground", "Prompt & retrieval tuning");
+      add("synthetic", "Synthetic question set", (a) => { a.acceptedPerMonth = 500; a.monthFactors = [1, 0.5, 0]; });
+      break;
+    case "multiAgent": {
+      const planner = harness("planner", { steps: 4, tools: 4, outputPerStep: 400 });
+      const worker = harness("worker", { steps: 8, tools: 10 });
+      add("iterations", "Planner iterations", (a) => { a.harnessId = planner; a.monthFactors = ramp(B); });
+      add("iterations", "Worker iterations", (a) => { a.harnessId = worker; a.monthFactors = ramp(B); });
+      add("regression", "End-to-end regression", (a) => { a.harnessId = planner; a.fromMonth = fromMid; });
+      add("redteam", "Red teaming", (a) => { a.fromMonth = lastThird; });
+      break;
+    }
+    case "shared":
+    case "empty":
+      break;
+  }
+  return w.id;
+}

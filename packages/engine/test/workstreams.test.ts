@@ -118,3 +118,26 @@ describe("workstream editing", () => {
     expect(q.build.team[3]!.allocations).toEqual([{ workstreamId: "ws-shared", share: 0.3 }]);
   });
 });
+
+describe("workstream templates", () => {
+  it("adds scoped activities inside the build window and a valid project", async () => {
+    const { WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, ProjectSchema } = await import("../src/index.js");
+    for (const t of WORKSTREAM_TEMPLATES) {
+      const q = structuredClone(p);
+      const id = addWorkstreamFromTemplate(q, t.id, "Claims triage");
+      expect(ProjectSchema.safeParse(q).success).toBe(true);
+      const acts = q.build.activities.filter((a) => a.workstreamId === id);
+      for (const a of acts) {
+        if ("fromMonth" in a) expect(a.fromMonth).toBeLessThanOrEqual(B);
+        if ("harnessId" in a) expect(q.build.workstreams.find((w) => w.id === id)!.harnessIds).toContain(a.harnessId);
+      }
+      if (t.id === "multiAgent") {
+        expect(acts.filter((a) => a.kind === "iterations")).toHaveLength(2);
+        // Nobody is allocated yet, so effort-driven work costs nothing until people are assigned.
+        expect(devlabOf(q, acts.find((a) => a.kind === "iterations")!.id)).toBe(0);
+        expect(devlabOf(q, acts.find((a) => a.kind === "regression")!.id)).toBeGreaterThan(0);
+      }
+      expect(q.build.workstreams.find((w) => w.id === id)!.evaluated).toBe(t.id !== "shared");
+    }
+  });
+});
