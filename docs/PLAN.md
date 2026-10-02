@@ -89,6 +89,7 @@ Each component turns business inputs into **usage quantities** (tokens, pages, h
 | ★11 | **AI red teaming** | risk categories, objectives per category (10), attack strategies (Easy/Moderate/Difficult or custom), multi-turn depth, target model/agent cost per probe, runs per month/release | probes = categories × objectives × (1 + strategies); safety-meter tokens; target-model tokens |
 | ★12 | **Content safety / guardrails** | requests, chars in+out, images, features (moderation, Prompt Shields, groundedness, protected material) | Content Safety text records (1K chars) and images |
 | ★13 | **Generic LLM line** | free-form: calls per month, input/cached/output/reasoning tokens, model, deployment type | escape hatch for anything not modelled |
+| ★13b | **Development & experimentation (build phase)** | see §1.4; links to an agent harness, evaluation and red-team component | one-time build-phase LLM, eval and red-team tokens; dev tooling tokens |
 | 14 | Voice / call-center agent | calls, minutes, talk ratio, turns, realtime model or cascade (STT+LLM+TTS) | realtime audio tokens (10/s in, 20/s out) or cascaded meters |
 | 15 | Batch extraction / classification | items, tokens per item, % batchable | Batch −50% |
 | 16 | Translation | chars, target languages, Translator vs LLM | Translator chars or LLM tokens |
@@ -127,7 +128,44 @@ Each component turns business inputs into **usage quantities** (tokens, pages, h
   - per-agent breakdown, and a "tokens by step" chart showing the quadratic growth
 - **Quick mode:** for users who only know a chat baseline, apply ×4 for an agent and ×15 for multi-agent (Anthropic's published ratios).
 
-### 1.4 Cross-cutting modifiers (applied in the engine, in this order)
+### 1.4 Development & experimentation cost (component 13b)
+Building an agent is not one run per task. Each design change re-runs the harness over an evaluation dataset, often against several candidate models, several times each because outputs are non-deterministic. Then everything is scored. This build-phase spend is invisible in a production-only estimate. For low-volume internal agents it can **exceed the first year of runtime cost**.
+
+**Inputs:**
+- **Team and duration:** build duration (weeks), engineers, working days per week.
+- **Linked components:** an agent harness, which supplies the per-task cost by model; an evaluation component, which supplies the per-case judge cost; and a red-team component.
+- **Experiment loop:**
+  - experiment iterations per engineer per day
+  - dataset size (cases) and the **% of the dataset per iteration** (a smoke subset vs a full run)
+  - **models compared** per iteration (multi-select)
+  - **repeats per case**, for variance and pass^k (default 3)
+  - judge on/off per iteration
+- **Cache and batch:**
+  - dev cache-hit % (lower than production, because prompts change constantly; default 30%)
+  - share of offline runs sent through **Batch (−50%)**
+- **Ad-hoc work:** playground and prompt-iteration calls per engineer per day, with average in/out tokens.
+- **CI regression evals:** PRs per week × regression subset × models × repeats.
+- **Red-team passes:** red-team runs per release × releases during the build.
+- **Optional AI dev tooling:** coding-assistant tokens or seats per engineer, e.g. GitHub Copilot or Claude Code.
+- **Model strategy:** "iterate on cheap model, final runs on frontier", expressed as a split %.
+
+**Formula sketch** (per-case cost comes from the linked components at dev cache/batch settings):
+```
+case_cost(m)   = harness_task_cost(m, η_dev, batch_share) + judge_on × eval_case_cost
+iteration_cost = Σ_m∈models  dataset × subset% × repeats × case_cost(m)
+build_cost     = weeks × days × engineers × (iterations/day × iteration_cost + adhoc_calls × adhoc_cost + tooling/day)
+               + weeks × PRs/week × regression_subset × Σ_m repeats × case_cost(m)
+               + releases × red_team_run_cost
+```
+
+**Output:**
+- the build phase as a **one-time** line, kept separate from monthly run cost
+- a chart of cumulative cost: build, then pilot, then production
+- the warning "build spend = N months of production"
+
+**Project lifecycle phases.** Projects get optional phases (Build → Pilot → Production), each with its own volume multipliers and durations. Build components (13b) only bill in Build. Runtime components scale by phase. This timeline is also the hook for the ROI module (§11).
+
+### 1.5 Cross-cutting modifiers (applied in the engine, in this order)
 1. **Tokenizer family multiplier.** Base is o200k = 1.00. Claude ≤4.6 is 1.10, Claude ≥4.7 is 1.35, Gemini is 1.00. These values come from the model catalog.
 2. **Language-mix multiplier.** Per tokenizer family; for example Hindi is 1.4 on o200k and 5.5 on legacy Claude.
 3. **Modality formulas:**
@@ -275,7 +313,7 @@ A person reviews and merges. Merging bumps the catalog version and redeploys.
 ## 4. Calculation engine
 
 - Lives in `packages/engine`: pure TypeScript with no React, deterministic, with exhaustive unit tests (Vitest).
-- Pipeline: `Project + Catalog + asOfDate → per-component usage (p50/p90/worst) → link resolution → price lookup with modifiers (§1.4) → project-level aggregation per meter → free tiers / commitment tiers → discounts → FX → Estimate`.
+- Pipeline: `Project + Catalog + asOfDate → per-component usage (p50/p90/worst) → link resolution → price lookup with modifiers (§1.5) → project-level aggregation per meter → free tiers / commitment tiers → discounts → FX → Estimate`.
 - Every quantity carries a `trace` (formula id plus inputs) that drives the "explain this number" UI.
 - **Golden tests** come from published worked examples:
   - Content Understanding docs: 10-page RAG doc ≈ $0.132; 1 h call audio ≈ $0.47
@@ -358,6 +396,7 @@ Planned modelling:
 | **P4: Agents, eval, red team** | ★9 agent harness simulator (P50/P90/worst, caps), ★10 evaluation, ★11 red teaming, ★12 content safety; templates | agent worked example reproduced |
 | **P5: Snowflake + PTU** | Snowflake Cortex catalog and component, PTU sizing and break-even view | Azure vs Snowflake comparison works |
 | **P6: Extended components** | 14–21; XLSX/PDF export; projection and growth; sensitivity | |
+| **P6b: Build-phase costing** | 13b development & experimentation, lifecycle phases, cumulative timeline | dev-cost scenario reproduces hand calculation |
 | **P7: Multi-user (optional)** | Entra ID, Cosmos DB, org overrides, sharing, deploy to Azure | |
 
 ---
