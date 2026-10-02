@@ -11,6 +11,7 @@ A local, offline calculator for what an AI use case costs to **build** and to **
   - **ROI by capability:** linked workloads are direct cost, and shared cost is split pro rata. Anything left over is shown as unallocated, with the reason.
   - **Scenarios:** swap a model, change usage, build length or team size, or apply a lever, then compare against the baseline and adopt the one you want.
 - **Savings levers.** Concrete changes (Batch for regression, narrowing the bake-off, model routing, cheaper speech engines…), each with the saving it would give.
+- **Export.** An Excel workbook (summary, months, line items with formulas, ROI by capability, assumptions, and prices used with source and confidence), a CSV of line items, and a printable report you can save as PDF.
 - **Token calculator.** Quick estimates with no project: text (exact o200k count in the browser), documents (every route compared), audio, and a single agent run.
 
 ## Run it

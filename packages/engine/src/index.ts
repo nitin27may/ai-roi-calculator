@@ -10,4 +10,5 @@ export * from "./levers.js";
 export * from "./allocation.js";
 export * from "./scenarios.js";
 export * from "./templates.js";
+export * from "./report.js";
 export { meetingIntelligence } from "./samples/meeting-intelligence.js";

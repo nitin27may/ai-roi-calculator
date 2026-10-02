@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
-import { Download, Upload, RotateCcw } from "lucide-react";
+import { Download, Upload, RotateCcw, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import { exportCsv, exportXlsx } from "@/lib/export";
 import { ProjectSchema, meetingIntelligence } from "@studio/engine";
 import { useStudio } from "@/lib/store";
 import { catalog, useLedger } from "@/lib/compute";
@@ -15,7 +16,7 @@ const PROJECT_VIEWS = [
   { href: "/roi", label: "Value & ROI" },
   { href: "/settings", label: "Settings" },
 ];
-const TITLES: Record<string, string> = { "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings" };
+const TITLES: Record<string, string> = { "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report" };
 
 export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
@@ -57,7 +58,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <main className="grid min-h-0 min-w-0 grid-rows-[auto_auto_minmax(0,1fr)] md:h-full md:overflow-hidden">
         <header className="flex flex-wrap items-center justify-between gap-2.5 px-5 pb-2.5 pt-3">
           <div>
-            <div className="text-[11.5px] text-muted">{isProject ? project.name : path === "/tokens" ? "Quick tools" : "Data"}</div>
+            <div className="text-[11.5px] text-muted">{isProject || path === "/report" ? project.name : path === "/tokens" ? "Quick tools" : "Data"}</div>
             <h1 className="text-[21px] font-bold">{TITLES[path] ?? "Overview"}</h1>
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -109,6 +110,17 @@ function KpiBar() {
   );
 }
 
+function ExportButtons({ btn }: { btn: string }) {
+  const { project, ledger, roi } = useLedger();
+  return (
+    <>
+      <button type="button" className={btn} onClick={() => exportXlsx(project, ledger, roi)}><FileSpreadsheet size={14} />Export Excel</button>
+      <button type="button" className={btn} onClick={() => exportCsv(project, ledger)}><FileText size={14} />Export CSV</button>
+      <Link href="/report" className={btn}><Printer size={14} />Printable report</Link>
+    </>
+  );
+}
+
 function ProjectFile() {
   const project = useStudio((s) => s.project);
   const replace = useStudio((s) => s.replace);
@@ -128,10 +140,11 @@ function ProjectFile() {
   };
   const btn = "flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-ink-2 hover:bg-surface-2";
   return (
-    <Group label="Project file">
+    <Group label="Project file & export">
       <button type="button" className={btn} onClick={exportFile}><Download size={14} />Save to file</button>
       <button type="button" className={btn} onClick={() => input.current?.click()}><Upload size={14} />Open file</button>
       <button type="button" className={btn} onClick={() => replace(meetingIntelligence)}><RotateCcw size={14} />Reset to sample</button>
+      <ExportButtons btn={btn} />
       <input ref={input} type="file" accept=".json" hidden onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])} />
     </Group>
   );

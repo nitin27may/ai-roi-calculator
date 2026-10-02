@@ -58,3 +58,14 @@ table.data th { font-weight: 500; color: var(--muted); text-align: left; font-si
 table.data td { border-bottom: 1px solid var(--line); padding: 6px 8px; vertical-align: top; }
 table.data .n { text-align: right; white-space: nowrap; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 table.data tr.total td { font-weight: 600; border-top: 2px solid var(--line); border-bottom: 0; }
+
+/* Printing the report: hide the app chrome and keep colours. */
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body { height: auto; background: #fff; }
+  nav[aria-label="Main"], main > header, main > div:nth-child(2), [role="alert"] { display: none !important; }
+  body > div { display: block !important; height: auto !important; }
+  main { display: block !important; height: auto !important; overflow: visible !important; }
+  main > div { padding: 0 !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

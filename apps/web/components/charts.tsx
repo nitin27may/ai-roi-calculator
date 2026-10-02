@@ -49,7 +49,7 @@ export function StackedBars({ rows, series, line, xLabel, className }: { rows: R
   return (
     <div ref={ref} className={className ?? "relative min-h-[200px] flex-1"}>
       {w > 0 && (
-        <svg className="chart absolute inset-0" width={W} height={H} role="img" aria-label="Monthly cost by stream">
+        <svg className="chart absolute inset-0 h-full w-full" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Monthly cost by stream">
           {[0, 1, 2, 3, 4].map((i) => <g key={i}><line x1={L} x2={W - R} y1={y((max * i) / 4)} y2={y((max * i) / 4)} stroke="var(--line)" /><text x={L - 6} y={y((max * i) / 4) + 4} textAnchor="end">{kcad((max * i) / 4)}</text></g>)}
           {rows.map((r, i) => {
             let acc = 0;
@@ -93,7 +93,7 @@ export function CumulativeLine({ values, payback, className }: { values: number[
   return (
     <div ref={ref} className={className ?? "relative min-h-[200px] flex-1"}>
       {w > 0 && (
-        <svg className="chart absolute inset-0" width={W} height={H} role="img" aria-label="Cumulative net position by month">
+        <svg className="chart absolute inset-0 h-full w-full" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Cumulative net position by month">
           {ticks.map((v) => <g key={v}><line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke={v === 0 ? "var(--muted)" : "var(--line)"} /><text x={L - 6} y={y(v) + 4} textAnchor="end">{kcad(v)}</text></g>)}
           <path d={`${path}L${x(values.length - 1)},${y(0)}L${x(0)},${y(0)}Z`} fill="var(--accent)" opacity={0.12} />
           <path d={path} fill="none" stroke="var(--accent)" strokeWidth={2} />
