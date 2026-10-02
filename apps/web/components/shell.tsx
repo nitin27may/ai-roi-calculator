@@ -17,7 +17,7 @@ const PROJECT_VIEWS = [
   { href: "/capacity", label: "Capacity (PTU)" },
   { href: "/settings", label: "Settings" },
 ];
-const TITLES: Record<string, string> = { "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report", "/capacity": "Capacity (PTU)" };
+const TITLES: Record<string, string> = { "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report", "/capacity": "Capacity (PTU)", "/projects": "Projects" };
 
 export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
@@ -43,6 +43,7 @@ export function Shell({ children }: { children: ReactNode }) {
           AI Cost &amp; ROI Studio
         </div>
         <Group label="Quick tools">{nav("/tokens", "Token calculator")}</Group>
+        <Group label="Projects">{nav("/projects", "All projects")}</Group>
         <Group label={project.name}>
           {nav("/overview", "Overview")}
           {nav("/build", "Build", `M1–${B}`)}
@@ -60,7 +61,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <main className="grid min-h-0 min-w-0 grid-rows-[auto_auto_minmax(0,1fr)] md:h-full md:overflow-hidden">
         <header className="flex flex-wrap items-center justify-between gap-2.5 px-5 pb-2.5 pt-3">
           <div>
-            <div className="text-[11.5px] text-muted">{isProject || path === "/report" ? project.name : path === "/tokens" ? "Quick tools" : "Data"}</div>
+            <div className="text-[11.5px] text-muted">{isProject || path === "/report" ? project.name : path === "/tokens" ? "Quick tools" : path === "/projects" ? "Library" : "Data"}</div>
             <h1 className="text-[21px] font-bold">{TITLES[path] ?? "Overview"}</h1>
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -70,7 +71,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </div>
         </header>
         {isProject ? <KpiBar /> : <div />}
-        {problem && <div role="alert" className="mx-5 mt-2 rounded-md bg-crit-soft px-3 py-2 text-sm text-crit">That change was not applied: {problem}</div>}
+        {problem && <div role="alert" className="mx-5 mt-2 rounded-md bg-crit-soft px-3 py-2 text-sm text-crit">{problem}</div>}
         <div className="min-h-0 px-5 pb-4 pt-3.5">{children}</div>
       </main>
     </div>
@@ -125,7 +126,8 @@ function ExportButtons({ btn }: { btn: string }) {
 
 function ProjectFile() {
   const project = useStudio((s) => s.project);
-  const replace = useStudio((s) => s.replace);
+  const add = useStudio((s) => s.add);
+  const create = useStudio((s) => s.create);
   const input = useRef<HTMLInputElement>(null);
   const exportFile = () => {
     const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
@@ -136,16 +138,21 @@ function ProjectFile() {
     URL.revokeObjectURL(a.href);
   };
   const importFile = async (f: File) => {
-    const parsed = ProjectSchema.safeParse(JSON.parse(await f.text()));
-    if (parsed.success) replace(parsed.data);
-    else alert(`This file is not a valid project: ${parsed.error.issues[0]?.path.join(".")} ${parsed.error.issues[0]?.message}`);
+    try {
+      const parsed = ProjectSchema.safeParse(JSON.parse(await f.text()));
+      if (parsed.success) add(parsed.data);
+      else useStudio.setState({ problem: `${f.name} is not a valid project (${parsed.error.issues[0]?.path.join(".")}: ${parsed.error.issues[0]?.message})` });
+    } catch {
+      useStudio.setState({ problem: `${f.name} is not a JSON project file` });
+    }
   };
+
   const btn = "flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-ink-2 hover:bg-surface-2";
   return (
     <Group label="Project file & export">
       <button type="button" className={btn} onClick={exportFile}><Download size={14} />Save to file</button>
-      <button type="button" className={btn} onClick={() => input.current?.click()}><Upload size={14} />Open file</button>
-      <button type="button" className={btn} onClick={() => replace(meetingIntelligence)}><RotateCcw size={14} />Reset to sample</button>
+      <button type="button" className={btn} onClick={() => input.current?.click()}><Upload size={14} />Open file as new project</button>
+      <button type="button" className={btn} onClick={() => create("meeting", meetingIntelligence.name)}><RotateCcw size={14} />New copy of the sample</button>
       <ExportButtons btn={btn} />
       <input ref={input} type="file" accept=".json" hidden onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])} />
     </Group>

@@ -12,6 +12,7 @@ A local, offline calculator for what an AI use case costs to **build** and to **
   - **Scenarios:** swap a model, change usage, build length or team size, or apply a lever, then compare against the baseline and adopt the one you want.
 - **Savings levers.** Concrete changes (Batch for regression, narrowing the bake-off, model routing, cheaper speech engines…), each with the saving it would give.
 - **Capacity (PTU).** Sizes provisioned throughput for each production model the way Microsoft does. It compares pay-as-you-go with PTU billed hourly, on a 1-month reservation and on a 1-year reservation. It shows utilisation and the utilisation needed to break even, and includes a calculator for sizing a single deployment.
+- **Projects.** Keep several projects in the browser and create new ones from templates: meeting intelligence, contract RAG, email triage agent, call-centre voice agent, or blank. Each project card shows build cost, run-rate and payback. Projects can be opened, duplicated or deleted.
 - **Export.** An Excel workbook (summary, months, line items with formulas, ROI by capability, assumptions, and prices used with source and confidence), a CSV of line items, and a printable report you can save as PDF.
 - **Token calculator.** Quick estimates with no project: text (exact o200k count in the browser), documents (every route compared), audio, and a single agent run.
 

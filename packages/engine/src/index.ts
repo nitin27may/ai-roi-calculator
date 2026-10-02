@@ -13,3 +13,4 @@ export * from "./templates.js";
 export * from "./report.js";
 export * from "./ptu.js";
 export { meetingIntelligence } from "./samples/meeting-intelligence.js";
+export { PROJECT_TEMPLATES, blankProject } from "./samples/templates.js";
