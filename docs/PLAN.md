@@ -4,6 +4,14 @@ Status: **plan only, no code yet** · Date: 2026-10-02 · Research notes: [`docs
 
 Platform stance: **Azure is the primary AI platform**: models, ingestion, search, evaluation, safety and hosting. **Snowflake Cortex** is a secondary model-serving provider, billed in credits. Anthropic-direct and Google prices are kept as reference and comparison points only.
 
+**Scope boundary.**
+- **This tool, the token calculator,** answers one question: *what will AI consumption cost?* Consumption means tokens plus metered AI services (OCR pages, transcription hours, embeddings, AI Search, evaluation, red teaming, safety). The answer is broken out per lifecycle phase:
+  - **development**: month 1, 2, 3… of building, experimenting and evaluating
+  - **production**: the monthly run-rate once the use case is live
+- **The ROI calculator** comes later. It will be ported selectively from `workgraph.ai/showcase/cost-calculator`; see [research/08](./research/08-workgraph-showcase-reuse.md) and §11.
+  - It owns the end-to-end view: development effort and labour (roles, rate card, delivery phases), the always-on resources, the current-state baseline, benefits, avoided cost and payback.
+  - It consumes this tool's output through a narrow contract. It does not recompute tokens.
+
 ---
 
 ## 0. What the research changed (read this first)
@@ -69,7 +77,8 @@ These findings shape the design. Several of them push back on the original idea.
    - a 12/24/36-month projection with growth
    - P50/P90 ranges for agents
 5. Every number has an **"explain" popover** showing the formula, the inputs and the price-catalog entry, with source URL, confidence and verified date.
-6. **Save, share and export** as JSON, CSV/XLSX, PDF summary or a shareable link. Each estimate is stamped with the catalog version used, and a "Re-price with latest catalog" button shows the deltas.
+6. **Lifecycle view.** Show cost per phase: Development (per month and in total, for the build duration), optional Pilot, and Production (monthly run-rate plus a 12/24/36-month projection). This is the headline output, for example "build months 1–3: $X/month; production: $Y/month".
+7. **Save, share and export** as JSON, CSV/XLSX, PDF summary or a shareable link. Each estimate is stamped with the catalog version used, and a "Re-price with latest catalog" button shows the deltas.
 
 ### 1.2 Workload component catalog (v1 = ★)
 Each component turns business inputs into **usage quantities** (tokens, pages, hours, SU-hours…) and then into **line items** priced from the catalog. Formulas and defaults are in `docs/research/05` and `06`.
@@ -283,6 +292,14 @@ ModelEntry { id, provider, family, displayName, version, tokenizerFamily, contex
 | Snowflake Service Consumption Table (PDF) | download and parse tables | Cortex credits |
 | Everything else | `manual` entries with `lastVerified` | semantic ranker, agentic retrieval, eval/red-team meter, Content Safety sub-features, Agent Service tools, MAI promos |
 
+**Reuse from the showcase.** Lift `packages/fetcher` `retail.ts` (paging, retry, cache) and `match.ts` (regex matching that refuses ambiguous meters) from workgraph.ai. Also lift its ~20 hand-written Azure OpenAI meter regexes as seed mapping data. Add what it lacks:
+- discovery across `serviceName eq 'Foundry Models'`, with an unmapped-meter report
+- PTU reservations (it currently drops non-Consumption meters)
+- batch, priority, long-context and cache-write meters
+- USD base pricing
+- confidence and effective dates
+- scheduling in CI (today it is run by hand only)
+
 Pipeline steps:
 1. Fetch the sources.
 2. Normalize the data.
@@ -393,11 +410,11 @@ Planned modelling:
 | **P1: Price sync** | Azure Retail sync plus meter mapping, Anthropic docs parser, LiteLLM cross-check, PR bot, unmapped-meter report | first sync PR confirms or corrects every [S]/[U] Azure price |
 | **P2: Engine core** | modifiers pipeline, components ★1–8 and ★13, links, aggregation, free tiers, golden tests | golden tests pass |
 | **P3: UI v1** | project editor, component cards, comparison matrix, breakdown charts, explain popovers, localStorage, JSON/CSV export, share link | 100-page doc and 1-hour meeting scenarios end-to-end in the browser |
-| **P4: Agents, eval, red team** | ★9 agent harness simulator (P50/P90/worst, caps), ★10 evaluation, ★11 red teaming, ★12 content safety; templates | agent worked example reproduced |
+| **P4: Agents, eval, red team, dev-phase cost** | ★9 agent harness simulator (P50/P90/worst, caps), ★10 evaluation, ★11 red teaming, ★12 content safety, **13b development & experimentation + lifecycle phases (Dev months → Production)**; templates | agent worked example reproduced; dev-month cost reproduces a hand calculation |
 | **P5: Snowflake + PTU** | Snowflake Cortex catalog and component, PTU sizing and break-even view | Azure vs Snowflake comparison works |
 | **P6: Extended components** | 14–21; XLSX/PDF export; projection and growth; sensitivity | |
-| **P6b: Build-phase costing** | 13b development & experimentation, lifecycle phases, cumulative timeline | dev-cost scenario reproduces hand calculation |
 | **P7: Multi-user (optional)** | Entra ID, Cosmos DB, org overrides, sharing, deploy to Azure | |
+| **P8: ROI module (after the token calculator is accepted)** | port the ROI, delivery and rate-card logic from workgraph.ai behind the §11 contract | showcase golden ROI tests ported and passing |
 
 ---
 
@@ -419,3 +436,39 @@ Planned modelling:
 - **Heuristic error.** Tokens per page, agent steps and similar are estimates. Mitigated by P50/P90 ranges, editable assumptions, an optional exact token count, and a later "calibrate from actual usage" import (Azure Cost Management export or App Insights token metrics).
 - **Meter mapping drift.** New Azure meter names break the regexes. Mitigated by the unmapped-meter report in every sync PR.
 - **Scope creep.** 23 component types is a lot. v1 ships ★1–13 and the rest come from demand.
+
+---
+
+## 11. Future ROI integration (design now, build in P8)
+
+Full analysis: [research/08](./research/08-workgraph-showcase-reuse.md).
+
+**Port, not copy.**
+- **Keep:** the showcase ROI's capability valuation, cost allocation that reconciles to total (with an unallocated explainer), avoided cost treated as a benefit, transition costs, one-off benefits, rate escalation, fractional payback, delivery/rate-card labour costing, and the benchmark library.
+- **Do not carry over:**
+  - CEL formulas in the core
+  - the monthly-only cost lines
+  - cost classes keyed to category-name strings
+  - magic output names
+  - the CAD and canadacentral defaults
+
+**Contract the token calculator must expose from day one**, so ROI plugs in without refactoring:
+```ts
+interface ConsumptionEstimate {
+  catalogVersion: string; currency: string; asOfDate: string;
+  phases: { id: "dev"|"pilot"|"prod"; startMonth: number; months: number }[];
+  byMonth: { month: number; phase: string; p50: number; p90: number }[];  // the single cost projection
+  lines: { componentId: string; componentName: string; meterRef: string; cadence: "one-time"|"monthly";
+           phase: string; monthly: number; oneTime: number;
+           costBehaviour: "fixed"|"semiFixed"|"variable";   // catalog data, not category names
+           roiAllocation: "shared"|"direct" }[];
+  businessVolume: Record<string /*componentId*/, { tasksPerMonth?: number; users?: number; itemsPerMonth?: number }>;
+}
+```
+
+**Rules for the integration:**
+- ROI takes `byMonth` as its cost side. It projects **benefits only**: adoption ramp, growth, wage escalation, avoided cost.
+- `implementationCost` = delivery labour + one-time consumption, meaning the 13b build-phase tokens and ingestion backfill.
+- **One project-level rate card** (roles with hourly rates) is shared by 13b (who runs experiments), Delivery and ROI.
+- Costs reach ROI already converted to the project currency.
+- The ROI band runs from (P90 cost, conservative benefit) to (P50 cost, optimistic benefit).
