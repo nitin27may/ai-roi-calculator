@@ -13,7 +13,7 @@ export function AddMenu<K extends string>({ label, items, onPick }: { label: str
   return (
     <details ref={ref} className="relative">
       <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2"><Plus size={14} />{label}</summary>
-      <div role="menu" className="absolute bottom-full left-0 z-20 mb-1 w-[300px] overflow-hidden rounded-lg border border-line bg-surface shadow-lg">
+      <div role="menu" className="absolute bottom-full left-0 z-20 mb-1 max-h-[60vh] w-[300px] overflow-y-auto rounded-lg border border-line bg-surface shadow-lg">
         {items.map((i) => (
           <button key={i.kind} type="button" role="menuitem" className="block w-full border-b border-line px-3 py-2 text-left last:border-b-0 hover:bg-surface-2"
             onClick={() => { onPick(i.kind); if (ref.current) ref.current.open = false; }}>

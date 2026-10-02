@@ -70,6 +70,8 @@ function describe(a: DevActivity): string {
     case "redteam": return `${a.scansPerMonth} scans/month from M${a.fromMonth}`;
     case "playground": return `${a.callsPerDevPerDay} calls/dev/day`;
     case "tooling": return `Copilot + coding agent tokens`;
+    case "synthetic": return `${a.acceptedPerMonth.toLocaleString("en-CA")} kept/month at ${Math.round(a.passRate * 100)}% pass rate`;
+    case "finetune": return `${a.runsPerMonth} runs/month · ${a.deployments} hosted`;
   }
 }
 

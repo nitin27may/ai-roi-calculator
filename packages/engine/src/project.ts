@@ -60,6 +60,25 @@ export const DevActivitySchema = z.discriminatedUnion("kind", [
     monthFactors: z.array(n0).default([1]),
   }),
   z.object({
+    /** Synthetic test or training data: generate, then keep what a judge model accepts. */
+    kind: z.literal("synthetic"), id, label: z.string(), ...Scope,
+    generatorModelId: id, acceptedPerMonth: n0, passRate: z.number().min(0.01).max(1),
+    genInputTokens: n0, genOutputTokens: n0,
+    /** Optional judge pass that filters the generated examples. */
+    judgeModelId: id.optional(), judgeInputTokens: n0, judgeOutputTokens: n0,
+    batchShare: share,
+    monthFactors: z.array(n0).default([1]),
+  }),
+  z.object({
+    /** Fine-tuning runs (training priced per 1M tokens, or per hour for reinforcement fine-tuning) and hosting of the tuned deployments. */
+    kind: z.literal("finetune"), id, label: z.string(), ...Scope,
+    trainingPriceId: id, runsPerMonth: n0,
+    examples: n0, tokensPerExample: n0, epochs: z.number().int().positive(),
+    hoursPerRun: n0,
+    deployments: n0, hostingHoursPerMonth: n0,
+    monthFactors: z.array(n0).default([1]),
+  }),
+  z.object({
     kind: z.literal("tooling"), id, label: z.string(), ...Scope,
     copilotSeatsPerDev: n0, copilotPlan: z.enum(["copilot-business", "copilot-enterprise"]),
     codingModelId: id, codingTokensPerDevPerDay: z.object({ input: n0, cachedInput: n0, output: n0 }), workingDays: n0,

@@ -56,3 +56,44 @@ describe("plan helpers", () => {
     expect(b.sweepsPerMonth[5]).toBe(2);
   });
 });
+
+describe("synthetic data and fine-tuning", () => {
+  const withActivity = async (kind: "synthetic" | "finetune") => {
+    const { newActivity } = await import("../src/index.js");
+    const p = structuredClone(meetingIntelligence);
+    const a = newActivity(p, kind);
+    p.build.activities.push(a);
+    return { p, a };
+  };
+
+  it("generates accepted ÷ pass rate examples and judges each one", async () => {
+    const { p, a } = await withActivity("synthetic");
+    if (a.kind !== "synthetic") throw new Error();
+    a.batchShare = 0;
+    const lines = devLabLines(p, 1, book, date).filter((l) => l.componentId === a.id);
+    const gen = lines.find((l) => l.id.endsWith(":generate"))!;
+    expect(gen.quantity).toBeCloseTo(2000 / 0.6, 6);
+    const tk = book.tokenizerMultiplier(a.generatorModelId);
+    expect(gen.unitPrice).toBeCloseTo(book.chatCost(a.generatorModelId, { input: 1500 * tk, output: 700 * tk }, date), 9);
+    expect(lines.find((l) => l.id.endsWith(":judge"))!.quantity).toBeCloseTo(gen.quantity, 6);
+    delete a.judgeModelId;
+    expect(devLabLines(p, 1, book, date).filter((l) => l.componentId === a.id)).toHaveLength(1);
+    expect(costOf(p, a.id, 3)).toBe(0); // default plan: [1, 0.5, 0]
+  });
+
+  it("prices fine-tuning by training tokens or hours, plus hosting", async () => {
+    const { p, a } = await withActivity("finetune");
+    if (a.kind !== "finetune") throw new Error();
+    expect(costOf(p, a.id, 1)).toBe(0); // default plan starts in month 2
+    const lines = devLabLines(p, 2, book, date).filter((l) => l.componentId === a.id);
+    const train = lines.find((l) => l.id.endsWith(":train"))!;
+    expect(train.quantity).toBeCloseTo((3 * 5000 * 1500 * 3) / 1e6, 9);
+    expect(train.unitPrice).toBeCloseTo(book.unitPrice("ft-train-gpt-4.1-mini"), 9);
+    expect(lines.find((l) => l.id.endsWith(":host"))!.cost).toBeCloseTo(160 * book.unitPrice("ft-hosting"), 6);
+    a.trainingPriceId = "ft-train-o4-mini-rft";
+    a.hoursPerRun = 4;
+    const rft = devLabLines(p, 2, book, date).find((l) => l.id === `${a.id}:train`)!;
+    expect(rft.quantity).toBe(12);
+    expect(rft.unit).toBe("training hour");
+  });
+});

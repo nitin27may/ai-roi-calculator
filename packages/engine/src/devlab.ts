@@ -107,6 +107,36 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
           formula: `${a.scansPerMonth} scans × ${a.categories} categories × ${a.objectivesPerCategory} objectives × (1 + ${a.strategies} strategies)${f !== 1 ? ` × ${f}` : ""} = ${fmtInt(probes)} probes` }));
         break;
       }
+      case "synthetic": {
+        const f = at(a.monthFactors, m - 1);
+        const generated = (a.acceptedPerMonth * f) / a.passRate;
+        if (generated === 0) break;
+        const call = (modelId: string, input: number, output: number) => {
+          const tk = book.tokenizerMultiplier(modelId);
+          return book.chatCost(modelId, { input: input * tk, output: output * tk }, date) * (1 - a.batchShare * book.chatModel(modelId).batchDiscount);
+        };
+        const batch = a.batchShare ? ` · ${Math.round(a.batchShare * 100)}% Batch` : "";
+        out.push(line({ id: `${a.id}:generate`, componentId: a.id, label: `${a.label}: generation (${book.chatModel(a.generatorModelId).label})`, stream: "devlab", behaviour: "usage", meter: a.generatorModelId, quantity: generated, unit: "example", unitPrice: call(a.generatorModelId, a.genInputTokens, a.genOutputTokens),
+          formula: `${fmtInt(a.acceptedPerMonth)} kept${f !== 1 ? ` × ${f}` : ""} ÷ ${Math.round(a.passRate * 100)}% pass rate = ${fmtInt(generated)} generated${batch}` }));
+        if (a.judgeModelId) out.push(line({ id: `${a.id}:judge`, componentId: a.id, label: `${a.label}: judge filter (${book.chatModel(a.judgeModelId).label})`, stream: "devlab", behaviour: "usage", meter: a.judgeModelId, quantity: generated, unit: "example", unitPrice: call(a.judgeModelId, a.judgeInputTokens, a.judgeOutputTokens),
+          formula: `${fmtInt(generated)} judged × (${fmtInt(a.judgeInputTokens)} in + ${fmtInt(a.judgeOutputTokens)} out)${batch}` }));
+        break;
+      }
+      case "finetune": {
+        const f = at(a.monthFactors, m - 1);
+        if (f === 0) break;
+        const u = book.unit(a.trainingPriceId);
+        const runs = a.runsPerMonth * f;
+        const perHour = u.unit === "training hour";
+        if (runs > 0) {
+          const qty = perHour ? runs * a.hoursPerRun : (runs * a.examples * a.tokensPerExample * a.epochs) / 1e6;
+          out.push(line({ id: `${a.id}:train`, componentId: a.id, label: `${a.label}: training (${u.label.replace(/^.*?, /, "")}${perHour ? ", RFT" : ""})`, stream: "devlab", behaviour: "usage", meter: a.trainingPriceId, quantity: qty, unit: u.unit, unitPrice: book.unitPrice(a.trainingPriceId),
+            formula: perHour ? `${fmtInt(runs)} runs × ${a.hoursPerRun} h` : `${fmtInt(runs)} runs × ${fmtInt(a.examples)} examples × ${fmtInt(a.tokensPerExample)} tokens × ${a.epochs} epochs = ${(qty).toFixed(2)}M training tokens` }));
+        }
+        if (a.deployments > 0 && a.hostingHoursPerMonth > 0) out.push(line({ id: `${a.id}:host`, componentId: a.id, label: `${a.label}: hosting`, stream: "devlab", behaviour: "fixed", meter: "ft-hosting", quantity: a.deployments * a.hostingHoursPerMonth, unit: "hour", unitPrice: book.unitPrice("ft-hosting"),
+          formula: `${a.deployments} deployments × ${a.hostingHoursPerMonth} h (billed while deployed, even when idle)` }));
+        break;
+      }
       case "evaluation":
         break;
     }

@@ -138,6 +138,8 @@ def sfu(id, label, unit, credits, ctype="ai", conf="single-source", note=None, *
     e = {"id": id, "label": label, "platform": "snowflake", "unit": unit, "credits": credits, "creditType": ctype, "source": SF(note), "confidence": conf}
     e.update(k); return e
 DIURL, CUURL, SEARCHURL, CSURL = "https://azure.microsoft.com/pricing/details/ai-document-intelligence/", "https://github.com/MicrosoftDocs/azure-ai-docs", "https://azure.microsoft.com/pricing/details/search/", "https://azure.microsoft.com/pricing/details/content-safety/"
+FTURL = "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/"
+FT_MODELS = [("gpt-4.1", "GPT-4.1", 25), ("gpt-4.1-mini", "GPT-4.1 mini", 5), ("gpt-4.1-nano", "GPT-4.1 nano", 1.5), ("gpt-4o", "GPT-4o", 25), ("gpt-4o-mini", "GPT-4o mini", 3.3)]
 units = [
     up("di-read", "Document Intelligence Read", "1K pages", di["readPer1KPages"], attrs={"overflowPer1K": di["readOverflowPer1KPages"], "overflowAfterPages": di["readOverflowAfterPages"]}, freePerMonth=0),
     up("di-layout", "Document Intelligence Layout", "1K pages", di["layoutPer1KPages"]),
@@ -179,6 +181,10 @@ units = [
     up("hosted-agent-gib-h", "Foundry hosted agent memory", "GiB-hour", ha["gibHour"], "cross-checked"),
     upu("copilot-business", "GitHub Copilot Business seat", "seat-month", 19, "https://github.com/features/copilot/plans", "cross-checked"),
     upu("copilot-enterprise", "GitHub Copilot Enterprise seat", "seat-month", 39, "https://github.com/features/copilot/plans", "cross-checked"),
+    # Fine-tuning (Azure OpenAI): training per 1M tokens, hosting per deployment-hour. Not checked against the Retail API.
+    *[upu(f"ft-train-{m}", f"Fine-tuning training, {lbl}", "1M training tokens", usd, FTURL, "unverified", attrs={"baseModelId": m}) for m, lbl, usd in FT_MODELS],
+    upu("ft-train-o4-mini-rft", "Reinforcement fine-tuning, o4-mini", "training hour", 100, FTURL, "unverified", attrs={"baseModelId": "o4-mini"}),
+    upu("ft-hosting", "Fine-tuned deployment hosting", "hour", 1.70, FTURL, "unverified"),
     sfu("sf-parse-layout", "AI_PARSE_DOCUMENT layout", "1K pages", 3.33, note="Conflicting third-party figure of ~USD 0.04/page"),
     sfu("sf-parse-ocr", "AI_PARSE_DOCUMENT OCR", "1K pages", 0.50),
     sfu("sf-ai-extract", "AI_EXTRACT", "1M tokens", 5.0, attrs={"tokensPerPage": 970}),

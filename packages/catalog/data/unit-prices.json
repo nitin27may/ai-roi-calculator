@@ -856,5 +856,121 @@
     },
     "confidence": "unverified",
     "price": 23.1
+  },
+  {
+    "id": "ft-train-gpt-4.1",
+    "label": "Fine-tuning training, GPT-4.1",
+    "platform": "azure",
+    "unit": "1M training tokens",
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "unverified",
+    "price": 34.65,
+    "attrs": {
+      "baseModelId": "gpt-4.1"
+    }
+  },
+  {
+    "id": "ft-train-gpt-4.1-mini",
+    "label": "Fine-tuning training, GPT-4.1 mini",
+    "platform": "azure",
+    "unit": "1M training tokens",
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "unverified",
+    "price": 6.93,
+    "attrs": {
+      "baseModelId": "gpt-4.1-mini"
+    }
+  },
+  {
+    "id": "ft-train-gpt-4.1-nano",
+    "label": "Fine-tuning training, GPT-4.1 nano",
+    "platform": "azure",
+    "unit": "1M training tokens",
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "unverified",
+    "price": 2.079,
+    "attrs": {
+      "baseModelId": "gpt-4.1-nano"
+    }
+  },
+  {
+    "id": "ft-train-gpt-4o",
+    "label": "Fine-tuning training, GPT-4o",
+    "platform": "azure",
+    "unit": "1M training tokens",
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "unverified",
+    "price": 34.65,
+    "attrs": {
+      "baseModelId": "gpt-4o"
+    }
+  },
+  {
+    "id": "ft-train-gpt-4o-mini",
+    "label": "Fine-tuning training, GPT-4o mini",
+    "platform": "azure",
+    "unit": "1M training tokens",
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "unverified",
+    "price": 4.5738,
+    "attrs": {
+      "baseModelId": "gpt-4o-mini"
+    }
+  },
+  {
+    "id": "ft-train-o4-mini-rft",
+    "label": "Reinforcement fine-tuning, o4-mini",
+    "platform": "azure",
+    "unit": "training hour",
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "unverified",
+    "price": 138.6,
+    "attrs": {
+      "baseModelId": "o4-mini"
+    }
+  },
+  {
+    "id": "ft-hosting",
+    "label": "Fine-tuned deployment hosting",
+    "platform": "azure",
+    "unit": "hour",
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "unverified",
+    "price": 2.3562
   }
 ]

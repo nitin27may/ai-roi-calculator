@@ -6,7 +6,8 @@ import { useStudio } from "@/lib/store";
 export type Spec =
   | { key: string; label: string; type: "number"; min?: number; max?: number; step?: number; suffix?: string }
   | { key: string; label: string; type: "percent" }
-  | { key: string; label: string; type: "model" | "embedding" | "speech" | "harness" | "unitPrice" | "sfModel" | "sfFunction" | "sfEmbedding" | "extractor" | "realtime" }
+  | { key: string; label: string; type: "model" | "embedding" | "speech" | "harness" | "unitPrice" | "sfModel" | "sfFunction" | "sfEmbedding" | "extractor" | "realtime" | "ftTraining" }
+  | { key: string; label: string; type: "optionalModel" }
   | { key: string; label: string; type: "select"; options: { value: string; label: string }[]; numeric?: boolean }
   | { key: string; label: string; type: "toggle" }
   | { key: string; label: string; type: "list"; hint: string };
@@ -27,6 +28,7 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
     if (t === "sfModel") return modelOptions((m) => m.platform === "snowflake");
     if (t === "sfEmbedding") return catalog.embeddingModels.filter((m) => m.platform === "snowflake").map((m) => ({ value: m.id, label: m.label }));
     if (t === "sfFunction") return catalog.unitPrices.filter((u) => u.platform === "snowflake" && u.unit === "1M tokens").map((u) => ({ value: u.id, label: u.label }));
+    if (t === "ftTraining") return catalog.unitPrices.filter((u) => u.id.startsWith("ft-train-")).map((u) => ({ value: u.id, label: `${u.label.replace(/^(Fine-tuning training|Reinforcement fine-tuning), /, (_, k: string) => (k.startsWith("R") ? "RFT " : ""))} · per ${u.unit.replace("1M training tokens", "1M tokens")}` }));
     if (t === "extractor") return catalog.unitPrices.filter((u) => u.unit === "1K pages").map((u) => ({ value: u.id, label: `${u.label}${u.platform === "snowflake" ? " (Snowflake)" : ""}` }));
     return catalog.unitPrices.map((u) => ({ value: u.id, label: `${u.label} (${u.unit})` }));
   };
@@ -43,9 +45,12 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
             return <Field key={s.key} label={s.label}><Select value={String(v)} options={s.options} onChange={(x) => set(s.key, s.numeric ? Number(x) : x)} /></Field>;
           case "toggle":
             return <Field key={s.key} label={s.label}><Select value={v ? "yes" : "no"} options={[{ value: "yes", label: "Yes" }, { value: "no", label: "No" }]} onChange={(x) => set(s.key, x === "yes")} /></Field>;
+          case "optionalModel":
+            return <Field key={s.key} label={s.label}><Select value={v ? String(v) : ""} options={[{ value: "", label: "None" }, ...modelOptions()]} onChange={(x) => set(s.key, x || undefined)} /></Field>;
           case "list":
             return (
-              <Field key={s.key} label={`${s.label} (${s.hint})`}>
+              // Keyed by value so edits made elsewhere (e.g. the plan grid) show up here.
+              <Field key={`${s.key}:${(v as number[]).join(",")}`} label={`${s.label} (${s.hint})`}>
                 <input className="num min-w-0 rounded-md border border-line bg-surface-2 px-2 py-1.5 text-[13px] font-medium" defaultValue={(v as number[]).join(", ")}
                   onBlur={(e) => { const xs = e.target.value.split(/[,\s]+/).filter(Boolean).map(Number); if (xs.length && xs.every((x) => Number.isFinite(x) && x >= 0)) set(s.key, xs); }} />
               </Field>
@@ -108,6 +113,29 @@ export const ACTIVITY_SPECS: Record<string, Spec[]> = {
     { key: "inputTokens", label: "Input tokens / call", type: "number" },
     { key: "outputTokens", label: "Output tokens / call", type: "number" },
     { key: "workingDays", label: "Working days / month", type: "number", max: 31 },
+    { key: "monthFactors", label: "Intensity by month", type: "list", hint: "1 = full" },
+  ],
+  synthetic: [
+    { key: "generatorModelId", label: "Generator model", type: "model" },
+    { key: "acceptedPerMonth", label: "Examples kept per month", type: "number" },
+    { key: "passRate", label: "Pass rate", type: "percent" },
+    { key: "genInputTokens", label: "Generation input tokens", type: "number" },
+    { key: "genOutputTokens", label: "Generation output tokens", type: "number" },
+    { key: "judgeModelId", label: "Judge model", type: "optionalModel" },
+    { key: "judgeInputTokens", label: "Judge input tokens", type: "number" },
+    { key: "judgeOutputTokens", label: "Judge output tokens", type: "number" },
+    { key: "batchShare", label: "Sent through Batch", type: "percent" },
+    { key: "monthFactors", label: "Intensity by month", type: "list", hint: "1 = full" },
+  ],
+  finetune: [
+    { key: "trainingPriceId", label: "Base model and method", type: "ftTraining" },
+    { key: "runsPerMonth", label: "Training runs per month", type: "number" },
+    { key: "examples", label: "Training examples", type: "number" },
+    { key: "tokensPerExample", label: "Tokens per example", type: "number" },
+    { key: "epochs", label: "Epochs", type: "number", min: 1, max: 50 },
+    { key: "hoursPerRun", label: "Hours per run (RFT only)", type: "number" },
+    { key: "deployments", label: "Tuned deployments kept", type: "number" },
+    { key: "hostingHoursPerMonth", label: "Hosting hours / month", type: "number", max: 744 },
     { key: "monthFactors", label: "Intensity by month", type: "list", hint: "1 = full" },
   ],
   tooling: [

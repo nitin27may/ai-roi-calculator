@@ -18,6 +18,8 @@ export const ACTIVITY_KINDS: { kind: DevActivity["kind"]; label: string; detail:
   { kind: "redteam", label: "AI red teaming", detail: "Adversarial scans by risk category and attack strategy" },
   { kind: "playground", label: "Playground & prompt work", detail: "Ad-hoc calls while designing prompts" },
   { kind: "tooling", label: "AI coding tools", detail: "Copilot seats and coding-agent tokens" },
+  { kind: "synthetic", label: "Synthetic data", detail: "Generate test or training examples, keep what a judge accepts" },
+  { kind: "finetune", label: "Fine-tuning", detail: "Training runs plus hosting of the tuned deployments (prices unverified)" },
 ];
 
 export const WORKLOAD_KINDS: { kind: Workload["kind"]; label: string; detail: string }[] = [
@@ -66,6 +68,8 @@ export function newActivity(p: Project, kind: DevActivity["kind"]): DevActivity 
     case "evaluation": return { kind, id, label, judgeModelId: JUDGE_MODEL, evaluators: ["groundedness", "relevance", "coherence", "taskAdherence"], queryTokens: 150, contextTokens: 2500, responseTokens: 600, scoredShare: { bakeoff: 1, iterations: 0.3, regression: 1 }, safetyEvaluators: 4 };
     case "redteam": return { kind, id, label, targetModelId: DEFAULT_MODEL, scansPerMonth: 4, categories: 4, objectivesPerCategory: 10, strategies: 5, multiTurnShare: 0.2, fromMonth: Math.max(1, B - 1), monthFactors: [1] };
     case "playground": return { kind, id, label, modelId: DEFAULT_MODEL, callsPerDevPerDay: 40, inputTokens: 3000, outputTokens: 600, workingDays: 21, monthFactors: [1] };
+    case "synthetic": return { kind, id, label, generatorModelId: DEFAULT_MODEL, acceptedPerMonth: 2000, passRate: 0.6, genInputTokens: 1500, genOutputTokens: 700, judgeModelId: JUDGE_MODEL, judgeInputTokens: 1200, judgeOutputTokens: 150, batchShare: 1, monthFactors: [1, 0.5, 0] };
+    case "finetune": return { kind, id, label, trainingPriceId: "ft-train-gpt-4.1-mini", runsPerMonth: 3, examples: 5000, tokensPerExample: 1500, epochs: 3, hoursPerRun: 0, deployments: 1, hostingHoursPerMonth: 160, monthFactors: [0, 1] };
     case "tooling": return { kind, id, label, copilotSeatsPerDev: 1, copilotPlan: "copilot-business", codingModelId: "claude-sonnet-5-5", codingTokensPerDevPerDay: { input: 400000, cachedInput: 2400000, output: 60000 }, workingDays: 21, monthFactors: [1] };
   }
 }
