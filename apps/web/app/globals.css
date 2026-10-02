@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* Estimator's workbench: spruce-biased neutrals, one accent, categorical series from the validated dataviz palette. */
+:root {
+  --bg: #f4f6f4; --surface: #ffffff; --surface-2: #eef2ef; --ink: #13201b; --ink-2: #4b5853; --muted: #6c7873; --line: #dbe1dd;
+  --accent: #0d6b57; --accent-ink: #ffffff; --accent-soft: #dcefe8;
+  --good: #1b7a3a; --warn: #a15c00; --crit: #b42318; --good-soft: #e0f2e6; --warn-soft: #fdf1dc; --crit-soft: #fbe4e1;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1513; --surface: #161e1b; --surface-2: #1d2723; --ink: #eef3f0; --ink-2: #b9c4bf; --muted: #8e9b95; --line: #2a3631;
+    --accent: #3fbf9c; --accent-ink: #06231b; --accent-soft: #163a31;
+    --good: #5cc97f; --warn: #e9a443; --crit: #f07a6e; --good-soft: #15301f; --warn-soft: #3a2b12; --crit-soft: #3d1c19;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1513; --surface: #161e1b; --surface-2: #1d2723; --ink: #eef3f0; --ink-2: #b9c4bf; --muted: #8e9b95; --line: #2a3631;
+  --accent: #3fbf9c; --accent-ink: #06231b; --accent-soft: #163a31;
+  --good: #5cc97f; --warn: #e9a443; --crit: #f07a6e; --good-soft: #15301f; --warn-soft: #3a2b12; --crit-soft: #3d1c19;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-crit: var(--crit);
+  --color-good-soft: var(--good-soft);
+  --color-warn-soft: var(--warn-soft);
+  --color-crit-soft: var(--crit-soft);
+  --font-display: "Bricolage Grotesque Variable", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); font-size: 14px; line-height: 1.5; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; letter-spacing: -0.01em; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chart text { fill: var(--muted); font: 11px var(--font-sans); }
+table.data { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.data th { font-weight: 500; color: var(--muted); text-align: left; font-size: 11.5px; border-bottom: 1px solid var(--line); padding: 5px 8px; white-space: nowrap; }
+table.data td { border-bottom: 1px solid var(--line); padding: 6px 8px; vertical-align: top; }
+table.data .n { text-align: right; white-space: nowrap; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+table.data tr.total td { font-weight: 600; border-top: 2px solid var(--line); border-bottom: 0; }
