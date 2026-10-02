@@ -115,7 +115,23 @@ export type Workload = z.infer<typeof WorkloadSchema>;
 
 export const RoleSchema = z.object({ id, label: z.string(), hourlyRate: n0 });
 /** `experiments`: these people run AI Dev Lab experiments (drives per-developer activity volumes). */
-export const TeamLineSchema = z.object({ roleId: id, people: n0, hoursPerMonth: n0, experiments: z.boolean().default(false) });
+export const TeamLineSchema = z.object({
+  roleId: id, people: n0, hoursPerMonth: n0, experiments: z.boolean().default(false),
+  /** Delivery phase name and the build months it covers (defaults to the whole build). */
+  phase: z.string().optional(),
+  fromMonth: z.number().int().positive().optional(),
+  toMonth: z.number().int().positive().optional(),
+});
+
+/** A what-if: edits applied to a copy of the project. Arrays in a path are addressed by element id. */
+export const ScenarioEditSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("set"), path: z.array(z.union([z.string(), z.number()])).min(1), value: z.unknown() }),
+  z.object({ kind: z.literal("lever"), leverId: id }),
+  z.object({ kind: z.literal("scaleUsage"), factor: z.number().positive() }),
+]);
+export const ScenarioSchema = z.object({ id, label: z.string(), edits: z.array(ScenarioEditSchema) });
+export type Scenario = z.infer<typeof ScenarioSchema>;
+export type ScenarioEdit = z.infer<typeof ScenarioEditSchema>;
 
 export const ProjectSchema = z.object({
   schema: z.literal("ai-cost-roi-studio/project"),
@@ -150,15 +166,28 @@ export const ProjectSchema = z.object({
     z.object({ mode: z.literal("pctOfBuild"), pctPerYear: n0 }),
   ]),
   benefits: z.object({
-    capabilities: z.array(z.object({ id, label: z.string(), hoursSavedPerMonth: n0, roleId: id })),
-    avoidedCosts: z.array(z.object({ id, label: z.string(), monthly: n0 })),
+    /** Time saved at full adoption. `componentIds`: workloads this capability uses, for cost allocation. */
+    capabilities: z.array(z.object({ id, label: z.string(), hoursSavedPerMonth: n0, roleId: id, componentIds: z.array(id).default([]) })),
+    /** Costs that stop (licences, contracts, headcount). Not scaled by adoption; start at go-live unless `startMonth` is set. */
+    avoidedCosts: z.array(z.object({ id, label: z.string(), monthly: n0, startMonth: z.number().int().positive().optional() })),
+    /** One-time benefits such as a decommissioned system's resale or a grant. */
+    oneOff: z.array(z.object({ id, label: z.string(), amount: n0, month: z.number().int().positive() })).default([]),
   }),
   roi: z.object({
     basis: z.enum(["run", "runMaint", "full"]),
     benefitPreset: z.enum(["conservative", "typical", "optimistic"]),
     devCutPct: z.number().min(0).max(100),
     maintCutPct: z.number().min(0).max(100),
+    /** Change management, training, dual running: monthly cost over a month window. */
+    transitionCosts: z.array(z.object({ id, label: z.string(), monthly: n0, fromMonth: z.number().int().positive(), toMonth: z.number().int().positive() })).default([]),
+    /** Yearly growth of production usage and time-saving benefits. */
+    growthPctPerYear: z.number().min(-50).max(500).default(0),
+    /** Yearly escalation of labour rates (benefit value and maintenance labour). */
+    rateEscalationPctPerYear: z.number().min(0).max(50).default(0),
+    /** Annual discount rate for NPV. */
+    discountRatePct: z.number().min(0).max(50).default(0),
   }),
+  scenarios: z.array(ScenarioSchema).default([]),
 });
 export type Project = z.infer<typeof ProjectSchema>;
 export type Harness = z.infer<typeof HarnessSchema>;

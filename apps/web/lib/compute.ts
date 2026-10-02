@@ -12,7 +12,7 @@ export function useLedger() {
   const percentile = useStudio((s) => s.percentile);
   return useMemo(() => {
     const ledger = buildLedger(project, catalog, percentile);
-    const roi = computeRoi(ledger, project.roi.basis);
+    const roi = computeRoi(ledger, project.roi.basis, project.roi.discountRatePct);
     return { project, ledger, roi };
   }, [project, percentile]);
 }

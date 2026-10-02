@@ -2,9 +2,14 @@
 
 A local, offline calculator for what an AI use case costs to **build** and to **run**, and whether it pays back. Everything is priced in **CAD**, and the only providers are **Azure** (Foundry models including Claude on Foundry, Speech, Document Intelligence, Content Understanding, AI Search, Content Safety, evaluation) and **Snowflake Cortex**.
 
-- **Build.** Labour from a rate card, plus the **AI Dev Lab**: the tokens and AI services the team uses while building. That covers model bake-offs across candidate models, harness iterations, nightly regression, Foundry evaluation, AI red teaming, the playground and AI coding tools.
+- **Build.** Labour from a rate card by delivery phase, plus the **AI Dev Lab**: the tokens and AI services the team uses while building. That covers model bake-offs across candidate models, harness iterations, nightly regression, Foundry evaluation, AI red teaming, the playground and AI coding tools.
+- **Add, remove and rename items.** Dev Lab activities and production workloads can be added from templates, removed or renamed.
 - **Run.** Production workloads: transcription with every speech engine side by side, documents, email, embeddings, AI Search sizing, retrieval, chat, agent harnesses at P50, P90 or worst case under caps, continuous evaluation, Content Safety and platform costs.
-- **Value & ROI.** Measure benefits against running cost only, running plus maintenance, or the full lifecycle. Payback month, ROI, cost and benefit by year.
+- **Value & ROI.** Measure benefits against running cost only, running plus maintenance, or the full lifecycle. You get payback month, ROI, NPV at your discount rate, and cost and benefit by year.
+  - **Benefits:** time-saving capabilities, avoided costs with start months, and one-off benefits.
+  - **Costs and assumptions:** transition costs in month windows, yearly growth and rate escalation.
+  - **ROI by capability:** linked workloads are direct cost, and shared cost is split pro rata. Anything left over is shown as unallocated, with the reason.
+  - **Scenarios:** swap a model, change usage, build length or team size, or apply a lever, then compare against the baseline and adopt the one you want.
 - **Savings levers.** Concrete changes (Batch for regression, narrowing the bake-off, model routing, cheaper speech engines…), each with the saving it would give.
 - **Token calculator.** Quick estimates with no project: text (exact o200k count in the browser), documents (every route compared), audio, and a single agent run.
 

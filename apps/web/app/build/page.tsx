@@ -1,9 +1,10 @@
 "use client";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import type { DevActivity } from "@studio/engine";
+import { ACTIVITY_KINDS, newActivity, type DevActivity } from "@studio/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select } from "@/components/ui";
 import { Explain } from "@/components/explain";
+import { AddMenu, ItemHeader } from "@/components/add-menu";
 import { Legend, Spark, StackedBars } from "@/components/charts";
 import { ACTIVITY_SPECS, Fields } from "@/components/fields";
 import { modelOptions, useLedger } from "@/lib/compute";
@@ -35,13 +36,14 @@ export default function Build() {
           {acts.map((a, i) => (
             <ListRow key={a.id} selected={sel === a.id} onClick={() => setSel(a.id)} title={a.label} sub={describe(a)} aside={<Spark values={series(a.id)} color={COLORS[i % COLORS.length]!} />} value={cad(series(a.id).reduce((x, y) => x + y, 0))} />
           ))}
+          <div className="px-3.5 py-2.5"><AddActivity onAdded={setSel} /></div>
           <GroupHead>Environment</GroupHead>
           <ListRow selected={sel === "env"} onClick={() => setSel("env")} title="Dev environment" sub={project.build.environment.map((e) => e.label).join(" · ")} value={cad(devEnv.reduce((x, y) => x + y, 0))} />
         </div>
       </Card>
       <Card>
         <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto p-3.5">
-          {sel === "all" ? <AllActivities /> : sel === "team" ? <Team /> : sel === "env" ? <Explain title="Dev environment" lines={buildMonths.flatMap((m) => m.lines.filter((l) => l.stream === "devenv"))} months={B} /> : <Activity id={sel} />}
+          {sel === "all" ? <AllActivities /> : sel === "team" ? <Team /> : sel === "env" ? <Explain title="Dev environment" lines={buildMonths.flatMap((m) => m.lines.filter((l) => l.stream === "devenv"))} months={B} /> : <Activity id={sel} onRemoved={() => setSel("all")} />}
         </div>
       </Card>
     </div>
@@ -101,6 +103,7 @@ function AllActivities() {
 function Team() {
   const project = useStudio((s) => s.project);
   const edit = useStudio((s) => s.edit);
+  const B = project.timeline.buildMonths;
   const { ledger } = useLedger();
   const roles = project.rateCard.map((r) => ({ value: r.id, label: r.label }));
   return (
@@ -108,13 +111,16 @@ function Team() {
       <div><h2 className="text-base font-bold">Team & rate card</h2><div className="text-xs text-muted">Labour for the build in CAD. Ticked lines run AI experiments and drive per-developer Dev Lab volumes.</div></div>
       <div className="font-display text-[26px] font-bold">{cad(ledger.totals.buildLabour)}</div>
       <table className="data">
-        <thead><tr><th>Role</th><th className="n">People</th><th className="n">Hours / month</th><th>Runs experiments</th><th /></tr></thead>
+        <thead><tr><th>Phase</th><th>Role</th><th className="n">People</th><th className="n">Hours / month</th><th className="n">From</th><th className="n">To</th><th>Runs experiments</th><th /></tr></thead>
         <tbody>
           {project.build.team.map((t, i) => (
             <tr key={i}>
+              <td><input aria-label="Phase" className="w-28 rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]" value={t.phase ?? ""} placeholder="All build" onChange={(e) => edit((d) => { d.build.team[i]!.phase = e.target.value || undefined; })} /></td>
               <td><Select value={t.roleId} options={roles} onChange={(v) => edit((d) => { d.build.team[i]!.roleId = v; })} /></td>
               <td className="n"><NumberInput value={t.people} step={0.1} onChange={(v) => edit((d) => { d.build.team[i]!.people = v; })} /></td>
               <td className="n"><NumberInput value={t.hoursPerMonth} onChange={(v) => edit((d) => { d.build.team[i]!.hoursPerMonth = v; })} /></td>
+              <td className="n w-20"><NumberInput value={t.fromMonth ?? 1} min={1} max={B} onChange={(v) => edit((d) => { d.build.team[i]!.fromMonth = Math.round(v); })} /></td>
+              <td className="n w-20"><NumberInput value={Math.min(t.toMonth ?? B, B)} min={1} max={B} onChange={(v) => edit((d) => { d.build.team[i]!.toMonth = Math.round(v); })} /></td>
               <td><input type="checkbox" checked={t.experiments} onChange={(e) => edit((d) => { d.build.team[i]!.experiments = e.target.checked; })} aria-label="Runs experiments" /></td>
               <td><button type="button" aria-label="Remove line" onClick={() => edit((d) => { d.build.team.splice(i, 1); })}><Trash2 size={14} /></button></td>
             </tr>
@@ -131,7 +137,18 @@ function Team() {
   );
 }
 
-function Activity({ id }: { id: string }) {
+function AddActivity({ onAdded }: { onAdded: (id: string) => void }) {
+  const edit = useStudio((s) => s.edit);
+  return (
+    <AddMenu label="Add activity" items={ACTIVITY_KINDS} onPick={(kind) => {
+      let id = "";
+      edit((d) => { const a = newActivity(d, kind); id = a.id; d.build.activities.push(a); });
+      if (id) onAdded(id);
+    }} />
+  );
+}
+
+function Activity({ id, onRemoved }: { id: string; onRemoved: () => void }) {
   const { project, ledger } = useLedger();
   const edit = useStudio((s) => s.edit);
   const a = project.build.activities.find((x) => x.id === id);
@@ -144,7 +161,9 @@ function Activity({ id }: { id: string }) {
   const locate = (d: typeof project) => d.build.activities.find((x) => x.id === id) as unknown as Record<string, unknown>;
   return (
     <>
-      <div><h2 className="text-base font-bold">{a.label}</h2><div className="text-xs text-muted">{describe(a)}</div></div>
+      <ItemHeader label={a.label} sub={describe(a)} removeLabel="Remove activity"
+        onRename={(v) => edit((d) => { const x = d.build.activities.find((y) => y.id === id); if (x) x.label = v; })}
+        onRemove={() => { edit((d) => { d.build.activities = d.build.activities.filter((y) => y.id !== id); }); onRemoved(); }} />
       <div className="font-display text-[26px] font-bold">{cad(rows.reduce((s, r) => s + r.v, 0))}<span className="ml-1.5 font-sans text-xs font-normal text-muted">over {B} months</span></div>
       <Fields specs={ACTIVITY_SPECS[a.kind] ?? []} value={a as unknown as Record<string, unknown>} locate={locate} />
       {a.kind === "bakeoff" && (

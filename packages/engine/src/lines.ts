@@ -1,5 +1,5 @@
 /** Which part of the lifecycle a cost belongs to. */
-export type Stream = "labour" | "devlab" | "devenv" | "run" | "platform" | "maint";
+export type Stream = "labour" | "devlab" | "devenv" | "run" | "platform" | "maint" | "transition";
 
 /** usage: scales with adoption in production. fixed: billed in full from go-live. */
 export type Behaviour = "usage" | "fixed";

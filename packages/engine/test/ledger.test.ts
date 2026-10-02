@@ -34,8 +34,10 @@ describe("ledger", () => {
     }
   });
 
-  it("prices build labour from the rate card (3 × 160 × 95 + 0.5 × 160 × 120 per month)", () => {
-    expect(L.totals.buildLabour).toBeCloseTo((3 * 160 * 95 + 0.5 * 160 * 120) * 6, 6);
+  it("prices build labour by delivery phase (Discovery M1, Build M1–6)", () => {
+    const m1 = 1 * 160 * 120 + 3 * 160 * 95, later = 3 * 160 * 95 + 0.5 * 160 * 120;
+    expect(L.months[0]!.byStream.labour).toBeCloseTo(m1, 6);
+    expect(L.totals.buildLabour).toBeCloseTo(m1 + 5 * later, 6);
   });
 
   it("scales usage lines with adoption but keeps fixed lines whole", () => {

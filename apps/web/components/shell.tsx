@@ -90,7 +90,7 @@ function KpiBar() {
     ["Production run-rate", `${cad(t.runRate)}/mo`, `+ ${cad(t.maintRate)} maintenance`],
     ["Benefit at full adoption", `${cad(t.benefitRate)}/mo`, `${project.benefits.capabilities.length + project.benefits.avoidedCosts.length} sources`],
     ["Payback", roi.paybackMonth ? `Month ${roi.paybackMonth}` : `> ${H} months`, basis],
-    [`${H / 12}-year ROI`, `${fmt(roi.roi * 100)}%`, `${cad(roi.totalBenefit - roi.totalCost)} net`],
+    [`${fmt(H / 12, H % 12 ? 1 : 0)}-year ROI`, `${fmt(roi.roi * 100)}%`, `NPV ${cad(roi.npv)} at ${project.roi.discountRatePct}%`],
   ];
   return (
     <div className="mx-5 grid grid-cols-2 overflow-hidden rounded-lg border border-line bg-surface md:grid-cols-3 xl:grid-cols-[repeat(5,minmax(0,1fr))_auto]">

@@ -12,7 +12,7 @@ import { fmtInt, line, sum, type Line } from "./lines.js";
  */
 export function devLabLines(p: Project, m: number, book: PriceBook, date: string): Line[] {
   const harnesses = new Map(p.harnesses.map((h) => [h.id, h]));
-  const devs = developers(p);
+  const devs = developers(p, m);
   const runs = { bakeoff: 0, iterations: 0, regression: 0 };
   const out: Line[] = [];
   const at = <T>(xs: T[], i: number) => xs[Math.min(i, xs.length - 1)]!;
@@ -101,18 +101,20 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
   return out;
 }
 
-export function developers(p: Project): number {
-  return sum(p.build.team.filter((t) => t.experiments).map((t) => t.people));
+/** People running experiments in build month m (all build months when m is omitted). */
+export function developers(p: Project, m?: number): number {
+  return sum(p.build.team.filter((t) => t.experiments && (m === undefined || (m >= (t.fromMonth ?? 1) && m <= (t.toMonth ?? Infinity)))).map((t) => t.people));
 }
 
-/** Monthly labour lines for a team. */
-export function teamLines(p: Project, team: Project["build"]["team"], stream: "labour" | "maint", componentId: string, factor = 1): Line[] {
+/** Monthly labour lines for a team; lines with a month window only bill inside it (when `m` is given). */
+export function teamLines(p: Project, team: Project["build"]["team"], stream: "labour" | "maint", componentId: string, factor = 1, m?: number): Line[] {
   const rates = new Map(p.rateCard.map((r) => [r.id, r]));
-  return team.map((t) => {
+  const active = team.map((t, i) => [t, i] as const).filter(([t]) => m === undefined || (m >= (t.fromMonth ?? 1) && m <= (t.toMonth ?? Infinity)));
+  return active.map(([t, i]) => {
     const r = rates.get(t.roleId);
     if (!r) throw new Error(`Unknown role ${t.roleId}`);
     const hours = t.people * t.hoursPerMonth;
-    return line({ id: `${componentId}:${t.roleId}`, componentId, label: r.label, stream, behaviour: "fixed", meter: `role:${t.roleId}`, quantity: hours, unit: "hour", unitPrice: r.hourlyRate * factor,
+    return line({ id: `${componentId}:${t.phase ?? ""}:${t.roleId}:${i}`, componentId, label: t.phase ? `${t.phase}: ${r.label}` : r.label, stream, behaviour: "fixed", meter: `role:${t.roleId}`, quantity: hours, unit: "hour", unitPrice: r.hourlyRate * factor,
       formula: `${t.people} × ${t.hoursPerMonth} h × CAD ${r.hourlyRate}/h${factor !== 1 ? ` × ${factor.toFixed(2)}` : ""}` });
   });
 }

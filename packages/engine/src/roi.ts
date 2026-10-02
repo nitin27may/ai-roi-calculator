@@ -8,24 +8,27 @@ export interface RoiResult {
   monthlyCost: number[];
   monthlyBenefit: number[];
   cumulative: number[];
-  /** First month where cumulative net ≥ 0, or null within the horizon. */
+  /** First month from which cumulative net stays ≥ 0, or null within the horizon. */
   paybackMonth: number | null;
   totalCost: number;
   totalBenefit: number;
   roi: number;
+  /** Net present value at the annual discount rate (0% = undiscounted net). */
+  npv: number;
+  discountRatePct: number;
   byYear: { year: number; cost: number; benefit: number; net: number }[];
 }
 
-/** Cost counted for a month under a basis. */
+/** Cost counted for a month under a basis. Transition costs count once maintenance does. */
 export function basisCost(mo: Month, basis: CostBasis): number {
   const s = mo.byStream;
   const run = s.run + s.platform;
   if (basis === "run") return run;
-  if (basis === "runMaint") return run + s.maint;
-  return run + s.maint + s.labour + s.devlab + s.devenv;
+  if (basis === "runMaint") return run + s.maint + s.transition;
+  return run + s.maint + s.transition + s.labour + s.devlab + s.devenv;
 }
 
-export function computeRoi(ledger: Ledger, basis: CostBasis): RoiResult {
+export function computeRoi(ledger: Ledger, basis: CostBasis, discountRatePct = 0): RoiResult {
   const monthlyCost = ledger.months.map((mo) => basisCost(mo, basis));
   const monthlyBenefit = ledger.months.map((mo) => mo.benefit);
   let c = 0;
@@ -38,6 +41,8 @@ export function computeRoi(ledger: Ledger, basis: CostBasis): RoiResult {
   }
   const totalCost = monthlyCost.reduce((a, b) => a + b, 0);
   const totalBenefit = monthlyBenefit.reduce((a, b) => a + b, 0);
+  const r = (1 + discountRatePct / 100) ** (1 / 12) - 1;
+  const npv = monthlyCost.reduce((s, x, i) => s + (monthlyBenefit[i]! - x) / (1 + r) ** (i + 1), 0);
   const byYear = [];
   for (let y = 0; y * 12 < monthlyCost.length; y++) {
     const cost = monthlyCost.slice(y * 12, y * 12 + 12).reduce((a, b) => a + b, 0);
@@ -47,6 +52,7 @@ export function computeRoi(ledger: Ledger, basis: CostBasis): RoiResult {
   return {
     basis, monthlyCost, monthlyBenefit, cumulative,
     paybackMonth: totalBenefit > 0 ? payback : null,
-    totalCost, totalBenefit, roi: totalCost > 0 ? (totalBenefit - totalCost) / totalCost : 0, byYear,
+    totalCost, totalBenefit, roi: totalCost > 0 ? (totalBenefit - totalCost) / totalCost : 0,
+    npv, discountRatePct, byYear,
   };
 }

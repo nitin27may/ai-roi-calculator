@@ -1,8 +1,9 @@
 "use client";
 import { useMemo, useState } from "react";
-import { PriceBook, simulateHarness, sizeSearch, type Workload } from "@studio/engine";
+import { PriceBook, WORKLOAD_KINDS, newWorkload, removeWorkload, simulateHarness, sizeSearch, type Workload } from "@studio/engine";
 import { Card, CardHead, GroupHead, ListRow, Pill, Seg } from "@/components/ui";
 import { Explain } from "@/components/explain";
+import { AddMenu, ItemHeader } from "@/components/add-menu";
 import { Fields, HARNESS_SPECS, WORKLOAD_SPECS } from "@/components/fields";
 import { catalog, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
@@ -39,6 +40,7 @@ export default function Run() {
               })}
             </div>
           ))}
+          <div className="px-3.5 py-2.5"><AddWorkload onAdded={setSel} /></div>
           <GroupHead>Agent harnesses</GroupHead>
           {project.harnesses.map((h) => <ListRow key={h.id} selected={sel === `h:${h.id}`} onClick={() => setSel(`h:${h.id}`)} title={h.label} sub={`${h.tools} tools · ${h.steps} steps · max ${h.maxTurns} turns`} value="" />)}
           <GroupHead>Operations</GroupHead>
@@ -47,7 +49,7 @@ export default function Run() {
       </Card>
       <Card>
         <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto p-3.5">
-          <Inspector sel={sel} />
+          <Inspector sel={sel} onRemoved={() => setSel("maintenance")} />
         </div>
       </Card>
     </div>
@@ -71,7 +73,19 @@ function summary(w: Workload): string {
   }
 }
 
-function Inspector({ sel }: { sel: string }) {
+function AddWorkload({ onAdded }: { onAdded: (id: string) => void }) {
+  const edit = useStudio((s) => s.edit);
+  return (
+    <AddMenu label="Add workload" items={WORKLOAD_KINDS} onPick={(kind) => {
+      let id = "";
+      edit((d) => { const w = newWorkload(d, kind); id = w.id; d.workloads.push(w); });
+      if (id) onAdded(id);
+    }} />
+  );
+}
+
+function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
+  const edit = useStudio((s) => s.edit);
   const { project, ledger } = useLedger();
   const percentile = useStudio((s) => s.percentile);
   const steady = ledger.months.at(-1)!;
@@ -102,7 +116,9 @@ function Inspector({ sel }: { sel: string }) {
   const locate = (d: typeof project) => d.workloads.find((x) => x.id === w.id) as unknown as Record<string, unknown>;
   return (
     <>
-      <div><h2 className="text-base font-bold">{w.label}</h2><div className="text-xs text-muted">{summary(w)}</div></div>
+      <ItemHeader label={w.label} sub={summary(w)} removeLabel="Remove workload"
+        onRename={(v) => edit((d) => { const x = d.workloads.find((y) => y.id === w.id); if (x) x.label = v; })}
+        onRemove={() => { edit((d) => removeWorkload(d, w.id)); onRemoved(); }} />
       <div className="font-display text-[26px] font-bold">{cad(total)}<span className="ml-1.5 font-sans text-xs font-normal text-muted">per month at full adoption{w.kind === "agent" ? ` · ${percentile.toUpperCase()}` : ""}</span></div>
       {WORKLOAD_SPECS[w.kind] && <Fields specs={WORKLOAD_SPECS[w.kind]!} value={w as unknown as Record<string, unknown>} locate={locate} />}
       {w.kind === "transcription" && <SpeechCompare hours={w.hoursPerMonth} current={w.engineId} id={w.id} diarize={w.diarize} />}

@@ -22,8 +22,9 @@ export const meetingIntelligence: Project = {
   ],
   build: {
     team: [
-      { roleId: "dev", people: 3, hoursPerMonth: 160, experiments: true },
-      { roleId: "architect", people: 0.5, hoursPerMonth: 160, experiments: false },
+      { roleId: "architect", people: 1, hoursPerMonth: 160, experiments: false, phase: "Discovery", fromMonth: 1, toMonth: 1 },
+      { roleId: "dev", people: 3, hoursPerMonth: 160, experiments: true, phase: "Build", fromMonth: 1, toMonth: 6 },
+      { roleId: "architect", people: 0.5, hoursPerMonth: 160, experiments: false, phase: "Build", fromMonth: 2, toMonth: 6 },
     ],
     contingencyPct: 0,
     activities: [
@@ -79,8 +80,21 @@ export const meetingIntelligence: Project = {
   ],
   maintenance: { mode: "team", team: [{ roleId: "dev", people: 0.4, hoursPerMonth: 160, experiments: false }] },
   benefits: {
-    capabilities: [{ id: "notes", label: "Meeting notes and action items", hoursSavedPerMonth: 470, roleId: "knowledgeWorker" }],
-    avoidedCosts: [{ id: "licence", label: "Retire third-party transcription licence", monthly: 4000 }],
+    capabilities: [
+      { id: "notes", label: "Meeting notes and action items", hoursSavedPerMonth: 330, roleId: "knowledgeWorker", componentIds: ["stt", "agent", "email"] },
+      { id: "ask", label: "Ask-my-meetings answers", hoursSavedPerMonth: 140, roleId: "knowledgeWorker", componentIds: ["chat", "retrieval", "search", "embed", "docs"] },
+    ],
+    avoidedCosts: [{ id: "licence", label: "Retire third-party transcription licence", monthly: 4000, startMonth: 10 }],
+    oneOff: [],
   },
-  roi: { basis: "full", benefitPreset: "typical", devCutPct: 0, maintCutPct: 0 },
+  roi: {
+    basis: "full", benefitPreset: "typical", devCutPct: 0, maintCutPct: 0,
+    transitionCosts: [{ id: "dual", label: "Dual running and training", monthly: 3000, fromMonth: 7, toMonth: 9 }],
+    growthPctPerYear: 10, rateEscalationPctPerYear: 2, discountRatePct: 8,
+  },
+  scenarios: [
+    { id: "mini-chat", label: "Chat on GPT-5.4-mini", edits: [{ kind: "set", path: ["workloads", "chat", "modelId"], value: "gpt-5.4-mini" }] },
+    { id: "lean-build", label: "Lean build: 5 months, narrow bake-off, Batch regression", edits: [{ kind: "set", path: ["timeline", "buildMonths"], value: 5 }, { kind: "lever", leverId: "narrowBakeoff" }, { kind: "lever", leverId: "batchRegression" }] },
+    { id: "half-usage", label: "Half the expected usage", edits: [{ kind: "scaleUsage", factor: 0.5 }] },
+  ],
 };

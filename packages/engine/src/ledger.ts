@@ -6,6 +6,13 @@ import { workloadLines } from "./workloads.js";
 import { devLabLines, teamLines } from "./devlab.js";
 import { line, sum, type Line, type Stream } from "./lines.js";
 
+export interface MonthBenefit {
+  /** Value of time saved, by capability id. */
+  capabilities: Record<string, number>;
+  avoided: number;
+  oneOff: number;
+}
+
 export interface Month {
   m: number;
   date: string;
@@ -15,6 +22,7 @@ export interface Month {
   lines: Line[];
   byStream: Record<Stream, number>;
   benefit: number;
+  benefitBy: MonthBenefit;
 }
 
 export interface Ledger {
@@ -24,11 +32,16 @@ export interface Ledger {
 }
 
 export const BENEFIT_PRESET = { conservative: 0.7, typical: 1, optimistic: 1.3 } as const;
+export const STREAMS: Stream[] = ["labour", "devlab", "devenv", "run", "platform", "maint", "transition"];
 
 /**
- * The project as a month-by-month ledger: build months carry labour, AI Dev Lab and dev
- * environment lines; production months carry workload lines (usage scaled by adoption,
- * fixed in full) and maintenance. Free allowances are applied once per meter per month.
+ * The project as a month-by-month ledger.
+ * - Build months: labour (by delivery phase window), AI Dev Lab and dev environment lines.
+ * - Production months: workload lines (usage scaled by adoption and yearly growth, fixed in
+ *   full), maintenance (labour escalates yearly) and transition costs in their window.
+ * - Benefits: time saved scales with adoption, growth, preset and rate escalation; avoided
+ *   costs are a step from their start month; one-off benefits land in their month.
+ * Free allowances are applied once per meter per month.
  */
 export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile = "p50"): Ledger {
   const book = new PriceBook(catalog, p.settings);
@@ -38,7 +51,9 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
   const maintCut = 1 - p.roi.maintCutPct / 100;
   const rates = new Map(p.rateCard.map((r) => [r.id, r.hourlyRate]));
   const preset = BENEFIT_PRESET[p.roi.benefitPreset];
-  const benefitFull = sum(p.benefits.capabilities.map((c) => c.hoursSavedPerMonth * (rates.get(c.roleId) ?? 0))) * preset + sum(p.benefits.avoidedCosts.map((a) => a.monthly)) * preset;
+  const growth = 1 + p.roi.growthPctPerYear / 100;
+  const escalation = 1 + p.roi.rateEscalationPctPerYear / 100;
+  const capFull = (c: Project["benefits"]["capabilities"][number]) => c.hoursSavedPerMonth * (rates.get(c.roleId) ?? 0) * preset;
 
   const contingency = 1 + p.build.contingencyPct / 100;
   let buildTotal = 0;
@@ -47,32 +62,45 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
     const date = monthDate(p.startDate, m);
     let lines: Line[] = [];
     let adoption = 0;
+    const benefitBy: MonthBenefit = { capabilities: {}, avoided: 0, oneOff: 0 };
     if (m <= B) {
-      lines.push(...teamLines(p, p.build.team, "labour", "team", contingency));
+      lines.push(...teamLines(p, p.build.team, "labour", "team", contingency, m));
       lines.push(...devLabLines(p, m, book, date));
       lines.push(...p.build.environment.map((it) => line({ id: `devenv:${it.id}`, componentId: "devenv", label: it.label, stream: "devenv", behaviour: "fixed", meter: it.unitPriceId, quantity: it.quantity, unit: book.unit(it.unitPriceId).unit, unitPrice: book.unitPrice(it.unitPriceId), formula: `${it.quantity} × ${book.unit(it.unitPriceId).unit}` })));
       lines = lines.map((l) => ({ ...l, unitPrice: l.unitPrice * devCut, cost: l.cost * devCut }));
       buildTotal += sum(lines.map((l) => l.cost));
     } else {
+      const k = m - B; // production month, 1-based
       const r = p.timeline.adoptionRampMonths;
-      adoption = r === 0 ? 1 : Math.min(1, (m - B) / r);
+      adoption = r === 0 ? 1 : Math.min(1, k / r);
+      const g = growth ** ((k - 1) / 12);
+      const esc = escalation ** Math.floor((k - 1) / 12);
+      const usage = adoption * g;
       for (const w of p.workloads) {
         for (const l of workloadLines(w, { book, date, harnesses, percentile })) {
-          lines.push(l.behaviour === "usage" ? { ...l, quantity: l.quantity * adoption, cost: l.cost * adoption } : l);
+          lines.push(l.behaviour === "usage" ? { ...l, quantity: l.quantity * usage, cost: l.cost * usage } : l);
         }
       }
       const maint = p.maintenance.mode === "team"
-        ? teamLines(p, p.maintenance.team, "maint", "maintenance", maintCut)
+        ? teamLines(p, p.maintenance.team, "maint", "maintenance", maintCut * esc)
         : [line({ id: "maintenance:pct", componentId: "maintenance", label: `Maintenance (${p.maintenance.pctPerYear}% of build per year)`, stream: "maint", behaviour: "fixed", meter: "maint-pct", quantity: 1, unit: "month", unitPrice: (buildTotal / devCut) * (p.maintenance.pctPerYear / 100 / 12) * maintCut, formula: `build × ${p.maintenance.pctPerYear}% ÷ 12` })];
       lines.push(...maint);
+      for (const c of p.benefits.capabilities) benefitBy.capabilities[c.id] = capFull(c) * usage * esc;
     }
+    for (const t of p.roi.transitionCosts) {
+      if (m >= t.fromMonth && m <= t.toMonth) lines.push(line({ id: `transition:${t.id}`, componentId: "transition", label: t.label, stream: "transition", behaviour: "fixed", meter: "transition", quantity: 1, unit: "month", unitPrice: t.monthly, formula: `CAD ${t.monthly}/month, months ${t.fromMonth}–${t.toMonth}` }));
+    }
+    for (const a of p.benefits.avoidedCosts) if (m >= (a.startMonth ?? B + 1)) benefitBy.avoided += a.monthly;
+    for (const o of p.benefits.oneOff) if (m === o.month) benefitBy.oneOff += o.amount;
     lines = applyFreeAllowances(lines, book);
-    const byStream = { labour: 0, devlab: 0, devenv: 0, run: 0, platform: 0, maint: 0 } as Record<Stream, number>;
+    const byStream = Object.fromEntries(STREAMS.map((s) => [s, 0])) as Record<Stream, number>;
     for (const l of lines) byStream[l.stream] += l.cost;
-    months.push({ m, date, phase: m <= B ? "build" : "production", adoption, lines, byStream, benefit: m <= B ? 0 : benefitFull * adoption });
+    const benefit = sum(Object.values(benefitBy.capabilities)) + benefitBy.avoided + benefitBy.oneOff;
+    months.push({ m, date, phase: m <= B ? "build" : "production", adoption, lines, byStream, benefit, benefitBy });
   }
   const last = months[months.length - 1]!;
   const buildMonths = months.filter((x) => x.phase === "build");
+  const firstFull = months.find((x) => x.phase === "production" && x.adoption >= 1) ?? last;
   return {
     months,
     notes: [...book.notes.values()],
@@ -80,9 +108,9 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
       build: sum(buildMonths.map((x) => x.byStream.labour + x.byStream.devlab + x.byStream.devenv)),
       buildLabour: sum(buildMonths.map((x) => x.byStream.labour)),
       devLab: sum(buildMonths.map((x) => x.byStream.devlab)),
-      runRate: last.byStream.run + last.byStream.platform,
-      maintRate: last.byStream.maint,
-      benefitRate: benefitFull,
+      runRate: firstFull.byStream.run + firstFull.byStream.platform,
+      maintRate: firstFull.byStream.maint,
+      benefitRate: sum(p.benefits.capabilities.map(capFull)) + sum(p.benefits.avoidedCosts.map((a) => a.monthly)),
     },
   };
 }

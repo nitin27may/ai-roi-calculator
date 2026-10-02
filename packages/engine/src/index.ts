@@ -7,4 +7,7 @@ export * from "./devlab.js";
 export * from "./ledger.js";
 export * from "./roi.js";
 export * from "./levers.js";
+export * from "./allocation.js";
+export * from "./scenarios.js";
+export * from "./templates.js";
 export { meetingIntelligence } from "./samples/meeting-intelligence.js";
