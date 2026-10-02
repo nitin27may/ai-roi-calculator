@@ -1,0 +1,178 @@
+{
+  "_meta": {
+    "retrieved": "2026-10-02",
+    "note": "prices.azure.com, azure.microsoft.com and learn.microsoft.com are blocked by the session egress policy (HTTP 403). Prices below come from WebSearch snippets and third-party mirrors; limits come from MicrosoftDocs/azure-ai-docs on GitHub (main branch, 2026-10-02).",
+    "usd_region": "US East (list price)"
+  },
+  "ai_search_tiers": {
+    "Free": {
+      "usd_per_su_hour": 0,
+      "usd_per_su_month_730h": 0,
+      "storage_per_partition": "50 MB",
+      "vector_quota_gb_per_partition": "n/a",
+      "max_indexes": 3
+    },
+    "Basic": {
+      "usd_per_su_hour": 0.101,
+      "usd_per_su_month_730h": 73.73,
+      "storage_per_partition": "15 GB",
+      "vector_quota_gb_per_partition": 5,
+      "max_indexes": 15
+    },
+    "S1": {
+      "usd_per_su_hour": 0.336,
+      "usd_per_su_month_730h": 245.28,
+      "storage_per_partition": "160 GB",
+      "vector_quota_gb_per_partition": 35,
+      "max_indexes": 50
+    },
+    "S2": {
+      "usd_per_su_hour": 1.344,
+      "usd_per_su_month_730h": 981.12,
+      "storage_per_partition": "512 GB",
+      "vector_quota_gb_per_partition": 150,
+      "max_indexes": 200
+    },
+    "S3": {
+      "usd_per_su_hour": 2.688,
+      "usd_per_su_month_730h": 1962.24,
+      "storage_per_partition": "1 TB",
+      "vector_quota_gb_per_partition": 300,
+      "max_indexes": 200
+    },
+    "S3 HD": {
+      "usd_per_su_hour": 2.688,
+      "usd_per_su_month_730h": 1962.24,
+      "storage_per_partition": "1 TB (max 3 partitions)",
+      "vector_quota_gb_per_partition": 300,
+      "max_indexes": "1000/partition, 3000/service"
+    },
+    "L1": {
+      "usd_per_su_hour": 3.839,
+      "usd_per_su_month_730h": 2802.47,
+      "storage_per_partition": "2 TB",
+      "vector_quota_gb_per_partition": 150,
+      "max_indexes": 10
+    },
+    "L2": {
+      "usd_per_su_hour": 7.677,
+      "usd_per_su_month_730h": 5604.21,
+      "storage_per_partition": "4 TB",
+      "vector_quota_gb_per_partition": 300,
+      "max_indexes": 10
+    }
+  },
+  "ai_search_premium": {
+    "semantic_ranker": {
+      "free_requests_per_month": 1000,
+      "usd_per_1k_requests": 1.0
+    },
+    "agentic_retrieval": {
+      "free_tokens_per_month": 50000000,
+      "usd_per_1m_tokens": 0.022,
+      "verified": "partial (doc example uses 0.022; pricing page masked)"
+    },
+    "image_extraction_usd_per_1k": {
+      "0-1M": 1.0,
+      "1M-5M": "0.80 (unverified)",
+      "5M+": "0.65 (unverified)"
+    },
+    "custom_entity_lookup_usd_per_1k_records": {
+      "0-1M": "1.00 (unverified)"
+    },
+    "serverless_developer": {
+      "cu_hour": "not published",
+      "gb_month": "not published",
+      "billing_start": "2026-09-13"
+    }
+  },
+  "rerankers_foundry": {
+    "cohere-rerank-v3.5": 0.002,
+    "cohere-rerank-v3-english": 0.002,
+    "cohere-rerank-v3-multilingual": 0.002,
+    "cohere-rerank-v4.0-fast": 0.002,
+    "cohere-rerank-v4.0-pro": 0.0025,
+    "_unit": "USD per search (1 search = query + up to 100 docs)",
+    "_source": "github.com/truefoundry/models providers/microsoft-foundry (commit 2026-10-01)"
+  },
+  "embeddings_foundry_usd_per_1m_tokens": {
+    "text-embedding-3-small": 0.02,
+    "text-embedding-3-large": 0.13,
+    "embed-v-4-0": 0.12
+  },
+  "foundry_observability": {
+    "risk_safety_eval_usd_per_1m_input": 20,
+    "risk_safety_eval_usd_per_1m_output": 60,
+    "quality_evaluators": "judge model tokens at deployment rates"
+  },
+  "agent_service": {
+    "file_search_storage_usd_per_gb_day": 0.11,
+    "file_search_free_gb": 1,
+    "code_interpreter_usd_per_session": 0.033,
+    "session": "1 h active, 30 min idle timeout",
+    "bing_grounding_usd_per_1k": 14,
+    "bing_custom_grounding_usd_per_1k": 14,
+    "bing_limits": "150 TPS, 1M/day",
+    "o3_deep_research_usd_per_1m": {
+      "input": 10,
+      "cached": 2.5,
+      "output": 40,
+      "retirement": "2026-11-19"
+    },
+    "hosted_agents": {
+      "vcpu_hour": 0.0994,
+      "gib_hour": 0.0118,
+      "verified": "third-party only"
+    }
+  },
+  "infra": {
+    "blob_hot_lrs_usd_per_gb_month": "0.018-0.0184 (claimed cut to 0.0165 Jan-2026, unverified)",
+    "cosmos_serverless": {
+      "usd_per_1m_ru": 0.25,
+      "storage_gb_month": 0.25
+    },
+    "functions_flex": {
+      "gb_s": 2.6e-05,
+      "per_1m_exec": 0.4,
+      "free": "100k GB-s + 1M exec"
+    },
+    "container_apps": {
+      "vcpu_s": 2.4e-05,
+      "gib_s": 3e-06,
+      "per_1m_req": 0.4,
+      "free": "180k vCPU-s, 360k GiB-s, 2M req"
+    },
+    "log_analytics": {
+      "analytics_gb": 2.3,
+      "basic_gb": 0.5,
+      "auxiliary_gb": 0.05,
+      "free_gb_month": 5
+    },
+    "apim": {
+      "consumption_per_1m": 3.5,
+      "consumption_free": "1M calls",
+      "basic_v2_month": 150,
+      "standard_v2_month": 700
+    },
+    "graph_teams_export": "unmetered since 2025-08-25 (was $0.00075/msg)"
+  },
+  "evaluator_prompt_templates_approx_tokens": {
+    "coherence": 1619,
+    "fluency": 1140,
+    "groundedness_with_query": 1589,
+    "groundedness_without_query": 1374,
+    "intent_resolution": 2142,
+    "relevance": 2082,
+    "response_completeness": 1795,
+    "retrieval": 4174,
+    "similarity": 1203,
+    "task_adherence": 1860,
+    "task_completion": 2903,
+    "tool_call_accuracy": 2692,
+    "tool_call_success": 2456,
+    "tool_input_accuracy": 802,
+    "tool_output_utilization": 2045,
+    "tool_selection": 2021,
+    "_method": "chars/4 of .prompty body in Azure/azure-sdk-for-python sdk/evaluation/azure-ai-evaluation (main, 2026-10-02); excludes injected query/context/response"
+  }
+}
