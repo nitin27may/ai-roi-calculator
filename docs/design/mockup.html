@@ -3,15 +3,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: estimator's workbench. Fixed left rail (project + lifecycle sections), sticky lifecycle strip, content as ledger-like panels. */
+/* Layout: one-screen workbench. Rail | (header, pinned KPI bar, view). Views are list → inspector splits; only panes scroll, never the page. */
 :root{
   --bg:#f4f6f4; --surface:#ffffff; --surface-2:#eef2ef; --ink:#13201b; --ink-2:#4b5853; --muted:#6c7873; --line:#dbe1dd;
   --accent:#0d6b57; --accent-ink:#ffffff; --accent-soft:#dcefe8;
   --good:#1b7a3a; --warn:#a15c00; --crit:#b42318; --warn-soft:#fdf1dc; --crit-soft:#fbe4e1; --good-soft:#e0f2e6;
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7;
-  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
-  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
   --r:8px;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
@@ -25,314 +25,220 @@
   --good:#5cc97f; --warn:#e9a443; --crit:#f07a6e; --warn-soft:#3a2b12; --crit-soft:#3d1c19; --good-soft:#15301f;
   --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; color-scheme:dark }
 *{box-sizing:border-box} [hidden]{display:none!important}
+html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--body);margin:0}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.01em}
-h1{font-size:24px;font-weight:700} h2{font-size:18px;font-weight:700} h3{font-size:15px;font-weight:600;font-family:var(--body)}
-.num,td.n,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.app{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}
-nav.rail{background:var(--surface);border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:18px;position:sticky;top:env(safe-area-inset-top,0px);height:100vh;overflow:auto}
-.brand{font-family:var(--display);font-weight:700;font-size:17px;display:flex;align-items:center;gap:8px}
-.brand i{width:22px;height:22px;border-radius:6px;background:var(--accent);display:inline-block;position:relative}
-.brand i::after{content:"";position:absolute;inset:6px 5px;border-left:2px solid var(--accent-ink);border-bottom:2px solid var(--accent-ink)}
-.navgroup{display:flex;flex-direction:column;gap:2px}
-.navlabel{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0 8px 4px}
-.navgroup a{display:flex;justify-content:space-between;gap:8px;padding:7px 8px;border-radius:6px;color:var(--ink-2);text-decoration:none;font-weight:500}
+h1{font-size:21px;font-weight:700} h2{font-size:16px;font-weight:700} h3{font-size:13px;font-weight:600;font-family:var(--body)}
+.mono,td.n,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.app{display:grid;grid-template-columns:212px minmax(0,1fr);height:100%}
+nav.rail{background:var(--surface);border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:16px;overflow:auto}
+.brand{font-family:var(--display);font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px}
+.brand i{width:20px;height:20px;border-radius:5px;background:var(--accent);position:relative;flex:none}
+.brand i::after{content:"";position:absolute;inset:5px 4px;border-left:2px solid var(--accent-ink);border-bottom:2px solid var(--accent-ink)}
+.navgroup{display:flex;flex-direction:column;gap:1px}
+.navlabel{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0 8px 4px}
+.navgroup a{display:flex;justify-content:space-between;gap:8px;padding:6px 8px;border-radius:6px;color:var(--ink-2);text-decoration:none;font-weight:500}
 .navgroup a:hover{background:var(--surface-2)}
 .navgroup a[aria-current="page"]{background:var(--accent-soft);color:var(--ink)}
 .navgroup a small{font-family:var(--mono);color:var(--muted);font-size:11px}
-.offline{margin-top:auto;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
-.offline b{color:var(--ink-2)}
-main{padding-block:20px 48px;padding-inline:28px;min-width:0;display:flex;flex-direction:column;gap:18px}
-header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
-.crumb{font-size:12px;color:var(--muted)}
+.offline{margin-top:auto;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px}
+main{display:grid;grid-template-rows:auto auto minmax(0,1fr);min-width:0;min-height:0;height:100%;overflow:hidden}
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:12px 20px 10px}
+.crumb{font-size:11.5px;color:var(--muted)}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;color:var(--ink-2)}
+.chip{font-size:11.5px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 9px;color:var(--ink-2)}
 .chip b{color:var(--ink);font-weight:600}
-.btn{font:500 13px var(--body);border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 12px;cursor:pointer}
-.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-/* lifecycle strip */
-.life{display:grid;grid-template-columns:6fr 30fr;gap:2px;border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
-.life div{padding:8px 12px;background:var(--surface);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.life .b{background:color-mix(in srgb,var(--s2) 14%,var(--surface))}
-.life .p{background:color-mix(in srgb,var(--s3) 12%,var(--surface))}
-.life span{font-size:12px;color:var(--ink-2)} .life strong{font-weight:600}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;min-width:0}
-.panel > header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
-.sub{color:var(--muted);font-size:12.5px}
-.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
-.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
-.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:2px}
-.kpi .l{font-size:12px;color:var(--muted)}
-.kpi .v{font-family:var(--display);font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
-.kpi .d{font-size:12px;color:var(--ink-2)}
+/* pinned KPI bar */
+.kbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) auto;gap:0;margin:0 20px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.k{padding:8px 14px;border-right:1px solid var(--line);min-width:0}
+.k .l{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k .v{font-family:var(--display);font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.k .d{font-size:11.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phase{display:flex;flex-direction:column;justify-content:center;gap:4px;padding:8px 12px;min-width:190px}
+.phase .track{display:grid;grid-template-columns:6fr 30fr;gap:2px;height:8px;border-radius:4px;overflow:hidden}
+.phase .track i:first-child{background:var(--s2)} .phase .track i:last-child{background:var(--s3)}
+.phase span{font-size:11.5px;color:var(--ink-2)}
+.view{min-height:0;padding:14px 20px 16px;display:grid;gap:14px}
+.split{grid-template-columns:minmax(300px,380px) minmax(0,1fr)}
+.cols{grid-template-columns:minmax(0,1fr) 320px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);min-width:0;min-height:0;display:flex;flex-direction:column}
+.card > .hd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px 8px}
+.card > .bd{padding:0 14px 14px;min-height:0;overflow:auto;flex:1}
+.stack{display:flex;flex-direction:column;gap:14px;min-height:0}
+.sub{color:var(--muted);font-size:12px}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
-.seg button{font:500 12.5px var(--body);border:0;background:transparent;color:var(--ink-2);padding:6px 10px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button{font:500 12px var(--body);border:0;background:transparent;color:var(--ink-2);padding:5px 10px;cursor:pointer;border-right:1px solid var(--line)}
 .seg button:last-child{border-right:0}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
-.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--ink-2)}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.row:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{font:500 12.5px var(--body);border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 11px;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--ink-2);padding:0 14px 8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 .legend i.line{height:2px;border-radius:0;vertical-align:3px;width:14px}
-.chart{width:100%;overflow-x:auto} .chart svg{display:block;width:100%;height:auto;min-width:560px}
-.chart text{fill:var(--muted);font:11px var(--body)}
+.chartbox{flex:1;min-height:200px;position:relative;padding:0 6px 6px}
+.chartbox svg{position:absolute;inset:0 6px 6px 6px;width:calc(100% - 12px);height:calc(100% - 6px)}
+.chartbox text{fill:var(--muted);font:11px var(--body)}
 .tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;padding:8px 10px;border-radius:6px;z-index:10;max-width:260px;line-height:1.45}
-.tip .row{display:flex;justify-content:space-between;gap:12px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{font-weight:500;color:var(--muted);text-align:left;font-size:12px;border-bottom:1px solid var(--line);padding:6px 8px;white-space:nowrap}
-td{border-bottom:1px solid var(--line);padding:7px 8px;vertical-align:top}
+.tip .r{display:flex;justify-content:space-between;gap:12px}
+/* lists */
+.list{display:flex;flex-direction:column}
+.gh{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:10px 14px 4px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 14px;border-left:3px solid transparent;cursor:pointer;text-align:left;background:none;border-top:0;border-right:0;border-bottom:1px solid var(--line);font:inherit;color:inherit;width:100%}
+.row:hover{background:var(--surface-2)}
+.row[aria-selected="true"]{background:var(--accent-soft);border-left-color:var(--accent)}
+.row .nm{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .dr{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .v{font-family:var(--mono);font-size:12.5px;text-align:right;white-space:nowrap}
+.spark{display:block}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font-weight:500;color:var(--muted);text-align:left;font-size:11.5px;border-bottom:1px solid var(--line);padding:5px 8px;white-space:nowrap}
+td{border-bottom:1px solid var(--line);padding:6px 8px;vertical-align:top}
 td.n,th.n{text-align:right;white-space:nowrap}
 tr.total td{font-weight:600;border-bottom:0;border-top:2px solid var(--line)}
-.tablewrap{overflow-x:auto}
-.pill{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;border-radius:999px;padding:1px 8px;font-weight:500;white-space:nowrap}
+.pill{display:inline-flex;align-items:center;font-size:11px;border-radius:999px;padding:1px 7px;font-weight:500;white-space:nowrap}
 .pill.ok{background:var(--good-soft);color:var(--good)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.crit{background:var(--crit-soft);color:var(--crit)} .pill.n{background:var(--surface-2);color:var(--ink-2)}
-.bar{height:8px;border-radius:4px;background:var(--accent);min-width:2px}
-.barcell{display:flex;align-items:center;gap:8px}
-.alerts{display:flex;flex-direction:column;gap:8px}
-.alert{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;font-size:13px}
-.alert .sev{font-family:var(--mono);font-size:11px;padding:1px 6px;border-radius:4px}
-.alert .sev.w{background:var(--warn-soft);color:var(--warn)} .alert .sev.c{background:var(--crit-soft);color:var(--crit)} .alert .sev.i{background:var(--surface-2);color:var(--ink-2)}
-.form{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 14px}
-.field{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
-.field input,.field select{font:500 13px var(--mono);color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0}
+.alert{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.alert:last-child{border-bottom:0}
+.form{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px 12px}
+.field{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--muted)}
+.field input,.field select{font:500 13px var(--mono);color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:5px 8px;min-width:0}
 .slider{display:flex;flex-direction:column;gap:4px}
 .slider label{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-2)}
 .slider input{width:100%;accent-color:var(--accent)}
-.heat td.n{position:relative}
-.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:10px 12px;border-radius:0 6px 6px 0;font-size:13px}
-.workload{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,2fr) 110px 120px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
-.workload:last-child{border-bottom:0}
-.workload .nm{font-weight:500} .workload .dr{font-size:12px;color:var(--muted)}
-.grouphead{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:12px}
+.radio{display:flex;flex-direction:column;gap:6px}
+.radio label{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;padding:8px 10px;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-size:12.5px}
+.radio label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.radio small{display:block;color:var(--muted)}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:8px 12px;border-radius:0 6px 6px 0;font-size:12.5px}
 .modelchips{display:flex;gap:6px;flex-wrap:wrap}
-.mchip{font-size:12px;border-radius:6px;padding:4px 8px;border:1px solid var(--line);background:var(--surface-2)}
+.mchip{font:12px var(--body);color:var(--ink);border-radius:6px;padding:4px 8px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer}
 .mchip.on{border-color:var(--accent);background:var(--accent-soft)}
-textarea{width:100%;min-height:90px;font:13px/1.5 var(--body);color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:8px}
-.note{font-size:12px;color:var(--muted)}
-section[data-view]{display:flex;flex-direction:column;gap:18px}
-@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.grid3{grid-template-columns:1fr 1fr}}
-@media (max-width:820px){
-  .app{grid-template-columns:1fr} nav.rail{position:static;height:auto;flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line);padding:12px 16px}
-  .navgroup{flex-direction:row;flex-wrap:wrap} .navlabel,.offline{display:none}
-  main{padding-inline:16px} .grid2,.grid3{grid-template-columns:1fr} .kpis{grid-template-columns:1fr 1fr}
-  .workload{grid-template-columns:1fr 100px}.workload .dr,.workload .barcell{display:none}
+.formula{font:12px/1.6 var(--mono);background:var(--surface-2);border-radius:6px;padding:8px 10px;color:var(--ink-2);white-space:pre-wrap}
+.ins{display:flex;flex-direction:column;gap:14px}
+.ins .big{font-family:var(--display);font-size:26px;font-weight:700}
+.bar{height:7px;border-radius:4px;background:var(--accent);min-width:2px}
+textarea{width:100%;min-height:80px;font:13px/1.5 var(--body);color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:8px;resize:vertical}
+.note{font-size:11.5px;color:var(--muted)}
+.story{margin:0;font-size:16px;line-height:1.9;color:var(--ink-2);max-width:none}
+.story .tk{font:600 15px var(--mono);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-bottom:2px solid var(--accent);border-radius:5px;padding:1px 6px;width:auto;field-sizing:content;min-width:3ch;max-width:9ch}
+.story select.tk{max-width:none;padding-right:2px}
+.lever{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.lever:last-child{border-bottom:0}
+.lever input{margin-top:3px;accent-color:var(--accent)}
+.lever b{font-weight:600}.lever .sv{font:600 12.5px var(--mono);color:var(--good);white-space:nowrap}
+.lever .wh{font-size:11.5px;color:var(--muted)}
+#canvas .handle{cursor:ew-resize}
+#canvas .lane-l{fill:var(--ink-2);font:12px var(--body)}
+#canvas .lane-v{fill:var(--ink);font:500 11.5px var(--mono)}
+@media (max-width:1180px){.kbar{grid-template-columns:repeat(3,minmax(0,1fr))}.phase{display:none}.k:nth-child(n+4){display:none}}
+@media (max-width:860px){
+  html,body{height:auto} .app{grid-template-columns:1fr;height:auto} main{height:auto;overflow:visible}
+  nav.rail{flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line);padding:10px 16px}
+  .navgroup{flex-direction:row;flex-wrap:wrap}.navlabel,.offline{display:none}
+  header.top{padding-inline:16px}.kbar{margin:0 16px;grid-template-columns:1fr 1fr}.k:nth-child(n+3){display:none}
+  .view{padding-inline:16px}.split,.cols{grid-template-columns:1fr}.card > .bd{overflow:visible}.chartbox{min-height:260px}
 }
-@media (prefers-reduced-motion:no-preference){.bar{transition:width .25s ease}}
 </style>
 
 <div class="app">
 <nav class="rail" aria-label="Main">
   <div class="brand"><i aria-hidden="true"></i>AI Cost &amp; ROI Studio</div>
-  <div class="navgroup">
-    <div class="navlabel">Quick tools</div>
-    <a href="#tokens" data-nav="tokens">Token calculator</a>
-  </div>
-  <div class="navgroup">
-    <div class="navlabel">Project · Meeting Intelligence</div>
+  <div class="navgroup"><div class="navlabel">Quick tools</div><a href="#tokens" data-nav="tokens">Token calculator</a></div>
+  <div class="navgroup"><div class="navlabel">Meeting Intelligence</div>
     <a href="#overview" data-nav="overview">Overview</a>
     <a href="#build" data-nav="build">Build <small>M1–6</small></a>
     <a href="#run" data-nav="run">Run <small>M7–36</small></a>
-    <a href="#roi" data-nav="roi">Value &amp; ROI</a>
-  </div>
-  <div class="navgroup">
-    <div class="navlabel">Data</div>
-    <a href="#prices" data-nav="prices">Prices &amp; sources</a>
-  </div>
-  <div class="offline"><b>Local mode.</b> Projects are saved in this browser and to files. Prices update when you run <span class="mono">pnpm prices</span>.<br><br>Mockup · sample figures in CAD</div>
+    <a href="#roi" data-nav="roi">Value &amp; ROI</a></div>
+  <div class="navgroup"><div class="navlabel">Data</div><a href="#prices" data-nav="prices">Prices &amp; sources</a></div>
+  <div class="offline"><b>Local mode.</b> Saved in this browser and to files. Prices update with <span class="mono">pnpm prices</span>.<br>Mockup · sample figures in CAD</div>
 </nav>
 
 <main>
 <header class="top">
-  <div>
-    <div class="crumb" id="crumb">Projects / Meeting Intelligence Agent</div>
-    <h1 id="title">Overview</h1>
-  </div>
-  <div class="chips">
-    <span class="chip">Currency <b>CAD</b></span>
-    <span class="chip">Azure <b>Canada Central · Global</b></span>
-    <span class="chip">Snowflake <b>Azure East US 2 · Enterprise</b></span>
-    <span class="chip">Prices as of <b>2026-09-17</b></span>
-  </div>
+  <div><div class="crumb" id="crumb">Meeting Intelligence Agent</div><h1 id="title">Overview</h1></div>
+  <div class="chips"><span class="chip">Currency <b>CAD</b></span><span class="chip">Azure <b>Global</b></span><span class="chip">Snowflake <b>Enterprise</b></span><span class="chip">Prices <b>2026-09-17</b></span></div>
 </header>
-
-<div class="life" aria-label="Lifecycle">
-  <div class="b"><strong>Build</strong><span>Months 1–6 · 3 developers</span></div>
-  <div class="p"><strong>Production</strong><span>Months 7–36 · adoption ramps over 6 months</span></div>
-</div>
+<div class="kbar" id="kbar"></div>
 
 <!-- OVERVIEW -->
-<section data-view="overview">
-  <div class="kpis" id="kpis"></div>
-  <div class="panel">
-    <header>
-      <div><h2>Cost and benefit by month</h2><div class="sub">Stacked cost streams in CAD, with monthly benefit as a line. Hover a month for the split.</div></div>
-      <div class="legend" id="lgOverview"></div>
-    </header>
-    <div class="chart" id="chOverview"></div>
-  </div>
-  <div class="grid2">
-    <div class="panel">
-      <header><div><h2>Cumulative net position</h2><div class="sub" id="cumSub"></div></div></header>
-      <div class="chart" id="chCum"></div>
+<section class="view" data-view="overview" style="grid-template-rows:auto minmax(0,1fr)">
+  <p class="story" id="story"></p>
+  <div class="cols" style="display:grid;gap:14px;min-height:0">
+    <div class="card">
+      <div class="hd"><div><h2>Lifecycle</h2><div class="sub">Each lane is a cost stream by month. <b>Drag the go-live line</b> to change how long the build runs.</div></div>
+        <div class="legend" style="padding:0"><span><i style="background:var(--s2)"></i>Build</span><span><i style="background:var(--s3)"></i>Production</span><span><i style="background:var(--accent)"></i>Benefit</span></div></div>
+      <div class="chartbox" id="canvas" style="min-height:420px"></div>
     </div>
-    <div class="panel">
-      <header><h2>Needs attention</h2><span class="sub">From the price catalogue and your inputs</span></header>
-      <div class="alerts">
-        <div class="alert"><span class="sev c">DEPRECATED</span><div><b>gpt-4o-transcribe retires 2026-10-15</b>, before go-live. The Build plan still uses it in month 1. Switch to MAI-Transcribe-2 or gpt-4o-mini-transcribe.</div></div>
-        <div class="alert"><span class="sev w">PROMO</span><div><b>MAI-Transcribe-2 at $0.14/hr ends 2026-12-31.</b> The list price after that is unpublished, so production transcription assumes 3× the promo rate from month 4.</div></div>
-        <div class="alert"><span class="sev w">PROMO</span><div><b>GPT-5.6 Sol promo pricing ends 2026-11-30.</b> The bake-off in months 1–2 is priced at promo rates, and later months at list.</div></div>
-        <div class="alert"><span class="sev w">UNVERIFIED</span><div><b>4 prices are single-source</b>: Foundry safety-evaluation meter, agentic retrieval, Snowflake Claude Sonnet 5.5 and Cortex Agents orchestration. Run <span class="mono">pnpm prices</span> to refresh.</div></div>
-        <div class="alert"><span class="sev i">DATA</span><div><b>Claude on Snowflake routes outside Azure.</b> AZURE_US cross-region does not serve Claude; this project uses ANY_REGION at $2.00 per AI credit.</div></div>
-      </div>
+    <div class="card">
+      <div class="hd"><div class="seg" role="group" id="sideSeg"><button aria-pressed="true" data-s="levers">Savings levers</button><button aria-pressed="false" data-s="alerts">Alerts <span class="pill crit" style="margin-left:4px">5</span></button></div></div>
+      <div class="bd" id="side"></div>
     </div>
   </div>
 </section>
 
 <!-- BUILD -->
-<section data-view="build" hidden>
-  <div class="callout" id="buildCallout"></div>
-  <div class="panel">
-    <header><div><h2>Team and schedule</h2><div class="sub">Labour comes from the rate card. The AI Dev Lab below is the token and service spend while the team builds.</div></div></header>
-    <div class="form">
-      <label class="field">Developers<input id="f-devs" type="number" value="3" min="1" max="20"></label>
-      <label class="field">Build months<input type="number" value="6" disabled></label>
-      <label class="field">Rate, developer (CAD/h)<input type="number" value="95" disabled></label>
-      <label class="field">Architect FTE<input type="number" value="0.5" disabled></label>
-      <label class="field">Automated runs overnight<select id="f-night"><option value="1" selected>Yes, nightly regression</option><option value="0">No</option></select></label>
-      <label class="field">Dev cache-hit rate<input type="number" value="30" disabled></label>
-    </div>
-  </div>
-  <div class="grid2">
-    <div class="panel">
-      <header><div><h2>Model bake-off</h2><div class="sub">Candidate models run on the same evaluation set and are narrowed down month by month</div></div></header>
-      <div class="modelchips" id="bakeModels"></div>
-      <div class="form" style="margin-top:12px">
-        <label class="field">Evaluation cases<input id="f-cases" type="number" value="200" min="10"></label>
-        <label class="field">Repeats per case<input id="f-reps" type="number" value="3" min="1" max="10"></label>
-        <label class="field">Bake-off sweeps / month<input type="text" value="4 · 6 · 4 · 4 · 2 · 2" disabled></label>
-      </div>
-      <p class="note">Each case is one full agent-harness run: five steps, tools, and history growth. The per-run cost comes from the shared harness definition used in Run.</p>
-    </div>
-    <div class="panel">
-      <header><div><h2>Quality loop</h2><div class="sub">Microsoft Foundry evaluation and AI red teaming during the build</div></div></header>
-      <table>
-        <tr><th>Activity</th><th>Driver</th><th class="n">Per month</th></tr>
-        <tr><td>Foundry evaluators</td><td>Groundedness, relevance, coherence, task adherence, tool-call accuracy · judge gpt-5.4-mini · every case scored</td><td class="n" id="q-eval"></td></tr>
-        <tr><td>Safety evaluators</td><td>Hate, violence, self-harm, protected material · AI evaluations meter</td><td class="n" id="q-safe"></td></tr>
-        <tr><td>AI red teaming</td><td>4 risk categories × 10 objectives × (1 + 5 strategies) = 240 probes per scan · 8 scans in M5–6</td><td class="n" id="q-red"></td></tr>
-      </table>
-    </div>
-  </div>
-  <div class="panel">
-    <header>
-      <div><h2>AI Dev Lab spend by month</h2><div class="sub">Tokens and AI services consumed by the build team. Labour is not included.</div></div>
-      <div class="legend" id="lgDev"></div>
-    </header>
-    <div class="chart" id="chDev"></div>
-    <div class="tablewrap" style="margin-top:12px"><table class="heat" id="tbDev"></table></div>
-  </div>
+<section class="view split" data-view="build" hidden>
+  <div class="card"><div class="hd"><h2 id="buildH">Build</h2><span class="sub" id="buildSum"></span></div><div class="bd" style="padding:0"><div class="list" id="buildList"></div></div></div>
+  <div class="card"><div class="bd ins" id="buildIns" style="padding-top:14px"></div></div>
 </section>
 
 <!-- RUN -->
-<section data-view="run" hidden>
-  <div class="kpis" id="runKpis"></div>
-  <div class="panel">
-    <header><div><h2>Production workloads</h2><div class="sub">Monthly cost at full adoption (from month 12). Usage-driven lines scale with adoption; platform lines are fixed.</div></div>
-    <div class="seg" role="group" aria-label="Agent estimate"><button aria-pressed="true" data-p="p50">Typical (P50)</button><button aria-pressed="false" data-p="p90">P90</button><button aria-pressed="false" data-p="worst">Worst under caps</button></div></header>
-    <div id="workloads"></div>
-  </div>
-  <div class="grid2">
-    <div class="panel">
-      <header><div><h2>Meeting transcription, 1,800 hours/month</h2><div class="sub">Same audio, every engine available on Azure and Snowflake</div></div></header>
-      <div class="tablewrap"><table id="tbStt"></table></div>
-    </div>
-    <div class="panel">
-      <header><div><h2>Follow-up agent harness</h2><div class="sub">Single agent, 9 tools, max 10 turns, 4,096 max tokens per call</div></div></header>
-      <table>
-        <tr><th>Estimate</th><th class="n">Tokens / task</th><th class="n">CAD / task</th><th class="n">CAD / month</th></tr>
-        <tr><td>Typical (P50) · 6 steps</td><td class="n">78,400</td><td class="n">0.31</td><td class="n">1,860</td></tr>
-        <tr><td>P90 · 11 steps, larger tool results</td><td class="n">201,700</td><td class="n">0.74</td><td class="n">4,440</td></tr>
-        <tr><td>Worst under caps · 10 turns × full context</td><td class="n">1,040,000</td><td class="n">3.88</td><td class="n">23,280</td></tr>
-      </table>
-      <p class="note">6,000 tasks per month on gpt-5.4 with an 80% cache hit rate. The worst case assumes every task hits the turn cap and gets no cache hits.</p>
-    </div>
-  </div>
+<section class="view split" data-view="run" hidden>
+  <div class="card"><div class="hd"><h2>Production, per month</h2>
+      <div class="seg" role="group" aria-label="Agent estimate"><button aria-pressed="true" data-p="p50">P50</button><button aria-pressed="false" data-p="p90">P90</button><button aria-pressed="false" data-p="worst">Worst</button></div></div>
+    <div class="bd" style="padding:0"><div class="list" id="runList"></div></div></div>
+  <div class="card"><div class="bd ins" id="runIns" style="padding-top:14px"></div></div>
 </section>
 
 <!-- ROI -->
-<section data-view="roi" hidden>
-  <div class="panel">
-    <header><div><h2>What counts as cost</h2><div class="sub">Choose what the ROI is measured against</div></div>
-      <div class="seg" role="group" aria-label="Cost basis" id="basis">
-        <button aria-pressed="false" data-b="run">Running cost only</button>
-        <button aria-pressed="false" data-b="runm">Running + maintenance</button>
-        <button aria-pressed="true" data-b="full">Full lifecycle (build + run + maintenance)</button>
-      </div></header>
-    <div class="grid3">
-      <div class="slider"><label for="s-dev">Reduce development cost <span class="mono" id="v-dev">0%</span></label><input id="s-dev" type="range" min="0" max="60" value="0"></div>
-      <div class="slider"><label for="s-maint">Reduce maintenance cost <span class="mono" id="v-maint">0%</span></label><input id="s-maint" type="range" min="0" max="60" value="0"></div>
-      <div class="slider"><label>Benefit assumption</label>
-        <div class="seg" role="group" aria-label="Benefit preset" id="preset"><button aria-pressed="false" data-k="0.7">Conservative</button><button aria-pressed="true" data-k="1">Typical</button><button aria-pressed="false" data-k="1.3">Optimistic</button></div></div>
-    </div>
-  </div>
-  <div class="kpis" id="roiKpis"></div>
-  <div class="grid2">
-    <div class="panel"><header><div><h2>Cumulative cash position</h2><div class="sub">Benefit minus the selected cost basis</div></div></header><div class="chart" id="chRoi"></div></div>
-    <div class="panel"><header><div><h2>By year</h2><div class="sub">CAD</div></div></header><div class="tablewrap"><table id="tbYears"></table></div>
-      <h3 style="margin-top:14px">Where the benefit comes from</h3>
-      <table><tr><th>Capability</th><th class="n">Hours / month</th><th class="n">CAD / month</th></tr>
-        <tr><td>Meeting notes and action items · 25 min per user per week · 800 users · 40% adoption</td><td class="n">470</td><td class="n" id="b1"></td></tr>
-        <tr><td>Avoided cost: retire third-party transcription licence</td><td class="n">–</td><td class="n" id="b2"></td></tr>
-      </table></div>
+<section class="view split" data-view="roi" hidden>
+  <div class="card"><div class="hd"><h2>Assumptions</h2></div><div class="bd ins">
+    <div><h3 style="margin-bottom:6px">Measure ROI against</h3>
+      <div class="radio" id="basis">
+        <label><input type="radio" name="basis" value="run"><span>Running cost only<small>Production AI usage + platform</small></span></label>
+        <label><input type="radio" name="basis" value="runm"><span>Running + maintenance<small>Adds the support team</small></span></label>
+        <label><input type="radio" name="basis" value="full" checked><span>Full lifecycle<small>Build labour + AI Dev Lab + run + maintenance</small></span></label>
+      </div></div>
+    <div class="slider"><label for="s-dev">Reduce development cost <span class="mono" id="v-dev">0%</span></label><input id="s-dev" type="range" min="0" max="60" value="0"></div>
+    <div class="slider"><label for="s-maint">Reduce maintenance cost <span class="mono" id="v-maint">0%</span></label><input id="s-maint" type="range" min="0" max="60" value="0"></div>
+    <div><h3 style="margin-bottom:6px">Benefit assumption</h3><div class="seg" role="group" id="preset"><button aria-pressed="false" data-k="0.7">Conservative</button><button aria-pressed="true" data-k="1">Typical</button><button aria-pressed="false" data-k="1.3">Optimistic</button></div></div>
+    <div><h3 style="margin-bottom:4px">Benefits at full adoption</h3><table id="tbBen"></table></div>
+  </div></div>
+  <div class="card">
+    <div class="hd"><div><h2>Cumulative cash position</h2><div class="sub">Benefit minus the selected cost</div></div>
+      <div class="seg" role="group" id="roiSeg"><button aria-pressed="true" data-c="chart">Chart</button><button aria-pressed="false" data-c="years">By year</button></div></div>
+    <div class="chartbox" id="chRoi"></div>
+    <div class="bd" id="roiYears" hidden><table id="tbYears"></table></div>
   </div>
 </section>
 
 <!-- TOKENS -->
-<section data-view="tokens" hidden>
-  <div class="panel">
-    <header><div><h2>What are you estimating?</h2><div class="sub">A quick calculation without a project. Add the result to a project when it looks right.</div></div>
-      <div class="seg" role="group" aria-label="Input type"><button aria-pressed="false">Text</button><button aria-pressed="true">Documents</button><button aria-pressed="false">Audio</button><button aria-pressed="false">Emails</button><button aria-pressed="false">Agent run</button></div></header>
-    <div class="form">
-      <label class="field">Pages<input id="t-pages" type="number" value="100" min="1"></label>
-      <label class="field">Page type<select disabled><option>Dense PDF (700 words)</option></select></label>
-      <label class="field">Questions per document<input type="number" value="1" disabled></label>
-      <label class="field">Language<select disabled><option>English (×1.00)</option></select></label>
-    </div>
-  </div>
-  <div class="panel">
-    <header><div><h2>Process <span id="t-pg">100</span> pages: read, then summarize</h2><div class="sub">Every route available on Azure and Snowflake, cheapest first</div></div><button class="btn primary">Add to project</button></header>
-    <div class="tablewrap"><table id="tbDoc"></table></div>
-    <p class="note">Tokens per page differ by model family. Claude 4.7+ counts about 35% more tokens than GPT for the same text and also bills a page image. Document Intelligence Layout counts DOCX at 3,000 characters per page.</p>
-  </div>
-  <div class="panel">
-    <header><div><h2>Paste text to count</h2><div class="sub">Rough estimate per tokenizer family. The app counts o200k exactly in the browser.</div></div></header>
-    <textarea id="t-text">Please summarise the attached supplier agreement, list renewal dates and termination clauses, and flag any indemnity terms that differ from our standard template.</textarea>
-    <div class="tablewrap"><table id="tbTok" style="margin-top:8px"></table></div>
-  </div>
+<section class="view split" data-view="tokens" hidden>
+  <div class="card"><div class="hd"><h2>Input</h2></div><div class="bd ins">
+    <div class="seg" role="group" aria-label="Input type" id="tMode"><button aria-pressed="false" data-t="text">Text</button><button aria-pressed="true" data-t="docs">Documents</button><button aria-pressed="false" data-t="audio">Audio</button><button aria-pressed="false" data-t="agent">Agent run</button></div>
+    <div id="tIn"></div>
+    <p class="note">A quick calculation with no project. Use <b>Add to project</b> to keep it.</p>
+  </div></div>
+  <div class="card"><div class="hd"><div><h2 id="tTitle"></h2><div class="sub" id="tSub"></div></div><button class="btn primary">Add to project</button></div><div class="bd" id="tOut"></div></div>
 </section>
 
 <!-- PRICES -->
-<section data-view="prices" hidden>
-  <div class="panel">
-    <header><div><h2>Price sources</h2><div class="sub">All prices are stored in CAD. Fetch scripts run on your machine; nothing calls the network while you use the app.</div></div><button class="btn">Copy refresh command</button></header>
-    <div class="tablewrap"><table>
-      <tr><th>Source</th><th>Covers</th><th>How it updates</th><th class="n">Entries</th><th>Last fetched</th><th>Status</th></tr>
-      <tr><td>Azure Retail Prices API (CAD)</td><td>Foundry models incl. Claude on Foundry, PTU, Speech, Document Intelligence, AI Search, Language, Translator, infrastructure</td><td class="mono">pnpm prices:azure</td><td class="n">412</td><td class="mono">2026-09-17</td><td><span class="pill warn">15 days old</span></td></tr>
-      <tr><td>Snowflake Credit Consumption Table (PDF)</td><td>Cortex AI functions, Search, Analyst, Agents, warehouses</td><td class="mono">pnpm prices:snowflake</td><td class="n">96</td><td class="mono">2026-10-02</td><td><span class="pill ok">current</span></td></tr>
-      <tr><td>Curated (no API)</td><td>Semantic ranker, agentic retrieval, Foundry evaluation meter, Content Safety features, Agent Service tools, MAI promos</td><td>Edit <span class="mono">data/catalog/manual/*.json</span></td><td class="n">38</td><td class="mono">2026-10-02</td><td><span class="pill warn">4 single-source</span></td></tr>
-      <tr><td>Heuristics</td><td>Words per page, speech rate, tokenizer multipliers, image-token formulas, agent defaults</td><td>Edit <span class="mono">data/heuristics/*.json</span></td><td class="n">64</td><td class="mono">2026-10-02</td><td><span class="pill n">cited</span></td></tr>
-    </table></div>
-  </div>
-  <div class="panel">
-    <header><h2>Upcoming changes</h2><span class="sub">Effective dates from the catalogue</span></header>
-    <table>
+<section class="view" data-view="prices" hidden style="grid-template-rows:auto minmax(0,1fr)">
+  <div class="card"><div class="hd"><div><h2>Sources</h2><div class="sub">Stored in CAD. Fetch scripts run on your machine; the app never calls the network.</div></div><button class="btn">Copy refresh command</button></div>
+    <div class="bd"><table>
+      <tr><th>Source</th><th>Covers</th><th>Update</th><th class="n">Entries</th><th>Fetched</th><th>Status</th></tr>
+      <tr><td>Azure Retail Prices API</td><td>Foundry models incl. Claude, Speech, Document Intelligence, AI Search, infrastructure</td><td class="mono">pnpm prices:azure</td><td class="n">412</td><td class="mono">2026-09-17</td><td><span class="pill warn">15 days</span></td></tr>
+      <tr><td>Snowflake consumption table</td><td>Cortex functions, Search, Analyst, warehouses</td><td class="mono">pnpm prices:snowflake</td><td class="n">96</td><td class="mono">2026-10-02</td><td><span class="pill ok">current</span></td></tr>
+      <tr><td>Curated (no API)</td><td>Semantic ranker, agentic retrieval, evaluation meter, Content Safety, MAI promos</td><td class="mono">data/catalog/manual</td><td class="n">38</td><td class="mono">2026-10-02</td><td><span class="pill warn">4 single-source</span></td></tr>
+    </table></div></div>
+  <div class="card"><div class="hd"><h2>Upcoming changes</h2></div><div class="bd"><table>
       <tr><th>Item</th><th>Change</th><th>Date</th></tr>
-      <tr><td>gpt-4o-transcribe</td><td><span class="pill crit">retires</span> replacement gpt-4o-mini-transcribe or MAI-Transcribe-2</td><td class="mono">2026-10-15</td></tr>
+      <tr><td>gpt-4o-transcribe</td><td><span class="pill crit">retires</span> use gpt-4o-mini-transcribe or MAI-Transcribe-2</td><td class="mono">2026-10-15</td></tr>
       <tr><td>GPT-5.6 Sol</td><td><span class="pill warn">promo ends</span> CAD 5.54 → 6.93 per 1M input</td><td class="mono">2026-11-30</td></tr>
-      <tr><td>whisper</td><td><span class="pill crit">retires</span></td><td class="mono">2026-12-15</td></tr>
+      <tr><td>Whisper</td><td><span class="pill crit">retires</span></td><td class="mono">2026-12-15</td></tr>
       <tr><td>MAI-Transcribe-2</td><td><span class="pill warn">promo ends</span> list price not yet published</td><td class="mono">2026-12-31</td></tr>
-    </table>
-  </div>
+    </table></div></div>
 </section>
 </main>
 </div>
@@ -340,197 +246,302 @@ section[data-view]{display:flex;flex-direction:column;gap:18px}
 
 <script>
 const fmt=(v,d=0)=>v.toLocaleString('en-CA',{minimumFractionDigits:d,maximumFractionDigits:d});
-const cad=(v,d=0)=>'$'+fmt(v,d);
+const cad=(v,d=0)=>(v<0?'−':'')+'$'+fmt(Math.abs(v),d);
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const B=6,H=36;
-const state={devs:3,night:1,cases:200,reps:3,basis:'full',devCut:0,maintCut:0,k:1,p:'p50',pages:100,
+const $=id=>document.getElementById(id);
+let B=6;const H=36;
+const state={view:'overview',side:'levers',ovChart:'monthly',roiChart:'chart',devs:3,night:1,cases:200,reps:3,basis:'full',devCut:0,maintCut:0,k:1,p:'p50',pages:100,tmode:'docs',hours:1,
+  buildSel:'all',runSel:'stt',
   models:[{id:'gpt-5.6-sol',c:0.62,on:true,until:2},{id:'gpt-5.4',c:0.38,on:true,until:6},{id:'gpt-5.4-mini',c:0.09,on:true,until:2},{id:'Claude Sonnet 5.5 · Foundry',c:0.36,on:true,until:4},{id:'Claude Opus 5.5 · Foundry',c:0.71,on:true,until:2},{id:'Claude Sonnet 5.5 · Snowflake',c:0.44,on:false,until:2}]};
-const sweeps=[4,6,4,4,2,2];
+const sweep=m=>[4,6,4,4,2,2][m-1]??2;
+const LV={batchNight:false,narrow:false,devCache:false,router:false,evalSample:false};
 /* ---------- model ---------- */
+const ACT=[
+ {id:'bake',n:'Model bake-off',d:'candidate models × 200 cases × 3 repeats',f:'Σ active models · cases × repeats × sweeps[m] × harnessRunCost(model)'},
+ {id:'iter',n:'Harness iterations',d:'3 devs × 12 runs/day × 25-case subset',f:'devs × iterations/day × 21 days × subset × harnessRunCost(gpt-5.4, dev cache 30%)\nmonths 1–2 at 60% while exploring'},
+ {id:'night',n:'Nightly regression',d:'full set every night from month 3',f:'30 nights × cases × harnessRunCost(gpt-5.4)'},
+ {id:'eval',n:'Foundry evaluation',d:'5 quality + 4 safety evaluators',f:'scored cases × Σ evaluator judge tokens (gpt-5.4-mini)\n+ safety evaluators × AI evaluations meter'},
+ {id:'red',n:'AI red teaming',d:'8 scans/month in months 5–6',f:'scans × 4 categories × 10 objectives × (1 + 5 strategies) × (target + safety scoring)'},
+ {id:'tools',n:'Playground & coding tools',d:'Copilot seats + Claude coding tokens',f:'devs × (CAD 420 coding tokens + CAD 26 Copilot seat)'},
+ {id:'env',n:'Dev environment',d:'AI Search Basic, Container Apps, App Insights',f:'fixed monthly infrastructure at dev SKUs'}];
 function devLab(){
-  const rows={'Model bake-off':[],'Harness iterations':[],'Nightly regression':[],'Foundry evaluation':[],'Red teaming':[],'Playground & coding tools':[],'Dev environment':[]};
-  let ev=0,sf=0,rt=0;
+  const r={};ACT.forEach(a=>r[a.id]=[]);
   for(let m=1;m<=B;m++){
-    const active=state.models.filter(x=>x.on&&m<=x.until);
-    const bakeCases=state.cases*state.reps*sweeps[m-1];
-    const bake=active.reduce((s,x)=>s+x.c,0)*bakeCases;
-    const chosen=0.38*1.15;
+    const active=state.models.filter(x=>x.on&&m<=(LV.narrow&&!['gpt-5.4','Claude Sonnet 5.5 · Foundry'].includes(x.id)?1:(x.until>=6?B:x.until)));
+    const bakeCases=state.cases*state.reps*sweep(m);
     const iterCases=state.devs*12*21*25;
-    const iter=iterCases*chosen*(m<=2?0.6:1);
     const nightCases=state.night&&m>=3?30*state.cases:0;
-    const night=nightCases*0.38;
-    const scored=bakeCases*active.length+iterCases*0.3+nightCases;
-    const evalJ=scored*0.0225, safe=scored*0.3*0.012;
-    const red=m>=5?8*240*0.085:0;
-    rows['Model bake-off'].push(bake);rows['Harness iterations'].push(iter);rows['Nightly regression'].push(night);
-    rows['Foundry evaluation'].push(evalJ+safe);rows['Red teaming'].push(red);
-    rows['Playground & coding tools'].push(state.devs*(420+26));rows['Dev environment'].push(214);
-    ev+=evalJ;sf+=safe;rt+=red;
-  }
-  return {rows,ev:ev/B,sf:sf/B,rt:rt/2};
+    const scored=(bakeCases*active.length+iterCases*0.3+nightCases)*(LV.evalSample?0.4:1);
+    r.bake.push(active.reduce((s,x)=>s+x.c,0)*bakeCases);
+    r.iter.push(iterCases*0.437*(m<=2?0.6:1)*(LV.devCache?0.74:1));
+    r.night.push(nightCases*0.38*(LV.batchNight?0.5:1));
+    r.eval.push(scored*0.0225+scored*0.3*0.012);
+    r.red.push(m>=5?8*240*0.085:0);
+    r.tools.push(state.devs*446);r.env.push(214);}
+  return r;
 }
 const labourMonth=()=>state.devs*160*95+0.5*160*120;
-const workloads=[
- {g:'Ingestion',n:'Meeting transcription',d:'1,800 h · MAI-Transcribe-2 · promo until Dec 31, then 3×',v:750,u:1},
- {g:'Ingestion',n:'Meeting summaries & action items',d:'1,800 meetings · 11k in / 1.2k out · gpt-5.4-mini',v:34,u:1},
- {g:'Ingestion',n:'Shared documents',d:'20,000 pages · Document Intelligence Layout',v:277,u:1},
- {g:'Ingestion',n:'Email follow-ups',d:'150,000 emails · Content Understanding (minimal)',v:58,u:1},
- {g:'Retrieval',n:'Embeddings',d:'text-embedding-3-large · new content only',v:9,u:1},
- {g:'Retrieval',n:'Azure AI Search S1',d:'2 replicas × 1 partition · 3.1 GB vectors',v:681,u:0},
- {g:'Retrieval',n:'Semantic ranker',d:'62,000 queries after 1,000 free',v:85,u:1},
- {g:'Conversation',n:'Ask-my-meetings chat',d:'800 users · 30 conversations · 4 turns · gpt-5.4',v:1756,u:1},
- {g:'Agents',n:'Follow-up agent harness',d:'6,000 tasks · gpt-5.4 · see estimate',v:{p50:1860,p90:4440,worst:23280},u:1},
- {g:'Quality & safety',n:'Continuous evaluation',d:'5% of traffic · 3 evaluators · gpt-5.4-mini judge',v:118,u:1},
- {g:'Quality & safety',n:'Content Safety',d:'Prompt Shields + moderation · 410k records',v:213,u:1},
- {g:'Platform',n:'Container Apps, Key Vault, Storage',d:'2 apps · consumption plan',v:212,u:0},
- {g:'Platform',n:'Application Insights',d:'38 GB/month ingested, prompts sampled',v:76,u:0},
- {g:'Platform',n:'API Management Basic v2',d:'AI gateway, token metrics',v:208,u:0},
-];
-const wv=w=>typeof w.v==='number'?w.v:w.v[state.p];
+const WL=[
+ {id:'stt',g:'Ingestion',n:'Meeting transcription',d:'1,800 h · MAI-Transcribe-2',v:750,u:1},
+ {id:'sum',g:'Ingestion',n:'Summaries & action items',d:'1,800 meetings · gpt-5.4-mini',v:34,u:1},
+ {id:'docs',g:'Ingestion',n:'Shared documents',d:'20,000 pages · DI Layout',v:277,u:1},
+ {id:'mail',g:'Ingestion',n:'Email follow-ups',d:'150,000 emails · Content Understanding',v:58,u:1},
+ {id:'emb',g:'Retrieval',n:'Embeddings',d:'text-embedding-3-large',v:9,u:1},
+ {id:'search',g:'Retrieval',n:'Azure AI Search S1',d:'2 replicas × 1 partition',v:681,u:0},
+ {id:'sem',g:'Retrieval',n:'Semantic ranker',d:'62,000 queries',v:85,u:1},
+ {id:'chat',g:'Conversation',n:'Ask-my-meetings chat',d:'800 users · gpt-5.4',v:1756,u:1},
+ {id:'agent',g:'Agents',n:'Follow-up agent',d:'6,000 tasks · gpt-5.4',v:{p50:1860,p90:4440,worst:23280},u:1},
+ {id:'ceval',g:'Quality & safety',n:'Continuous evaluation',d:'5% sample · 3 evaluators',v:118,u:1},
+ {id:'safety',g:'Quality & safety',n:'Content Safety',d:'Prompt Shields + moderation',v:213,u:1},
+ {id:'apps',g:'Platform',n:'Container Apps, Key Vault, Storage',d:'consumption plan',v:212,u:0},
+ {id:'ai',g:'Platform',n:'Application Insights',d:'38 GB/month',v:76,u:0},
+ {id:'apim',g:'Platform',n:'API Management Basic v2',d:'AI gateway',v:208,u:0}];
+const wv=w=>(typeof w.v==='number'?w.v:w.v[state.p])*(w.id==='chat'&&LV.router?0.62:1);
 const maintMonth=()=>0.4*160*95*(1-state.maintCut/100);
 const benefitFull=()=>(470*62.5+4000)*state.k;
-function months(){
-  const dl=devLab(), out=[];
-  const cut=1-state.devCut/100;
-  for(let m=1;m<=H;m++){
-    const o={m,labour:0,devai:0,runai:0,infra:0,maint:0,benefit:0};
-    if(m<=B){o.labour=labourMonth()*cut;o.devai=Object.values(dl.rows).reduce((s,r)=>s+r[m-1],0)*cut;}
-    else{const ad=Math.min(1,(m-B)/6);
-      workloads.forEach(w=>{const v=wv(w);if(w.g==='Platform'||w.u===0)o.infra+=v;else o.runai+=v*ad;});
-      o.maint=maintMonth();o.benefit=benefitFull()*ad;}
-    out.push(o);}
-  return out;
-}
+function months(){const dl=devLab(),cut=1-state.devCut/100,out=[];
+  for(let m=1;m<=H;m++){const o={m,labour:0,devai:0,runai:0,infra:0,maint:0,benefit:0};
+    if(m<=B){o.labour=labourMonth()*cut;o.devai=ACT.reduce((s,a)=>s+dl[a.id][m-1],0)*cut;}
+    else{const ad=Math.min(1,(m-B)/6);WL.forEach(w=>{const v=wv(w);if(w.u===0)o.infra+=v;else o.runai+=v*ad;});o.maint=maintMonth();o.benefit=benefitFull()*ad;}
+    out.push(o);}return out;}
 const costOf=o=>state.basis==='run'?o.runai+o.infra:state.basis==='runm'?o.runai+o.infra+o.maint:o.labour+o.devai+o.runai+o.infra+o.maint;
-/* ---------- charts ---------- */
-const tip=document.getElementById('tip');
-function showTip(e,html){tip.innerHTML=html;tip.hidden=false;const x=Math.min(e.clientX+14,innerWidth-270);tip.style.left=x+'px';tip.style.top=(e.clientY+14)+'px';}
-function hideTip(){tip.hidden=true}
-function niceMax(v){const p=Math.pow(10,Math.floor(Math.log10(v)));return Math.ceil(v/p)*p}
-function stacked(el,data,keys,colors,labels,opts={}){
-  const W=900,Ht=opts.h||300,L=58,R=12,T=12,Bm=28;
-  const tot=data.map(d=>keys.reduce((s,k)=>s+d[k],0));
-  const lineMax=opts.line?Math.max(...data.map(d=>d[opts.line])):0;
-  const max=niceMax(Math.max(...tot,lineMax)||1);
-  const bw=(W-L-R)/data.length, y=v=>T+(Ht-T-Bm)*(1-v/max);
-  let s=`<svg viewBox="0 0 ${W} ${Ht}" role="img" aria-label="${opts.aria||''}">`;
-  for(let i=0;i<=4;i++){const v=max*i/4;s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${css('--line')}" stroke-width="1"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${v>=1000?'$'+fmt(v/1000)+'k':'$'+fmt(v)}</text>`}
-  data.forEach((d,i)=>{let acc=0;const x=L+i*bw+bw*0.15,w=bw*0.7;
-    keys.forEach((k,j)=>{const v=d[k];if(v<=0)return;const y0=y(acc),y1=y(acc+v);acc+=v;
-      s+=`<rect x="${x}" y="${y1}" width="${w}" height="${Math.max(0,y0-y1-(acc<tot[i]?2:0))}" fill="${css(colors[j])}" rx="${acc>=tot[i]-0.01?2:0}"/>`});
-    if(opts.xlabel(i))s+=`<text x="${x+w/2}" y="${Ht-8}" text-anchor="middle">${opts.xfmt(i)}</text>`;
-    s+=`<rect class="hit" data-i="${i}" x="${L+i*bw}" y="${T}" width="${bw}" height="${Ht-T-Bm}" fill="transparent"/>`});
-  if(opts.line){let p='';data.forEach((d,i)=>{p+=(p?'L':'M')+(L+i*bw+bw/2)+','+y(d[opts.line])});s+=`<path d="${p}" fill="none" stroke="${css('--ink')}" stroke-width="2" stroke-dasharray="5 4"/>`}
-  s+='</svg>';el.innerHTML=s;
-  el.querySelectorAll('.hit').forEach(r=>{r.addEventListener('mousemove',e=>{const i=+r.dataset.i,d=data[i];
-    let h=`<b>${opts.xfmt(i,true)}</b>`;keys.forEach((k,j)=>{if(d[k]>0)h+=`<div class="row"><span>${labels[j]}</span><span>${cad(d[k])}</span></div>`});
-    h+=`<div class="row"><span>Total cost</span><span>${cad(tot[i])}</span></div>`;if(opts.line)h+=`<div class="row"><span>Benefit</span><span>${cad(d[opts.line])}</span></div>`;showTip(e,h)});r.addEventListener('mouseleave',hideTip)});
-}
-function lineChart(el,vals,opts){
-  const W=900,Ht=240,L=64,R=14,T=14,Bm=28;
-  const mn=Math.min(0,...vals),mx=Math.max(0,...vals);const span=niceMax(Math.max(mx-mn,1));
-  const lo=mn<0?-niceMax(-mn):0,hi=mx>0?niceMax(mx):0;const y=v=>T+(Ht-T-Bm)*(hi-v)/((hi-lo)||1);const x=i=>L+(W-L-R)*i/(vals.length-1);
-  let s=`<svg viewBox="0 0 ${W} ${Ht}" role="img" aria-label="${opts.aria}">`;
-  [lo,lo/2,0,hi/2,hi].filter((v,i,a)=>a.indexOf(v)===i).forEach(v=>{s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${css('--line')}" stroke-width="${v===0?1.5:1}"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${v<0?'−':''}$${fmt(Math.abs(v)/1000)}k</text>`});
-  let a=`M${x(0)},${y(0)}`,p='';vals.forEach((v,i)=>{p+=(p?'L':'M')+x(i)+','+y(v);a+='L'+x(i)+','+y(v)});a+=`L${x(vals.length-1)},${y(0)}Z`;
-  s+=`<path d="${a}" fill="${css('--accent')}" opacity=".12"/><path d="${p}" fill="none" stroke="${css('--accent')}" stroke-width="2"/>`;
-  [0,5,11,17,23,29,35].forEach(i=>{if(i<vals.length)s+=`<text x="${x(i)}" y="${Ht-8}" text-anchor="middle">M${i+1}</text>`});
-  const pb=vals.findIndex(v=>v>=0);if(pb>0){s+=`<circle cx="${x(pb)}" cy="${y(vals[pb])}" r="5" fill="${css('--accent')}" stroke="${css('--surface')}" stroke-width="2"/><text x="${x(pb)}" y="${y(vals[pb])-10}" text-anchor="middle" style="fill:${css('--ink')};font-weight:600">Payback M${pb+1}</text>`}
-  const li=vals.length-1;s+=`<circle cx="${x(li)}" cy="${y(vals[li])}" r="4" fill="${css('--accent')}"/>`;
-  vals.forEach((v,i)=>{s+=`<rect class="hit" data-i="${i}" x="${x(i)-(W-L-R)/vals.length/2}" y="${T}" width="${(W-L-R)/vals.length}" height="${Ht-T-Bm}" fill="transparent"/>`});
-  s+='</svg>';el.innerHTML=s;
-  el.querySelectorAll('.hit').forEach(r=>{r.addEventListener('mousemove',e=>{const i=+r.dataset.i;showTip(e,`<b>Month ${i+1}</b><div class="row"><span>Cumulative</span><span>${vals[i]<0?'−':''}${cad(Math.abs(vals[i]))}</span></div>`)});r.addEventListener('mouseleave',hideTip)});
-}
-function legend(el,items){el.innerHTML=items.map(([c,l,line])=>`<span><i class="${line?'line':''}" style="background:${css(c)}"></i>${l}</span>`).join('')}
-/* ---------- render ---------- */
-const costKeys=['labour','devai','runai','infra','maint'],costCols=['--s1','--s2','--s3','--s4','--s5'],costLbl=['Build labour','AI Dev Lab','Production AI usage','Platform & infrastructure','Maintenance'];
 function summary(){const ms=months();let cum=0,cost=0,ben=0;const cums=ms.map(o=>{const c=costOf(o);cost+=c;ben+=o.benefit;cum+=o.benefit-c;return cum});
   const pb=cums.findIndex(v=>v>=0);return {ms,cums,cost,ben,pb:pb<0?null:pb+1,roi:(ben-cost)/cost};}
-function kpiHtml(items){return items.map(([l,v,d])=>`<div class="kpi"><span class="l">${l}</span><span class="v">${v}</span><span class="d">${d}</span></div>`).join('')}
+/* ---------- charts (drawn at the container's pixel size) ---------- */
+const tip=$('tip');
+function showTip(e,h){tip.innerHTML=h;tip.hidden=false;tip.style.left=Math.min(e.clientX+14,innerWidth-270)+'px';tip.style.top=Math.min(e.clientY+14,innerHeight-160)+'px'}
+function hideTip(){tip.hidden=true}
+function niceMax(v){if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
+const kfmt=v=>Math.abs(v)>=1000?(v<0?'−':'')+'$'+fmt(Math.abs(v)/1000)+'k':cad(v);
+function size(el){return {W:Math.max(320,el.clientWidth-12),H:Math.max(180,el.clientHeight-6)}}
+function stacked(el,data,keys,cols,lbls,o={}){
+  const {W,H:Ht}=size(el),L=54,R=10,T=10,Bm=24;
+  const tot=data.map(d=>keys.reduce((s,k)=>s+d[k],0));const max=niceMax(Math.max(...tot,o.line?Math.max(...data.map(d=>d[o.line])):0));
+  const bw=(W-L-R)/data.length,y=v=>T+(Ht-T-Bm)*(1-v/max);
+  let s=`<svg viewBox="0 0 ${W} ${Ht}" role="img" aria-label="${o.aria||''}">`;
+  for(let i=0;i<=4;i++){const v=max*i/4;s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${css('--line')}"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${kfmt(v)}</text>`}
+  const every=Math.ceil(data.length/(W/48));
+  data.forEach((d,i)=>{let acc=0;const w=Math.max(2,bw*0.7),x=L+i*bw+(bw-w)/2;
+    keys.forEach((k,j)=>{const v=d[k];if(v<=0)return;const y0=y(acc),y1=y(acc+v);acc+=v;const top=acc>=tot[i]-0.01;
+      s+=`<rect x="${x}" y="${y1}" width="${w}" height="${Math.max(0,y0-y1-(top?0:1.5))}" fill="${css(cols[j])}" rx="${top?2:0}"/>`});
+    if(i%every===0)s+=`<text x="${x+w/2}" y="${Ht-6}" text-anchor="middle">${o.xl(i)}</text>`;
+    s+=`<rect class="hit" data-i="${i}" x="${L+i*bw}" y="${T}" width="${bw}" height="${Ht-T-Bm}" fill="transparent"/>`});
+  if(o.line){let p='';data.forEach((d,i)=>{p+=(p?'L':'M')+(L+i*bw+bw/2)+','+y(d[o.line])});s+=`<path d="${p}" fill="none" stroke="${css('--ink')}" stroke-width="2" stroke-dasharray="5 4"/>`}
+  el.innerHTML=s+'</svg>';
+  el.querySelectorAll('.hit').forEach(r=>{r.onmousemove=e=>{const i=+r.dataset.i,d=data[i];let h=`<b>${o.xt(i)}</b>`;
+    keys.forEach((k,j)=>{if(d[k]>0)h+=`<div class="r"><span>${lbls[j]}</span><span>${cad(d[k])}</span></div>`});
+    h+=`<div class="r"><span>Total cost</span><span>${cad(tot[i])}</span></div>`;if(o.line)h+=`<div class="r"><span>Benefit</span><span>${cad(d[o.line])}</span></div>`;showTip(e,h)};r.onmouseleave=hideTip});
+}
+function line(el,vals,o){
+  const {W,H:Ht}=size(el),L=58,R=12,T=18,Bm=24;
+  const lo=Math.min(0,...vals)<0?-niceMax(-Math.min(...vals)):0,hi=Math.max(0,...vals)>0?niceMax(Math.max(...vals)):1;
+  const y=v=>T+(Ht-T-Bm)*(hi-v)/(hi-lo),x=i=>L+(W-L-R)*i/(vals.length-1);
+  let s=`<svg viewBox="0 0 ${W} ${Ht}" role="img" aria-label="${o.aria}">`;
+  [lo,lo/2,0,hi/2,hi].filter((v,i,a)=>a.indexOf(v)===i).forEach(v=>{s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${css(v===0?'--muted':'--line')}" stroke-width="1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${kfmt(v)}</text>`});
+  let a=`M${x(0)},${y(0)}`,p='';vals.forEach((v,i)=>{p+=(p?'L':'M')+x(i)+','+y(v);a+='L'+x(i)+','+y(v)});a+=`L${x(vals.length-1)},${y(0)}Z`;
+  s+=`<path d="${a}" fill="${css('--accent')}" opacity=".12"/><path d="${p}" fill="none" stroke="${css('--accent')}" stroke-width="2"/>`;
+  [0,5,11,17,23,29,35].forEach(i=>{s+=`<text x="${x(i)}" y="${Ht-6}" text-anchor="middle">M${i+1}</text>`});
+  const pb=vals.findIndex(v=>v>=0);if(pb>0)s+=`<circle cx="${x(pb)}" cy="${y(vals[pb])}" r="5" fill="${css('--accent')}" stroke="${css('--surface')}" stroke-width="2"/><text x="${x(pb)}" y="${y(vals[pb])-10}" text-anchor="middle" style="fill:${css('--ink')};font-weight:600">Payback · month ${pb+1}</text>`;
+  vals.forEach((v,i)=>{const w=(W-L-R)/(vals.length-1);s+=`<rect class="hit" data-i="${i}" x="${x(i)-w/2}" y="${T}" width="${w}" height="${Ht-T-Bm}" fill="transparent"/>`});
+  el.innerHTML=s+'</svg>';
+  el.querySelectorAll('.hit').forEach(r=>{r.onmousemove=e=>{const i=+r.dataset.i;showTip(e,`<b>Month ${i+1}</b><div class="r"><span>Cumulative net</span><span>${cad(vals[i])}</span></div>`)};r.onmouseleave=hideTip});
+}
+function spark(vals,max,col){const w=66,h=20,bw=w/vals.length;return `<svg class="spark" width="${w}" height="${h}" aria-hidden="true">`+vals.map((v,i)=>`<rect x="${i*bw+1}" y="${h-Math.max(1,v/max*h)}" width="${bw-2}" height="${Math.max(1,v/max*h)}" rx="1" fill="${css(col)}"/>`).join('')+'</svg>'}
+function legend(el,items){el.innerHTML=items.map(([c,l,ln])=>`<span><i class="${ln?'line':''}" style="background:${css(c)}"></i>${l}</span>`).join('')}
+/* ---------- render ---------- */
+const CK=['labour','devai','runai','infra','maint'],CC=['--s1','--s2','--s3','--s4','--s5'],CL=['Build labour','AI Dev Lab','Production AI usage','Platform & infrastructure','Maintenance'];
+const DC=['--s1','--s2','--s3','--s4','--s5','--s6','--s7'];
+function kbar(S,devTotal,labTotal,runM){
+  const bl={run:'running cost only',runm:'running + maintenance',full:'full lifecycle'}[state.basis];
+  $('kbar').innerHTML=[['Build · months 1–'+B,cad(labTotal+devTotal),`${cad(devTotal)} of it AI Dev Lab`],['Production run-rate',cad(runM)+'/mo',`+ ${cad(maintMonth())} maintenance`],
+   ['Benefit at full adoption',cad(S.ms[H-1].benefit)+'/mo','time saved + avoided licence'],['Payback',S.pb?'Month '+S.pb:'> 36 months',bl],['3-year ROI',fmt(S.roi*100)+'%',`${cad(S.ben-S.cost)} net`]]
+   .map(([l,v,d])=>`<div class="k"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('')+
+   `<div class="phase"><div class="track" style="grid-template-columns:${B}fr ${H-B}fr"><i></i><i></i></div><span>Build M1–${B} · Production M${B+1}–36</span></div>`;
+}
 function render(){
-  const S=summary(),dl=devLab();
-  const devTotal=Object.values(dl.rows).flat().reduce((a,b)=>a+b,0)*(1-state.devCut/100);
-  const labTotal=labourMonth()*B*(1-state.devCut/100);
-  const steady=S.ms[H-1];const runM=steady.runai+steady.infra;
-  const basisLbl={run:'running cost only',runm:'running + maintenance',full:'full lifecycle'}[state.basis];
-  const ov=kpiHtml([
-    ['Build, months 1–6',cad(labTotal+devTotal),`${cad(labTotal)} labour · ${cad(devTotal)} AI Dev Lab`],
-    ['Production run-rate',cad(runM)+'/mo',`at full adoption · + ${cad(maintMonth())} maintenance`],
-    ['Monthly benefit',cad(steady.benefit)+'/mo','time saved + avoided licence'],
-    ['Payback',S.pb?'Month '+S.pb:'Not in 36 mo',basisLbl],
-    ['3-year ROI',fmt(S.roi*100)+'%',`${cad(S.ben)} benefit vs ${cad(S.cost)} cost`]]);
-  document.getElementById('kpis').innerHTML=ov;document.getElementById('roiKpis').innerHTML=ov;
-  stacked(document.getElementById('chOverview'),S.ms,costKeys,costCols,costLbl,{line:'benefit',aria:'Monthly cost by stream with benefit line',xlabel:i=>i%3===0,xfmt:(i,l)=>(l?'Month ':'M')+(i+1)});
-  legend(document.getElementById('lgOverview'),costKeys.map((k,j)=>[costCols[j],costLbl[j]]).concat([['--ink','Benefit',true]]));
-  document.getElementById('cumSub').textContent=`Benefit minus ${basisLbl}. Change the basis under Value & ROI.`;
-  lineChart(document.getElementById('chCum'),S.cums,{aria:'Cumulative net position by month'});
-  lineChart(document.getElementById('chRoi'),S.cums,{aria:'Cumulative cash position by month'});
-  // build
-  const dk=Object.keys(dl.rows),dcols=['--s1','--s2','--s3','--s4','--s5','--s6','--s7'];
-  const dm=Array.from({length:B},(_,i)=>{const o={};dk.forEach(k=>o[k]=dl.rows[k][i]*(1-state.devCut/100));return o});
-  stacked(document.getElementById('chDev'),dm,dk,dcols,dk,{h:260,aria:'AI Dev Lab spend by month and activity',xlabel:()=>true,xfmt:(i,l)=>(l?'Month ':'M')+(i+1)});
-  legend(document.getElementById('lgDev'),dk.map((k,j)=>[dcols[j],k]));
-  let t='<tr><th>Activity</th>'+dm.map((_,i)=>`<th class="n">M${i+1}</th>`).join('')+'<th class="n">Total</th></tr>';
-  const mx=Math.max(...dk.flatMap(k=>dm.map(o=>o[k])));
-  dk.forEach(k=>{const tot=dm.reduce((s,o)=>s+o[k],0);t+=`<tr><td>${k}</td>`+dm.map(o=>`<td class="n" style="background:color-mix(in srgb,${css('--s1')} ${Math.round(o[k]/mx*38)}%,transparent)">${cad(o[k])}</td>`).join('')+`<td class="n">${cad(tot)}</td></tr>`});
-  t+='<tr class="total"><td>Total</td>'+dm.map(o=>`<td class="n">${cad(dk.reduce((s,k)=>s+o[k],0))}</td>`).join('')+`<td class="n">${cad(devTotal)}</td></tr>`;
-  document.getElementById('tbDev').innerHTML=t;
-  document.getElementById('q-eval').textContent=cad(dl.ev);document.getElementById('q-safe').textContent=cad(dl.sf);document.getElementById('q-red').textContent=cad(dl.rt)+' in M5–6';
-  const prodEq=devTotal/runM;
-  document.getElementById('buildCallout').innerHTML=`<b>The AI Dev Lab spends ${cad(devTotal)} over 6 months</b>, the same as <b>${fmt(prodEq,1)} months of production</b> AI and platform cost. The model bake-off in months 1–2 is the biggest driver; narrowing to two candidate models by month 3 halves it.`;
-  document.getElementById('bakeModels').innerHTML=state.models.map((x,i)=>`<button class="mchip ${x.on?'on':''}" data-m="${i}" aria-pressed="${x.on}">${x.id} · <span class="mono">${cad(x.c,2)}</span>/run · M1–${x.until}</button>`).join('');
-  document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{state.models[+b.dataset.m].on=!state.models[+b.dataset.m].on;render()});
-  // run
-  const maxW=Math.max(...workloads.map(wv));let html='',g='';
-  workloads.forEach(w=>{if(w.g!==g){g=w.g;html+=`<div class="grouphead">${g}</div>`}const v=wv(w);
-    html+=`<div class="workload"><div class="nm">${w.n}</div><div class="dr">${w.d}</div><div class="barcell"><div class="bar" style="width:${Math.max(2,v/maxW*100)}%"></div></div><div class="num" style="text-align:right">${cad(v)}<span class="sub">/mo</span></div></div>`});
-  document.getElementById('workloads').innerHTML=html;
-  document.getElementById('runKpis').innerHTML=kpiHtml([
-    ['AI consumption',cad(steady.runai)+'/mo','tokens, pages, hours, queries'],
-    ['Platform & infrastructure',cad(steady.infra)+'/mo','fixed from go-live'],
-    ['Maintenance',cad(maintMonth())+'/mo','0.4 FTE from the rate card'],
-    ['Cost per active user',cad((runM+maintMonth())/320,2),'320 active of 800 licensed'],
-    ['Cost per meeting',cad((750+34)/1800,2),'transcription + summary']]);
-  const stt=[['MAI-Transcribe-2 (promo to Dec 31)','Azure Speech',0.14,'promo'],['Speech batch (diarization incl.)','Azure Speech',0.25,''],['gpt-4o-mini-transcribe','Foundry',0.23,''],['Snowflake AI_TRANSCRIBE','Snowflake',0.49,''],['Whisper','Foundry',0.50,'retires 2026-12-15'],['Content Understanding audio','Foundry',0.64,''],['gpt-4o-transcribe','Foundry',0.45,'retires 2026-10-15'],['Speech real-time + diarization','Azure Speech',1.80,'']].sort((a,b)=>a[2]-b[2]);
-  document.getElementById('tbStt').innerHTML='<tr><th>Engine</th><th>Via</th><th class="n">CAD / hour</th><th class="n">CAD / month</th><th></th></tr>'+stt.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="n">${cad(r[2],2)}</td><td class="n">${cad(r[2]*1800)}</td><td>${r[3]?`<span class="pill ${r[3].startsWith('retires')?'crit':'warn'}">${r[3]}</span>`:''}</td></tr>`).join('');
-  // roi
-  document.querySelectorAll('#basis button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.b===state.basis));
-  document.getElementById('v-dev').textContent=state.devCut+'%';document.getElementById('v-maint').textContent=state.maintCut+'%';
-  document.getElementById('b1').textContent=cad(470*62.5*state.k);document.getElementById('b2').textContent=cad(4000*state.k);
-  let yr='<tr><th>Year</th><th class="n">Benefit</th><th class="n">Cost</th><th class="n">Net</th></tr>';
-  for(let y=0;y<3;y++){const sl=S.ms.slice(y*12,y*12+12);const b=sl.reduce((s,o)=>s+o.benefit,0),c=sl.reduce((s,o)=>s+costOf(o),0);yr+=`<tr><td>Year ${y+1}</td><td class="n">${cad(b)}</td><td class="n">${cad(c)}</td><td class="n">${b-c<0?'−':''}${cad(Math.abs(b-c))}</td></tr>`}
-  yr+=`<tr class="total"><td>3 years</td><td class="n">${cad(S.ben)}</td><td class="n">${cad(S.cost)}</td><td class="n">${S.ben-S.cost<0?'−':''}${cad(Math.abs(S.ben-S.cost))}</td></tr>`;
-  document.getElementById('tbYears').innerHTML=yr;
-  // tokens
-  const p=state.pages/100;document.getElementById('t-pg').textContent=fmt(state.pages);
-  const routes=[['Document Intelligence Read → gpt-5.4-mini summary','Azure',650,0.30],['Direct PDF → gpt-5.4 (text + page image)','Azure',1400,0.53],['Direct PDF → Claude Sonnet 5.5 on Foundry','Azure',3200,0.92],['Document Intelligence Layout → gpt-5.4-mini summary','Azure',760,1.48],['AI_PARSE_DOCUMENT layout → AI_COMPLETE gpt-5.4 + warehouse','Snowflake',760,1.79]];
-  document.getElementById('tbDoc').innerHTML='<tr><th>Route</th><th>Via</th><th class="n">Tokens / page</th><th class="n">Total tokens</th><th class="n">CAD</th><th>Relative cost</th></tr>'+routes.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="n">${fmt(r[2])}</td><td class="n">${fmt(r[2]*state.pages)}</td><td class="n">${cad(r[3]*p,2)}</td><td><div class="barcell"><div class="bar" style="width:${r[3]/1.79*100}%"></div></div></td></tr>`).join('');
-  const txt=document.getElementById('t-text').value,chars=txt.length,base=Math.max(1,Math.round(chars/4.6));
-  const fam=[['OpenAI o200k (GPT-5.x on Foundry)',1,3.47],['Claude ≤4.6 on Foundry',1.10,4.16],['Claude 4.7+ on Foundry (Opus/Sonnet 5.5)',1.35,2.77],['Snowflake Cortex (model tokenizer)',1,3.83]];
-  document.getElementById('tbTok').innerHTML='<tr><th>Tokenizer family</th><th class="n">Multiplier</th><th class="n">Tokens</th><th class="n">CAD per 1M calls (input)</th></tr>'+fam.map(f=>`<tr><td>${f[0]}</td><td class="n">×${f[1].toFixed(2)}</td><td class="n">${fmt(Math.round(base*f[1]))}</td><td class="n">${cad(base*f[1]*f[2],0)}</td></tr>`).join('')+`<tr><td colspan="4" class="note">${fmt(chars)} characters</td></tr>`;
+  const S=summary(),dl=devLab(),cut=1-state.devCut/100;
+  const devTotal=ACT.reduce((s,a)=>s+dl[a.id].reduce((x,y)=>x+y,0),0)*cut,labTotal=labourMonth()*B*cut;
+  const steady=S.ms[H-1],runM=steady.runai+steady.infra;
+  kbar(S,devTotal,labTotal,runM);
+  const v=state.view;
+  if(v==='overview'){renderStory();renderCanvas(S,dl,cut);renderSide();}
+  if(v==='build'){
+    $('buildSum').textContent=cad(labTotal+devTotal);$('buildH').textContent='Build, months 1–'+B;
+    const tot=id=>dl[id].reduce((a,b)=>a+b,0)*cut,maxM=Math.max(...ACT.flatMap(a=>dl[a.id]));
+    let h=`<button class="row" role="option" data-b="all" aria-selected="${state.buildSel==='all'}"><span><div class="nm">AI Dev Lab, all activities</div><div class="dr">tokens and AI services while building</div></span>${spark(Array.from({length:B},(_,i)=>ACT.reduce((s,a)=>s+dl[a.id][i],0)),Math.max(...Array.from({length:B},(_,i)=>ACT.reduce((s,a)=>s+dl[a.id][i],0))),'--s2')}<span class="v">${cad(devTotal)}</span></button>`;
+    h+=`<div class="gh">Labour</div><button class="row" data-b="team" aria-selected="${state.buildSel==='team'}"><span><div class="nm">Team & rate card</div><div class="dr">${state.devs} developers · 0.5 architect</div></span><span></span><span class="v">${cad(labTotal)}</span></button>`;
+    h+=`<div class="gh">AI Dev Lab activities</div>`+ACT.map((a,j)=>`<button class="row" data-b="${a.id}" aria-selected="${state.buildSel===a.id}"><span><div class="nm">${a.n}</div><div class="dr">${a.d}</div></span>${spark(dl[a.id],maxM,DC[j])}<span class="v">${cad(tot(a.id))}</span></button>`).join('');
+    $('buildList').innerHTML=h;
+    document.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{state.buildSel=b.dataset.b;render()});
+    const sel=state.buildSel,ins=$('buildIns');
+    if(sel==='all'){
+      ins.innerHTML=`<div class="hd" style="padding:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><h2>AI Dev Lab by month</h2><div class="sub">Labour is shown separately</div></div><div class="seg" id="devSeg"><button aria-pressed="${state.devView!=='grid'}" data-d="chart">Chart</button><button aria-pressed="${state.devView==='grid'}" data-d="grid">Month grid</button></div></div>
+        <div class="callout"><b>${cad(devTotal)} over ${B} months</b>, equal to <b>${fmt(devTotal/runM,1)} months</b> of production cost. The bake-off in months 1–2 is the largest driver.</div>
+        <div class="legend" id="lgDev" style="padding:0"></div><div class="chartbox" id="chDev" ${state.devView==='grid'?'hidden':''} style="min-height:260px"></div><div id="gridDev" ${state.devView==='grid'?'':'hidden'}></div>`;
+      const dm=Array.from({length:B},(_,i)=>{const o={};ACT.forEach(a=>o[a.id]=dl[a.id][i]*cut);return o});
+      legend($('lgDev'),ACT.map((a,j)=>[DC[j],a.n]));
+      if(state.devView==='grid'){let t='<table><tr><th>Activity</th>'+dm.map((_,i)=>`<th class="n">M${i+1}</th>`).join('')+'<th class="n">Total</th></tr>';const mx=Math.max(...ACT.flatMap(a=>dm.map(o=>o[a.id])));
+        ACT.forEach(a=>{t+=`<tr><td>${a.n}</td>`+dm.map(o=>`<td class="n" style="background:color-mix(in srgb,${css('--s1')} ${Math.round(o[a.id]/mx*38)}%,transparent)">${cad(o[a.id])}</td>`).join('')+`<td class="n">${cad(dm.reduce((s,o)=>s+o[a.id],0))}</td></tr>`});
+        $('gridDev').innerHTML=t+`<tr class="total"><td>Total</td>`+dm.map(o=>`<td class="n">${cad(ACT.reduce((s,a)=>s+o[a.id],0))}</td>`).join('')+`<td class="n">${cad(devTotal)}</td></tr></table>`;}
+      else requestAnimationFrame(()=>stacked($('chDev'),dm,ACT.map(a=>a.id),DC,ACT.map(a=>a.n),{aria:'AI Dev Lab by month',xl:i=>'Month '+(i+1),xt:i=>'Month '+(i+1)}));
+      document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{state.devView=b.dataset.d;render()});
+    } else if(sel==='team'){
+      ins.innerHTML=`<div><h2>Team & rate card</h2><div class="sub">Labour for the build. Rates are CAD per hour.</div></div><div class="big">${cad(labTotal)}</div>
+       <div class="form"><label class="field">Developers<input id="f-devs" type="number" value="${state.devs}" min="1" max="20"></label><label class="field">Developer rate<input value="95" disabled></label><label class="field">Architect FTE<input value="0.5" disabled></label><label class="field">Architect rate<input value="120" disabled></label><label class="field">Hours / month<input value="160" disabled></label><label class="field">Contingency<input value="0%" disabled></label></div>
+       <div class="formula">devs × 160 h × $95 + 0.5 × 160 h × $120 = ${cad(labourMonth())} per month × 6 months</div>`;
+      $('f-devs').oninput=e=>{state.devs=Math.max(1,+e.target.value||1);render();$('f-devs').focus()};
+    } else {
+      const a=ACT.find(x=>x.id===sel),j=ACT.indexOf(a),vals=dl[sel].map(x=>x*cut);
+      let extra='';
+      if(sel==='bake')extra=`<div><h3 style="margin-bottom:6px">Candidate models · CAD per harness run · active months</h3><div class="modelchips">${state.models.map((x,i)=>`<button class="mchip ${x.on?'on':''}" data-m="${i}" aria-pressed="${x.on}">${x.id} · <span class="mono">${cad(x.c,2)}</span> · M1–${x.until}</button>`).join('')}</div></div>
+        <div class="form"><label class="field">Evaluation cases<input id="f-cases" type="number" value="${state.cases}"></label><label class="field">Repeats per case<input id="f-reps" type="number" value="${state.reps}"></label><label class="field">Sweeps per month<input value="4 · 6 · 4 · 4 · 2 · 2" disabled></label><label class="field">Sent through Batch<input value="0%" disabled></label></div>`;
+      if(sel==='night')extra=`<div class="form"><label class="field">Run overnight<select id="f-night"><option value="1" ${state.night?'selected':''}>Yes, from month 3</option><option value="0" ${state.night?'':'selected'}>No</option></select></label></div>`;
+      if(sel==='eval')extra=`<table><tr><th>Evaluator</th><th class="n">Template tokens</th><th>Billed as</th></tr><tr><td>Groundedness</td><td class="n">1,590</td><td>judge tokens</td></tr><tr><td>Relevance</td><td class="n">2,080</td><td>judge tokens</td></tr><tr><td>Coherence</td><td class="n">1,620</td><td>judge tokens</td></tr><tr><td>Task adherence</td><td class="n">1,860</td><td>judge tokens</td></tr><tr><td>Tool-call accuracy</td><td class="n">2,690</td><td>judge tokens</td></tr><tr><td>Safety (4 evaluators)</td><td class="n">–</td><td>AI evaluations meter <span class="pill warn">unverified</span></td></tr></table>`;
+      ins.innerHTML=`<div><h2>${a.n}</h2><div class="sub">${a.d}</div></div><div class="big">${cad(vals.reduce((x,y)=>x+y,0))}<span class="sub"> over 6 months</span></div>${extra}
+        <div class="chartbox" id="chAct" style="min-height:180px;flex:none;height:200px"></div><div class="formula">${a.f}</div>`;
+      requestAnimationFrame(()=>stacked($('chAct'),vals.map(v=>({v})),['v'],[DC[j]],[a.n],{aria:a.n+' by month',xl:i=>'Month '+(i+1),xt:i=>'Month '+(i+1)}));
+      document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{state.models[+b.dataset.m].on=!state.models[+b.dataset.m].on;render()});
+      [['f-cases','cases',10],['f-reps','reps',1]].forEach(([id,k,mn])=>{const e=$(id);if(e)e.onchange=()=>{state[k]=Math.max(mn,+e.value||mn);render()}});
+      const fn=$('f-night');if(fn)fn.onchange=()=>{state.night=+fn.value;render()};
+    }
+  }
+  if(v==='run'){
+    let h='',g='';WL.forEach(w=>{if(w.g!==g){g=w.g;h+=`<div class="gh">${g}</div>`}h+=`<button class="row" data-r="${w.id}" aria-selected="${state.runSel===w.id}"><span><div class="nm">${w.n}</div><div class="dr">${w.d}</div></span><span class="pill n">${w.u?'usage':'fixed'}</span><span class="v">${cad(wv(w))}</span></button>`});
+    h+=`<div class="gh">Operations</div><button class="row" data-r="maint" aria-selected="${state.runSel==='maint'}"><span><div class="nm">Maintenance</div><div class="dr">0.4 FTE developer</div></span><span class="pill n">fixed</span><span class="v">${cad(maintMonth())}</span></button>`;
+    $('runList').innerHTML=h;document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{state.runSel=b.dataset.r;render()});
+    const w=WL.find(x=>x.id===state.runSel),ins=$('runIns');
+    if(state.runSel==='stt'){
+      const stt=[['MAI-Transcribe-2','Azure Speech',0.14,'promo to Dec 31'],['gpt-4o-mini-transcribe','Foundry',0.23,''],['Speech batch, diarization included','Azure Speech',0.25,''],['gpt-transcribe','Foundry',0.37,''],['gpt-4o-transcribe','Foundry',0.45,'retires 2026-10-15'],['AI_TRANSCRIBE','Snowflake',0.49,''],['Whisper','Foundry',0.50,'retires 2026-12-15'],['Content Understanding audio','Foundry',0.64,''],['Speech real-time + diarization','Azure Speech',1.80,'']];
+      ins.innerHTML=`<div><h2>Meeting transcription</h2><div class="sub">1,800 audio hours per month at full adoption</div></div>
+       <div class="form"><label class="field">Meeting hours / month<input value="1,800" disabled></label><label class="field">Speakers<input value="Diarized" disabled></label><label class="field">Engine<select disabled><option>MAI-Transcribe-2</option></select></label></div>
+       <table><tr><th>Engine</th><th>Via</th><th class="n">CAD / hour</th><th class="n">CAD / month</th><th></th></tr>${stt.map(r=>`<tr ${r[0]==='MAI-Transcribe-2'?'style="background:var(--accent-soft)"':''}><td>${r[0]}</td><td>${r[1]}</td><td class="n">${cad(r[2],2)}</td><td class="n">${cad(r[2]*1800)}</td><td>${r[3]?`<span class="pill ${r[3].startsWith('retires')?'crit':'warn'}">${r[3]}</span>`:''}</td></tr>`).join('')}</table>
+       <div class="formula">hours × engine rate · after 2026-12-31 MAI-Transcribe-2 assumes 3.6× (list not published) → ${cad(750)} average per month</div>`;
+    } else if(state.runSel==='agent'){
+      ins.innerHTML=`<div><h2>Follow-up agent</h2><div class="sub">Single agent · gpt-5.4 · 9 tools · max 10 turns · 4,096 max tokens per call · 80% cache hit</div></div><div class="big">${cad(wv(w))}<span class="sub"> per month at ${state.p.toUpperCase()}</span></div>
+       <table><tr><th>Estimate</th><th class="n">Tokens / task</th><th class="n">CAD / task</th><th class="n">CAD / month</th></tr><tr><td>Typical (P50), 6 steps</td><td class="n">78,400</td><td class="n">0.31</td><td class="n">1,860</td></tr><tr><td>P90, 11 steps</td><td class="n">201,700</td><td class="n">0.74</td><td class="n">4,440</td></tr><tr><td>Worst under caps, 10 turns × full context</td><td class="n">1,040,000</td><td class="n">3.88</td><td class="n">23,280</td></tr></table>
+       <div class="formula">input at step k = prefix + (k−1) × (output + tool calls × tool result)\ncost = Σ steps (new × input price + cached × cached price) + output × output price</div>`;
+    } else if(state.runSel==='search'){
+      ins.innerHTML=`<div><h2>Azure AI Search S1</h2><div class="sub">Sized from 410,000 chunks × 3,072 dims</div></div><div class="big">${cad(681)}<span class="sub"> per month, fixed</span></div>
+       <table><tr><th>Check</th><th class="n">Needed</th><th class="n">S1 per partition</th></tr><tr><td>Vector index</td><td class="n">5.6 GB</td><td class="n">35 GB</td></tr><tr><td>Storage</td><td class="n">19 GB</td><td class="n">160 GB</td></tr><tr><td>Replicas for read SLA</td><td class="n">2</td><td class="n">–</td></tr></table>
+       <div class="formula">vector GB = chunks × dims × 4 bytes × (1 + HNSW 0.5%) × (1 + deletes 10%)\ncost = replicas × partitions × CAD 339.96</div>`;
+    } else if(w){
+      ins.innerHTML=`<div><h2>${w.n}</h2><div class="sub">${w.d}</div></div><div class="big">${cad(wv(w))}<span class="sub"> per month at full adoption</span></div><p class="note">${w.u?'Scales with adoption from month 7 to month 12.':'Fixed monthly from go-live.'}</p><div class="formula">Inputs, model choice and formula for this workload appear here.</div>`;
+    } else ins.innerHTML=`<div><h2>Maintenance</h2><div class="sub">0.4 FTE developer at CAD 95/h, or a share of build cost per year</div></div><div class="big">${cad(maintMonth())}<span class="sub"> per month</span></div>`;
+  }
+  if(v==='roi'){
+    $('v-dev').textContent=state.devCut+'%';$('v-maint').textContent=state.maintCut+'%';
+    $('tbBen').innerHTML=`<tr><td>Meeting notes and actions · 470 h saved</td><td class="n">${cad(470*62.5*state.k)}</td></tr><tr><td>Retire transcription licence</td><td class="n">${cad(4000*state.k)}</td></tr>`;
+    const ch=state.roiChart==='chart';$('chRoi').hidden=!ch;$('roiYears').hidden=ch;
+    if(ch)line($('chRoi'),S.cums,{aria:'Cumulative cash position'});
+    let yr='<tr><th>Year</th><th class="n">Benefit</th><th class="n">Cost</th><th class="n">Net</th></tr>';
+    for(let y=0;y<3;y++){const sl=S.ms.slice(y*12,y*12+12),b=sl.reduce((s,o)=>s+o.benefit,0),c=sl.reduce((s,o)=>s+costOf(o),0);yr+=`<tr><td>Year ${y+1}</td><td class="n">${cad(b)}</td><td class="n">${cad(c)}</td><td class="n">${cad(b-c)}</td></tr>`}
+    $('tbYears').innerHTML=yr+`<tr class="total"><td>3 years</td><td class="n">${cad(S.ben)}</td><td class="n">${cad(S.cost)}</td><td class="n">${cad(S.ben-S.cost)}</td></tr>`;
+  }
+  if(v==='tokens')renderTokens();
+}
+function renderTokens(){
+  const m=state.tmode;
+  document.querySelectorAll('#tMode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===m));
+  if(m==='docs'){
+    $('tIn').innerHTML=`<div class="form"><label class="field">Pages<input id="t-pages" type="number" value="${state.pages}" min="1"></label><label class="field">Page type<select disabled><option>Dense PDF (700 words)</option></select></label><label class="field">Language<select disabled><option>English</option></select></label><label class="field">Task<select disabled><option>Read + summarize</option></select></label></div>`;
+    $('t-pages').oninput=e=>{state.pages=Math.max(1,+e.target.value||1);renderTokens();const el=$('t-pages');el.focus();el.setSelectionRange?.(99,99)};
+    $('tTitle').textContent=`Read and summarize ${fmt(state.pages)} pages`;$('tSub').textContent='Every route on Azure and Snowflake, cheapest first';
+    const R=[['Document Intelligence Read → gpt-5.4-mini','Azure',650,0.30],['PDF straight to gpt-5.4','Azure',1400,0.53],['PDF straight to Claude Sonnet 5.5','Azure',3200,0.92],['Document Intelligence Layout → gpt-5.4-mini','Azure',760,1.48],['AI_PARSE_DOCUMENT → gpt-5.4 + warehouse','Snowflake',760,1.79]],p=state.pages/100;
+    $('tOut').innerHTML='<table><tr><th>Route</th><th>Via</th><th class="n">Tokens / page</th><th class="n">CAD</th><th style="width:30%"></th></tr>'+R.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="n">${fmt(r[2])}</td><td class="n">${cad(r[3]*p,2)}</td><td><div class="bar" style="width:${r[3]/1.79*100}%;margin-top:6px"></div></td></tr>`).join('')+'</table><p class="note">Claude 4.7+ counts about 35% more tokens than GPT for the same text and also bills each page as an image.</p>';
+  } else if(m==='audio'){
+    $('tIn').innerHTML=`<div class="form"><label class="field">Audio hours<input id="t-h" type="number" value="${state.hours}" min="0.1" step="0.5"></label><label class="field">Speakers<select disabled><option>Diarized</option></select></label></div>`;
+    $('t-h').oninput=e=>{state.hours=Math.max(0.1,+e.target.value||1);renderTokens();$('t-h').focus()};
+    $('tTitle').textContent=`Transcribe ${fmt(state.hours,1)} hour${state.hours===1?'':'s'} of meeting audio`;$('tSub').textContent='About 8,400 words, or 11,000 transcript tokens per hour';
+    const R=[['MAI-Transcribe-2','Azure',0.14],['gpt-4o-mini-transcribe','Azure',0.23],['Speech batch','Azure',0.25],['AI_TRANSCRIBE','Snowflake',0.49],['Whisper','Azure',0.50],['Content Understanding audio','Azure',0.64],['Speech real-time + diarization','Azure',1.80]];
+    $('tOut').innerHTML='<table><tr><th>Engine</th><th>Via</th><th class="n">CAD</th><th style="width:35%"></th></tr>'+R.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="n">${cad(r[2]*state.hours,2)}</td><td><div class="bar" style="width:${r[2]/1.8*100}%;margin-top:6px"></div></td></tr>`).join('')+'</table>';
+  } else if(m==='text'){
+    $('tIn').innerHTML=`<textarea id="t-text">Please summarise the attached supplier agreement, list renewal dates and termination clauses, and flag indemnity terms that differ from our standard template.</textarea>`;
+    const draw=()=>{const c=$('t-text').value.length,b=Math.max(1,Math.round(c/4.6));const F=[['GPT-5.x on Foundry (o200k)',1,3.47],['Claude 4.6 and earlier',1.10,4.16],['Claude 4.7+ (Opus, Sonnet 5.5)',1.35,2.77],['Snowflake Cortex',1,3.83]];
+      $('tOut').innerHTML='<table><tr><th>Tokenizer</th><th class="n">×</th><th class="n">Tokens</th><th class="n">CAD per 1M calls</th></tr>'+F.map(f=>`<tr><td>${f[0]}</td><td class="n">${f[1].toFixed(2)}</td><td class="n">${fmt(Math.round(b*f[1]))}</td><td class="n">${cad(b*f[1]*f[2])}</td></tr>`).join('')+`</table><p class="note">${fmt(c)} characters. Estimate; the app counts o200k exactly.</p>`};
+    $('tTitle').textContent='Count tokens';$('tSub').textContent='Per tokenizer family, input only';$('t-text').oninput=draw;draw();
+  } else {
+    $('tIn').innerHTML=`<div class="form"><label class="field">Model<select disabled><option>gpt-5.4</option></select></label><label class="field">Steps<input value="6" disabled></label><label class="field">Tools<input value="9" disabled></label><label class="field">Max turns<input value="10" disabled></label></div>`;
+    $('tTitle').textContent='One agent run';$('tSub').textContent='Expected, P90 and the worst case your caps allow';
+    $('tOut').innerHTML='<table><tr><th>Estimate</th><th class="n">Tokens</th><th class="n">CAD</th></tr><tr><td>Typical (P50)</td><td class="n">78,400</td><td class="n">$0.31</td></tr><tr><td>P90</td><td class="n">201,700</td><td class="n">$0.74</td></tr><tr><td>Worst under caps</td><td class="n">1,040,000</td><td class="n">$3.88</td></tr></table>';
+  }
+}
+/* ---------- overview: story, lifecycle canvas, levers ---------- */
+function renderStory(){
+  const sel=(id,opts,val)=>`<select class="tk" id="${id}">${opts.map(([v,l])=>`<option value="${v}" ${v==val?'selected':''}>${l}</option>`).join('')}</select>`;
+  $('story').innerHTML=`<input class="tk" id="st-devs" type="number" min="1" max="20" value="${state.devs}"> developers build for <input class="tk" id="st-b" type="number" min="3" max="12" value="${B}"> months, testing <b class="mono">${state.models.filter(m=>m.on).length}</b> candidate models.
+   Then <input class="tk" id="st-users" value="800" disabled> users adopt it over 6 months. ROI is measured on ${sel('st-basis',[['run','running cost only'],['runm','running + maintenance'],['full','the full lifecycle']],state.basis)}.`;
+  $('st-devs').onchange=e=>{state.devs=Math.max(1,+e.target.value||1);render()};
+  $('st-b').onchange=e=>{B=Math.min(12,Math.max(3,+e.target.value||6));route()};
+  $('st-basis').onchange=e=>{state.basis=e.target.value;document.querySelectorAll('#basis input').forEach(i=>i.checked=i.value===state.basis);render()};
+}
+function renderCanvas(S,dl,cut){
+  const el=$('canvas'),{W,H:Ht}=size(el);
+  const lanes=[
+    ['Build labour','--s2',S.ms.map(o=>o.labour)],
+    ['Model bake-off','--s2',S.ms.map((o,i)=>i<B?dl.bake[i]*cut:0)],
+    ['Harness iterations','--s2',S.ms.map((o,i)=>i<B?dl.iter[i]*cut:0)],
+    ['Regression, eval & red team','--s2',S.ms.map((o,i)=>i<B?(dl.night[i]+dl.eval[i]+dl.red[i])*cut:0)],
+    ['Tools & dev environment','--s2',S.ms.map((o,i)=>i<B?(dl.tools[i]+dl.env[i])*cut:0)],
+    ['Production AI usage','--s3',S.ms.map(o=>o.runai)],
+    ['Platform & infrastructure','--s3',S.ms.map(o=>o.infra)],
+    ['Maintenance','--s3',S.ms.map(o=>o.maint)],
+    ['Benefit','--accent',S.ms.map(o=>o.benefit)]];
+  const L=178,R=86,T=22,cumH=92,laneH=Math.max(26,Math.min(40,(Ht-T-cumH-34)/lanes.length)),bw=(W-L-R)/H,x=m=>L+m*bw;
+  let s=`<svg viewBox="0 0 ${W} ${Ht}" role="img" aria-label="Lifecycle cost lanes by month">`;
+  s+=`<rect x="${L}" y="0" width="${B*bw}" height="${T+lanes.length*laneH}" fill="${css('--s2')}" opacity=".06"/><text x="${L+4}" y="14">Build</text><text x="${x(B)+42}" y="14">Production</text>`;
+  [0,6,12,18,24,30,35].forEach(m=>{s+=`<text x="${x(m)+bw/2}" y="${T+lanes.length*laneH+14}" text-anchor="middle">M${m+1}</text>`});
+  lanes.forEach(([n,c,vals],li)=>{const y0=T+li*laneH,mx=Math.max(...vals,1),tot=vals.reduce((a,b)=>a+b,0);
+    s+=`<line x1="${L}" x2="${W-R}" y1="${y0+laneH}" y2="${y0+laneH}" stroke="${css('--line')}"/><text class="lane-l" x="0" y="${y0+laneH/2+4}">${n}</text><text class="lane-v" x="${W}" y="${y0+laneH/2+4}" text-anchor="end">${tot>0?kfmt(tot):'–'}</text>`;
+    vals.forEach((v,m)=>{if(v<=0)return;const h=Math.max(2,(laneH-6)*v/mx);s+=`<rect x="${x(m)+1}" y="${y0+laneH-3-h}" width="${Math.max(1,bw-2)}" height="${h}" rx="1.5" fill="${css(c)}" opacity="${li===lanes.length-1?1:.85}"><title>${n} · month ${m+1}: ${cad(v)}</title></rect>`})});
+  // cumulative ribbon
+  const cy0=T+lanes.length*laneH+24,cH=cumH-10,vals=S.cums,lo=Math.min(0,...vals),hi=Math.max(0,...vals,1),y=v=>cy0+cH*(hi-v)/(hi-lo);
+  s+=`<text class="lane-l" x="0" y="${cy0+cH/2}">Cumulative net</text><text class="lane-v" x="${W}" y="${cy0+cH/2}" text-anchor="end">${kfmt(vals[H-1])}</text><line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" stroke="${css('--muted')}"/>`;
+  let pth='';vals.forEach((v,m)=>{pth+=(pth?'L':'M')+(x(m)+bw/2)+','+y(v)});s+=`<path d="${pth}" fill="none" stroke="${css('--accent')}" stroke-width="2"/>`;
+  if(S.pb)s+=`<circle cx="${x(S.pb-1)+bw/2}" cy="${y(vals[S.pb-1])}" r="5" fill="${css('--accent')}" stroke="${css('--surface')}" stroke-width="2"/><text x="${x(S.pb-1)+bw/2}" y="${y(vals[S.pb-1])-9}" text-anchor="middle" style="fill:${css('--ink')};font-weight:600">Payback M${S.pb}</text>`;
+  // go-live handle
+  const gx=x(B);s+=`<g class="handle" id="golive" tabindex="0" role="slider" aria-label="Go-live month" aria-valuemin="3" aria-valuemax="12" aria-valuenow="${B+1}"><rect x="${gx-10}" y="0" width="20" height="${Ht}" fill="transparent"/><line x1="${gx}" x2="${gx}" y1="18" y2="${cy0+cH}" stroke="${css('--ink')}" stroke-width="2" stroke-dasharray="4 3"/><rect x="${gx-34}" y="0" width="68" height="18" rx="9" fill="${css('--ink')}"/><text x="${gx}" y="13" text-anchor="middle" style="fill:${css('--bg')};font-weight:600">Go-live M${B+1}</text></g>`;
+  el.innerHTML=s+'</svg>';
+  const g=$('golive'),svg=el.querySelector('svg');
+  const setB=nb=>{nb=Math.min(12,Math.max(3,nb));if(nb!==B){B=nb;render();document.querySelectorAll('[data-nav="build"] small').forEach(e=>e.textContent='M1–'+B);document.querySelectorAll('[data-nav="run"] small').forEach(e=>e.textContent='M'+(B+1)+'–36')}};
+  g.onpointerdown=e=>{e.preventDefault();const mv=ev=>{const r=svg.getBoundingClientRect();setB(Math.round(((ev.clientX-r.left)*W/r.width-L)/bw))};const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);$('golive')?.focus()};addEventListener('pointermove',mv);addEventListener('pointerup',up)};
+  g.onkeydown=e=>{if(e.key==='ArrowLeft')setB(B-1);if(e.key==='ArrowRight')setB(B+1)};
+}
+const LEVERS=[
+  ['narrow','Narrow the bake-off after month 1','Keep only gpt-5.4 and Claude Sonnet 5.5 from month 2','build'],
+  ['batchNight','Send nightly regression through Batch','Overnight runs tolerate 24-hour turnaround; Batch is 50% off','build'],
+  ['devCache','Stabilise the prompt prefix in dev','Raises dev cache hits from 30% to 60% on harness iterations','build'],
+  ['evalSample','Score 40% of runs instead of all','Judge a stratified sample; keep full scoring for release candidates','build'],
+  ['router','Route simple chat turns to gpt-5.4-mini','Model router sends about 60% of turns to the mini model','run']];
+function totalCost(){return summary().cost}
+function renderSide(){
+  if(state.side==='alerts'){$('side').innerHTML=`
+    <div class="alert"><span class="pill crit">Retires</span><div><b>gpt-4o-transcribe, 2026-10-15</b>. Still used in Build month 1.</div></div>
+    <div class="alert"><span class="pill warn">Promo</span><div><b>MAI-Transcribe-2</b> promo ends 2026-12-31; later months assume 3.6×.</div></div>
+    <div class="alert"><span class="pill warn">Promo</span><div><b>GPT-5.6 Sol</b> promo ends 2026-11-30; bake-off months 3+ at list.</div></div>
+    <div class="alert"><span class="pill n">Data</span><div><b>Claude on Snowflake</b> needs ANY_REGION routing; data leaves Azure.</div></div>
+    <div class="alert"><span class="pill n">Prices</span><div><b>4 single-source prices.</b> <a href="#prices">Review sources</a></div></div>`;return}
+  const base=totalCost();let applied=0;
+  const rows=LEVERS.map(([k,t,w,ph])=>{const was=LV[k];LV[k]=!was;const alt=totalCost();LV[k]=was;const save=was?alt-base:base-alt;if(was)applied+=save;
+    return `<label class="lever"><input type="checkbox" data-lv="${k}" ${was?'checked':''}><span><b>${t}</b><div class="wh">${w}</div><span class="pill n" style="margin-top:4px">${ph==='build'?'Build':'Production'}</span></span><span class="sv">−${cad(save)}</span></label>`}).join('');
+  $('side').innerHTML=`<p class="note" style="margin:0 0 4px">Savings over 36 months on the selected cost basis. ${applied>0?`<b style="color:var(--good)">${cad(applied)} applied.</b>`:'Tick a lever to apply it.'}</p>`+rows;
+  document.querySelectorAll('[data-lv]').forEach(c=>c.onchange=()=>{LV[c.dataset.lv]=c.checked;render()});
 }
 /* ---------- wiring ---------- */
-const titles={overview:'Overview',build:'Build · AI Dev Lab',run:'Run · Production',roi:'Value & ROI',tokens:'Token calculator',prices:'Prices & sources'};
-function route(){const v=(location.hash||'#overview').slice(1);const view=titles[v]?v:'overview';
-  document.querySelectorAll('section[data-view]').forEach(s=>s.hidden=s.dataset.view!==view);
-  document.querySelectorAll('[data-nav]').forEach(a=>a.toggleAttribute('aria-current',a.dataset.nav===view)||a.dataset.nav===view&&a.setAttribute('aria-current','page'));
-  document.querySelectorAll('[data-nav]').forEach(a=>{if(a.dataset.nav===view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
-  document.getElementById('title').textContent=titles[view];
-  document.getElementById('crumb').textContent=view==='tokens'?'Quick tools':view==='prices'?'Data':'Projects / Meeting Intelligence Agent';
-  document.querySelector('.life').hidden=(view==='tokens'||view==='prices');render();}
+const T={overview:'Overview',build:'Build',run:'Run',roi:'Value & ROI',tokens:'Token calculator',prices:'Prices & sources'};
+function route(){const v=(location.hash||'#overview').slice(1);state.view=T[v]?v:'overview';
+  document.querySelectorAll('section[data-view]').forEach(s=>s.hidden=s.dataset.view!==state.view);
+  document.querySelectorAll('[data-nav]').forEach(a=>{if(a.dataset.nav===state.view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  $('title').textContent=T[state.view];const proj=!['tokens','prices'].includes(state.view);
+  $('crumb').textContent=proj?'Meeting Intelligence Agent':state.view==='tokens'?'Quick tools':'Data';$('kbar').hidden=!proj;render();}
 addEventListener('hashchange',route);
-const on=(id,ev,fn)=>document.getElementById(id).addEventListener(ev,fn);
-on('f-devs','input',e=>{state.devs=Math.max(1,+e.target.value||1);render()});
-on('f-night','change',e=>{state.night=+e.target.value;render()});
-on('f-cases','input',e=>{state.cases=Math.max(10,+e.target.value||10);render()});
-on('f-reps','input',e=>{state.reps=Math.max(1,+e.target.value||1);render()});
-on('s-dev','input',e=>{state.devCut=+e.target.value;render()});
-on('s-maint','input',e=>{state.maintCut=+e.target.value;render()});
-on('t-pages','input',e=>{state.pages=Math.max(1,+e.target.value||1);render()});
-on('t-text','input',render);
-document.querySelectorAll('#basis button').forEach(b=>b.onclick=()=>{state.basis=b.dataset.b;render()});
+$('sideSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{state.side=b.dataset.s;$('sideSeg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+$('roiSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{state.roiChart=b.dataset.c;$('roiSeg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+document.querySelectorAll('#basis input').forEach(i=>i.onchange=()=>{state.basis=i.value;render()});
+$('s-dev').oninput=e=>{state.devCut=+e.target.value;render()};$('s-maint').oninput=e=>{state.maintCut=+e.target.value;render()};
 document.querySelectorAll('#preset button').forEach(b=>b.onclick=()=>{state.k=+b.dataset.k;document.querySelectorAll('#preset button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
 document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{state.p=b.dataset.p;document.querySelectorAll('[data-p]').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+document.querySelectorAll('#tMode button').forEach(b=>b.onclick=()=>{state.tmode=b.dataset.t;renderTokens()});
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(render,120)});
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',render);
 new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 route();

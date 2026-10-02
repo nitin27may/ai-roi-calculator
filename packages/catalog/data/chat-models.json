@@ -1,0 +1,1502 @@
+[
+  {
+    "id": "gpt-5.6-sol",
+    "label": "GPT-5.6 sol",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 1050000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 5.5442,
+        "cachedInput": 0.5544,
+        "output": 27.721
+      },
+      "dataZone": {
+        "input": 6.0986,
+        "cachedInput": 0.6098,
+        "output": 30.4931
+      },
+      "globalList": {
+        "input": 6.93,
+        "cachedInput": 0.693,
+        "output": 41.58
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2028-01-11"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "5.6 sol ShortCo Inp Std Gl 1M Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified",
+    "longContext": {
+      "threshold": 272000,
+      "prices": {
+        "input": 11.0884,
+        "cachedInput": 1.1088,
+        "output": 41.5815
+      }
+    },
+    "promo": {
+      "until": "2026-11-30",
+      "note": "Foundry promo USD 4/20; list USD 5/30"
+    }
+  },
+  {
+    "id": "gpt-5.6-terra",
+    "label": "GPT-5.6 terra",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 1050000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 2.7721,
+        "cachedInput": 0.2772,
+        "output": 16.6326
+      },
+      "dataZone": {
+        "input": 3.0493,
+        "cachedInput": 0.3049,
+        "output": 18.2959
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2028-01-11"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "5.6 terra ShortCo Inp Std Gl 1M Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified",
+    "longContext": {
+      "threshold": 272000,
+      "prices": {
+        "input": 5.5442,
+        "cachedInput": 0.5544,
+        "output": 24.9489
+      }
+    }
+  },
+  {
+    "id": "gpt-5.6-luna",
+    "label": "GPT-5.6 luna",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 1050000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 0.2772,
+        "cachedInput": 0.0277,
+        "output": 1.6633
+      },
+      "dataZone": {
+        "input": 0.3049,
+        "cachedInput": 0.0305,
+        "output": 1.8296
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2028-01-11"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "5.6 luna ShortCo Inp Std Gl 1M Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified",
+    "longContext": {
+      "threshold": 272000,
+      "prices": {
+        "input": 0.5544,
+        "cachedInput": 0.0554,
+        "output": 2.495
+      }
+    }
+  },
+  {
+    "id": "gpt-5.5",
+    "label": "GPT-5.5",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 1050000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 6.9303,
+        "cachedInput": 0.693,
+        "output": 41.5815
+      },
+      "dataZone": {
+        "input": 7.6233,
+        "cachedInput": 0.7623,
+        "output": 45.7397
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-10-26"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "5.5 ShortCo inp Gl 1M Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified",
+    "longContext": {
+      "threshold": 272000,
+      "prices": {
+        "input": 13.8606,
+        "cachedInput": 1.386,
+        "output": 62.3722
+      }
+    }
+  },
+  {
+    "id": "gpt-5.4",
+    "label": "GPT-5.4",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 1050000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 3.4651,
+        "cachedInput": 0.3465,
+        "output": 20.7908
+      },
+      "dataZone": {
+        "input": 3.8116,
+        "cachedInput": 0.3811,
+        "output": 22.8699
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-09-02"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "5.4 inp Gl 1M Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified",
+    "longContext": {
+      "threshold": 272000,
+      "prices": {
+        "input": 6.9302,
+        "cachedInput": 0.693,
+        "output": 31.1862
+      }
+    }
+  },
+  {
+    "id": "gpt-5.4-mini",
+    "label": "GPT-5.4-mini",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 400000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 1.0395,
+        "cachedInput": 0.104,
+        "output": 6.2372
+      },
+      "dataZone": {
+        "input": 1.1435,
+        "cachedInput": 0.1144,
+        "output": 6.8609
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-09-21"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "5.4 mini Inp Gl 1M Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-5.4-nano",
+    "label": "GPT-5.4-nano",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 400000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 0.2772,
+        "cachedInput": 0.0277,
+        "output": 1.7326
+      },
+      "dataZone": {
+        "input": 0.3049,
+        "cachedInput": 0.0305,
+        "output": 1.9059
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-09-21"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "5.4 nano Inp Gl 1M Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-5.2",
+    "label": "GPT-5.2",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 400000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 2.4256,
+        "cachedInput": 0.2426,
+        "output": 19.4047
+      },
+      "dataZone": {
+        "input": 2.6682,
+        "cachedInput": 0.2669,
+        "output": 21.3452
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-06-08"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "GPT 5.2 inp Gl 1M Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-5.1",
+    "label": "GPT-5.1",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 400000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 1.7326,
+        "cachedInput": 0.1733,
+        "output": 13.8605
+      },
+      "dataZone": {
+        "input": 1.9059,
+        "cachedInput": 0.1906,
+        "output": 15.2466
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-05-15"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "GPT 5.1 inp Gl 1M Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-5",
+    "label": "GPT-5",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 400000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 1.7326,
+        "cachedInput": 0.1733,
+        "output": 13.8605
+      },
+      "dataZone": {
+        "input": 1.9059,
+        "cachedInput": 0.1906,
+        "output": 15.2466
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-02-09"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "GPT 5 Inpt Glbl 1M Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-5-mini",
+    "label": "GPT-5-mini",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 400000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 0.3465,
+        "cachedInput": 0.0347,
+        "output": 2.7721
+      },
+      "dataZone": {
+        "input": 0.3811,
+        "cachedInput": 0.0382,
+        "output": 3.0493
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-02-09"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "GPT 5 Mini Inpt Glbl 1M Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-5-nano",
+    "label": "GPT-5-nano",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 400000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 0.0693,
+        "cachedInput": 0.0069,
+        "output": 0.5544
+      },
+      "dataZone": {
+        "input": 0.0762,
+        "cachedInput": 0.0076,
+        "output": 0.6098
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-02-09"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "GPT 5 Nano Inpt Glbl 1M Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-4.1",
+    "label": "GPT-4.1",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 1047576,
+    "maxOutput": 32768,
+    "prices": {
+      "global": {
+        "input": 2.8,
+        "cachedInput": 0.7,
+        "output": 11.1
+      },
+      "dataZone": {
+        "input": 3.08,
+        "cachedInput": 0.77,
+        "output": 12.21
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "legacy",
+      "retiresOn": "2027-04-14"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "gpt 4.1 Inp glbl Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-4.1-mini",
+    "label": "GPT-4.1-mini",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 1047576,
+    "maxOutput": 32768,
+    "prices": {
+      "global": {
+        "input": 0.6,
+        "cachedInput": 0.1,
+        "output": 2.2
+      },
+      "dataZone": {
+        "input": 0.66,
+        "cachedInput": 0.11,
+        "output": 2.42
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "legacy",
+      "retiresOn": "2027-04-14"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "gpt 4.1 mini Inp glbl Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-4.1-nano",
+    "label": "GPT-4.1-nano",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 1047576,
+    "maxOutput": 32768,
+    "prices": {
+      "global": {
+        "input": 0.1,
+        "cachedInput": 0,
+        "output": 0.6
+      },
+      "dataZone": {
+        "input": 0.11,
+        "cachedInput": 0.0,
+        "output": 0.66
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "legacy",
+      "retiresOn": "2027-04-14"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "gpt 4.1 nano Inp glbl Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-4o",
+    "label": "GPT-4o (2024-11-20)",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 128000,
+    "maxOutput": 16384,
+    "prices": {
+      "global": {
+        "input": 3.5,
+        "cachedInput": 1.7,
+        "output": 13.9
+      },
+      "dataZone": {
+        "input": 3.85,
+        "cachedInput": 1.87,
+        "output": 15.29
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "legacy",
+      "retiresOn": "2027-04-14"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "gpt 4o 1120 Inp glbl Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-4o-mini",
+    "label": "GPT-4o-mini",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 128000,
+    "maxOutput": 16384,
+    "prices": {
+      "global": {
+        "input": 0.2,
+        "cachedInput": 0.1,
+        "output": 0.8
+      },
+      "dataZone": {
+        "input": 0.22,
+        "cachedInput": 0.11,
+        "output": 0.88
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "deprecated",
+      "retiresOn": "2027-04-14"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "gpt-4o-mini-0718-Inp-glbl Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "o3",
+    "label": "o3",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 200000,
+    "maxOutput": 100000,
+    "prices": {
+      "global": {
+        "input": 2.8,
+        "cachedInput": 0.7,
+        "output": 11.1
+      },
+      "dataZone": {
+        "input": 3.08,
+        "cachedInput": 0.77,
+        "output": 12.21
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2026-10-21"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "o3 0416 Inp glbl Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "o4-mini",
+    "label": "o4-mini",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 200000,
+    "maxOutput": 100000,
+    "prices": {
+      "global": {
+        "input": 1.5,
+        "cachedInput": 0.4,
+        "output": 6.1
+      },
+      "dataZone": {
+        "input": 1.65,
+        "cachedInput": 0.44,
+        "output": 6.71
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "deprecated",
+      "retiresOn": "2026-10-16"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "o4-mini 0416 Inp glbl Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "o3-mini",
+    "label": "o3-mini",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 200000,
+    "maxOutput": 100000,
+    "prices": {
+      "global": {
+        "input": 1.5,
+        "cachedInput": 0.8,
+        "output": 6.1
+      },
+      "dataZone": {
+        "input": 1.65,
+        "cachedInput": 0.88,
+        "output": 6.71
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "deprecated",
+      "retiresOn": "2026-10-01"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "o3 mini 0131 input glbl Tokens",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-6.1-sol",
+    "label": "GPT-6.1 Sol",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 1050000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 2.772,
+        "cachedInput": 0.1386,
+        "output": 13.86,
+        "cacheWrite": 3.465
+      },
+      "dataZone": {
+        "input": 3.0492,
+        "cachedInput": 0.1525,
+        "output": 15.246,
+        "cacheWrite": 3.8115
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "gpt-6-astra",
+    "label": "GPT-6 Astra",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 1050000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 13.86,
+        "cachedInput": 1.386,
+        "output": 69.3,
+        "cacheWrite": 17.325
+      },
+      "dataZone": {
+        "input": 15.246,
+        "cachedInput": 1.5246,
+        "output": 76.23,
+        "cacheWrite": 19.0575
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "gpt-6-sol",
+    "label": "GPT-6 Sol",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 1050000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 2.772,
+        "cachedInput": 0.2772,
+        "output": 13.86,
+        "cacheWrite": 3.465
+      },
+      "dataZone": {
+        "input": 3.0492,
+        "cachedInput": 0.3049,
+        "output": 15.246,
+        "cacheWrite": 3.8115
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "gpt-6-luna",
+    "label": "GPT-6 Luna",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 1050000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 0.1386,
+        "cachedInput": 0.0139,
+        "output": 0.693,
+        "cacheWrite": 0.1732
+      },
+      "dataZone": {
+        "input": 0.1525,
+        "cachedInput": 0.0153,
+        "output": 0.7623,
+        "cacheWrite": 0.1905
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "claude-opus-5-5",
+    "label": "Claude Opus 5.5 (Foundry)",
+    "platform": "azure",
+    "vendor": "anthropic",
+    "tokenizer": "claude-47",
+    "contextWindow": 1000000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 5.544,
+        "cachedInput": 0.2772,
+        "output": 27.72,
+        "cacheWrite": 6.93
+      },
+      "dataZone": {
+        "input": 6.0984,
+        "cachedInput": 0.3049,
+        "output": 30.492,
+        "cacheWrite": 7.623
+      }
+    },
+    "toolUseOverheadTokens": 286,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Foundry bills Claude at Anthropic list price (CCU); USD \u00d7 1.386",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "claude-sonnet-5-5",
+    "label": "Claude Sonnet 5.5 (Foundry)",
+    "platform": "azure",
+    "vendor": "anthropic",
+    "tokenizer": "claude-47",
+    "contextWindow": 1000000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 2.772,
+        "cachedInput": 0.2772,
+        "output": 13.86,
+        "cacheWrite": 3.465
+      },
+      "dataZone": {
+        "input": 3.0492,
+        "cachedInput": 0.3049,
+        "output": 15.246,
+        "cacheWrite": 3.8115
+      }
+    },
+    "toolUseOverheadTokens": 286,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Foundry bills Claude at Anthropic list price (CCU); USD \u00d7 1.386",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "claude-opus-4-8",
+    "label": "Claude Opus 4.8 (Foundry)",
+    "platform": "azure",
+    "vendor": "anthropic",
+    "tokenizer": "claude-47",
+    "contextWindow": 1000000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 6.93,
+        "cachedInput": 0.693,
+        "output": 34.65,
+        "cacheWrite": 8.6625
+      },
+      "dataZone": {
+        "input": 7.623,
+        "cachedInput": 0.7623,
+        "output": 38.115,
+        "cacheWrite": 9.5288
+      }
+    },
+    "toolUseOverheadTokens": 290,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "claude-sonnet-4-6",
+    "label": "Claude Sonnet 4.6 (Foundry)",
+    "platform": "azure",
+    "vendor": "anthropic",
+    "tokenizer": "claude-legacy",
+    "contextWindow": 1000000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 4.158,
+        "cachedInput": 0.4158,
+        "output": 20.79,
+        "cacheWrite": 5.1975
+      },
+      "dataZone": {
+        "input": 4.5738,
+        "cachedInput": 0.4574,
+        "output": 22.869,
+        "cacheWrite": 5.7172
+      }
+    },
+    "toolUseOverheadTokens": 497,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "legacy",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "claude-haiku-4-5",
+    "label": "Claude Haiku 4.5 (Foundry)",
+    "platform": "azure",
+    "vendor": "anthropic",
+    "tokenizer": "claude-legacy",
+    "contextWindow": 200000,
+    "maxOutput": 64000,
+    "prices": {
+      "global": {
+        "input": 1.386,
+        "cachedInput": 0.1386,
+        "output": 6.93,
+        "cacheWrite": 1.7325
+      },
+      "dataZone": {
+        "input": 1.5246,
+        "cachedInput": 0.1525,
+        "output": 7.623,
+        "cacheWrite": 1.9058
+      }
+    },
+    "toolUseOverheadTokens": 496,
+    "batchDiscount": 0.5,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "deepseek-v4-pro",
+    "label": "DeepSeek V4 Pro",
+    "platform": "azure",
+    "vendor": "deepseek",
+    "tokenizer": "other",
+    "contextWindow": 1000000,
+    "maxOutput": 64000,
+    "prices": {
+      "global": {
+        "input": 2.4116,
+        "cachedInput": 0.201,
+        "output": 4.8233
+      },
+      "dataZone": {
+        "input": 2.6528,
+        "cachedInput": 0.2211,
+        "output": 5.3056
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://learn.microsoft.com/azure/ai-foundry/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "grok-4.3",
+    "label": "Grok 4.3",
+    "platform": "azure",
+    "vendor": "xai",
+    "tokenizer": "other",
+    "contextWindow": 256000,
+    "maxOutput": 64000,
+    "prices": {
+      "global": {
+        "input": 1.7325,
+        "cachedInput": 0.2772,
+        "output": 3.465
+      },
+      "dataZone": {
+        "input": 1.9058,
+        "cachedInput": 0.3049,
+        "output": 3.8115
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://learn.microsoft.com/azure/ai-foundry/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "llama-4-maverick",
+    "label": "Llama 4 Maverick",
+    "platform": "azure",
+    "vendor": "meta",
+    "tokenizer": "other",
+    "contextWindow": 128000,
+    "maxOutput": 8192,
+    "prices": {
+      "global": {
+        "input": 0.3465,
+        "cachedInput": 0.3465,
+        "output": 1.386
+      },
+      "dataZone": {
+        "input": 0.3811,
+        "cachedInput": 0.3811,
+        "output": 1.5246
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://learn.microsoft.com/azure/ai-foundry/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "mistral-large-3",
+    "label": "Mistral Large 3",
+    "platform": "azure",
+    "vendor": "mistral",
+    "tokenizer": "other",
+    "contextWindow": 256000,
+    "maxOutput": 32000,
+    "prices": {
+      "global": {
+        "input": 0.693,
+        "cachedInput": 0.693,
+        "output": 2.079
+      },
+      "dataZone": {
+        "input": 0.7623,
+        "cachedInput": 0.7623,
+        "output": 2.2869
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "preview",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://learn.microsoft.com/azure/ai-foundry/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "mai-thinking-1",
+    "label": "MAI-Thinking-1",
+    "platform": "azure",
+    "vendor": "microsoft",
+    "tokenizer": "other",
+    "contextWindow": 256000,
+    "maxOutput": 32000,
+    "prices": {
+      "global": {
+        "input": 2.772,
+        "cachedInput": 0.2772,
+        "output": 11.088
+      },
+      "dataZone": {
+        "input": 3.0492,
+        "cachedInput": 0.3049,
+        "output": 12.1968
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "preview",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://learn.microsoft.com/azure/ai-foundry/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "sf:claude-sonnet-5-5",
+    "label": "Claude Sonnet 5.5 (Snowflake)",
+    "platform": "snowflake",
+    "vendor": "anthropic",
+    "tokenizer": "claude-47",
+    "contextWindow": 1000000,
+    "maxOutput": 128000,
+    "credits": {
+      "input": 1.1,
+      "output": 5.5
+    },
+    "snowflakeRouting": "any-region",
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "preview"
+    },
+    "source": {
+      "kind": "snowflake-consumption-table",
+      "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+      "note": "derived from list price pattern (list \u00f7 2 \u00d7 1.1)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "unverified"
+  },
+  {
+    "id": "sf:claude-opus-5-5",
+    "label": "Claude Opus 5.5 (Snowflake)",
+    "platform": "snowflake",
+    "vendor": "anthropic",
+    "tokenizer": "claude-47",
+    "contextWindow": 1000000,
+    "maxOutput": 128000,
+    "credits": {
+      "input": 2.2,
+      "output": 11.0
+    },
+    "snowflakeRouting": "any-region",
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "preview"
+    },
+    "source": {
+      "kind": "snowflake-consumption-table",
+      "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+      "note": "derived from list price pattern (list \u00f7 2 \u00d7 1.1)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "unverified"
+  },
+  {
+    "id": "sf:claude-sonnet-4-5",
+    "label": "Claude Sonnet 4.5 (Snowflake)",
+    "platform": "snowflake",
+    "vendor": "anthropic",
+    "tokenizer": "claude-legacy",
+    "contextWindow": 200000,
+    "maxOutput": 64000,
+    "credits": {
+      "input": 1.65,
+      "output": 8.25
+    },
+    "snowflakeRouting": "any-region",
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga"
+    },
+    "source": {
+      "kind": "snowflake-consumption-table",
+      "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "sf:claude-haiku-4-5",
+    "label": "Claude Haiku 4.5 (Snowflake)",
+    "platform": "snowflake",
+    "vendor": "anthropic",
+    "tokenizer": "claude-legacy",
+    "contextWindow": 200000,
+    "maxOutput": 64000,
+    "credits": {
+      "input": 0.55,
+      "output": 2.75
+    },
+    "snowflakeRouting": "any-region",
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga"
+    },
+    "source": {
+      "kind": "snowflake-consumption-table",
+      "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "sf:openai-gpt-5.4",
+    "label": "GPT-5.4 (Snowflake)",
+    "platform": "snowflake",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 400000,
+    "maxOutput": 128000,
+    "credits": {
+      "input": 1.38,
+      "output": 8.25
+    },
+    "snowflakeRouting": "azure-cross-region",
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "preview"
+    },
+    "source": {
+      "kind": "snowflake-consumption-table",
+      "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "sf:openai-gpt-5",
+    "label": "GPT-5 (Snowflake)",
+    "platform": "snowflake",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 272000,
+    "maxOutput": 8192,
+    "credits": {
+      "input": 0.69,
+      "output": 5.5
+    },
+    "snowflakeRouting": "azure-cross-region",
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga"
+    },
+    "source": {
+      "kind": "snowflake-consumption-table",
+      "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "sf:openai-gpt-5-mini",
+    "label": "GPT-5 mini (Snowflake)",
+    "platform": "snowflake",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 272000,
+    "maxOutput": 8192,
+    "credits": {
+      "input": 0.14,
+      "output": 1.1
+    },
+    "snowflakeRouting": "azure-cross-region",
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga"
+    },
+    "source": {
+      "kind": "snowflake-consumption-table",
+      "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "sf:openai-gpt-4.1",
+    "label": "GPT-4.1 (Snowflake)",
+    "platform": "snowflake",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 128000,
+    "maxOutput": 32000,
+    "credits": {
+      "input": 1.0,
+      "output": 4.0
+    },
+    "snowflakeRouting": "native",
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "legacy"
+    },
+    "source": {
+      "kind": "snowflake-consumption-table",
+      "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "sf:llama3.3-70b",
+    "label": "Llama 3.3 70B (Snowflake)",
+    "platform": "snowflake",
+    "vendor": "meta",
+    "tokenizer": "other",
+    "contextWindow": 128000,
+    "maxOutput": 8192,
+    "credits": {
+      "input": 0.36,
+      "output": 0.36
+    },
+    "snowflakeRouting": "azure-cross-region",
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga"
+    },
+    "source": {
+      "kind": "snowflake-consumption-table",
+      "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "sf:llama3.1-8b",
+    "label": "Llama 3.1 8B (Snowflake)",
+    "platform": "snowflake",
+    "vendor": "meta",
+    "tokenizer": "other",
+    "contextWindow": 128000,
+    "maxOutput": 8192,
+    "credits": {
+      "input": 0.11,
+      "output": 0.11
+    },
+    "snowflakeRouting": "native",
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga"
+    },
+    "source": {
+      "kind": "snowflake-consumption-table",
+      "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "sf:mistral-large2",
+    "label": "Mistral Large 2 (Snowflake)",
+    "platform": "snowflake",
+    "vendor": "mistral",
+    "tokenizer": "other",
+    "contextWindow": 128000,
+    "maxOutput": 8192,
+    "credits": {
+      "input": 1.0,
+      "output": 3.0
+    },
+    "snowflakeRouting": "native",
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "legacy"
+    },
+    "source": {
+      "kind": "snowflake-consumption-table",
+      "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  }
+]

@@ -1,0 +1,251 @@
+[
+  {
+    "platform": "azure",
+    "diarization": "included",
+    "lifecycle": {
+      "status": "preview"
+    },
+    "confidence": "single-source",
+    "id": "mai-transcribe-2",
+    "label": "MAI-Transcribe-2",
+    "via": "Azure Speech (LLM Speech API)",
+    "mode": "batch",
+    "perAudioHour": 0.1386,
+    "afterPromoMultiplier": 3.6,
+    "promo": {
+      "until": "2026-12-31",
+      "note": "Introductory USD 0.10/h; list unpublished \u2014 assumes USD 0.36/h after"
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://microsoft.ai/news/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    }
+  },
+  {
+    "platform": "azure",
+    "diarization": "included",
+    "lifecycle": {
+      "status": "ga"
+    },
+    "confidence": "single-source",
+    "id": "mai-transcribe-1.5",
+    "label": "MAI-Transcribe-1.5",
+    "via": "Azure Speech (LLM Speech API)",
+    "mode": "batch",
+    "perAudioHour": 0.499,
+    "source": {
+      "kind": "derived",
+      "url": "https://microsoft.ai/news/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    }
+  },
+  {
+    "platform": "azure",
+    "diarization": "included",
+    "lifecycle": {
+      "status": "preview"
+    },
+    "confidence": "single-source",
+    "id": "mai-transcribe-2-streaming",
+    "label": "MAI-Transcribe-2 Streaming",
+    "via": "Azure Speech",
+    "mode": "streaming",
+    "perAudioHour": 0.7484,
+    "promo": {
+      "until": "2026-12-31"
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://microsoft.ai/news/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    }
+  },
+  {
+    "platform": "azure",
+    "diarization": "included",
+    "lifecycle": {
+      "status": "ga"
+    },
+    "confidence": "cross-checked",
+    "id": "speech-batch",
+    "label": "Speech to text, batch",
+    "via": "Azure Speech",
+    "mode": "batch",
+    "perAudioHour": 0.2495,
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/speech/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    }
+  },
+  {
+    "platform": "azure",
+    "diarization": "included",
+    "lifecycle": {
+      "status": "ga"
+    },
+    "confidence": "unverified",
+    "id": "speech-fast",
+    "label": "Speech to text, fast transcription",
+    "via": "Azure Speech",
+    "mode": "fast",
+    "perAudioHour": 0.9148,
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/speech/",
+      "note": "Sources conflict: USD 0.66 vs 0.36 per hour",
+      "retrievedAt": "2026-10-02"
+    }
+  },
+  {
+    "platform": "azure",
+    "diarization": "add-on",
+    "lifecycle": {
+      "status": "ga"
+    },
+    "confidence": "cross-checked",
+    "id": "speech-realtime",
+    "label": "Speech to text, real-time",
+    "via": "Azure Speech",
+    "mode": "realtime",
+    "perAudioHour": 1.386,
+    "diarizationAddOnPerHour": 0.4158,
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/speech/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    }
+  },
+  {
+    "platform": "azure",
+    "diarization": "none",
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-06-15"
+    },
+    "confidence": "verified",
+    "id": "gpt-4o-mini-transcribe",
+    "label": "gpt-4o-mini-transcribe",
+    "via": "Foundry",
+    "mode": "batch",
+    "tokens": {
+      "audioTokensPerSecond": 10,
+      "audioInputPer1M": 4.2,
+      "textOutputPer1M": 6.9
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "gpt-4o-mini-transcribe-aud-inp-glbl Tokens",
+      "retrievedAt": "2026-09-17"
+    }
+  },
+  {
+    "platform": "azure",
+    "diarization": "none",
+    "lifecycle": {
+      "status": "deprecated",
+      "retiresOn": "2026-10-15",
+      "replacement": "gpt-4o-mini-transcribe"
+    },
+    "confidence": "verified",
+    "id": "gpt-4o-transcribe",
+    "label": "gpt-4o-transcribe",
+    "via": "Foundry",
+    "mode": "batch",
+    "tokens": {
+      "audioTokensPerSecond": 10,
+      "audioInputPer1M": 8.3,
+      "textOutputPer1M": 13.9
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "gpt-4o-transcribe-aud-inp-glbl Tokens",
+      "retrievedAt": "2026-09-17"
+    }
+  },
+  {
+    "platform": "azure",
+    "diarization": "none",
+    "lifecycle": {
+      "status": "ga"
+    },
+    "confidence": "verified",
+    "id": "gpt-transcribe",
+    "label": "gpt-transcribe",
+    "via": "Foundry",
+    "mode": "batch",
+    "perAudioHour": 0.3742,
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "gpt-transcribe Gl Unit",
+      "retrievedAt": "2026-09-17"
+    }
+  },
+  {
+    "platform": "azure",
+    "diarization": "none",
+    "lifecycle": {
+      "status": "deprecated",
+      "retiresOn": "2026-12-15"
+    },
+    "confidence": "single-source",
+    "id": "whisper",
+    "label": "Whisper",
+    "via": "Foundry",
+    "mode": "batch",
+    "perAudioHour": 0.499,
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    }
+  },
+  {
+    "platform": "azure",
+    "diarization": "included",
+    "lifecycle": {
+      "status": "ga"
+    },
+    "confidence": "cross-checked",
+    "id": "cu-audio",
+    "label": "Content Understanding audio",
+    "via": "Foundry Tools",
+    "mode": "batch",
+    "perAudioHour": 0.6376,
+    "source": {
+      "kind": "derived",
+      "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
+      "note": "Extraction USD 0.36/h + contextualization USD 0.10/h; LLM tokens extra",
+      "retrievedAt": "2026-10-02"
+    }
+  },
+  {
+    "id": "sf:ai-transcribe",
+    "label": "AI_TRANSCRIBE",
+    "platform": "snowflake",
+    "via": "Snowflake Cortex",
+    "mode": "batch",
+    "creditsPerHour": 0.175,
+    "diarization": "included",
+    "lifecycle": {
+      "status": "ga"
+    },
+    "source": {
+      "kind": "snowflake-consumption-table",
+      "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+      "note": "Target USD 0.35 per audio hour from 2026-06-01; 50 tokens/s",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "currency": "CAD",
+  "asOf": "2026-10-02",
+  "region": "canadacentral",
+  "notes": [
+    "Azure prices: Azure Retail Prices API, currencyCode CAD, Global deployment, 2026-09-17.",
+    "USD-only list prices converted at 1.386 CAD/USD (ratio of Azure CAD and USD meters) and marked source.kind = derived.",
+    "Snowflake: credits from the Credit Consumption Table; CAD per credit is a project setting."
+  ]
+}

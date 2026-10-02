@@ -1,0 +1,137 @@
+[
+  {
+    "id": "free",
+    "label": "Free",
+    "perSUMonth": 0,
+    "storageGBPerPartition": 0.05,
+    "vectorGBPerPartition": 0,
+    "maxPartitions": 1,
+    "maxReplicas": 1,
+    "maxIndexes": 3,
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Free Unit",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "basic",
+    "label": "Basic (15 GB/partition)",
+    "perSUMonth": 102.2,
+    "storageGBPerPartition": 15,
+    "vectorGBPerPartition": 5,
+    "maxPartitions": 3,
+    "maxReplicas": 3,
+    "maxIndexes": 15,
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Azure AI Search / Basic Unit",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "s1",
+    "label": "Standard S1 (160 GB/partition)",
+    "perSUMonth": 339.96,
+    "storageGBPerPartition": 160,
+    "vectorGBPerPartition": 35,
+    "maxPartitions": 12,
+    "maxReplicas": 12,
+    "maxIndexes": 50,
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Azure AI Search / Standard S1 Unit",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "s2",
+    "label": "Standard S2 (512 GB/partition)",
+    "perSUMonth": 1359.92,
+    "storageGBPerPartition": 512,
+    "vectorGBPerPartition": 150,
+    "maxPartitions": 12,
+    "maxReplicas": 12,
+    "maxIndexes": 200,
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Azure AI Search / Standard S2 Unit",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "s3",
+    "label": "Standard S3 (1 TB/partition)",
+    "perSUMonth": 2719.76,
+    "storageGBPerPartition": 1024,
+    "vectorGBPerPartition": 300,
+    "maxPartitions": 12,
+    "maxReplicas": 12,
+    "maxIndexes": 200,
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Azure AI Search / Standard S3 Unit",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "s3hd",
+    "label": "Standard S3 HD",
+    "perSUMonth": 2719.76,
+    "storageGBPerPartition": 1024,
+    "vectorGBPerPartition": 300,
+    "maxPartitions": 3,
+    "maxReplicas": 12,
+    "maxIndexes": 3000,
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "retrievedAt": "2026-09-17"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "l1",
+    "label": "Storage Optimized L1",
+    "perSUMonth": 3884.2234,
+    "storageGBPerPartition": 2048,
+    "vectorGBPerPartition": 150,
+    "maxPartitions": 12,
+    "maxReplicas": 12,
+    "maxIndexes": 10,
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/search/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  },
+  {
+    "id": "l2",
+    "label": "Storage Optimized L2",
+    "perSUMonth": 7767.4351,
+    "storageGBPerPartition": 4096,
+    "vectorGBPerPartition": 300,
+    "maxPartitions": 12,
+    "maxReplicas": 12,
+    "maxIndexes": 10,
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/search/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  }
+]

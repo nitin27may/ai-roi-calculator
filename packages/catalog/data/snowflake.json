@@ -1,0 +1,24 @@
+{
+  "aiCreditGlobal": 2.772,
+  "aiCreditRegional": 3.0492,
+  "platformCredit": {
+    "standard": 2.772,
+    "enterprise": 4.158,
+    "businessCritical": 5.544,
+    "vps": 8.316
+  },
+  "warehouseCreditsPerHour": {
+    "xs": 1,
+    "s": 2,
+    "m": 4,
+    "l": 8,
+    "xl": 16
+  },
+  "source": {
+    "kind": "snowflake-consumption-table",
+    "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
+    "note": "AI credit USD 2.00 global / 2.20 regional; platform credit Azure East US 2 on-demand; \u00d7 1.386",
+    "retrievedAt": "2026-10-02"
+  },
+  "confidence": "cross-checked"
+}
