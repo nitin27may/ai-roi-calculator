@@ -26,7 +26,8 @@ A local, offline calculator for what an AI use case costs to **build** and to **
   - Capabilities entered as net hours are left alone.
 - **Avoided headcount.** An avoided cost can be FTE × hours × the role's rate (rising with rate escalation). A warning flags a likely double count with time saved at the same role.
 - **Before / after.** The work's monthly cost today, from benchmark baselines across all users plus avoided costs, against the cost with AI (remaining time, AI usage, platform and maintenance).
-- **Sensitivity.** A tornado of NPV for ten inputs, each moved one at a time: savings column, adoption, realisation, users, value of time, delivery rates, AI run volume, build length, adoption ramp and growth.
+- **Sensitivity.** A tornado of NPV for ten inputs, each moved one at a time: savings column, adoption, realisation, users, value of time, delivery rates, AI run volume, build length, adoption ramp and growth. It also shows the combined cases: everything at its low end and everything at its high end.
+- **Capability volume from workloads.** A capability can take its users (or queue items) from a workload, so the number is entered once and moves with the workload.
 - **Month plan.** Every Dev Lab activity has an intensity per build month (sweeps for bake-offs), set in a grid or by applying a shape (ramp up, front-loaded, final third only).
 - **Optional labour, evaluation and maintenance.**
   - Untick "Include labour cost" to cost AI spend only.

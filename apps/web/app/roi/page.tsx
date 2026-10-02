@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { LEVERS, applyScenario, avoidedMonthly, beforeAfter, capabilityFromBenchmark, sensitivity, capabilityHours, compareScenarios, computeAllocation, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
+import { LEVERS, applyScenario, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityVolume, workloadVolume, sensitivity, capabilityHours, compareScenarios, computeAllocation, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Seg, Select } from "@/components/ui";
 import { CumulativeLine, Legend } from "@/components/charts";
 import { catalog, modelOptions, useLedger } from "@/lib/compute";
@@ -124,7 +124,7 @@ function Assumptions() {
 
 function Tornado() {
   const project = useStudio((s) => s.project);
-  const { base, rows } = useMemo(() => sensitivity(project, catalog), [project]);
+  const { base, rows, combined } = useMemo(() => sensitivity(project, catalog), [project]);
   const lo = Math.min(base, ...rows.map((r) => Math.min(r.low, r.high)), 0);
   const hi = Math.max(base, ...rows.map((r) => Math.max(r.low, r.high)), 0);
   // Pad the range so the end labels fit inside the plot.
@@ -160,6 +160,12 @@ function Tornado() {
           );
         })}
       </div>
+      <div className="grid grid-cols-3 gap-2 text-[12.5px]">
+        <div className="rounded-md border border-line p-2.5"><div className="text-muted">Everything at its low end</div><div className="num text-lg font-bold" style={{ color: combined.low < 0 ? "var(--crit)" : undefined }}>{cad(combined.low)}</div></div>
+        <div className="rounded-md border border-line p-2.5"><div className="text-muted">Base case</div><div className="num text-lg font-bold">{cad(base)}</div></div>
+        <div className="rounded-md border border-line p-2.5"><div className="text-muted">Everything at its high end</div><div className="num text-lg font-bold" style={{ color: "var(--good)" }}>{cad(combined.high)}</div></div>
+      </div>
+      <p className="-mt-1 text-[11.5px] text-muted">The corners: all inputs moved together. Inputs compound (more users × more time saved × higher realisation), so these are wider than any single bar. Real outcomes rarely hit every extreme at once; treat them as bounds, not forecasts.</p>
       <table className="data">
         <thead><tr><th>Input</th><th className="n">Low</th><th className="n">NPV</th><th className="n">High</th><th className="n">NPV</th><th className="n">Swing</th></tr></thead>
         <tbody>{rows.map((r) => <tr key={r.id}><td>{r.label}</td><td className="n">{r.lowLabel}</td><td className="n">{cad(r.low)}</td><td className="n">{r.highLabel}</td><td className="n">{cad(r.high)}</td><td className="n font-semibold">{cad(r.swing)}</td></tr>)}</tbody>
@@ -296,9 +302,23 @@ function CapabilityCard({ c, i }: { c: Capability; i: number }) {
         <Field label="Worked out"><Select value={driver} options={DRIVERS} onChange={(v) => upd((x) => { x.driver = v as Capability["driver"]; if (v !== "hours") { x.users ??= 100; x.tasksPerUserPerDay ??= 1; x.baselineMinutes ??= 30; x.savings ??= { conservative: 5, typical: 10, optimistic: 15 }; x.unit ??= "minutes"; } })} /></Field>
         <Field label="Valued at"><Select value={c.roleId} options={project.rateCard.map((r) => ({ value: r.id, label: `${r.label} (${cad(r.hourlyRate)}/h)` }))} onChange={(v) => upd((x) => { x.roleId = v; })} /></Field>
         {driver === "hours" && num("Net hours saved / month", c.hoursSavedPerMonth, (x, v) => { x.hoursSavedPerMonth = v; })}
-        {(driver === "perTask" || driver === "perUserWeek") && num("Users", c.users, (x, v) => { x.users = v; })}
+        {driver !== "hours" && (() => {
+          const perUser = driver !== "perVolume";
+          const sources = project.workloads.filter((w) => { const v = workloadVolume(w); return perUser ? v.users !== undefined : v.items !== undefined; });
+          return (
+            <Field label={perUser ? "Take users from" : "Take items from"}>
+              <Select value={c.volumeFrom ?? ""} options={[{ value: "", label: "Entered here" }, ...sources.map((w) => ({ value: w.id, label: `${w.label}${perUser ? "" : ` (${workloadVolume(w).itemsKey})`}` }))]}
+                onChange={(v) => upd((x) => { if (v) x.volumeFrom = v; else { const cur = capabilityVolume(project, x); x.users = cur.users; x.itemsPerMonth = cur.items; delete x.volumeFrom; } })} />
+            </Field>
+          );
+        })()}
+        {(driver === "perTask" || driver === "perUserWeek") && (c.volumeFrom
+          ? <Field label="Users (from the workload)"><span className="num py-1.5 text-[13px]">{fmt(capabilityVolume(project, c).users)}</span></Field>
+          : num("Users", c.users, (x, v) => { x.users = v; }))}
         {driver === "perTask" && num("Tasks per user per day", c.tasksPerUserPerDay, (x, v) => { x.tasksPerUserPerDay = v; })}
-        {driver === "perVolume" && num("Items per month", c.itemsPerMonth, (x, v) => { x.itemsPerMonth = v; })}
+        {driver === "perVolume" && (c.volumeFrom
+          ? <Field label="Items per month (from the workload)"><span className="num py-1.5 text-[13px]">{fmt(capabilityVolume(project, c).items)}</span></Field>
+          : num("Items per month", c.itemsPerMonth, (x, v) => { x.itemsPerMonth = v; }))}
         {driver === "perVolume" && num("Share handled", c.handledPct ?? 100, (x, v) => { x.handledPct = v; }, { max: 100, suffix: "%" })}
         {driver !== "hours" && num(driver === "perUserWeek" ? "Baseline min / week" : "Baseline minutes", c.baselineMinutes ?? bench?.baselineMinutes, (x, v) => { x.baselineMinutes = v; })}
         {driver !== "hours" && <Field label="Saving is in"><Select value={unit} options={[{ value: "minutes", label: driver === "perUserWeek" ? "minutes / week" : "minutes" }, { value: "pct", label: "% of baseline" }]} onChange={(v) => upd((x) => { x.unit = v as "minutes" | "pct"; })} /></Field>}

@@ -1,4 +1,5 @@
 import type { DevActivity, Harness, Project, Workload } from "./project.js";
+import { workloadVolume } from "./benefits.js";
 
 /** Default model per role, used when a template needs one. */
 const DEFAULT_MODEL = "gpt-5.4";
@@ -99,8 +100,18 @@ export function newWorkload(p: Project, kind: Workload["kind"]): Workload {
 
 /** Remove a workload and unlink it from capabilities. Scenarios that reference it report an error instead of failing silently. */
 export function removeWorkload(p: Project, id: string): void {
-  p.workloads = p.workloads.filter((w) => w.id !== id);
-  for (const c of p.benefits.capabilities) c.componentIds = c.componentIds.filter((x) => x !== id);
+  const w = p.workloads.find((x) => x.id === id);
+  p.workloads = p.workloads.filter((x) => x.id !== id);
+  for (const c of p.benefits.capabilities) {
+    c.componentIds = c.componentIds.filter((x) => x !== id);
+    // A capability that took its volume from this workload keeps the last numbers as its own.
+    if (c.volumeFrom === id && w) {
+      const v = workloadVolume(w);
+      if (v.users !== undefined) c.users = v.users;
+      if (v.items !== undefined) c.itemsPerMonth = v.items;
+      delete c.volumeFrom;
+    }
+  }
 }
 
 /** A new harness with default sizes and a unique id. */

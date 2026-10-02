@@ -3,7 +3,7 @@ import type { Project } from "./project.js";
 import { buildLedger } from "./ledger.js";
 import { computeRoi } from "./roi.js";
 import { applyEdit } from "./scenarios.js";
-import { roiAssumptions } from "./benefits.js";
+import { capabilityVolume, roiAssumptions } from "./benefits.js";
 
 export interface SensitivityRow {
   id: string;
@@ -23,12 +23,29 @@ const scaleRates = (p: Project, ids: Set<string>, f: number) => { for (const r o
 const benefitRoles = (p: Project) => new Set([...p.benefits.capabilities.map((c) => c.roleId), ...p.benefits.avoidedCosts.flatMap((a) => (a.roleId ? [a.roleId] : []))]);
 const deliveryRoles = (p: Project) => new Set([...p.build.team.map((t) => t.roleId), ...(p.maintenance.mode === "team" ? p.maintenance.team.map((t) => t.roleId) : [])]);
 const scaleCapabilityVolume = (p: Project, f: number) => {
+  // A capability linked to a workload scales that workload, so its run cost moves with the benefit.
+  const linked = new Set(p.benefits.capabilities.flatMap((c) => (c.volumeFrom ? [c.volumeFrom] : [])));
+  for (const w of p.workloads as unknown as Record<string, unknown>[]) {
+    if (!linked.has(w.id as string)) continue;
+    for (const k of ["users", "tasksPerMonth", "callsPerMonth", "emailsPerMonth", "queriesPerMonth", "interactionsPerMonth", "requestsPerMonth", "pagesPerMonth", "hoursPerMonth"]) if (typeof w[k] === "number") w[k] = (w[k] as number) * f;
+  }
   for (const c of p.benefits.capabilities) {
     if ((c.driver ?? "hours") === "hours") c.hoursSavedPerMonth *= f;
     if (c.users !== undefined) c.users *= f;
     if (c.itemsPerMonth !== undefined) c.itemsPerMonth *= f;
   }
 };
+
+/** Scale production usage while holding every capability's volume where it is. */
+function scaleRunOnly(q: Project, f: number, cat: Catalog) {
+  for (const c of q.benefits.capabilities) {
+    if (!c.volumeFrom) continue;
+    const v = capabilityVolume(q, c);
+    c.users = v.users; c.itemsPerMonth = v.items;
+    delete c.volumeFrom;
+  }
+  Object.assign(q, applyEdit(q, { kind: "scaleUsage", factor: f }, cat));
+}
 
 /** Change the build length; team lines that ran to the end of the build keep running to the new end. */
 function setBuildLength(q: Project, n: number) {
@@ -44,7 +61,7 @@ function setBuildLength(q: Project, n: number) {
  * One-at-a-time sensitivity of NPV (on the project's cost basis and discount rate) to the inputs
  * that usually decide an AI business case. Rows are sorted by swing, largest first, for a tornado.
  */
-export function sensitivity(p: Project, cat: Catalog): { base: number; rows: SensitivityRow[] } {
+export function sensitivity(p: Project, cat: Catalog): { base: number; combined: { low: number; high: number }; rows: SensitivityRow[] } {
   const lib = cat.benchmarks;
   const a = roiAssumptions(p, lib);
   const npv = (q: Project) => computeRoi(buildLedger(q, cat), q.roi.basis, q.roi.discountRatePct).npv;
@@ -62,16 +79,20 @@ export function sensitivity(p: Project, cat: Catalog): { base: number; rows: Sen
     { id: "users", label: "Users / volume of the work", low: ["−30%", (q) => scaleCapabilityVolume(q, 0.7)], high: ["+30%", (q) => scaleCapabilityVolume(q, 1.3)] },
     { id: "valueOfTime", label: "Value of an hour saved (benefit roles' rates)", low: ["−20%", (q) => scaleRates(q, benefitRoles(p), 0.8)], high: ["+20%", (q) => scaleRates(q, benefitRoles(p), 1.2)] },
     { id: "deliveryRates", label: "Delivery team rates", applies: () => p.build.includeLabour, low: ["+20%", (q) => scaleRates(q, deliveryRoles(p), 1.2)], high: ["−20%", (q) => scaleRates(q, deliveryRoles(p), 0.8)] },
-    { id: "runVolume", label: "AI run volume (same benefit)", low: ["×1.5", (q) => Object.assign(q, applyEdit(q, { kind: "scaleUsage", factor: 1.5 }, cat))], high: ["×0.7", (q) => Object.assign(q, applyEdit(q, { kind: "scaleUsage", factor: 0.7 }, cat))] },
+    { id: "runVolume", label: "AI run volume (same benefit)", low: ["×1.5", (q) => scaleRunOnly(q, 1.5, cat)], high: ["×0.7", (q) => scaleRunOnly(q, 0.7, cat)] },
     { id: "buildLength", label: "Build length (team stays on)", low: [`${Math.min(24, B + 2)} months`, (q) => setBuildLength(q, Math.min(24, B + 2))], high: [`${Math.max(1, B - 2)} months`, (q) => setBuildLength(q, Math.max(1, B - 2))] },
     { id: "ramp", label: "Adoption ramp", low: [`${p.timeline.adoptionRampMonths * 2 || 6} months`, (q) => { q.timeline.adoptionRampMonths = Math.min(24, p.timeline.adoptionRampMonths * 2 || 6); }], high: [`${Math.floor(p.timeline.adoptionRampMonths / 2)} months`, (q) => { q.timeline.adoptionRampMonths = Math.floor(p.timeline.adoptionRampMonths / 2); }] },
     { id: "growth", label: "Usage growth per year", low: ["0%", (q) => { q.roi.growthPctPerYear = 0; }], high: [`${Math.max(20, p.roi.growthPctPerYear * 2)}%`, (q) => { q.roi.growthPctPerYear = Math.max(20, p.roi.growthPctPerYear * 2); }] },
   ];
   const base = npv(p);
-  const rows = drivers.filter((d) => d.applies?.(p) ?? true).map((d) => {
+  const active = drivers.filter((d) => d.applies?.(p) ?? true);
+  // Every input at its unfavourable (or favourable) end at once: the corners one-at-a-time bars hide.
+  const all = (end: "low" | "high") => { const q = structuredClone(p); for (const d of active) d[end][1](q); return npv(q); };
+  const combined = { low: all("low"), high: all("high") };
+  const rows = active.map((d) => {
     const run = (f: (q: Project) => void) => { const q = structuredClone(p); f(q); return npv(q); };
     const low = run(d.low[1]), high = run(d.high[1]);
     return { id: d.id, label: d.label, lowLabel: d.low[0], highLabel: d.high[0], low, high, swing: Math.abs(high - low) };
   });
-  return { base, rows: rows.sort((x, y) => y.swing - x.swing) };
+  return { base, combined, rows: rows.sort((x, y) => y.swing - x.swing) };
 }

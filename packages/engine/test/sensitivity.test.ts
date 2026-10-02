@@ -20,3 +20,11 @@ describe("sensitivity", () => {
     expect(JSON.stringify(meetingIntelligence)).toBe(before);
   });
 });
+
+describe("combined cases", () => {
+  it("puts every input at its low end below every single low, and the reverse for highs", () => {
+    const s = sensitivity(meetingIntelligence, cat);
+    expect(s.combined.low).toBeLessThan(Math.min(...s.rows.map((r) => r.low)));
+    expect(s.combined.high).toBeGreaterThan(Math.max(...s.rows.map((r) => r.high)));
+  });
+});

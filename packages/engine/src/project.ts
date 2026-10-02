@@ -185,6 +185,8 @@ export const CapabilitySchema = z.object({
   driver: z.enum(["hours", "perTask", "perUserWeek", "perVolume"]).optional(),
   benchmarkId: id.optional(),
   users: n0.optional(), tasksPerUserPerDay: n0.optional(),
+  /** Take users (or items, for a queue) from this workload instead of entering them again. */
+  volumeFrom: id.optional(),
   itemsPerMonth: n0.optional(), handledPct: pct.optional(),
   baselineMinutes: n0.optional(),
   savings: z.object({ conservative: n0, typical: n0, optimistic: n0 }).optional(),

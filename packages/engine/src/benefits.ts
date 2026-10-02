@@ -23,6 +23,23 @@ export interface CapabilityHours {
 
 const r1 = (x: number) => Math.round(x * 10) / 10;
 
+/** Monthly volume fields a capability can take its items from, in order of preference. */
+const ITEM_KEYS = ["tasksPerMonth", "callsPerMonth", "emailsPerMonth", "queriesPerMonth", "interactionsPerMonth", "requestsPerMonth", "pagesPerMonth", "hoursPerMonth"] as const;
+
+/** What a workload offers as a capability's volume: its users, and its main monthly item count. */
+export function workloadVolume(w: Project["workloads"][number]): { users?: number; items?: number; itemsKey?: string } {
+  const o = w as unknown as Record<string, unknown>;
+  const key = ITEM_KEYS.find((k) => typeof o[k] === "number");
+  return { users: typeof o.users === "number" ? (o.users as number) : undefined, items: key ? (o[key] as number) : undefined, itemsKey: key };
+}
+
+/** Users and items for a capability, from its linked workload when it has one. */
+export function capabilityVolume(p: Project, c: Capability): { users: number; items: number; linked: string | null } {
+  const w = c.volumeFrom ? p.workloads.find((x) => x.id === c.volumeFrom) : undefined;
+  const v = w ? workloadVolume(w) : {};
+  return { users: v.users ?? c.users ?? 0, items: v.items ?? c.itemsPerMonth ?? 0, linked: w ? w.label : null };
+}
+
 /** The preset's (or the project's) adoption and realisation, in percent. */
 export function roiAssumptions(p: Project, lib: Library) {
   const preset = lib.presets[p.roi.benefitPreset];
@@ -47,7 +64,8 @@ export function capabilityHours(p: Project, c: Capability, lib: Library): Capabi
   const a = roiAssumptions(p, lib);
   const adoptionPct = driver === "perVolume" ? 100 : (c.adoptionPct ?? a.adoptionPct);
   const realisationPct = c.realisationPct ?? a.realisationPct;
-  const users = c.users ?? 0;
+  const vol = capabilityVolume(p, c);
+  const users = vol.users;
   const days = p.roi.workingDaysPerMonth ?? DEFAULT_WORKING_DAYS;
   const saved = unit === "pct" ? `${savings[preset]}% of ${baseline} min = ${r1(minutesSaved)} min` : `${r1(minutesSaved)} min${capped ? ` (capped at the ${baseline} min baseline)` : ""}`;
   let volume = 0, gross = 0, formula = "";
@@ -61,11 +79,12 @@ export function capabilityHours(p: Project, c: Capability, lib: Library): Capabi
     gross = (users * (adoptionPct / 100) * retained * minutesSaved * WEEKS_PER_MONTH) / 60;
     formula = `${users} users × ${adoptionPct}% adoption${retained < 1 ? ` × ${Math.round(retained * 100)}% not covered by existing licences` : ""} × ${saved}/week`;
   } else {
-    volume = (c.itemsPerMonth ?? 0) * ((c.handledPct ?? 100) / 100);
+    volume = vol.items * ((c.handledPct ?? 100) / 100);
     gross = (volume * minutesSaved) / 60;
-    formula = `${c.itemsPerMonth ?? 0} items × ${c.handledPct ?? 100}% handled × ${saved}`;
+    formula = `${Math.round(vol.items)} items × ${c.handledPct ?? 100}% handled × ${saved}`;
   }
   const net = gross * (realisationPct / 100);
+  if (vol.linked) formula = `${formula} (volume from ${vol.linked})`;
   return { driver, minutesSaved, adoptionPct, realisationPct, volume, gross, net, formula: `${formula} = ${r1(gross)} h gross × ${realisationPct}% realised = ${r1(net)} h` };
 }
 
@@ -125,9 +144,10 @@ export function beforeAfter(p: Project, lib: Library, ledgerTotals: { runRate: n
     const rate = rates.get(c.roleId) ?? 0;
     const baseline = c.baselineMinutes ?? (c.benchmarkId ? lib.capabilities.find((b) => b.id === c.benchmarkId)?.baselineMinutes : undefined) ?? 0;
     let hours: number | null = null;
-    if (h.driver === "perTask") hours = ((c.users ?? 0) * (c.tasksPerUserPerDay ?? 0) * days * baseline) / 60;
-    else if (h.driver === "perUserWeek") hours = ((c.users ?? 0) * baseline * WEEKS_PER_MONTH) / 60;
-    else if (h.driver === "perVolume") hours = ((c.itemsPerMonth ?? 0) * baseline) / 60;
+    const vol = capabilityVolume(p, c);
+    if (h.driver === "perTask") hours = (vol.users * (c.tasksPerUserPerDay ?? 0) * days * baseline) / 60;
+    else if (h.driver === "perUserWeek") hours = (vol.users * baseline * WEEKS_PER_MONTH) / 60;
+    else if (h.driver === "perVolume") hours = (vol.items * baseline) / 60;
     if (hours === null) return { id: c.id, label: c.label, baselineHours: null, savedHours: h.net, before: 0, after: -h.net * rate };
     return { id: c.id, label: c.label, baselineHours: hours, savedHours: h.net, before: hours * rate, after: Math.max(0, hours - h.net) * rate };
   });

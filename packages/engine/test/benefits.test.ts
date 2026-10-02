@@ -115,3 +115,29 @@ describe("before and after", () => {
     expect(ba.before - ba.after).toBeCloseTo(L.totals.benefitRate - L.totals.runRate - L.totals.maintRate, 4);
   });
 });
+
+describe("capability volume from a workload", () => {
+  it("takes users from the linked workload and keeps them when the workload is removed", async () => {
+    const { removeWorkload } = await import("../src/index.js");
+    const p = withPreset("typical");
+    const notes = p.benefits.capabilities.find((c) => c.id === "notes")!;
+    const chat = p.workloads.find((w) => w.id === "chat")!;
+    if (chat.kind !== "chat") throw new Error();
+    const base = capabilityHours(p, notes, lib).gross;
+    chat.users = 1600;
+    expect(capabilityHours(p, notes, lib).gross).toBeCloseTo(base * 2, 6);
+    expect(capabilityHours(p, notes, lib).formula).toContain("volume from");
+    removeWorkload(p, "chat");
+    expect(notes.volumeFrom).toBeUndefined();
+    expect(notes.users).toBe(1600);
+    expect(ProjectSchema.safeParse(p).success).toBe(true);
+  });
+
+  it("takes items for a queue from the workload's monthly volume", () => {
+    const p = withPreset("typical");
+    const c = { ...capabilityFromBenchmark(p, "devops", lib), driver: "perVolume" as const, volumeFrom: "email", handledPct: 100 };
+    const email = p.workloads.find((w) => w.id === "email")!;
+    if (email.kind !== "email") throw new Error();
+    expect(capabilityHours(p, c, lib).volume).toBe(email.emailsPerMonth);
+  });
+});
