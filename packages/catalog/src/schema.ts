@@ -193,6 +193,33 @@ export const Ptu = z.object({
 });
 export type Ptu = z.infer<typeof Ptu>;
 
+const PresetValues = z.object({ conservative: z.number().nonnegative(), typical: z.number().nonnegative(), optimistic: z.number().nonnegative() });
+
+/** Time-saved benchmark for a capability, with its evidence. */
+export const Benchmark = z.object({
+  id: z.string(), label: z.string(),
+  /** perTask: minutes per task done; perUserWeek: minutes per active user per week; perVolume: minutes per handled item. */
+  driver: z.enum(["perTask", "perUserWeek", "perVolume"]),
+  baselineMinutes: z.number().nonnegative(),
+  /** Saving per preset, in `unit`: minutes, or percent of the baseline. */
+  savings: PresetValues,
+  unit: z.enum(["minutes", "pct"]),
+  roleId: z.string(),
+  /** Share of the saving an existing licence (e.g. Microsoft 365 Copilot) already delivers to licensed users. */
+  licenceOverlap: z.number().min(0).max(1),
+  confidence: z.enum(["high", "medium", "low", "none"]),
+  vendorFunded: z.boolean(),
+  sourceLabel: z.string(), sourceUrl: z.string().url().optional(), note: z.string().optional(),
+});
+export type Benchmark = z.infer<typeof Benchmark>;
+
+export const BenchmarkLibrary = z.object({
+  asOf: isoDate, source: z.string(), notes: z.string(),
+  presets: z.object({ conservative: z.object({ adoptionPct: z.number(), realisationPct: z.number(), rationale: z.string() }), typical: z.object({ adoptionPct: z.number(), realisationPct: z.number(), rationale: z.string() }), optimistic: z.object({ adoptionPct: z.number(), realisationPct: z.number(), rationale: z.string() }) }),
+  roles: z.array(z.object({ id: z.string(), label: z.string(), hourlyRate: z.number().nonnegative(), source: z.string() })),
+  capabilities: z.array(Benchmark),
+});
+
 export const Catalog = z.object({
   meta: z.object({ currency: z.literal("CAD"), asOf: isoDate, region: z.string(), notes: z.array(z.string()) }),
   chatModels: z.array(ChatModel),
@@ -203,5 +230,6 @@ export const Catalog = z.object({
   searchTiers: z.array(SearchTier),
   unitPrices: z.array(UnitPrice),
   snowflake: SnowflakeSettingsDefaults,
+  benchmarks: BenchmarkLibrary,
 });
 export type Catalog = z.infer<typeof Catalog>;

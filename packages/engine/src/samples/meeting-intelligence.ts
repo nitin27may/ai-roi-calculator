@@ -89,7 +89,8 @@ export const meetingIntelligence: Project = {
   maintenance: { mode: "team", team: [{ roleId: "dev", people: 0.4, hoursPerMonth: 160, experiments: false }] },
   benefits: {
     capabilities: [
-      { id: "notes", label: "Meeting notes and action items", hoursSavedPerMonth: 330, roleId: "knowledgeWorker", componentIds: ["stt", "agent", "email", "ws-notes", "ws-shared"] },
+      { id: "notes", label: "Meeting notes and action items", hoursSavedPerMonth: 0, roleId: "knowledgeWorker",
+        driver: "perTask", benchmarkId: "meeting_prep", users: 800, tasksPerUserPerDay: 0.5, baselineMinutes: 30, savings: { conservative: 5, typical: 17, optimistic: 50 }, unit: "minutes", licenceOverlap: 0.4, componentIds: ["stt", "agent", "email", "ws-notes", "ws-shared"] },
       { id: "ask", label: "Ask-my-meetings answers", hoursSavedPerMonth: 140, roleId: "knowledgeWorker", componentIds: ["chat", "retrieval", "search", "embed", "docs", "ws-ask", "ws-shared"] },
     ],
     avoidedCosts: [{ id: "licence", label: "Retire third-party transcription licence", monthly: 4000, startMonth: 10 }],

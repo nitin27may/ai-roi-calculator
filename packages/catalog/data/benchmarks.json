@@ -1,0 +1,273 @@
+{
+  "asOf": "2026-09-06",
+  "source": "Ported from workgraph.ai showcase/cost-calculator catalogue/benchmarks/roi.json",
+  "notes": "Time-saved benchmarks per capability. Conservative leans on independent trials (Microsoft Research RCT arXiv 2504.11443, UK DBT and Australian DTA trials), optimistic on vendor claims; vendor-funded studies are flagged.",
+  "presets": {
+    "conservative": {
+      "adoptionPct": 25,
+      "realisationPct": 30,
+      "rationale": "Broad-rollout adoption floor (20-30% weekly active); 40% of saved time lost to rework (Workday)."
+    },
+    "typical": {
+      "adoptionPct": 40,
+      "realisationPct": 40,
+      "rationale": "MS Research RCT: 38% of licensed users active weekly; midpoint of the 30-50% realisation convention."
+    },
+    "optimistic": {
+      "adoptionPct": 65,
+      "realisationPct": 60,
+      "rationale": "UK DBT self-selected pilot ~66% weekly use; upper end of the realisation convention."
+    }
+  },
+  "roles": [
+    {
+      "id": "knowledgeWorker",
+      "label": "Knowledge worker",
+      "hourlyRate": 49,
+      "source": "StatCan professional, scientific and technical services 2024 wage x 1.30 loading"
+    },
+    {
+      "id": "ba",
+      "label": "Business analyst",
+      "hourlyRate": 55,
+      "source": "Assumption above the knowledge-worker rate"
+    },
+    {
+      "id": "engineer",
+      "label": "Engineer",
+      "hourlyRate": 65,
+      "source": "Assumption; GetDX developer examples run USD 75-150"
+    },
+    {
+      "id": "manager",
+      "label": "Manager",
+      "hourlyRate": 75,
+      "source": "Assumption"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "meeting_prep",
+      "label": "Meeting prep + summary",
+      "driver": "perTask",
+      "baselineMinutes": 30,
+      "savings": {
+        "conservative": 5,
+        "typical": 17,
+        "optimistic": 50
+      },
+      "unit": "minutes",
+      "roleId": "knowledgeWorker",
+      "licenceOverlap": 0.4,
+      "confidence": "low",
+      "vendorFunded": false,
+      "sourceLabel": "MS Research RCT (no net meeting saving); AU DTA trial 50-70% perceived; Forrester TEI (vendor)",
+      "sourceUrl": "https://arxiv.org/abs/2504.11443",
+      "note": "The one RCT found zero net meeting-time saving once work shifted into meetings; the write-up saving is real, the prep saving is unmeasured."
+    },
+    {
+      "id": "kb_ask",
+      "label": "Finding information (KB Ask)",
+      "driver": "perUserWeek",
+      "baselineMinutes": 456,
+      "savings": {
+        "conservative": 15,
+        "typical": 90,
+        "optimistic": 180
+      },
+      "unit": "minutes",
+      "roleId": "knowledgeWorker",
+      "licenceOverlap": 0.5,
+      "confidence": "low",
+      "vendorFunded": true,
+      "sourceLabel": "Glean vendor 3-11 h/wk; AU DTA trial; McKinsey 19%-of-week search baseline",
+      "sourceUrl": "https://www.digital.gov.au/initiatives/copilot-trial/microsoft-365-copilot-evaluation-report-full/productivity",
+      "note": "No vendor-neutral timed study of grounded Q&A exists; the typical value is a heavily discounted vendor range."
+    },
+    {
+      "id": "search_qa",
+      "label": "Conversational Q&A (Search QA)",
+      "driver": "perUserWeek",
+      "baselineMinutes": 456,
+      "savings": {
+        "conservative": 0,
+        "typical": 0,
+        "optimistic": 0
+      },
+      "unit": "minutes",
+      "roleId": "knowledgeWorker",
+      "licenceOverlap": 0.5,
+      "confidence": "none",
+      "vendorFunded": false,
+      "sourceLabel": "Overlaps KB Ask; counting both double-counts the same questions",
+      "sourceUrl": "https://arxiv.org/abs/2504.11443",
+      "note": "Off by default: the same 'finding information' benefit as KB Ask. Enable only if the KB Ask row is zeroed."
+    },
+    {
+      "id": "ba_buddy",
+      "label": "BRD / requirements drafting",
+      "driver": "perTask",
+      "baselineMinutes": 240,
+      "savings": {
+        "conservative": 12,
+        "typical": 30,
+        "optimistic": 50
+      },
+      "unit": "pct",
+      "roleId": "ba",
+      "licenceOverlap": 0,
+      "confidence": "low",
+      "vendorFunded": false,
+      "sourceLabel": "Extrapolated: MS Research RCT 6-12% document completion; GitHub Copilot RCT 55% on a coding task",
+      "sourceUrl": "https://github.blog/news-insights/research/research-quantifying-github-copilots-impact-on-developer-productivity-and-happiness/",
+      "note": "No timed BA-specific study exists. The pilot's 'requirements kept after review' metric is the real test."
+    },
+    {
+      "id": "doc",
+      "label": "Structured documents",
+      "driver": "perTask",
+      "baselineMinutes": 90,
+      "savings": {
+        "conservative": 6,
+        "typical": 12,
+        "optimistic": 40
+      },
+      "unit": "pct",
+      "roleId": "knowledgeWorker",
+      "licenceOverlap": 0,
+      "confidence": "medium",
+      "vendorFunded": false,
+      "sourceLabel": "MS Research RCT: 6% (all users) / 12% (regular users) faster document completion",
+      "sourceUrl": "https://arxiv.org/abs/2504.11443"
+    },
+    {
+      "id": "ppt",
+      "label": "Decks from a brief",
+      "driver": "perTask",
+      "baselineMinutes": 180,
+      "savings": {
+        "conservative": 0,
+        "typical": 30,
+        "optimistic": 85
+      },
+      "unit": "pct",
+      "roleId": "knowledgeWorker",
+      "licenceOverlap": 0,
+      "confidence": "low",
+      "vendorFunded": false,
+      "sourceLabel": "UK DBT trial: faster but lower-quality slides; vendor anecdote 3-4 h to 28 min",
+      "sourceUrl": "https://www.theregister.com/2025/09/04/m365_copilot_uk_government/",
+      "note": "Quality caveat: the independent trial found worse output, so conservative is zero and a review step is assumed."
+    },
+    {
+      "id": "voice_notes",
+      "label": "Voice notes to actions",
+      "driver": "perUserWeek",
+      "baselineMinutes": 240,
+      "savings": {
+        "conservative": 60,
+        "typical": 150,
+        "optimistic": 240
+      },
+      "unit": "minutes",
+      "roleId": "knowledgeWorker",
+      "licenceOverlap": 0,
+      "confidence": "low",
+      "vendorFunded": true,
+      "sourceLabel": "Otter.ai vendor claim 4+ h/wk on meeting admin, discounted",
+      "sourceUrl": "https://otter.ai/blog/otter-vs-fireflies"
+    },
+    {
+      "id": "digest",
+      "label": "Daily digest / email triage",
+      "driver": "perUserWeek",
+      "baselineMinutes": 660,
+      "savings": {
+        "conservative": 12,
+        "typical": 35,
+        "optimistic": 50
+      },
+      "unit": "minutes",
+      "roleId": "knowledgeWorker",
+      "licenceOverlap": 0.5,
+      "confidence": "high",
+      "vendorFunded": false,
+      "sourceLabel": "MS Research RCT: 12 min/wk all users, 30+ min/wk regular users; Worklab per-company 40-50 min",
+      "sourceUrl": "https://arxiv.org/abs/2504.11443"
+    },
+    {
+      "id": "devops",
+      "label": "DevOps work items",
+      "driver": "perTask",
+      "baselineMinutes": 25,
+      "savings": {
+        "conservative": 10,
+        "typical": 30,
+        "optimistic": 50
+      },
+      "unit": "pct",
+      "roleId": "engineer",
+      "licenceOverlap": 0,
+      "confidence": "low",
+      "vendorFunded": false,
+      "sourceLabel": "No direct evidence; extrapolated from the GitHub Copilot RCT and document numbers",
+      "sourceUrl": "https://github.blog/news-insights/research/research-quantifying-github-copilots-impact-on-developer-productivity-and-happiness/",
+      "note": "Extrapolation, not a measurement."
+    },
+    {
+      "id": "m365",
+      "label": "M365 lookups",
+      "driver": "perUserWeek",
+      "baselineMinutes": 456,
+      "savings": {
+        "conservative": 0,
+        "typical": 0,
+        "optimistic": 0
+      },
+      "unit": "minutes",
+      "roleId": "knowledgeWorker",
+      "licenceOverlap": 0.8,
+      "confidence": "none",
+      "vendorFunded": false,
+      "sourceLabel": "Overlaps 'Finding information'; Copilot covers it natively for licensed users",
+      "sourceUrl": "https://arxiv.org/abs/2504.11443",
+      "note": "Off by default to avoid double-counting the search benefit."
+    },
+    {
+      "id": "entra",
+      "label": "Directory lookups",
+      "driver": "perUserWeek",
+      "baselineMinutes": 10,
+      "savings": {
+        "conservative": 2,
+        "typical": 3,
+        "optimistic": 5
+      },
+      "unit": "minutes",
+      "roleId": "knowledgeWorker",
+      "licenceOverlap": 0,
+      "confidence": "none",
+      "vendorFunded": false,
+      "sourceLabel": "No published benchmark; placeholder estimate",
+      "note": "Estimate, no primary source."
+    },
+    {
+      "id": "translation",
+      "label": "Translation",
+      "driver": "perUserWeek",
+      "baselineMinutes": 10,
+      "savings": {
+        "conservative": 2,
+        "typical": 3,
+        "optimistic": 5
+      },
+      "unit": "minutes",
+      "roleId": "knowledgeWorker",
+      "licenceOverlap": 0,
+      "confidence": "none",
+      "vendorFunded": false,
+      "sourceLabel": "No published benchmark; placeholder estimate",
+      "note": "Estimate, no primary source."
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import type { Project } from "./project.js";
 import type { Percentile } from "./harness.js";
 import { workloadLines } from "./workloads.js";
 import { devLabLines, teamLines } from "./devlab.js";
+import { capabilityHours } from "./benefits.js";
 import { line, sum, type Line, type Stream } from "./lines.js";
 
 export interface MonthBenefit {
@@ -31,7 +32,6 @@ export interface Ledger {
   totals: { build: number; buildLabour: number; devLab: number; runRate: number; maintRate: number; benefitRate: number };
 }
 
-export const BENEFIT_PRESET = { conservative: 0.7, typical: 1, optimistic: 1.3 } as const;
 export const STREAMS: Stream[] = ["labour", "devlab", "devenv", "run", "platform", "maint", "transition"];
 
 /**
@@ -50,10 +50,9 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
   const devCut = 1 - p.roi.devCutPct / 100;
   const maintCut = 1 - p.roi.maintCutPct / 100;
   const rates = new Map(p.rateCard.map((r) => [r.id, r.hourlyRate]));
-  const preset = BENEFIT_PRESET[p.roi.benefitPreset];
   const growth = 1 + p.roi.growthPctPerYear / 100;
   const escalation = 1 + p.roi.rateEscalationPctPerYear / 100;
-  const capFull = (c: Project["benefits"]["capabilities"][number]) => c.hoursSavedPerMonth * (rates.get(c.roleId) ?? 0) * preset;
+  const capFull = new Map(p.benefits.capabilities.map((c) => [c.id, capabilityHours(p, c, catalog.benchmarks).net * (rates.get(c.roleId) ?? 0)]));
 
   const contingency = 1 + p.build.contingencyPct / 100;
   let buildTotal = 0;
@@ -86,7 +85,12 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
         ? teamLines(p, p.maintenance.team, "maint", "maintenance", maintCut * esc)
         : [line({ id: "maintenance:pct", componentId: "maintenance", label: `Maintenance (${p.maintenance.pctPerYear}% of build per year)`, stream: "maint", behaviour: "fixed", meter: "maint-pct", quantity: 1, unit: "month", unitPrice: (buildTotal / devCut) * (p.maintenance.pctPerYear / 100 / 12) * maintCut, formula: `build × ${p.maintenance.pctPerYear}% ÷ 12` })];
       lines.push(...maint);
-      for (const c of p.benefits.capabilities) benefitBy.capabilities[c.id] = capFull(c) * usage * esc;
+      for (const c of p.benefits.capabilities) {
+        // Each capability ramps from its own go-live (the project's unless it says otherwise).
+        const kc = m - Math.max(B + 1, c.liveFromMonth ?? B + 1) + 1;
+        const ramp = kc <= 0 ? 0 : r === 0 ? 1 : Math.min(1, kc / r);
+        benefitBy.capabilities[c.id] = capFull.get(c.id)! * ramp * g * esc;
+      }
     }
     for (const t of p.roi.transitionCosts) {
       if (m >= t.fromMonth && m <= t.toMonth) lines.push(line({ id: `transition:${t.id}`, componentId: "transition", label: t.label, stream: "transition", behaviour: "fixed", meter: "transition", quantity: 1, unit: "month", unitPrice: t.monthly, formula: `CAD ${t.monthly}/month, months ${t.fromMonth}–${t.toMonth}` }));
@@ -111,7 +115,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
       devLab: sum(buildMonths.map((x) => x.byStream.devlab)),
       runRate: firstFull.byStream.run + firstFull.byStream.platform,
       maintRate: firstFull.byStream.maint,
-      benefitRate: sum(p.benefits.capabilities.map(capFull)) + sum(p.benefits.avoidedCosts.map((a) => a.monthly)),
+      benefitRate: sum([...capFull.values()]) + sum(p.benefits.avoidedCosts.map((a) => a.monthly)),
     },
   };
 }

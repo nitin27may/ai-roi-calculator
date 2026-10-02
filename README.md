@@ -15,6 +15,15 @@ A local, offline calculator for what an AI use case costs to **build** and to **
   - Synthetic data: generation ÷ pass rate, with an optional judge filter and Batch.
   - Fine-tuning: training per 1M tokens (or per hour for RFT) plus hosting hours. Fine-tune prices are unverified list prices.
 - **Editable dev environment.** Add, remove and re-price the services the team runs while building.
+- **Benefit evidence.** Capabilities can come from a benchmark library ported from workgraph: 12 capabilities, each with sources, a confidence rating and a vendor-funded flag.
+  - Hours are worked out per task, per user-week or per item in a queue.
+  - Gross hours × realisation = net hours, valued at the role's rate.
+  - Presets (conservative / typical / optimistic) pick each benchmark's saving and the default adoption and realisation.
+  - Adoption and realisation can be overridden for the project or per capability.
+  - Licence overlap (e.g. Microsoft 365 Copilot) is deducted.
+  - Each capability can go live in its own month.
+  - Savings are capped at the task's baseline.
+  - Capabilities entered as net hours are left alone.
 - **Month plan.** Every Dev Lab activity has an intensity per build month (sweeps for bake-offs), set in a grid or by applying a shape (ramp up, front-loaded, final third only).
 - **Optional labour, evaluation and maintenance.**
   - Untick "Include labour cost" to cost AI spend only.

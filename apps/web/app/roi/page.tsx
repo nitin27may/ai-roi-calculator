@@ -1,11 +1,12 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { LEVERS, applyScenario, compareScenarios, computeAllocation, type ScenarioEdit } from "@studio/engine";
+import { LEVERS, applyScenario, capabilityFromBenchmark, capabilityHours, compareScenarios, computeAllocation, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Seg, Select } from "@/components/ui";
 import { CumulativeLine } from "@/components/charts";
 import { catalog, modelOptions, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
+import { AddMenu } from "@/components/add-menu";
 import { cad, cn, fmt } from "@/lib/format";
 
 const BASES = [
@@ -37,8 +38,6 @@ export default function Roi() {
 function Assumptions() {
   const project = useStudio((s) => s.project);
   const edit = useStudio((s) => s.edit);
-  const roles = project.rateCard.map((r) => ({ value: r.id, label: r.label }));
-  const rate = (id: string) => project.rateCard.find((r) => r.id === id)?.hourlyRate ?? 0;
   const H = project.timeline.horizonMonths, B = project.timeline.buildMonths;
   const slider = (label: string, value: number, set: (n: number) => void, id: string) => (
     <div className="flex flex-col gap-1">
@@ -61,10 +60,7 @@ function Assumptions() {
             </label>
           ))}
         </fieldset>
-        <div>
-          <h3 className="mb-1.5 text-sm font-semibold">Benefit assumption</h3>
-          <Seg label="Benefit preset" value={project.roi.benefitPreset} onChange={(v) => edit((d) => { d.roi.benefitPreset = v; })} options={[{ value: "conservative", label: "Conservative ×0.7" }, { value: "typical", label: "Typical" }, { value: "optimistic", label: "Optimistic ×1.3" }]} />
-        </div>
+        <BenefitAssumptions />
         <div className="grid grid-cols-3 gap-2">
           <Field label="Growth / year"><NumberInput value={project.roi.growthPctPerYear} min={-50} max={500} suffix="%" onChange={(v) => edit((d) => { d.roi.growthPctPerYear = v; })} /></Field>
           <Field label="Rate escalation"><NumberInput value={project.roi.rateEscalationPctPerYear} max={50} suffix="%" onChange={(v) => edit((d) => { d.roi.rateEscalationPctPerYear = v; })} /></Field>
@@ -76,29 +72,7 @@ function Assumptions() {
           <p className="text-[11.5px] text-muted">Blunt what-ifs. The savings levers on the Overview and the Scenarios tab model concrete changes.</p>
         </div>
 
-        <section>
-          <h3 className="mb-1.5 text-sm font-semibold">Time saved (at full adoption)</h3>
-          {project.benefits.capabilities.map((c, i) => (
-            <div key={c.id} className="mb-2 grid grid-cols-[1fr_1fr] gap-2 rounded-md border border-line p-2">
-              <input className={cn(textIn, "col-span-2")} value={c.label} aria-label="Capability" onChange={(e) => edit((d) => { d.benefits.capabilities[i]!.label = e.target.value; })} />
-              <Field label="Hours saved / month"><NumberInput value={c.hoursSavedPerMonth} onChange={(v) => edit((d) => { d.benefits.capabilities[i]!.hoursSavedPerMonth = v; })} /></Field>
-              <Field label="Valued at"><Select value={c.roleId} options={roles} onChange={(v) => edit((d) => { d.benefits.capabilities[i]!.roleId = v; })} /></Field>
-              <details className="col-span-2 text-xs">
-                <summary className="cursor-pointer text-ink-2">Uses {c.componentIds.length} workload{c.componentIds.length === 1 ? "" : "s"} or workstream{c.componentIds.length === 1 ? "" : "s"} (for ROI by capability)</summary>
-                <div className="mt-1.5 grid grid-cols-2 gap-1">
-                  {[...project.workloads.filter((w) => w.kind !== "fixed"), ...project.build.workstreams.map((w) => ({ id: w.id, label: `Build: ${w.label}` }))].map((w) => (
-                    <label key={w.id} className="flex items-center gap-1.5">
-                      <input type="checkbox" checked={c.componentIds.includes(w.id)} onChange={(e) => edit((d) => { const cap = d.benefits.capabilities[i]!; cap.componentIds = e.target.checked ? [...cap.componentIds, w.id] : cap.componentIds.filter((x) => x !== w.id); })} />
-                      <span className="truncate">{w.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </details>
-              <div className="col-span-2 flex justify-between text-xs text-muted"><span className="num">{cad(c.hoursSavedPerMonth * rate(c.roleId))}/month before preset</span><button type="button" aria-label="Remove capability" onClick={() => edit((d) => { d.benefits.capabilities.splice(i, 1); })}><Trash2 size={14} /></button></div>
-            </div>
-          ))}
-          <button type="button" className={addBtn} onClick={() => edit((d) => { d.benefits.capabilities.push({ id: `cap-${Date.now()}`, label: "New capability", hoursSavedPerMonth: 100, roleId: d.rateCard.at(-1)!.id, componentIds: [] }); })}><Plus size={14} />Add time saving</button>
-        </section>
+        <CapabilityEditor />
 
         <section>
           <h3 className="mb-1.5 text-sm font-semibold">Avoided costs</h3>
@@ -126,6 +100,137 @@ function Assumptions() {
           onRemove={(i) => edit((d) => { d.roi.transitionCosts.splice(i, 1); })} amountLabel="CAD / month" H={H} />
       </div>
     </Card>
+  );
+}
+
+const PRESETS = [{ value: "conservative", label: "Conservative" }, { value: "typical", label: "Typical" }, { value: "optimistic", label: "Optimistic" }] as const;
+
+function BenefitAssumptions() {
+  const project = useStudio((s) => s.project);
+  const edit = useStudio((s) => s.edit);
+  const a = roiAssumptions(project, catalog.benchmarks);
+  const overridden = project.roi.adoptionPct !== undefined || project.roi.realisationPct !== undefined;
+  return (
+    <div className="flex flex-col gap-2">
+      <h3 className="text-sm font-semibold">Benefit evidence</h3>
+      <Seg label="Benefit preset" value={project.roi.benefitPreset} onChange={(v) => edit((d) => { d.roi.benefitPreset = v; })} options={PRESETS.map((p) => ({ ...p }))} />
+      <p className="text-[11.5px] text-muted">Picks each benchmark&apos;s saving and the default adoption and realisation. {a.rationale} Capabilities entered as hours are not affected.</p>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Adoption (active users)"><NumberInput value={a.adoptionPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.roi.adoptionPct = v; })} /></Field>
+        <Field label="Realisation (time that becomes value)"><NumberInput value={a.realisationPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.roi.realisationPct = v; })} /></Field>
+        <Field label="Users already licensed (e.g. M365 Copilot)"><NumberInput value={project.roi.licensedPct ?? 0} max={100} suffix="%" onChange={(v) => edit((d) => { d.roi.licensedPct = v || undefined; })} /></Field>
+        <Field label="Working days / month"><NumberInput value={project.roi.workingDaysPerMonth ?? 21} min={1} max={31} onChange={(v) => edit((d) => { d.roi.workingDaysPerMonth = v; })} /></Field>
+      </div>
+      {overridden && <button type="button" className="w-fit text-xs text-accent underline" onClick={() => edit((d) => { delete d.roi.adoptionPct; delete d.roi.realisationPct; })}>Reset adoption and realisation to the preset</button>}
+    </div>
+  );
+}
+
+const DRIVERS = [
+  { value: "hours", label: "Net hours" },
+  { value: "perTask", label: "Per task" },
+  { value: "perUserWeek", label: "Per user-week" },
+  { value: "perVolume", label: "Per queue item" },
+];
+const CONFIDENCE_TONE = { high: "ok", medium: "ok", low: "warn", none: "crit" } as const;
+
+function CapabilityEditor() {
+  const project = useStudio((s) => s.project);
+  const edit = useStudio((s) => s.edit);
+  const lib = catalog.benchmarks;
+  const defaultUsers = project.workloads.find((w) => w.kind === "chat")?.kind === "chat" ? (project.workloads.find((w) => w.kind === "chat") as { users: number }).users : 100;
+  return (
+    <section>
+      <h3 className="mb-1.5 text-sm font-semibold">Time saved</h3>
+      {project.benefits.capabilities.map((c, i) => <CapabilityCard key={c.id} c={c} i={i} />)}
+      <div className="flex flex-wrap gap-2">
+        <AddMenu label="Add from benchmarks" items={lib.capabilities.map((b) => ({ kind: b.id, label: b.label, detail: `${b.confidence} confidence${b.vendorFunded ? " · vendor-funded" : ""} · ${b.sourceLabel}` }))}
+          onPick={(id) => edit((d) => { const c = capabilityFromBenchmark(d, id, lib, defaultUsers); ensureBenchmarkRole(d, c.roleId, lib); d.benefits.capabilities.push(c); })} />
+        <button type="button" className="flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2" onClick={() => edit((d) => { d.benefits.capabilities.push({ id: `cap-${Date.now()}`, label: "New capability", hoursSavedPerMonth: 100, roleId: d.rateCard.at(-1)!.id, componentIds: [] }); })}><Plus size={14} />Enter hours</button>
+      </div>
+    </section>
+  );
+}
+
+function CapabilityCard({ c, i }: { c: Capability; i: number }) {
+  const project = useStudio((s) => s.project);
+  const edit = useStudio((s) => s.edit);
+  const lib = catalog.benchmarks;
+  const B = project.timeline.buildMonths, H = project.timeline.horizonMonths;
+  const upd = (fn: (x: Capability) => void) => edit((d) => { const x = d.benefits.capabilities[i]; if (x) fn(x); });
+  const h = capabilityHours(project, c, lib);
+  const rate = project.rateCard.find((r) => r.id === c.roleId)?.hourlyRate ?? 0;
+  const bench = c.benchmarkId ? lib.capabilities.find((b) => b.id === c.benchmarkId) : undefined;
+  const driver = c.driver ?? "hours";
+  const textIn = "min-w-0 rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]";
+  const num = (label: string, value: number | undefined, set: (x: Capability, v: number) => void, opts: { max?: number; suffix?: string } = {}) => (
+    <Field label={label}><NumberInput value={value ?? 0} max={opts.max} suffix={opts.suffix} onChange={(v) => upd((x) => set(x, v))} /></Field>
+  );
+  const unit = c.unit ?? bench?.unit ?? "minutes";
+  const savings = c.savings ?? bench?.savings ?? { conservative: 0, typical: 0, optimistic: 0 };
+  return (
+    <div className="mb-2 flex flex-col gap-2 rounded-md border border-line p-2">
+      <div className="flex items-center gap-2">
+        <input className={cn(textIn, "flex-1")} value={c.label} aria-label="Capability" onChange={(e) => upd((x) => { x.label = e.target.value; })} />
+        <button type="button" aria-label="Remove capability" onClick={() => edit((d) => { d.benefits.capabilities.splice(i, 1); })}><Trash2 size={14} /></button>
+      </div>
+      {bench && (
+        <div className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-muted">
+          <Pill tone={CONFIDENCE_TONE[bench.confidence]}>{bench.confidence} confidence</Pill>
+          {bench.vendorFunded && <Pill tone="warn">vendor-funded</Pill>}
+          {bench.sourceUrl ? <a className="underline" href={bench.sourceUrl} target="_blank" rel="noreferrer">{bench.sourceLabel}</a> : <span>{bench.sourceLabel}</span>}
+          {bench.note && <span className="block w-full">{bench.note}</span>}
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Worked out"><Select value={driver} options={DRIVERS} onChange={(v) => upd((x) => { x.driver = v as Capability["driver"]; if (v !== "hours") { x.users ??= 100; x.tasksPerUserPerDay ??= 1; x.baselineMinutes ??= 30; x.savings ??= { conservative: 5, typical: 10, optimistic: 15 }; x.unit ??= "minutes"; } })} /></Field>
+        <Field label="Valued at"><Select value={c.roleId} options={project.rateCard.map((r) => ({ value: r.id, label: `${r.label} (${cad(r.hourlyRate)}/h)` }))} onChange={(v) => upd((x) => { x.roleId = v; })} /></Field>
+        {driver === "hours" && num("Net hours saved / month", c.hoursSavedPerMonth, (x, v) => { x.hoursSavedPerMonth = v; })}
+        {(driver === "perTask" || driver === "perUserWeek") && num("Users", c.users, (x, v) => { x.users = v; })}
+        {driver === "perTask" && num("Tasks per user per day", c.tasksPerUserPerDay, (x, v) => { x.tasksPerUserPerDay = v; })}
+        {driver === "perVolume" && num("Items per month", c.itemsPerMonth, (x, v) => { x.itemsPerMonth = v; })}
+        {driver === "perVolume" && num("Share handled", c.handledPct ?? 100, (x, v) => { x.handledPct = v; }, { max: 100, suffix: "%" })}
+        {driver !== "hours" && num(driver === "perUserWeek" ? "Baseline min / week" : "Baseline minutes", c.baselineMinutes ?? bench?.baselineMinutes, (x, v) => { x.baselineMinutes = v; })}
+        {driver !== "hours" && <Field label="Saving is in"><Select value={unit} options={[{ value: "minutes", label: driver === "perUserWeek" ? "minutes / week" : "minutes" }, { value: "pct", label: "% of baseline" }]} onChange={(v) => upd((x) => { x.unit = v as "minutes" | "pct"; })} /></Field>}
+      </div>
+      {driver !== "hours" && (
+        <div className="grid grid-cols-3 gap-2">
+          {PRESETS.map((p) => (
+            <Field key={p.value} label={`${p.label}${project.roi.benefitPreset === p.value ? " ●" : ""}`}>
+              <NumberInput value={savings[p.value]} suffix={unit === "pct" ? "%" : "min"} onChange={(v) => upd((x) => { x.savings = { ...(x.savings ?? savings), [p.value]: v }; })} />
+            </Field>
+          ))}
+        </div>
+      )}
+      {driver !== "hours" && (
+        <details className="text-xs">
+          <summary className="cursor-pointer text-ink-2">Adoption, realisation and timing for this capability</summary>
+          <div className="mt-1.5 grid grid-cols-2 gap-2">
+            {driver !== "perVolume" && num("Adoption", h.adoptionPct, (x, v) => { x.adoptionPct = v; }, { max: 100, suffix: "%" })}
+            {num("Realisation", h.realisationPct, (x, v) => { x.realisationPct = v; }, { max: 100, suffix: "%" })}
+            {driver === "perUserWeek" && num("Licence overlap", Math.round((c.licenceOverlap ?? bench?.licenceOverlap ?? 0) * 100), (x, v) => { x.licenceOverlap = v / 100; }, { max: 100, suffix: "%" })}
+            <Field label={`Live from month (go-live ${B + 1})`}><NumberInput value={c.liveFromMonth ?? B + 1} min={B + 1} max={H} onChange={(v) => upd((x) => { x.liveFromMonth = Math.round(v) > B + 1 ? Math.round(v) : undefined; })} /></Field>
+          </div>
+          {(c.adoptionPct !== undefined || c.realisationPct !== undefined) && <button type="button" className="mt-1 text-accent underline" onClick={() => upd((x) => { delete x.adoptionPct; delete x.realisationPct; })}>Use the project&apos;s adoption and realisation</button>}
+        </details>
+      )}
+      {driver === "hours" && <Field label={`Live from month (go-live ${B + 1})`}><NumberInput value={c.liveFromMonth ?? B + 1} min={B + 1} max={H} onChange={(v) => upd((x) => { x.liveFromMonth = Math.round(v) > B + 1 ? Math.round(v) : undefined; })} /></Field>}
+      <details className="text-xs">
+        <summary className="cursor-pointer text-ink-2">Uses {c.componentIds.length} workload{c.componentIds.length === 1 ? "" : "s"} or workstream{c.componentIds.length === 1 ? "" : "s"} (for ROI by capability)</summary>
+        <div className="mt-1.5 grid grid-cols-2 gap-1">
+          {[...project.workloads.filter((w) => w.kind !== "fixed"), ...project.build.workstreams.map((w) => ({ id: w.id, label: `Build: ${w.label}` }))].map((w) => (
+            <label key={w.id} className="flex items-center gap-1.5">
+              <input type="checkbox" checked={c.componentIds.includes(w.id)} onChange={(e) => upd((x) => { x.componentIds = e.target.checked ? [...x.componentIds, w.id] : x.componentIds.filter((y) => y !== w.id); })} />
+              <span className="truncate">{w.label}</span>
+            </label>
+          ))}
+        </div>
+      </details>
+      <div className="rounded bg-surface-2 px-2 py-1.5 text-[11.5px]">
+        <div className="num">{h.formula}</div>
+        <div className="mt-0.5 font-semibold">{fmt(h.net)} h × {cad(rate)}/h = {cad(h.net * rate)} / month at full rollout</div>
+      </div>
+    </div>
   );
 }
 

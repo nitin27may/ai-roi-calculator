@@ -167,6 +167,36 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
 ]);
 export type Workload = z.infer<typeof WorkloadSchema>;
 
+const pct = z.number().min(0).max(100);
+
+/**
+ * A time-saving capability. `driver` decides how hours are worked out:
+ * - hours (default): `hoursSavedPerMonth` is the net saving at full rollout; presets, adoption and realisation do not apply.
+ * - perTask: users × adoption × tasks per user per day × working days × minutes saved per task.
+ * - perUserWeek: users × adoption × minutes saved per active user per week (less what an existing licence already delivers).
+ * - perVolume: items per month × share handled × minutes saved per item (a queue, so adoption does not apply).
+ * Benchmark-driven savings come per preset; gross hours × realisation = net hours valued at the role's rate.
+ */
+export const CapabilitySchema = z.object({
+  id, label: z.string(), roleId: id,
+  /** Workloads and workstreams this capability uses, for cost allocation. */
+  componentIds: z.array(id).default([]),
+  hoursSavedPerMonth: n0,
+  driver: z.enum(["hours", "perTask", "perUserWeek", "perVolume"]).optional(),
+  benchmarkId: id.optional(),
+  users: n0.optional(), tasksPerUserPerDay: n0.optional(),
+  itemsPerMonth: n0.optional(), handledPct: pct.optional(),
+  baselineMinutes: n0.optional(),
+  savings: z.object({ conservative: n0, typical: n0, optimistic: n0 }).optional(),
+  unit: z.enum(["minutes", "pct"]).optional(),
+  licenceOverlap: share.optional(),
+  /** Overrides of the preset (or project) adoption and realisation, in percent. */
+  adoptionPct: pct.optional(), realisationPct: pct.optional(),
+  /** Project month this capability goes live (defaults to go-live); its adoption ramp starts then. */
+  liveFromMonth: z.number().int().positive().optional(),
+});
+export type Capability = z.infer<typeof CapabilitySchema>;
+
 export const RoleSchema = z.object({ id, label: z.string(), hourlyRate: n0 });
 /** `experiments`: these people run AI Dev Lab experiments (drives per-developer activity volumes). */
 /** A share of a team line's time on one workstream, optionally for some build months only. */
@@ -246,7 +276,7 @@ export const ProjectSchema = z.object({
   ]),
   benefits: z.object({
     /** Time saved at full adoption. `componentIds`: workloads this capability uses, for cost allocation. */
-    capabilities: z.array(z.object({ id, label: z.string(), hoursSavedPerMonth: n0, roleId: id, componentIds: z.array(id).default([]) })),
+    capabilities: z.array(CapabilitySchema),
     /** Costs that stop (licences, contracts, headcount). Not scaled by adoption; start at go-live unless `startMonth` is set. */
     avoidedCosts: z.array(z.object({ id, label: z.string(), monthly: n0, startMonth: z.number().int().positive().optional() })),
     /** One-time benefits such as a decommissioned system's resale or a grant. */
@@ -255,6 +285,11 @@ export const ProjectSchema = z.object({
   roi: z.object({
     basis: z.enum(["run", "runMaint", "full"]),
     benefitPreset: z.enum(["conservative", "typical", "optimistic"]),
+    /** Project-wide overrides of the preset's adoption and realisation, in percent. */
+    adoptionPct: pct.optional(), realisationPct: pct.optional(),
+    /** Share of users who already hold an overlapping licence (e.g. Microsoft 365 Copilot), in percent. */
+    licensedPct: pct.optional(),
+    workingDaysPerMonth: z.number().positive().max(31).optional(),
     devCutPct: z.number().min(0).max(100),
     maintCutPct: z.number().min(0).max(100),
     /** Change management, training, dual running: monthly cost over a month window. */
