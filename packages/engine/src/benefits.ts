@@ -91,3 +91,10 @@ export function ensureBenchmarkRole(p: Project, roleId: string, lib: Library): v
   const r = lib.roles.find((x) => x.id === roleId);
   if (r) p.rateCard.push({ id: r.id, label: r.label, hourlyRate: r.hourlyRate });
 }
+
+/** Monthly value of an avoided cost before rate escalation: a fixed amount, or FTE × hours × the role's rate. */
+export function avoidedMonthly(p: Project, a: Project["benefits"]["avoidedCosts"][number]): number {
+  if (a.fte === undefined || !a.roleId) return a.monthly;
+  const rate = p.rateCard.find((r) => r.id === a.roleId)?.hourlyRate ?? 0;
+  return a.fte * (a.hoursPerMonth ?? 160) * rate;
+}

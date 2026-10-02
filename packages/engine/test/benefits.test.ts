@@ -86,3 +86,19 @@ describe("capability hours", () => {
     expect(capabilityHours(p, c, lib).net).toBeGreaterThan(0);
   });
 });
+
+describe("avoided headcount", () => {
+  it("values FTE at the role's rate and escalates it; fixed amounts stay flat", () => {
+    const p = structuredClone(meetingIntelligence);
+    const B = p.timeline.buildMonths;
+    p.benefits.avoidedCosts = [{ id: "hc", label: "Analyst not hired", monthly: 0, fte: 1.5, roleId: "knowledgeWorker", hoursPerMonth: 150, startMonth: B + 1 }];
+    const L = buildLedger(p, cat);
+    const first = 1.5 * 150 * 62.5;
+    expect(L.months[B]!.benefitBy.avoided).toBeCloseTo(first, 6);
+    expect(L.months[B + 12]!.benefitBy.avoided).toBeCloseTo(first * 1.02, 6); // 2% escalation in year 2
+    expect(L.totals.benefitRate).toBeGreaterThan(first);
+    p.benefits.avoidedCosts = [{ id: "lic", label: "Licence", monthly: 4000 }];
+    const L2 = buildLedger(p, cat);
+    expect(L2.months[B + 12]!.benefitBy.avoided).toBe(4000);
+  });
+});

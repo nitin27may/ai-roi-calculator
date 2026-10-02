@@ -278,7 +278,11 @@ export const ProjectSchema = z.object({
     /** Time saved at full adoption. `componentIds`: workloads this capability uses, for cost allocation. */
     capabilities: z.array(CapabilitySchema),
     /** Costs that stop (licences, contracts, headcount). Not scaled by adoption; start at go-live unless `startMonth` is set. */
-    avoidedCosts: z.array(z.object({ id, label: z.string(), monthly: n0, startMonth: z.number().int().positive().optional() })),
+    avoidedCosts: z.array(z.object({
+      id, label: z.string(), monthly: n0, startMonth: z.number().int().positive().optional(),
+      /** Headcount mode: full-time equivalents not hired or redeployed, valued at the role's rate (escalates with it). */
+      fte: n0.optional(), roleId: id.optional(), hoursPerMonth: n0.optional(),
+    })),
     /** One-time benefits such as a decommissioned system's resale or a grant. */
     oneOff: z.array(z.object({ id, label: z.string(), amount: n0, month: z.number().int().positive() })).default([]),
   }),

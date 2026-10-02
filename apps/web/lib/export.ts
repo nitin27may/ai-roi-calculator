@@ -1,5 +1,5 @@
 "use client";
-import { capabilityHours, computeAllocation, lineItemRows, monthRows, pricesUsedRows, summaryRows, toCsv, type Ledger, type Project, type RoiResult, type Row } from "@studio/engine";
+import { avoidedMonthly, capabilityHours, computeAllocation, lineItemRows, monthRows, pricesUsedRows, summaryRows, toCsv, type Ledger, type Project, type RoiResult, type Row } from "@studio/engine";
 import { catalog } from "./compute";
 
 const slug = (p: Project) => p.name.replace(/[^\w-]+/g, "-").toLowerCase();
@@ -46,7 +46,7 @@ export async function exportXlsx(p: Project, ledger: Ledger, roi: RoiResult) {
     ...p.rateCard.map((r) => ({ Section: "Rate card", Item: r.label, Value: r.hourlyRate, Unit: "CAD/hour" })),
     ...p.build.team.map((t) => ({ Section: "Build team", Item: `${t.phase ?? "Build"}: ${p.rateCard.find((r) => r.id === t.roleId)?.label}`, Value: t.people, Unit: `people, months ${t.fromMonth ?? 1}–${t.toMonth ?? p.timeline.buildMonths}` })),
     ...p.benefits.capabilities.map((c) => { const h = capabilityHours(p, c, catalog.benchmarks); return { Section: "Time saved", Item: c.label, Value: Math.round(h.net * 10) / 10, Unit: `net hours/month at full rollout: ${h.formula}` }; }),
-    ...p.benefits.avoidedCosts.map((c) => ({ Section: "Avoided cost", Item: c.label, Value: c.monthly, Unit: `CAD/month from month ${c.startMonth ?? p.timeline.buildMonths + 1}` })),
+    ...p.benefits.avoidedCosts.map((c) => ({ Section: "Avoided cost", Item: c.label, Value: Math.round(avoidedMonthly(p, c)), Unit: `${c.fte !== undefined ? `${c.fte} FTE, ` : ""}CAD/month from month ${c.startMonth ?? p.timeline.buildMonths + 1}` })),
     { Section: "ROI", Item: "Benefit preset", Value: p.roi.benefitPreset, Unit: "" },
     { Section: "ROI", Item: "Growth per year", Value: p.roi.growthPctPerYear, Unit: "%" },
     { Section: "ROI", Item: "Rate escalation per year", Value: p.roi.rateEscalationPctPerYear, Unit: "%" },

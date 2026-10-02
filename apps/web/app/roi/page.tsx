@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { LEVERS, applyScenario, capabilityFromBenchmark, capabilityHours, compareScenarios, computeAllocation, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
+import { LEVERS, applyScenario, avoidedMonthly, capabilityFromBenchmark, capabilityHours, compareScenarios, computeAllocation, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Seg, Select } from "@/components/ui";
 import { CumulativeLine } from "@/components/charts";
 import { catalog, modelOptions, useLedger } from "@/lib/compute";
@@ -76,16 +76,35 @@ function Assumptions() {
 
         <section>
           <h3 className="mb-1.5 text-sm font-semibold">Avoided costs</h3>
-          {project.benefits.avoidedCosts.map((a, i) => (
-            <div key={a.id} className="mb-2 grid grid-cols-[1fr_auto] items-end gap-2 rounded-md border border-line p-2">
-              <input className={cn(textIn, "col-span-2")} value={a.label} aria-label="Avoided cost" onChange={(e) => edit((d) => { d.benefits.avoidedCosts[i]!.label = e.target.value; })} />
-              <div className="grid grid-cols-2 gap-2">
-                <Field label="CAD per month"><NumberInput value={a.monthly} onChange={(v) => edit((d) => { d.benefits.avoidedCosts[i]!.monthly = v; })} /></Field>
-                <Field label={`From month (go-live ${B + 1})`}><NumberInput value={a.startMonth ?? B + 1} min={1} max={H} onChange={(v) => edit((d) => { d.benefits.avoidedCosts[i]!.startMonth = Math.round(v); })} /></Field>
+          {project.benefits.avoidedCosts.map((a, i) => {
+            const headcount = a.fte !== undefined;
+            const upd = (fn: (x: typeof a) => void) => edit((d) => { const x = d.benefits.avoidedCosts[i]; if (x) fn(x); });
+            const overlap = headcount && project.benefits.capabilities.some((c) => c.roleId === a.roleId);
+            return (
+              <div key={a.id} className="mb-2 flex flex-col gap-2 rounded-md border border-line p-2">
+                <div className="flex items-center gap-2">
+                  <input className={cn(textIn, "flex-1")} value={a.label} aria-label="Avoided cost" onChange={(e) => upd((x) => { x.label = e.target.value; })} />
+                  <button type="button" aria-label="Remove avoided cost" onClick={() => edit((d) => { d.benefits.avoidedCosts.splice(i, 1); })}><Trash2 size={14} /></button>
+                </div>
+                <Seg label="Avoided cost type" value={headcount ? "fte" : "fixed"} onChange={(v) => upd((x) => { if (v === "fte") { x.fte = 1; x.roleId = project.benefits.capabilities[0]?.roleId ?? project.rateCard.at(-1)!.id; x.hoursPerMonth = 160; } else { delete x.fte; delete x.roleId; delete x.hoursPerMonth; } })}
+                  options={[{ value: "fixed", label: "Fixed amount" }, { value: "fte", label: "Headcount" }]} />
+                <div className="grid grid-cols-2 gap-2">
+                  {headcount ? (
+                    <>
+                      <Field label="FTE avoided"><NumberInput value={a.fte ?? 0} step={0.1} onChange={(v) => upd((x) => { x.fte = v; })} /></Field>
+                      <Field label="Hours per FTE / month"><NumberInput value={a.hoursPerMonth ?? 160} onChange={(v) => upd((x) => { x.hoursPerMonth = v; })} /></Field>
+                      <Field label="Role"><Select value={a.roleId ?? ""} options={project.rateCard.map((r) => ({ value: r.id, label: `${r.label} (${cad(r.hourlyRate)}/h)` }))} onChange={(v) => upd((x) => { x.roleId = v; })} /></Field>
+                    </>
+                  ) : (
+                    <Field label="CAD per month"><NumberInput value={a.monthly} onChange={(v) => upd((x) => { x.monthly = v; })} /></Field>
+                  )}
+                  <Field label={`From month (go-live ${B + 1})`}><NumberInput value={a.startMonth ?? B + 1} min={1} max={H} onChange={(v) => upd((x) => { x.startMonth = Math.round(v); })} /></Field>
+                </div>
+                {headcount && <div className="text-[11.5px] text-muted"><span className="num font-semibold text-ink">{cad(avoidedMonthly(project, a))}/month</span>, rising with rate escalation. Count it only if the role is actually not hired, or is redeployed to funded work.</div>}
+                {overlap && <div role="note" className="rounded bg-warn-soft px-2 py-1.5 text-[11.5px] text-warn">A time-saving capability is valued at the same role. If those saved hours are what lets you avoid this headcount, you are counting the same benefit twice.</div>}
               </div>
-              <button type="button" aria-label="Remove avoided cost" className="pb-2" onClick={() => edit((d) => { d.benefits.avoidedCosts.splice(i, 1); })}><Trash2 size={14} /></button>
-            </div>
-          ))}
+            );
+          })}
           <button type="button" className={addBtn} onClick={() => edit((d) => { d.benefits.avoidedCosts.push({ id: `av-${Date.now()}`, label: "Licence or service retired", monthly: 1000 }); })}><Plus size={14} />Add avoided cost</button>
         </section>
 

@@ -4,7 +4,7 @@ import type { Project } from "./project.js";
 import type { Percentile } from "./harness.js";
 import { workloadLines } from "./workloads.js";
 import { devLabLines, teamLines } from "./devlab.js";
-import { capabilityHours } from "./benefits.js";
+import { avoidedMonthly, capabilityHours } from "./benefits.js";
 import { line, sum, type Line, type Stream } from "./lines.js";
 
 export interface MonthBenefit {
@@ -95,7 +95,9 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
     for (const t of p.roi.transitionCosts) {
       if (m >= t.fromMonth && m <= t.toMonth) lines.push(line({ id: `transition:${t.id}`, componentId: "transition", label: t.label, stream: "transition", behaviour: "fixed", meter: "transition", quantity: 1, unit: "month", unitPrice: t.monthly, formula: `CAD ${t.monthly}/month, months ${t.fromMonth}–${t.toMonth}` }));
     }
-    for (const a of p.benefits.avoidedCosts) if (m >= (a.startMonth ?? B + 1)) benefitBy.avoided += a.monthly;
+    // Headcount escalates with pay rates; a fixed amount (licence, contract) stays flat.
+    const escNow = m > B ? escalation ** Math.floor((m - B - 1) / 12) : 1;
+    for (const a of p.benefits.avoidedCosts) if (m >= (a.startMonth ?? B + 1)) benefitBy.avoided += avoidedMonthly(p, a) * (a.fte !== undefined && a.roleId ? escNow : 1);
     for (const o of p.benefits.oneOff) if (m === o.month) benefitBy.oneOff += o.amount;
     lines = applyFreeAllowances(lines, book);
     const byStream = Object.fromEntries(STREAMS.map((s) => [s, 0])) as Record<Stream, number>;
@@ -115,7 +117,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
       devLab: sum(buildMonths.map((x) => x.byStream.devlab)),
       runRate: firstFull.byStream.run + firstFull.byStream.platform,
       maintRate: firstFull.byStream.maint,
-      benefitRate: sum([...capFull.values()]) + sum(p.benefits.avoidedCosts.map((a) => a.monthly)),
+      benefitRate: sum([...capFull.values()]) + sum(p.benefits.avoidedCosts.map((a) => avoidedMonthly(p, a))),
     },
   };
 }
