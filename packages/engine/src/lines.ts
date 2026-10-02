@@ -20,6 +20,8 @@ export interface Line {
   /** CAD. */
   cost: number;
   formula: string;
+  /** For LLM lines: tokens per unit of quantity (per call, task or run). */
+  tokens?: { input: number; cachedInput: number; output: number };
 }
 
 export const line = (l: Omit<Line, "cost"> & { cost?: number }): Line => ({ ...l, cost: l.cost ?? l.quantity * l.unitPrice });

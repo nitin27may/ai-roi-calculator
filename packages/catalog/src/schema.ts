@@ -179,12 +179,27 @@ export const RealtimeModel = z.object({
 });
 export type RealtimeModel = z.infer<typeof RealtimeModel>;
 
+const PtuRate = z.object({ hourly: z.number().positive(), monthlyReservation: z.number().positive(), yearlyReservationPerMonth: z.number().positive() });
+/** Provisioned throughput: CAD per PTU and Microsoft's per-model sizing table. */
+export const Ptu = z.object({
+  rates: z.object({ global: PtuRate, dataZone: PtuRate, regional: PtuRate }),
+  models: z.array(z.object({
+    modelId: z.string(), inputTpmPerPtu: z.number().positive(), outputRatio: z.number().positive(),
+    globalMin: z.number().int().positive(), globalIncrement: z.number().int().positive(),
+    regionalMin: z.number().int().positive(), regionalIncrement: z.number().int().positive(),
+  })),
+  source: Source,
+  confidence: Confidence,
+});
+export type Ptu = z.infer<typeof Ptu>;
+
 export const Catalog = z.object({
   meta: z.object({ currency: z.literal("CAD"), asOf: isoDate, region: z.string(), notes: z.array(z.string()) }),
   chatModels: z.array(ChatModel),
   embeddingModels: z.array(EmbeddingModel),
   speechEngines: z.array(SpeechEngine),
   realtimeModels: z.array(RealtimeModel),
+  ptu: Ptu,
   searchTiers: z.array(SearchTier),
   unitPrices: z.array(UnitPrice),
   snowflake: SnowflakeSettingsDefaults,

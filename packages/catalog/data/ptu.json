@@ -1,0 +1,181 @@
+{
+  "rates": {
+    "global": {
+      "hourly": 1.386,
+      "monthlyReservation": 360.36,
+      "yearlyReservationPerMonth": 306.306
+    },
+    "dataZone": {
+      "hourly": 1.5246,
+      "monthlyReservation": 396.396,
+      "yearlyReservationPerMonth": 336.798
+    },
+    "regional": {
+      "hourly": 2.772,
+      "monthlyReservation": 396.396,
+      "yearlyReservationPerMonth": 336.798
+    }
+  },
+  "models": [
+    {
+      "modelId": "gpt-5.6-luna",
+      "inputTpmPerPtu": 30000,
+      "outputRatio": 6,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 50,
+      "regionalIncrement": 50
+    },
+    {
+      "modelId": "gpt-5.6-terra",
+      "inputTpmPerPtu": 3000,
+      "outputRatio": 6,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 50,
+      "regionalIncrement": 50
+    },
+    {
+      "modelId": "gpt-5.6-sol",
+      "inputTpmPerPtu": 1200,
+      "outputRatio": 6,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 50,
+      "regionalIncrement": 50
+    },
+    {
+      "modelId": "gpt-5.5",
+      "inputTpmPerPtu": 1200,
+      "outputRatio": 6,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 50,
+      "regionalIncrement": 50
+    },
+    {
+      "modelId": "gpt-5.4",
+      "inputTpmPerPtu": 2400,
+      "outputRatio": 6,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 50,
+      "regionalIncrement": 50
+    },
+    {
+      "modelId": "gpt-5.4-mini",
+      "inputTpmPerPtu": 7900,
+      "outputRatio": 6,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 25,
+      "regionalIncrement": 25
+    },
+    {
+      "modelId": "gpt-5.2",
+      "inputTpmPerPtu": 3400,
+      "outputRatio": 8,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 50,
+      "regionalIncrement": 50
+    },
+    {
+      "modelId": "gpt-5.1",
+      "inputTpmPerPtu": 4750,
+      "outputRatio": 8,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 50,
+      "regionalIncrement": 50
+    },
+    {
+      "modelId": "gpt-5",
+      "inputTpmPerPtu": 4750,
+      "outputRatio": 8,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 50,
+      "regionalIncrement": 50
+    },
+    {
+      "modelId": "gpt-5-mini",
+      "inputTpmPerPtu": 23750,
+      "outputRatio": 8,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 25,
+      "regionalIncrement": 25
+    },
+    {
+      "modelId": "gpt-4.1",
+      "inputTpmPerPtu": 3000,
+      "outputRatio": 4,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 50,
+      "regionalIncrement": 50
+    },
+    {
+      "modelId": "gpt-4.1-mini",
+      "inputTpmPerPtu": 14900,
+      "outputRatio": 4,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 25,
+      "regionalIncrement": 25
+    },
+    {
+      "modelId": "gpt-4.1-nano",
+      "inputTpmPerPtu": 59400,
+      "outputRatio": 4,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 25,
+      "regionalIncrement": 25
+    },
+    {
+      "modelId": "o3",
+      "inputTpmPerPtu": 3000,
+      "outputRatio": 4,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 50,
+      "regionalIncrement": 50
+    },
+    {
+      "modelId": "o4-mini",
+      "inputTpmPerPtu": 5400,
+      "outputRatio": 4,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 25,
+      "regionalIncrement": 25
+    },
+    {
+      "modelId": "gpt-4o",
+      "inputTpmPerPtu": 2500,
+      "outputRatio": 4,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 50,
+      "regionalIncrement": 50
+    },
+    {
+      "modelId": "gpt-4o-mini",
+      "inputTpmPerPtu": 37000,
+      "outputRatio": 4,
+      "globalMin": 15,
+      "globalIncrement": 5,
+      "regionalMin": 25,
+      "regionalIncrement": 25
+    }
+  ],
+  "source": {
+    "kind": "derived",
+    "url": "https://github.com/MicrosoftDocs/azure-ai-docs/blob/main/articles/foundry/openai/includes/how-to-provisioned-throughput-sizing.md",
+    "note": "Throughput table from Microsoft docs (2026-09-23); rates USD x 1.386 (Global hourly USD 1.00, monthly reservation USD 260, yearly USD 2,652)",
+    "retrievedAt": "2026-10-02"
+  },
+  "confidence": "cross-checked"
+}

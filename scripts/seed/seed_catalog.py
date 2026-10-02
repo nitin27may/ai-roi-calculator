@@ -210,6 +210,26 @@ realtime = [
      "lifecycle": {"status": "ga"}, "source": USD(RT), "confidence": "single-source"},
 ]
 
+PTUDOC = "https://github.com/MicrosoftDocs/azure-ai-docs/blob/main/articles/foundry/openai/includes/how-to-provisioned-throughput-sizing.md"
+def pm(model, tpm, ratio, gmin=15, ginc=5, rmin=50, rinc=50):
+    return {"modelId": model, "inputTpmPerPtu": tpm, "outputRatio": ratio, "globalMin": gmin, "globalIncrement": ginc, "regionalMin": rmin, "regionalIncrement": rinc}
+ptu = {
+    "rates": {
+        "global": {"hourly": r(1.00 * FX), "monthlyReservation": r(260 * FX), "yearlyReservationPerMonth": r(2652 / 12 * FX)},
+        "dataZone": {"hourly": r(1.10 * FX), "monthlyReservation": r(286 * FX), "yearlyReservationPerMonth": r(2916 / 12 * FX)},
+        "regional": {"hourly": r(2.00 * FX), "monthlyReservation": r(286 * FX), "yearlyReservationPerMonth": r(2916 / 12 * FX)},
+    },
+    "models": [
+        pm("gpt-5.6-luna", 30000, 6), pm("gpt-5.6-terra", 3000, 6), pm("gpt-5.6-sol", 1200, 6), pm("gpt-5.5", 1200, 6),
+        pm("gpt-5.4", 2400, 6), pm("gpt-5.4-mini", 7900, 6, rmin=25, rinc=25),
+        pm("gpt-5.2", 3400, 8), pm("gpt-5.1", 4750, 8), pm("gpt-5", 4750, 8), pm("gpt-5-mini", 23750, 8, rmin=25, rinc=25),
+        pm("gpt-4.1", 3000, 4), pm("gpt-4.1-mini", 14900, 4, rmin=25, rinc=25), pm("gpt-4.1-nano", 59400, 4, rmin=25, rinc=25),
+        pm("o3", 3000, 4), pm("o4-mini", 5400, 4, rmin=25, rinc=25), pm("gpt-4o", 2500, 4), pm("gpt-4o-mini", 37000, 4, rmin=25, rinc=25),
+    ],
+    "source": {"kind": "derived", "url": PTUDOC, "note": "Throughput table from Microsoft docs (2026-09-23); rates USD x 1.386 (Global hourly USD 1.00, monthly reservation USD 260, yearly USD 2,652)", "retrievedAt": "2026-10-02"},
+    "confidence": "cross-checked",
+}
+
 snow = {"aiCreditGlobal": r(2.00 * FX), "aiCreditRegional": r(2.20 * FX),
         "platformCredit": {"standard": r(2 * FX), "enterprise": r(3 * FX), "businessCritical": r(4 * FX), "vps": r(6 * FX)},
         "warehouseCreditsPerHour": {"xs": 1, "s": 2, "m": 4, "l": 8, "xl": 16},
@@ -220,5 +240,5 @@ meta = {"currency": "CAD", "asOf": "2026-10-02", "region": "canadacentral",
                   "USD-only list prices converted at 1.386 CAD/USD (ratio of Azure CAD and USD meters) and marked source.kind = derived.",
                   "Snowflake: credits from the Credit Consumption Table; CAD per credit is a project setting."]}
 OUT.mkdir(parents=True, exist_ok=True)
-for name, data in [("realtime-models", realtime), ("meta", meta), ("chat-models", chat), ("embedding-models", emb), ("speech-engines", speech), ("search-tiers", search), ("unit-prices", units), ("snowflake", snow)]:
+for name, data in [("ptu", ptu), ("realtime-models", realtime), ("meta", meta), ("chat-models", chat), ("embedding-models", emb), ("speech-engines", speech), ("search-tiers", search), ("unit-prices", units), ("snowflake", snow)]:
     json.dump(data, open(OUT / f"{name}.json", "w"), indent=2); print(name, len(data) if isinstance(data, list) else "")

@@ -14,9 +14,10 @@ const PROJECT_VIEWS = [
   { href: "/build", label: "Build" },
   { href: "/run", label: "Run" },
   { href: "/roi", label: "Value & ROI" },
+  { href: "/capacity", label: "Capacity (PTU)" },
   { href: "/settings", label: "Settings" },
 ];
-const TITLES: Record<string, string> = { "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report" };
+const TITLES: Record<string, string> = { "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report", "/capacity": "Capacity (PTU)" };
 
 export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
@@ -47,6 +48,7 @@ export function Shell({ children }: { children: ReactNode }) {
           {nav("/build", "Build", `M1–${B}`)}
           {nav("/run", "Run", `M${B + 1}–${H}`)}
           {nav("/roi", "Value & ROI")}
+          {nav("/capacity", "Capacity (PTU)")}
           {nav("/settings", "Settings")}
         </Group>
         <Group label="Data">{nav("/prices", "Prices & sources")}</Group>

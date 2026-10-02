@@ -3,6 +3,7 @@ import chatModels from "../data/chat-models.json" with { type: "json" };
 import embeddingModels from "../data/embedding-models.json" with { type: "json" };
 import speechEngines from "../data/speech-engines.json" with { type: "json" };
 import realtimeModels from "../data/realtime-models.json" with { type: "json" };
+import ptu from "../data/ptu.json" with { type: "json" };
 import searchTiers from "../data/search-tiers.json" with { type: "json" };
 import unitPrices from "../data/unit-prices.json" with { type: "json" };
 import snowflake from "../data/snowflake.json" with { type: "json" };
@@ -14,7 +15,7 @@ export type { Heuristics } from "./heuristics.js";
 
 /** Parse and validate the bundled catalogue. Throws with a path-based message on bad data. */
 export function loadCatalog(): Catalog {
-  const parsed = Catalog.safeParse({ meta, chatModels, embeddingModels, speechEngines, realtimeModels, searchTiers, unitPrices, snowflake });
+  const parsed = Catalog.safeParse({ meta, chatModels, embeddingModels, speechEngines, realtimeModels, ptu, searchTiers, unitPrices, snowflake });
   if (!parsed.success) {
     const lines = parsed.error.issues.slice(0, 20).map((i) => `${i.path.join(".")}: ${i.message}`);
     throw new Error(`Price catalogue is invalid:\n${lines.join("\n")}`);

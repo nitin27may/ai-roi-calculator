@@ -23,6 +23,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
     const per = book.chatCost(modelId, { input: inTok * tk, cachedInput: cachedTok * tk, output: outTok * tk }, date, (inTok + cachedTok) * tk);
     const disc = 1 - batch * book.chatModel(modelId).batchDiscount;
     return line({ id: `${id}:${part}`, componentId: id, label, stream: "run", behaviour, meter: modelId, quantity: calls, unit: "call", unitPrice: per * disc,
+      tokens: { input: inTok * tk, cachedInput: cachedTok * tk, output: outTok * tk },
       formula: `${fmtInt(calls)} calls × (${fmtInt(inTok * tk)} in + ${fmtInt(cachedTok * tk)} cached + ${fmtInt(outTok * tk)} out tokens) on ${book.chatModel(modelId).label}${batch ? ` · ${Math.round(batch * 100)}% via Batch` : ""}` });
   };
   const unit = (part: string, label: string, unitPriceId: string, qty: number, behaviour: "usage" | "fixed" = "usage", stream: Line["stream"] = "run"): Line => {
@@ -105,6 +106,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       if (!h) throw new Error(`Workload ${id} references unknown harness ${w.harnessId}`);
       const r = simulateHarness(h, book, { modelId: w.modelId, cacheHit: w.cacheHit, percentile: c.percentile, date });
       const out = [line({ id: `${id}:runs`, componentId: id, label: w.label, stream: "run", behaviour: "usage", meter: w.modelId, quantity: w.tasksPerMonth, unit: "task", unitPrice: r.cost,
+        tokens: { input: r.inputTokens, cachedInput: r.cachedTokens, output: r.outputTokens },
         formula: `${fmtInt(w.tasksPerMonth)} tasks × ${r.steps} steps · ${fmtInt(r.inputTokens + r.cachedTokens)} in (${fmtInt(r.cachedTokens)} cached) + ${fmtInt(r.outputTokens)} out per task at ${c.percentile.toUpperCase()}` })];
       for (const f of w.toolFees) out.push(unit(`fee-${f.unitPriceId}`, `${w.label}: ${book.unit(f.unitPriceId).label}`, f.unitPriceId, (w.tasksPerMonth * f.perTask) / unitDivisor(book.unit(f.unitPriceId).unit)));
       return out;
@@ -228,6 +230,7 @@ export function evaluationLines(id: string, label: string, stream: Line["stream"
   const tk = book.tokenizerMultiplier(judgeModelId);
   const per = book.chatCost(judgeModelId, { input: judgeIn * tk, output: judgeOut * tk }, date);
   const out: Line[] = [line({ id: `${id}:judge`, componentId: id, label: `${label}: judge`, stream, behaviour: "usage", meter: judgeModelId, quantity: n, unit: "scored item", unitPrice: per,
+    tokens: { input: judgeIn * tk, cachedInput: 0, output: judgeOut * tk },
     formula: `${fmtInt(n)} items × ${evaluators.length} evaluators · ${fmtInt(judgeIn)} in + ${fmtInt(judgeOut)} out judge tokens per item` })];
   if (safetyEvaluators > 0) {
     const s = H.evaluation.safetyEvaluatorTokens;
