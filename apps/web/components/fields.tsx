@@ -6,7 +6,7 @@ import { useStudio } from "@/lib/store";
 export type Spec =
   | { key: string; label: string; type: "number"; min?: number; max?: number; step?: number; suffix?: string }
   | { key: string; label: string; type: "percent" }
-  | { key: string; label: string; type: "model" | "embedding" | "speech" | "harness" | "unitPrice" | "sfModel" | "sfFunction" | "sfEmbedding" | "extractor" }
+  | { key: string; label: string; type: "model" | "embedding" | "speech" | "harness" | "unitPrice" | "sfModel" | "sfFunction" | "sfEmbedding" | "extractor" | "realtime" }
   | { key: string; label: string; type: "select"; options: { value: string; label: string }[]; numeric?: boolean }
   | { key: string; label: string; type: "toggle" }
   | { key: string; label: string; type: "list"; hint: string };
@@ -23,6 +23,7 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
     if (t === "embedding") return catalog.embeddingModels.map((m) => ({ value: m.id, label: m.label }));
     if (t === "speech") return catalog.speechEngines.map((m) => ({ value: m.id, label: `${m.label} · ${m.via}` }));
     if (t === "harness") return harnesses.map((h) => ({ value: h.id, label: h.label }));
+    if (t === "realtime") return catalog.realtimeModels.map((m) => ({ value: m.id, label: m.label }));
     if (t === "sfModel") return modelOptions((m) => m.platform === "snowflake");
     if (t === "sfEmbedding") return catalog.embeddingModels.filter((m) => m.platform === "snowflake").map((m) => ({ value: m.id, label: m.label }));
     if (t === "sfFunction") return catalog.unitPrices.filter((u) => u.platform === "snowflake" && u.unit === "1M tokens").map((u) => ({ value: u.id, label: u.label }));
@@ -187,6 +188,16 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
 };
 
 Object.assign(WORKLOAD_SPECS, {
+  voiceAgent: [
+    { key: "modelId", label: "Realtime model", type: "realtime" },
+    { key: "callsPerMonth", label: "Calls / month", type: "number" },
+    { key: "minutesPerCall", label: "Minutes per call", type: "number", step: 0.5, min: 0.1 },
+    { key: "turnsPerCall", label: "Turns per call", type: "number", min: 1 },
+    { key: "agentTalkShare", label: "Agent talking", type: "percent" },
+    { key: "systemPromptTokens", label: "Instructions + tools tokens", type: "number" },
+    { key: "cacheHit", label: "Cache hit", type: "percent" },
+    { key: "telephonyPerMinute", label: "Telephony CAD / minute", type: "number", step: 0.001 },
+  ],
   snowflakeComplete: [
     { key: "modelId", label: "Cortex model", type: "sfModel" },
     { key: "rowsPerMonth", label: "Rows / month", type: "number" },

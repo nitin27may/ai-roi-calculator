@@ -121,6 +121,13 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       return [llm("calls", w.label, w.modelId, w.callsPerMonth, w.inputTokens, w.cachedInputTokens, w.outputTokens, "usage", w.batchShare)];
     case "fixed":
       return w.items.map((it) => unit(it.id, it.label, it.unitPriceId, it.quantity, "fixed", "platform"));
+    case "voiceAgent": {
+      const v = voiceCall(w, book);
+      const out = [line({ id: `${id}:realtime`, componentId: id, label: `${w.label}: ${book.realtimeModel(w.modelId).label}`, stream: "run", behaviour: "usage", meter: w.modelId, quantity: w.callsPerMonth, unit: "call", unitPrice: v.cost,
+        formula: `${fmtInt(w.callsPerMonth)} calls × ${w.minutesPerCall} min, ${w.turnsPerCall} turns · ${fmtInt(v.audioIn)} audio in (${fmtInt(v.cachedAudio)} cached) + ${fmtInt(v.audioOut)} audio out + ${fmtInt(v.textIn)} text in per call` })];
+      if (w.telephonyPerMinute > 0) out.push(line({ id: `${id}:telephony`, componentId: id, label: `${w.label}: telephony`, stream: "run", behaviour: "usage", meter: "telephony", quantity: w.callsPerMonth * w.minutesPerCall, unit: "minute", unitPrice: w.telephonyPerMinute, formula: `${fmtInt(w.callsPerMonth * w.minutesPerCall)} minutes × CAD ${w.telephonyPerMinute}` }));
+      return out;
+    }
     case "snowflakeComplete": {
       const m = book.chatModel(w.modelId);
       if (m.platform !== "snowflake") throw new Error(`${w.label}: ${m.label} is not a Snowflake Cortex model`);
@@ -149,6 +156,52 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       ];
     }
   }
+}
+
+/**
+ * One speech-to-speech call. Each turn the model re-reads the conversation so far (audio
+ * history, mostly cached) plus the caller's new audio, and speaks its reply.
+ */
+export function voiceCall(w: Extract<Workload, { kind: "voiceAgent" }>, book: PriceBook) {
+  const m = book.realtimeModel(w.modelId);
+  const secs = w.minutesPerCall * 60;
+  const callerPerTurn = (secs * (1 - w.agentTalkShare) / w.turnsPerCall) * m.audioTokensPerSecondIn;
+  const agentPerTurn = (secs * w.agentTalkShare / w.turnsPerCall) * m.audioTokensPerSecondOut;
+  let history = 0, audioIn = 0, cachedAudio = 0, audioOut = 0, textIn = 0, cachedText = 0;
+  for (let t = 1; t <= w.turnsPerCall; t++) {
+    const cached = history * w.cacheHit;
+    audioIn += history - cached + callerPerTurn;
+    cachedAudio += cached;
+    audioOut += agentPerTurn;
+    const sysCached = t === 1 ? 0 : w.systemPromptTokens * w.cacheHit;
+    textIn += w.systemPromptTokens - sysCached;
+    cachedText += sysCached;
+    history += callerPerTurn + agentPerTurn;
+  }
+  const cost = (audioIn * m.audio.input + cachedAudio * m.audio.cachedInput + audioOut * m.audio.output + textIn * m.text.input + cachedText * m.text.cachedInput) / 1e6;
+  return { cost, audioIn, cachedAudio, audioOut, textIn };
+}
+
+/**
+ * The same call as a cascade: speech-to-text on the caller's audio, an LLM turn per exchange
+ * on the transcript, and text-to-speech for the agent's words.
+ */
+export function cascadeCall(w: Extract<Workload, { kind: "voiceAgent" }>, book: PriceBook, date: string, o: { sttId: string; llmId: string; ttsId: string }) {
+  const H = heuristics;
+  const callerMin = w.minutesPerCall * (1 - w.agentTalkShare), agentMin = w.minutesPerCall * w.agentTalkShare;
+  const stt = (callerMin / 60) * book.speechPerHour(o.sttId, date);
+  const wordsPerTurnCaller = (callerMin * H.speech.wordsPerMinute) / w.turnsPerCall, wordsPerTurnAgent = (agentMin * H.speech.wordsPerMinute) / w.turnsPerCall;
+  const tk = H.tokens.perWord;
+  let llm = 0, history = 0;
+  for (let t = 1; t <= w.turnsPerCall; t++) {
+    const prompt = w.systemPromptTokens + history + wordsPerTurnCaller * tk;
+    const cached = (w.systemPromptTokens + history) * (t === 1 ? 0 : w.cacheHit);
+    llm += book.chatCost(o.llmId, { input: prompt - cached, cachedInput: cached, output: wordsPerTurnAgent * tk }, date);
+    history += (wordsPerTurnCaller + wordsPerTurnAgent) * tk;
+  }
+  const chars = agentMin * H.speech.wordsPerMinute * 6;
+  const tts = (chars / 1e6) * book.unitPrice(o.ttsId);
+  return { stt, llm, tts, cost: stt + llm + tts };
 }
 
 /** Platform-credit cost of a Snowflake warehouse running `hoursPerMonth` (per-second billing, so hours are averages). */

@@ -786,5 +786,75 @@
       "retrievedAt": "2026-10-02"
     },
     "confidence": "single-source"
+  },
+  {
+    "id": "tts-neural",
+    "label": "Azure Speech neural text to speech",
+    "platform": "azure",
+    "unit": "1M chars",
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/speech/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "cross-checked",
+    "price": 20.79
+  },
+  {
+    "id": "tts-neural-hd",
+    "label": "Azure Speech neural HD text to speech",
+    "platform": "azure",
+    "unit": "1M chars",
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/speech/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source",
+    "price": 30.492
+  },
+  {
+    "id": "tts-mai-voice-2",
+    "label": "MAI-Voice-2 text to speech",
+    "platform": "azure",
+    "unit": "1M chars",
+    "source": {
+      "kind": "derived",
+      "url": "https://microsoft.ai/news/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source",
+    "price": 30.492
+  },
+  {
+    "id": "tts-mai-voice-2-flash",
+    "label": "MAI-Voice-2.1-Flash text to speech",
+    "platform": "azure",
+    "unit": "1M chars",
+    "source": {
+      "kind": "derived",
+      "url": "https://microsoft.ai/news/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source",
+    "price": 20.79
+  },
+  {
+    "id": "tts-gpt-4o-mini",
+    "label": "gpt-4o-mini-tts (\u2248 USD 0.015/min)",
+    "platform": "azure",
+    "unit": "1M chars",
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+      "note": "Derived from ~USD 0.015 per minute at ~900 characters per minute",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "unverified",
+    "price": 23.1
   }
 ]

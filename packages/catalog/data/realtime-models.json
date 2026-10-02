@@ -1,0 +1,80 @@
+[
+  {
+    "id": "gpt-realtime-2.1",
+    "label": "gpt-realtime-2.1",
+    "text": {
+      "input": 5.544,
+      "cachedInput": 0.5544,
+      "output": 33.264
+    },
+    "audio": {
+      "input": 44.352,
+      "cachedInput": 0.5544,
+      "output": 88.704
+    },
+    "audioTokensPerSecondIn": 10,
+    "audioTokensPerSecondOut": 20,
+    "lifecycle": {
+      "status": "ga"
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "gpt-realtime-2.1-mini",
+    "label": "gpt-realtime-2.1-mini",
+    "text": {
+      "input": 0.8316,
+      "cachedInput": 0.0832,
+      "output": 3.3264
+    },
+    "audio": {
+      "input": 13.86,
+      "cachedInput": 0.4158,
+      "output": 27.72
+    },
+    "audioTokensPerSecondIn": 10,
+    "audioTokensPerSecondOut": 20,
+    "lifecycle": {
+      "status": "ga"
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "gpt-realtime-1.5",
+    "label": "gpt-realtime-1.5",
+    "text": {
+      "input": 5.544,
+      "cachedInput": 0.5544,
+      "output": 22.176
+    },
+    "audio": {
+      "input": 44.352,
+      "cachedInput": 0.5544,
+      "output": 88.704
+    },
+    "audioTokensPerSecondIn": 10,
+    "audioTokensPerSecondOut": 20,
+    "lifecycle": {
+      "status": "ga"
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "retrievedAt": "2026-10-02"
+    },
+    "confidence": "single-source"
+  }
+]

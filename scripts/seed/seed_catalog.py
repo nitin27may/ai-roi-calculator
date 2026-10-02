@@ -192,6 +192,24 @@ units = [
 for t in search:
     units.append({"id": f"search-su-{t['id']}", "label": f"AI Search {t['label']} search unit", "platform": "azure", "unit": "SU-month", "price": t["perSUMonth"], "source": t["source"], "confidence": t["confidence"]})
 
+TTSURL = "https://azure.microsoft.com/pricing/details/speech/"
+units += [
+    upu("tts-neural", "Azure Speech neural text to speech", "1M chars", 15, TTSURL, "cross-checked"),
+    upu("tts-neural-hd", "Azure Speech neural HD text to speech", "1M chars", 22, TTSURL),
+    upu("tts-mai-voice-2", "MAI-Voice-2 text to speech", "1M chars", 22, "https://microsoft.ai/news/"),
+    upu("tts-mai-voice-2-flash", "MAI-Voice-2.1-Flash text to speech", "1M chars", 15, "https://microsoft.ai/news/"),
+    upu("tts-gpt-4o-mini", "gpt-4o-mini-tts (≈ USD 0.015/min)", "1M chars", 15 / 0.9, "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/", "unverified", "Derived from ~USD 0.015 per minute at ~900 characters per minute"),
+]
+RT = "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/"
+realtime = [
+    {"id": "gpt-realtime-2.1", "label": "gpt-realtime-2.1", "text": usd(4, 0.4, 24), "audio": usd(32, 0.4, 64), "audioTokensPerSecondIn": 10, "audioTokensPerSecondOut": 20,
+     "lifecycle": {"status": "ga"}, "source": USD(RT), "confidence": "cross-checked"},
+    {"id": "gpt-realtime-2.1-mini", "label": "gpt-realtime-2.1-mini", "text": usd(0.6, 0.06, 2.4), "audio": usd(10, 0.3, 20), "audioTokensPerSecondIn": 10, "audioTokensPerSecondOut": 20,
+     "lifecycle": {"status": "ga"}, "source": USD(RT), "confidence": "cross-checked"},
+    {"id": "gpt-realtime-1.5", "label": "gpt-realtime-1.5", "text": usd(4, 0.4, 16), "audio": usd(32, 0.4, 64), "audioTokensPerSecondIn": 10, "audioTokensPerSecondOut": 20,
+     "lifecycle": {"status": "ga"}, "source": USD(RT), "confidence": "single-source"},
+]
+
 snow = {"aiCreditGlobal": r(2.00 * FX), "aiCreditRegional": r(2.20 * FX),
         "platformCredit": {"standard": r(2 * FX), "enterprise": r(3 * FX), "businessCritical": r(4 * FX), "vps": r(6 * FX)},
         "warehouseCreditsPerHour": {"xs": 1, "s": 2, "m": 4, "l": 8, "xl": 16},
@@ -202,5 +220,5 @@ meta = {"currency": "CAD", "asOf": "2026-10-02", "region": "canadacentral",
                   "USD-only list prices converted at 1.386 CAD/USD (ratio of Azure CAD and USD meters) and marked source.kind = derived.",
                   "Snowflake: credits from the Credit Consumption Table; CAD per credit is a project setting."]}
 OUT.mkdir(parents=True, exist_ok=True)
-for name, data in [("meta", meta), ("chat-models", chat), ("embedding-models", emb), ("speech-engines", speech), ("search-tiers", search), ("unit-prices", units), ("snowflake", snow)]:
+for name, data in [("realtime-models", realtime), ("meta", meta), ("chat-models", chat), ("embedding-models", emb), ("speech-engines", speech), ("search-tiers", search), ("unit-prices", units), ("snowflake", snow)]:
     json.dump(data, open(OUT / f"{name}.json", "w"), indent=2); print(name, len(data) if isinstance(data, list) else "")

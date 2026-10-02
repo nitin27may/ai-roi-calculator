@@ -33,6 +33,7 @@ export const WORKLOAD_KINDS: { kind: Workload["kind"]; label: string; detail: st
   { kind: "contentSafety", label: "Content Safety", detail: "Moderation and Prompt Shields per request" },
   { kind: "llm", label: "Other LLM calls", detail: "Any calls with known token sizes; Batch optional" },
   { kind: "fixed", label: "Platform & infrastructure", detail: "Fixed monthly services (APIM, storage, logs…)" },
+  { kind: "voiceAgent", label: "Voice agent (real time)", detail: "Speech-to-speech calls with gpt-realtime, compared with a cascade" },
   { kind: "snowflakeComplete", label: "Snowflake AI_COMPLETE", detail: "Cortex LLM calls over table rows, plus warehouse time" },
   { kind: "snowflakeFunction", label: "Snowflake AI function", detail: "AI_CLASSIFY, AI_EXTRACT, AI_TRANSLATE… plus warehouse time" },
   { kind: "cortexSearch", label: "Snowflake Cortex Search", detail: "Serving per GB, re-embedding and refresh warehouse" },
@@ -84,6 +85,7 @@ export function newWorkload(p: Project, kind: Workload["kind"]): Workload {
     case "continuousEval": return { kind, id, label, interactionsPerMonth: 50_000, sampleShare: 0.05, judgeModelId: JUDGE_MODEL, evaluators: ["groundedness", "relevance", "coherence"], contextTokens: 2500, responseTokens: 400, safetyEvaluators: 0 };
     case "contentSafety": return { kind, id, label, requestsPerMonth: 50_000, charsPerRequest: 3000, unitPriceIds: ["safety-text", "safety-prompt-shields"] };
     case "llm": return { kind, id, label, callsPerMonth: 10_000, modelId: DEFAULT_MODEL, inputTokens: 2000, cachedInputTokens: 0, outputTokens: 500, batchShare: 0 };
+    case "voiceAgent": return { kind, id, label, modelId: "gpt-realtime-2.1-mini", callsPerMonth: 5000, minutesPerCall: 5, turnsPerCall: 12, agentTalkShare: 0.5, systemPromptTokens: 1500, cacheHit: 0.8, telephonyPerMinute: 0 };
     case "snowflakeComplete": return { kind, id, label, modelId: "sf:openai-gpt-5", rowsPerMonth: 50_000, inputTokens: 800, outputTokens: 200, warehouse: { size: "m", hoursPerMonth: 20 } };
     case "snowflakeFunction": return { kind, id, label, functionId: "sf-ai-classify", rowsPerMonth: 100_000, tokensPerRow: 300, hiddenPromptTokens: 150, outputTokensPerRow: 10, warehouse: { size: "m", hoursPerMonth: 10 } };
     case "cortexSearch": return { kind, id, label, rows: 1_000_000, vectorColumns: 1, embeddingModelId: "sf:snowflake-arctic-embed-m-v1.5", avgRowBytes: 1000, tokensPerRow: 400, changedShareMonthly: 0.05, warehouse: { size: "m", hoursPerMonth: 8 } };
@@ -95,4 +97,17 @@ export function newWorkload(p: Project, kind: Workload["kind"]): Workload {
 export function removeWorkload(p: Project, id: string): void {
   p.workloads = p.workloads.filter((w) => w.id !== id);
   for (const c of p.benefits.capabilities) c.componentIds = c.componentIds.filter((x) => x !== id);
+}
+
+/** A new harness with default sizes and a unique id. */
+export function newHarness(p: Project): Harness {
+  return { ...DEFAULT_HARNESS, id: uniqueId(p, "agent"), label: p.harnesses.length ? `Agent ${p.harnesses.length + 1}` : "Agent" };
+}
+
+/** Where a harness is used; a harness can only be removed when this is empty. */
+export function harnessUsage(p: Project, id: string): string[] {
+  return [
+    ...p.build.activities.filter((a) => "harnessId" in a && a.harnessId === id).map((a) => `Build: ${a.label}`),
+    ...p.workloads.filter((w) => w.kind === "agent" && w.harnessId === id).map((w) => `Run: ${w.label}`),
+  ];
 }

@@ -1,6 +1,6 @@
 "use client";
-import { useMemo, useState } from "react";
-import { PriceBook, WORKLOAD_KINDS, newWorkload, removeWorkload, simulateHarness, sizeSearch, type Workload } from "@studio/engine";
+import { useEffect, useMemo, useState } from "react";
+import { PriceBook, WORKLOAD_KINDS, cascadeCall, harnessUsage, newHarness, newWorkload, removeWorkload, simulateHarness, sizeSearch, voiceCall, type Workload } from "@studio/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, Pill, Seg, Select } from "@/components/ui";
 import { Explain } from "@/components/explain";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
@@ -12,9 +12,9 @@ import { cad, fmt } from "@/lib/format";
 const GROUP: Record<Workload["kind"], string> = {
   transcription: "Ingestion", documents: "Ingestion", email: "Ingestion", embeddings: "Retrieval", aiSearch: "Retrieval", retrieval: "Retrieval",
   chat: "Conversation", agent: "Agents", continuousEval: "Quality & safety", contentSafety: "Quality & safety", llm: "Other AI usage", fixed: "Platform",
-  snowflakeComplete: "Snowflake", snowflakeFunction: "Snowflake", cortexSearch: "Snowflake",
+  voiceAgent: "Voice", snowflakeComplete: "Snowflake", snowflakeFunction: "Snowflake", cortexSearch: "Snowflake",
 };
-const ORDER = ["Ingestion", "Retrieval", "Conversation", "Agents", "Quality & safety", "Snowflake", "Other AI usage", "Platform"];
+const ORDER = ["Ingestion", "Retrieval", "Conversation", "Voice", "Agents", "Quality & safety", "Snowflake", "Other AI usage", "Platform"];
 
 export default function Run() {
   const { project, ledger } = useLedger();
@@ -44,6 +44,7 @@ export default function Run() {
           <div className="px-3.5 py-2.5"><AddWorkload onAdded={setSel} /></div>
           <GroupHead>Agent harnesses</GroupHead>
           {project.harnesses.map((h) => <ListRow key={h.id} selected={sel === `h:${h.id}`} onClick={() => setSel(`h:${h.id}`)} title={h.label} sub={`${h.tools} tools · ${h.steps} steps · max ${h.maxTurns} turns`} value="" />)}
+          <div className="px-3.5 py-2.5"><AddHarness onAdded={(id) => setSel(`h:${id}`)} /></div>
           <GroupHead>Operations</GroupHead>
           <ListRow selected={sel === "maintenance"} onClick={() => setSel("maintenance")} title="Maintenance" sub={project.maintenance.mode === "team" ? "support team" : `${project.maintenance.pctPerYear}% of build per year`} aside={<Pill>fixed</Pill>} value={cad(ledger.totals.maintRate)} />
         </div>
@@ -71,10 +72,21 @@ function summary(w: Workload): string {
     case "contentSafety": return `${fmt(w.requestsPerMonth)} requests`;
     case "llm": return `${fmt(w.callsPerMonth)} calls · ${w.modelId}`;
     case "fixed": return w.items.map((i) => i.label).join(" · ");
+    case "voiceAgent": return `${fmt(w.callsPerMonth)} calls × ${w.minutesPerCall} min · ${w.modelId}`;
     case "snowflakeComplete": return `${fmt(w.rowsPerMonth)} rows · ${w.modelId.replace(/^sf:/, "")}`;
     case "snowflakeFunction": return `${fmt(w.rowsPerMonth)} rows · ${catalog.unitPrices.find((u) => u.id === w.functionId)?.label}`;
     case "cortexSearch": return `${fmt(w.rows)} rows · ${w.changedShareMonthly * 100}% change monthly`;
   }
+}
+
+function AddHarness({ onAdded }: { onAdded: (id: string) => void }) {
+  const edit = useStudio((s) => s.edit);
+  return (
+    <button type="button" className="flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2"
+      onClick={() => { let id = ""; edit((d) => { const h = newHarness(d); id = h.id; d.harnesses.push(h); }); if (id) onAdded(id); }}>
+      + Add harness
+    </button>
+  );
 }
 
 function AddWorkload({ onAdded }: { onAdded: (id: string) => void }) {
@@ -90,6 +102,8 @@ function AddWorkload({ onAdded }: { onAdded: (id: string) => void }) {
 
 function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
   const edit = useStudio((s) => s.edit);
+  const [blocked, setBlocked] = useState<string[]>([]);
+  useEffect(() => setBlocked([]), [sel]);
   const { project, ledger } = useLedger();
   const percentile = useStudio((s) => s.percentile);
   const steady = ledger.months.find((m) => m.phase === "production" && m.adoption >= 1) ?? ledger.months.at(-1)!;
@@ -107,7 +121,10 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
     if (!h) return null;
     return (
       <>
-        <div><h2 className="text-base font-bold">{h.label}</h2><div className="text-xs text-muted">Shared by Build (bake-off, iterations, regression) and Run (agent workloads). Caps bound the worst case.</div></div>
+        <ItemHeader label={h.label} sub="Shared by Build (bake-off, iterations, regression) and Run (agent workloads). Caps bound the worst case." removeLabel="Remove harness"
+          onRename={(v) => edit((d) => { const x = d.harnesses.find((y) => y.id === id); if (x) x.label = v; })}
+          onRemove={() => { const used = harnessUsage(project, id); if (used.length) { setBlocked(used); return; } edit((d) => { d.harnesses = d.harnesses.filter((y) => y.id !== id); }); onRemoved(); }} />
+        {blocked.length > 0 && <div role="alert" className="rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">This harness is still used by {blocked.join(", ")}. Point those at another harness first.</div>}
         <Fields specs={HARNESS_SPECS} value={h as unknown as Record<string, unknown>} locate={(d) => d.harnesses.find((x) => x.id === id) as unknown as Record<string, unknown>} />
         <HarnessTable harnessId={id} modelId={project.workloads.find((w) => w.kind === "agent" && w.harnessId === id)?.kind === "agent" ? (project.workloads.find((w) => w.kind === "agent" && w.harnessId === id) as { modelId: string }).modelId : "gpt-5.4"} cacheHit={0.8} tasks={0} />
       </>
@@ -134,10 +151,45 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
         </div>
       )}
       {w.kind === "transcription" && <SpeechCompare hours={w.hoursPerMonth} current={w.engineId} id={w.id} diarize={w.diarize} />}
+      {w.kind === "voiceAgent" && <VoiceCompare id={w.id} />}
       {w.kind === "agent" && <HarnessTable harnessId={w.harnessId} modelId={w.modelId} cacheHit={w.cacheHit} tasks={w.tasksPerMonth} />}
       {w.kind === "aiSearch" && <SearchSizing w={w} />}
       <Explain title="How this is calculated" lines={lines} months={1} />
     </>
+  );
+}
+
+function VoiceCompare({ id }: { id: string }) {
+  const book = useBook();
+  const { project, ledger } = useLedger();
+  const edit = useStudio((s) => s.edit);
+  const w = project.workloads.find((x) => x.id === id);
+  if (w?.kind !== "voiceAgent") return null;
+  const date = (ledger.months.find((m) => m.phase === "production") ?? ledger.months.at(-1)!).date;
+  const rows = [
+    ...catalog.realtimeModels.map((m) => ({ key: m.id, label: `${m.label} (speech to speech)`, perCall: voiceCall({ ...w, modelId: m.id }, book).cost, current: m.id === w.modelId, use: () => edit((d) => { const x = d.workloads.find((y) => y.id === id); if (x?.kind === "voiceAgent") x.modelId = m.id; }) })),
+    ...[["speech-realtime", "Speech real-time"], ["mai-transcribe-2-streaming", "MAI-Transcribe-2 Streaming"]].flatMap(([stt, sttL]) =>
+      [["gpt-5.4-mini", "GPT-5.4-mini"], ["gpt-5.4", "GPT-5.4"]].flatMap(([llm, llmL]) =>
+        [["tts-neural", "Neural TTS"], ["tts-mai-voice-2-flash", "MAI-Voice-2.1-Flash"]].map(([tts, ttsL]) => ({
+          key: `${stt}-${llm}-${tts}`, label: `${sttL} → ${llmL} → ${ttsL}`, perCall: cascadeCall(w, book, date, { sttId: stt!, llmId: llm!, ttsId: tts! }).cost, current: false, use: null as null | (() => void),
+        })))),
+  ].sort((a, b) => a.perCall - b.perCall);
+  return (
+    <div>
+      <h3 className="mb-1.5 text-sm font-semibold">The same {fmt(w.callsPerMonth)} calls, speech-to-speech or cascaded</h3>
+      <table className="data">
+        <thead><tr><th>Option</th><th className="n">CAD / call</th><th className="n">CAD / minute</th><th className="n">CAD / month</th><th /></tr></thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.key} style={r.current ? { background: "var(--accent-soft)" } : undefined}>
+              <td>{r.label}</td><td className="n">{cad(r.perCall, 3)}</td><td className="n">{cad(r.perCall / w.minutesPerCall, 3)}</td><td className="n">{cad(r.perCall * w.callsPerMonth)}</td>
+              <td>{r.use && !r.current && <button type="button" className="rounded border border-line px-1.5 text-xs hover:bg-surface-2" onClick={r.use}>Use</button>}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="mt-1.5 text-[11.5px] text-muted">Speech-to-speech re-reads the call's audio every turn (mostly cached), so long calls with many turns cost more per minute. A cascade bills audio once but adds latency between speech recognition, the model and the synthesized voice. Telephony is not included in this comparison.</p>
+    </div>
   );
 }
 

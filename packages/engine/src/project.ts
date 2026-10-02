@@ -116,6 +116,12 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
   }),
   z.object({ kind: z.literal("fixed"), id, label: z.string(), group: z.string(), items: z.array(FixedItemSchema) }),
   z.object({
+    kind: z.literal("voiceAgent"), id, label: z.string(), modelId: id, callsPerMonth: n0, minutesPerCall: z.number().positive(),
+    turnsPerCall: z.number().int().positive(), agentTalkShare: share, systemPromptTokens: n0, cacheHit: share,
+    /** Phone or ACS calling cost per minute in CAD (0 for web/app voice). */
+    telephonyPerMinute: n0,
+  }),
+  z.object({
     kind: z.literal("snowflakeComplete"), id, label: z.string(), modelId: id, rowsPerMonth: n0,
     inputTokens: n0, outputTokens: n0, warehouse: Warehouse,
   }),

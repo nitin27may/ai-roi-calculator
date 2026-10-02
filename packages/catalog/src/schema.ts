@@ -165,11 +165,26 @@ export const SnowflakeSettingsDefaults = z.object({
   confidence: Confidence,
 });
 
+/** Speech-to-speech models: text and audio tokens priced separately (CAD per 1M). */
+export const RealtimeModel = z.object({
+  id: z.string(),
+  label: z.string(),
+  text: TokenPrices,
+  audio: TokenPrices,
+  audioTokensPerSecondIn: z.number().positive(),
+  audioTokensPerSecondOut: z.number().positive(),
+  lifecycle: Lifecycle,
+  source: Source,
+  confidence: Confidence,
+});
+export type RealtimeModel = z.infer<typeof RealtimeModel>;
+
 export const Catalog = z.object({
   meta: z.object({ currency: z.literal("CAD"), asOf: isoDate, region: z.string(), notes: z.array(z.string()) }),
   chatModels: z.array(ChatModel),
   embeddingModels: z.array(EmbeddingModel),
   speechEngines: z.array(SpeechEngine),
+  realtimeModels: z.array(RealtimeModel),
   searchTiers: z.array(SearchTier),
   unitPrices: z.array(UnitPrice),
   snowflake: SnowflakeSettingsDefaults,

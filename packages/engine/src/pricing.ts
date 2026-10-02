@@ -46,6 +46,12 @@ export class PriceBook {
     return m;
   }
 
+  realtimeModel(id: string) {
+    const m = this.catalog.realtimeModels.find((x) => x.id === id);
+    if (!m) throw new Error(`Unknown realtime model "${id}"`);
+    return m;
+  }
+
   aiCreditCad(): number {
     const s = this.settings.snowflake;
     return s.aiCreditCad ?? (s.routing === "global" ? this.catalog.snowflake.aiCreditGlobal : this.catalog.snowflake.aiCreditRegional);
