@@ -2,6 +2,8 @@
 
 A local, offline calculator for what an AI use case costs to **build** and to **run**, and whether it pays back. Everything is priced in **CAD**, and the only providers are **Azure** (Foundry models including Claude on Foundry, Speech, Document Intelligence, Content Understanding, AI Search, Content Safety, evaluation) and **Snowflake Cortex**.
 
+> **Picking this up on a new machine?** Start with [docs/HANDOVER.md](docs/HANDOVER.md): setup, price refresh, code map and open items.
+
 - **Build.** Labour from a rate card by delivery phase, plus the **AI Dev Lab**: the tokens and AI services the team uses while building. That covers model bake-offs across candidate models, harness iterations, nightly regression, Foundry evaluation, AI red teaming, the playground and AI coding tools.
 - **Workstreams and people.**
   - A workstream is a feature with one or more agents. Each team line (a named seat or a role count) gets a share of its time per workstream; whatever is left is project-wide work.
