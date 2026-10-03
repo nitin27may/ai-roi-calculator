@@ -216,7 +216,7 @@ pnpm test && pnpm typecheck && pnpm --filter @studio/web build
 - `pnpm typecheck` does **not** cover `apps/web`; the Next.js build does. Run both.
 - After changing the sample project, run `npx tsx scripts/sample-summary.ts` to print its headline numbers.
 
-There is no CI yet. A minimal workflow is a good first pull request: install, test, typecheck and build on push to `main` and on pull requests.
+CI (`.github/workflows/ci.yml`) runs the same three on every pull request and on push to `main`. Branch protection on `main` requires it to pass.
 
 ---
 
@@ -227,7 +227,7 @@ There is no CI yet. A minimal workflow is a good first pull request: install, te
 | Set `main` as the default branch | Done 2026-10-02; old branch deleted |
 | First live price refresh (Azure, Snowflake) | Done 2026-10-02; see the gotchas in section 3 |
 | Confirm fine-tune and Snowflake rates | Snowflake confirmed from the 2026-10 PDF. Fine-tune rates are still USD-derived (`pnpm validate`) |
-| CI workflow (test, typecheck, build) | Suggested |
+| CI workflow (test, typecheck, build) | Done 2026-10-02; required on `main` |
 | Monte Carlo ranges for NPV (likelihood, not just bounds) | Idea, not started |
 | Side-by-side comparison of two projects | Idea, not started |
 | Mobile layout | Not designed for phones; built for desktop |
