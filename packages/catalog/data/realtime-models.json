@@ -3,14 +3,14 @@
     "id": "gpt-realtime-2.1",
     "label": "gpt-realtime-2.1",
     "text": {
-      "input": 5.544,
-      "cachedInput": 0.5544,
-      "output": 33.264
+      "input": 5.6662,
+      "cachedInput": 0.5666,
+      "output": 33.9972
     },
     "audio": {
-      "input": 44.352,
-      "cachedInput": 0.5544,
-      "output": 88.704
+      "input": 45.3296,
+      "cachedInput": 0.5666,
+      "output": 90.6592
     },
     "audioTokensPerSecondIn": 10,
     "audioTokensPerSecondOut": 20,
@@ -18,25 +18,25 @@
       "status": "ga"
     },
     "source": {
-      "kind": "derived",
-      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "gpt-realtime-2.1 Audio inp Gl 1M Tokens",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "cross-checked"
+    "confidence": "verified"
   },
   {
     "id": "gpt-realtime-2.1-mini",
     "label": "gpt-realtime-2.1-mini",
     "text": {
-      "input": 0.8316,
-      "cachedInput": 0.0832,
-      "output": 3.3264
+      "input": 0.8499,
+      "cachedInput": 0.085,
+      "output": 3.3997
     },
     "audio": {
-      "input": 13.86,
-      "cachedInput": 0.4158,
-      "output": 27.72
+      "input": 14.1655,
+      "cachedInput": 0.425,
+      "output": 28.331
     },
     "audioTokensPerSecondIn": 10,
     "audioTokensPerSecondOut": 20,
@@ -44,25 +44,25 @@
       "status": "ga"
     },
     "source": {
-      "kind": "derived",
-      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "gpt-realtime-2.1-mini Audio inp Gl 1M Tokens",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "cross-checked"
+    "confidence": "verified"
   },
   {
     "id": "gpt-realtime-1.5",
     "label": "gpt-realtime-1.5",
     "text": {
-      "input": 5.544,
-      "cachedInput": 0.5544,
-      "output": 22.176
+      "input": 5.6662,
+      "cachedInput": 0.5666,
+      "output": 22.6648
     },
     "audio": {
-      "input": 44.352,
-      "cachedInput": 0.5544,
-      "output": 88.704
+      "input": 45.3296,
+      "cachedInput": 0.5666,
+      "output": 90.6592
     },
     "audioTokensPerSecondIn": 10,
     "audioTokensPerSecondOut": 20,
@@ -70,11 +70,11 @@
       "status": "ga"
     },
     "source": {
-      "kind": "derived",
-      "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "gpt rt 1.5 aud inp Gl 1M Tokens",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "verified"
   }
 ]
