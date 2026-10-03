@@ -63,15 +63,15 @@
     "platform": "azure",
     "dims": 1536,
     "maxInputTokens": 128000,
-    "per1M": 0.1663,
+    "per1M": 0.17,
     "lifecycle": {
       "status": "ga"
     },
     "source": {
       "kind": "derived",
       "url": "https://ai.azure.com",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source"
   },

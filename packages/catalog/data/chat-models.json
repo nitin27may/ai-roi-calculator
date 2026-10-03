@@ -11,17 +11,19 @@
       "global": {
         "input": 5.6662,
         "cachedInput": 0.5666,
-        "output": 28.331
+        "output": 28.331,
+        "cacheWrite": 7.0828
       },
       "dataZone": {
-        "input": 6.0986,
-        "cachedInput": 0.6098,
-        "output": 30.4931
+        "input": 6.2328,
+        "cachedInput": 0.6233,
+        "output": 31.1641,
+        "cacheWrite": 7.791
       },
       "globalList": {
-        "input": 6.93,
-        "cachedInput": 0.693,
-        "output": 41.58
+        "input": 7.0828,
+        "cachedInput": 0.7083,
+        "output": 42.4965
       }
     },
     "toolUseOverheadTokens": 0,
@@ -33,16 +35,17 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "5.6 sol ShortCo Inp Std Gl 1M Tokens",
+      "meterName": "5.6 sol ShortCo Inp Std DZ 1M Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified",
     "longContext": {
       "threshold": 272000,
       "prices": {
-        "input": 11.0884,
-        "cachedInput": 1.1088,
-        "output": 41.5815
+        "input": 11.3324,
+        "cachedInput": 1.1332,
+        "output": 42.4965,
+        "cacheWrite": 14.1655
       }
     },
     "promo": {
@@ -62,12 +65,14 @@
       "global": {
         "input": 2.8331,
         "cachedInput": 0.2833,
-        "output": 16.9986
+        "output": 16.9986,
+        "cacheWrite": 3.5414
       },
       "dataZone": {
-        "input": 3.0493,
-        "cachedInput": 0.3049,
-        "output": 18.2959
+        "input": 3.1164,
+        "cachedInput": 0.3116,
+        "output": 18.6985,
+        "cacheWrite": 3.8955
       }
     },
     "toolUseOverheadTokens": 0,
@@ -79,16 +84,17 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "5.6 terra ShortCo Inp Std Gl 1M Tokens",
+      "meterName": "5.6 terra ShortCo Inp Std DZ 1M Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified",
     "longContext": {
       "threshold": 272000,
       "prices": {
-        "input": 5.5442,
-        "cachedInput": 0.5544,
-        "output": 24.9489
+        "input": 5.6662,
+        "cachedInput": 0.5666,
+        "output": 25.4979,
+        "cacheWrite": 7.0828
       }
     }
   },
@@ -104,12 +110,14 @@
       "global": {
         "input": 0.2833,
         "cachedInput": 0.0283,
-        "output": 1.6999
+        "output": 1.6999,
+        "cacheWrite": 0.3541
       },
       "dataZone": {
-        "input": 0.3049,
-        "cachedInput": 0.0305,
-        "output": 1.8296
+        "input": 0.3116,
+        "cachedInput": 0.0312,
+        "output": 1.8698,
+        "cacheWrite": 0.3896
       }
     },
     "toolUseOverheadTokens": 0,
@@ -121,16 +129,17 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "5.6 luna ShortCo Inp Std Gl 1M Tokens",
+      "meterName": "5.6 luna ShortCo Inp Std DZ 1M Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified",
     "longContext": {
       "threshold": 272000,
       "prices": {
-        "input": 0.5544,
-        "cachedInput": 0.0554,
-        "output": 2.495
+        "input": 0.5666,
+        "cachedInput": 0.0567,
+        "output": 2.5498,
+        "cacheWrite": 0.7083
       }
     }
   },
@@ -149,9 +158,9 @@
         "output": 42.4965
       },
       "dataZone": {
-        "input": 7.6233,
-        "cachedInput": 0.7623,
-        "output": 45.7397
+        "input": 7.791,
+        "cachedInput": 0.7791,
+        "output": 46.7462
       }
     },
     "toolUseOverheadTokens": 0,
@@ -163,16 +172,16 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "5.5 ShortCo inp Gl 1M Tokens",
+      "meterName": "5.5 ShortCo inp Dz 1M Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified",
     "longContext": {
       "threshold": 272000,
       "prices": {
-        "input": 13.8606,
-        "cachedInput": 1.386,
-        "output": 62.3722
+        "input": 14.1655,
+        "cachedInput": 1.4166,
+        "output": 63.7448
       }
     }
   },
@@ -191,9 +200,9 @@
         "output": 21.2483
       },
       "dataZone": {
-        "input": 3.8116,
-        "cachedInput": 0.3811,
-        "output": 22.8699
+        "input": 3.8955,
+        "cachedInput": 0.3896,
+        "output": 23.3731
       }
     },
     "toolUseOverheadTokens": 0,
@@ -205,16 +214,58 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "5.4 inp Gl 1M Tokens",
+      "meterName": "5.4 inp Dz 1M Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified",
     "longContext": {
       "threshold": 272000,
       "prices": {
-        "input": 6.9302,
-        "cachedInput": 0.693,
-        "output": 31.1862
+        "input": 7.0828,
+        "cachedInput": 0.7083,
+        "output": 31.8724
+      }
+    }
+  },
+  {
+    "id": "gpt-5.4-pro",
+    "label": "GPT-5.4 Pro",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 1050000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 42.4965,
+        "cachedInput": 42.4965,
+        "output": 254.979
+      },
+      "dataZone": {
+        "input": 46.7462,
+        "cachedInput": 46.7462,
+        "output": 280.4769
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-09-07"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "5.4 pro inp Dz 1M Tokens",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "verified",
+    "longContext": {
+      "threshold": 272000,
+      "prices": {
+        "input": 84.993,
+        "cachedInput": 84.993,
+        "output": 382.4685
       }
     }
   },
@@ -233,9 +284,9 @@
         "output": 6.3745
       },
       "dataZone": {
-        "input": 1.1435,
-        "cachedInput": 0.1144,
-        "output": 6.8609
+        "input": 1.1687,
+        "cachedInput": 0.1169,
+        "output": 7.0119
       }
     },
     "toolUseOverheadTokens": 0,
@@ -247,7 +298,7 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "5.4 mini Inp Gl 1M Tokens",
+      "meterName": "5.4 mini Inp Dz 1M Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -267,9 +318,9 @@
         "output": 1.7707
       },
       "dataZone": {
-        "input": 0.3049,
-        "cachedInput": 0.0305,
-        "output": 1.9059
+        "input": 0.3116,
+        "cachedInput": 0.0312,
+        "output": 1.9478
       }
     },
     "toolUseOverheadTokens": 0,
@@ -281,7 +332,7 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "5.4 nano Inp Gl 1M Tokens",
+      "meterName": "5.4 nano Inp Dz 1M Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -301,9 +352,9 @@
         "output": 19.8317
       },
       "dataZone": {
-        "input": 2.6682,
-        "cachedInput": 0.2669,
-        "output": 21.3452
+        "input": 2.7269,
+        "cachedInput": 0.2727,
+        "output": 21.8149
       }
     },
     "toolUseOverheadTokens": 0,
@@ -315,7 +366,75 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "GPT 5.2 inp Gl 1M Tokens",
+      "meterName": "GPT 5.2 inp Dz 1M Tokens",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-5.3-codex",
+    "label": "GPT-5.3 Codex",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 400000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 2.479,
+        "cachedInput": 0.2479,
+        "output": 19.8317
+      },
+      "dataZone": {
+        "input": 2.7269,
+        "cachedInput": 0.2727,
+        "output": 21.8149
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-08-24"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "5.3 codex inp Dz 1M Tokens",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-5.2-codex",
+    "label": "GPT-5.2 Codex",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 400000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 2.479,
+        "cachedInput": 0.2479,
+        "output": 19.8317
+      },
+      "dataZone": {
+        "input": 2.7269,
+        "cachedInput": 0.2727,
+        "output": 21.8149
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-07-13"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "5.2 codex inp Dz 1M Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -335,9 +454,9 @@
         "output": 14.1655
       },
       "dataZone": {
-        "input": 1.9059,
-        "cachedInput": 0.1906,
-        "output": 15.2466
+        "input": 1.9478,
+        "cachedInput": 0.1948,
+        "output": 15.5821
       }
     },
     "toolUseOverheadTokens": 0,
@@ -349,7 +468,109 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "GPT 5.1 inp Gl 1M Tokens",
+      "meterName": "GPT 5.1 inp Dz 1M Tokens",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-5.1-codex-max",
+    "label": "GPT-5.1 Codex Max",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 400000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 1.7707,
+        "cachedInput": 0.1771,
+        "output": 14.1655
+      },
+      "dataZone": {
+        "input": 1.9478,
+        "cachedInput": 0.1948,
+        "output": 15.5821
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-05-18"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "5.1 codex max inp Dz 1M Tokens",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-5.1-codex",
+    "label": "GPT-5.1 Codex",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 400000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 1.7707,
+        "cachedInput": 0.1771,
+        "output": 14.1655
+      },
+      "dataZone": {
+        "input": 1.9478,
+        "cachedInput": 0.1948,
+        "output": 15.5821
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-05-15"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "5.1 codex inp Dz 1M Tokens",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "gpt-5.1-codex-mini",
+    "label": "GPT-5.1 Codex mini",
+    "platform": "azure",
+    "vendor": "openai",
+    "tokenizer": "o200k",
+    "contextWindow": 400000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 0.3541,
+        "cachedInput": 0.0354,
+        "output": 2.8331
+      },
+      "dataZone": {
+        "input": 0.3896,
+        "cachedInput": 0.039,
+        "output": 3.1164
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-05-15"
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "5.1 codex mini inp Dz 1M Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -369,9 +590,9 @@
         "output": 14.1655
       },
       "dataZone": {
-        "input": 1.9059,
-        "cachedInput": 0.1906,
-        "output": 15.2466
+        "input": 1.9478,
+        "cachedInput": 0.1948,
+        "output": 15.5821
       }
     },
     "toolUseOverheadTokens": 0,
@@ -383,7 +604,7 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "GPT 5 Inpt Glbl 1M Tokens",
+      "meterName": "GPT 5 Inpt DZone 1M Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -403,9 +624,9 @@
         "output": 2.8331
       },
       "dataZone": {
-        "input": 0.3811,
-        "cachedInput": 0.0382,
-        "output": 3.0493
+        "input": 0.3896,
+        "cachedInput": 0.039,
+        "output": 3.1164
       }
     },
     "toolUseOverheadTokens": 0,
@@ -417,7 +638,7 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "GPT 5 Mini Inpt Glbl 1M Tokens",
+      "meterName": "GPT 5 Mini Inpt DZone 1M Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -437,9 +658,9 @@
         "output": 0.5666
       },
       "dataZone": {
-        "input": 0.0762,
-        "cachedInput": 0.0076,
-        "output": 0.6098
+        "input": 0.0779,
+        "cachedInput": 0.0078,
+        "output": 0.6233
       }
     },
     "toolUseOverheadTokens": 0,
@@ -451,7 +672,7 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "GPT 5 Nano Inpt Glbl 1M Tokens",
+      "meterName": "GPT 5 Nano Inpt DZone 1M Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -471,9 +692,9 @@
         "output": 11.3
       },
       "dataZone": {
-        "input": 3.08,
-        "cachedInput": 0.77,
-        "output": 12.21
+        "input": 3.1,
+        "cachedInput": 0.8,
+        "output": 12.5
       }
     },
     "toolUseOverheadTokens": 0,
@@ -485,7 +706,7 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "gpt 4.1 Inp glbl Tokens",
+      "meterName": "gpt 4.1 Inp Data Zone Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -505,9 +726,9 @@
         "output": 2.3
       },
       "dataZone": {
-        "input": 0.66,
-        "cachedInput": 0.11,
-        "output": 2.42
+        "input": 0.6,
+        "cachedInput": 0.2,
+        "output": 2.5
       }
     },
     "toolUseOverheadTokens": 0,
@@ -519,7 +740,7 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "gpt 4.1 mini Inp glbl Tokens",
+      "meterName": "gpt 4.1 mini Inp Data Zone Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -539,9 +760,9 @@
         "output": 0.6
       },
       "dataZone": {
-        "input": 0.11,
-        "cachedInput": 0,
-        "output": 0.66
+        "input": 0.2,
+        "cachedInput": 0.2,
+        "output": 0.6
       }
     },
     "toolUseOverheadTokens": 0,
@@ -553,7 +774,7 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "gpt 4.1 nano Inp glbl Tokens",
+      "meterName": "gpt 4.1 nano Inp Data Zone Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -573,9 +794,9 @@
         "output": 14.2
       },
       "dataZone": {
-        "input": 3.85,
-        "cachedInput": 1.87,
-        "output": 15.29
+        "input": 3.9,
+        "cachedInput": 1.9,
+        "output": 15.6
       }
     },
     "toolUseOverheadTokens": 0,
@@ -587,7 +808,7 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "gpt 4o 1120 Inp glbl Tokens",
+      "meterName": "gpt 4o 1120 Inp Data Zone Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -607,9 +828,9 @@
         "output": 0.8
       },
       "dataZone": {
-        "input": 0.22,
-        "cachedInput": 0.11,
-        "output": 0.88
+        "input": 0.2,
+        "cachedInput": 0.1,
+        "output": 0.9
       }
     },
     "toolUseOverheadTokens": 0,
@@ -621,7 +842,7 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "gpt-4o-mini-0718-Inp-glbl Tokens",
+      "meterName": "gpt 4o mini 0718 Inp Data Zone Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -641,9 +862,9 @@
         "output": 11.3
       },
       "dataZone": {
-        "input": 3.08,
-        "cachedInput": 0.77,
-        "output": 12.21
+        "input": 3.1,
+        "cachedInput": 0.8,
+        "output": 12.5
       }
     },
     "toolUseOverheadTokens": 0,
@@ -655,7 +876,7 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "o3 0416 Inp glbl Tokens",
+      "meterName": "o3 0416 Inp Data Zone Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -675,9 +896,9 @@
         "output": 6.2
       },
       "dataZone": {
-        "input": 1.65,
-        "cachedInput": 0.44,
-        "output": 6.71
+        "input": 1.7,
+        "cachedInput": 0.4,
+        "output": 6.9
       }
     },
     "toolUseOverheadTokens": 0,
@@ -689,7 +910,7 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "o4-mini 0416 Inp glbl Tokens",
+      "meterName": "o4-mini 0416 Inp Data Zone Tokens",
       "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
@@ -738,16 +959,16 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 2.772,
-        "cachedInput": 0.1386,
-        "output": 13.86,
-        "cacheWrite": 3.465
+        "input": 2.8331,
+        "cachedInput": 0.1417,
+        "output": 14.1655,
+        "cacheWrite": 3.5414
       },
       "dataZone": {
-        "input": 3.0492,
-        "cachedInput": 0.1525,
-        "output": 15.246,
-        "cacheWrite": 3.8115
+        "input": 3.1164,
+        "cachedInput": 0.1558,
+        "output": 15.5821,
+        "cacheWrite": 3.8955
       }
     },
     "toolUseOverheadTokens": 0,
@@ -758,11 +979,20 @@
     },
     "source": {
       "kind": "derived",
-      "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "url": "https://azure.microsoft.com/en-us/pricing/details/azure-openai/",
+      "note": "Not yet in the Retail API; Azure OpenAI pricing page, Data Zone (US) 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "cross-checked"
+    "confidence": "cross-checked",
+    "longContext": {
+      "threshold": 272000,
+      "prices": {
+        "input": 5.6662,
+        "cachedInput": 0.2833,
+        "output": 21.2483,
+        "cacheWrite": 7.0828
+      }
+    }
   },
   {
     "id": "gpt-6-astra",
@@ -774,16 +1004,16 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 13.86,
-        "cachedInput": 1.386,
-        "output": 69.3,
-        "cacheWrite": 17.325
+        "input": 14.1655,
+        "cachedInput": 1.4166,
+        "output": 70.8275,
+        "cacheWrite": 17.7069
       },
       "dataZone": {
-        "input": 15.246,
-        "cachedInput": 1.5246,
-        "output": 76.23,
-        "cacheWrite": 19.0575
+        "input": 15.5821,
+        "cachedInput": 1.5582,
+        "output": 77.9103,
+        "cacheWrite": 19.4776
       }
     },
     "toolUseOverheadTokens": 0,
@@ -793,12 +1023,21 @@
       "retiresOn": null
     },
     "source": {
-      "kind": "derived",
-      "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "6-astra ShortCo Inp Std DZ 1M Tokens",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "cross-checked"
+    "confidence": "verified",
+    "longContext": {
+      "threshold": 272000,
+      "prices": {
+        "input": 28.331,
+        "cachedInput": 2.8331,
+        "output": 106.2413,
+        "cacheWrite": 35.4138
+      }
+    }
   },
   {
     "id": "gpt-6-sol",
@@ -810,16 +1049,16 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 2.772,
-        "cachedInput": 0.2772,
-        "output": 13.86,
-        "cacheWrite": 3.465
+        "input": 2.8331,
+        "cachedInput": 0.2833,
+        "output": 14.1655,
+        "cacheWrite": 3.5414
       },
       "dataZone": {
-        "input": 3.0492,
-        "cachedInput": 0.3049,
-        "output": 15.246,
-        "cacheWrite": 3.8115
+        "input": 3.1164,
+        "cachedInput": 0.3116,
+        "output": 15.5821,
+        "cacheWrite": 3.8955
       }
     },
     "toolUseOverheadTokens": 0,
@@ -829,12 +1068,21 @@
       "retiresOn": null
     },
     "source": {
-      "kind": "derived",
-      "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "6-sol ShortCo Inp Std DZ 1M Tokens",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "cross-checked"
+    "confidence": "verified",
+    "longContext": {
+      "threshold": 272000,
+      "prices": {
+        "input": 5.6662,
+        "cachedInput": 0.5666,
+        "output": 21.2483,
+        "cacheWrite": 7.0828
+      }
+    }
   },
   {
     "id": "gpt-6-luna",
@@ -846,16 +1094,16 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 0.1386,
-        "cachedInput": 0.0139,
-        "output": 0.693,
-        "cacheWrite": 0.1732
+        "input": 0.1417,
+        "cachedInput": 0.0142,
+        "output": 0.7083,
+        "cacheWrite": 0.1771
       },
       "dataZone": {
-        "input": 0.1525,
-        "cachedInput": 0.0153,
-        "output": 0.7623,
-        "cacheWrite": 0.1905
+        "input": 0.1558,
+        "cachedInput": 0.0156,
+        "output": 0.7791,
+        "cacheWrite": 0.1948
       }
     },
     "toolUseOverheadTokens": 0,
@@ -865,12 +1113,21 @@
       "retiresOn": null
     },
     "source": {
-      "kind": "derived",
-      "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "6-luna ShortCo Inp Std DZ 1M Tokens",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "verified",
+    "longContext": {
+      "threshold": 272000,
+      "prices": {
+        "input": 0.2833,
+        "cachedInput": 0.0283,
+        "output": 1.0624,
+        "cacheWrite": 0.3541
+      }
+    }
   },
   {
     "id": "claude-opus-5-5",
@@ -882,20 +1139,20 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 5.544,
-        "cachedInput": 0.2772,
-        "output": 27.72,
-        "cacheWrite": 6.93
+        "input": 5.6662,
+        "cachedInput": 0.2833,
+        "output": 28.331,
+        "cacheWrite": 7.0828
       },
       "dataZone": {
-        "input": 6.0984,
-        "cachedInput": 0.3049,
-        "output": 30.492,
-        "cacheWrite": 7.623
+        "input": 6.2328,
+        "cachedInput": 0.3116,
+        "output": 31.1641,
+        "cacheWrite": 7.791
       }
     },
     "toolUseOverheadTokens": 286,
-    "batchDiscount": 0.5,
+    "batchDiscount": 0,
     "lifecycle": {
       "status": "ga",
       "retiresOn": null
@@ -903,8 +1160,8 @@
     "source": {
       "kind": "derived",
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "note": "Foundry bills Claude at Anthropic list price (CCU); USD × 1.386",
-      "retrievedAt": "2026-10-02"
+      "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "cross-checked"
   },
@@ -918,20 +1175,20 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 2.772,
-        "cachedInput": 0.2772,
-        "output": 13.86,
-        "cacheWrite": 3.465
+        "input": 2.8331,
+        "cachedInput": 0.2833,
+        "output": 14.1655,
+        "cacheWrite": 3.5414
       },
       "dataZone": {
-        "input": 3.0492,
-        "cachedInput": 0.3049,
-        "output": 15.246,
-        "cacheWrite": 3.8115
+        "input": 3.1164,
+        "cachedInput": 0.3116,
+        "output": 15.5821,
+        "cacheWrite": 3.8955
       }
     },
     "toolUseOverheadTokens": 286,
-    "batchDiscount": 0.5,
+    "batchDiscount": 0,
     "lifecycle": {
       "status": "ga",
       "retiresOn": null
@@ -939,8 +1196,140 @@
     "source": {
       "kind": "derived",
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "note": "Foundry bills Claude at Anthropic list price (CCU); USD × 1.386",
-      "retrievedAt": "2026-10-02"
+      "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "claude-fable-5-1",
+    "label": "Claude Fable 5.1 (Foundry)",
+    "platform": "azure",
+    "vendor": "anthropic",
+    "tokenizer": "claude-47",
+    "contextWindow": 1000000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 14.1655,
+        "cachedInput": 0.3541,
+        "output": 70.8275,
+        "cacheWrite": 17.7069
+      }
+    },
+    "toolUseOverheadTokens": 286,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "preview",
+      "retiresOn": "2027-12-05"
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "claude-fable-5",
+    "label": "Claude Fable 5 (Foundry)",
+    "platform": "azure",
+    "vendor": "anthropic",
+    "tokenizer": "claude-47",
+    "contextWindow": 1000000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 14.1655,
+        "cachedInput": 1.4166,
+        "output": 70.8275,
+        "cacheWrite": 17.7069
+      }
+    },
+    "toolUseOverheadTokens": 286,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "preview",
+      "retiresOn": "2027-12-05"
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "claude-opus-5",
+    "label": "Claude Opus 5 (Foundry)",
+    "platform": "azure",
+    "vendor": "anthropic",
+    "tokenizer": "claude-47",
+    "contextWindow": 1000000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 7.0828,
+        "cachedInput": 0.7083,
+        "output": 35.4138,
+        "cacheWrite": 8.8534
+      },
+      "dataZone": {
+        "input": 7.791,
+        "cachedInput": 0.7791,
+        "output": 38.9551,
+        "cacheWrite": 9.7388
+      }
+    },
+    "toolUseOverheadTokens": 290,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-07-08"
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "claude-sonnet-5",
+    "label": "Claude Sonnet 5 (Foundry)",
+    "platform": "azure",
+    "vendor": "anthropic",
+    "tokenizer": "claude-47",
+    "contextWindow": 1000000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 2.8331,
+        "cachedInput": 0.2833,
+        "output": 14.1655,
+        "cacheWrite": 3.5414
+      },
+      "dataZone": {
+        "input": 3.1164,
+        "cachedInput": 0.3116,
+        "output": 15.5821,
+        "cacheWrite": 3.8955
+      }
+    },
+    "toolUseOverheadTokens": 286,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-06-30"
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "cross-checked"
   },
@@ -954,29 +1343,119 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 6.93,
-        "cachedInput": 0.693,
-        "output": 34.65,
-        "cacheWrite": 8.6625
+        "input": 7.0828,
+        "cachedInput": 0.7083,
+        "output": 35.4138,
+        "cacheWrite": 8.8534
       },
       "dataZone": {
-        "input": 7.623,
-        "cachedInput": 0.7623,
-        "output": 38.115,
-        "cacheWrite": 9.5288
+        "input": 7.791,
+        "cachedInput": 0.7791,
+        "output": 38.9551,
+        "cacheWrite": 9.7388
       }
     },
     "toolUseOverheadTokens": 290,
-    "batchDiscount": 0.5,
+    "batchDiscount": 0,
     "lifecycle": {
       "status": "ga",
-      "retiresOn": null
+      "retiresOn": "2027-09-01"
     },
     "source": {
       "kind": "derived",
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "claude-opus-4-7",
+    "label": "Claude Opus 4.7 (Foundry)",
+    "platform": "azure",
+    "vendor": "anthropic",
+    "tokenizer": "claude-47",
+    "contextWindow": 1000000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 7.0828,
+        "cachedInput": 0.7083,
+        "output": 35.4138,
+        "cacheWrite": 8.8534
+      }
+    },
+    "toolUseOverheadTokens": 290,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-04-06"
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "claude-opus-4-6",
+    "label": "Claude Opus 4.6 (Foundry)",
+    "platform": "azure",
+    "vendor": "anthropic",
+    "tokenizer": "claude-legacy",
+    "contextWindow": 1000000,
+    "maxOutput": 128000,
+    "prices": {
+      "global": {
+        "input": 7.0828,
+        "cachedInput": 0.7083,
+        "output": 35.4138,
+        "cacheWrite": 8.8534
+      }
+    },
+    "toolUseOverheadTokens": 497,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2027-02-02"
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "claude-opus-4-5",
+    "label": "Claude Opus 4.5 (Foundry)",
+    "platform": "azure",
+    "vendor": "anthropic",
+    "tokenizer": "claude-legacy",
+    "contextWindow": 200000,
+    "maxOutput": 64000,
+    "prices": {
+      "global": {
+        "input": 7.0828,
+        "cachedInput": 0.7083,
+        "output": 35.4138,
+        "cacheWrite": 8.8534
+      }
+    },
+    "toolUseOverheadTokens": 497,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2026-11-24"
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "cross-checked"
   },
@@ -990,29 +1469,53 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 4.158,
-        "cachedInput": 0.4158,
-        "output": 20.79,
-        "cacheWrite": 5.1975
-      },
-      "dataZone": {
-        "input": 4.5738,
-        "cachedInput": 0.4574,
-        "output": 22.869,
-        "cacheWrite": 5.7172
+        "input": 4.2497,
+        "cachedInput": 0.425,
+        "output": 21.2483,
+        "cacheWrite": 5.3121
       }
     },
     "toolUseOverheadTokens": 497,
-    "batchDiscount": 0.5,
+    "batchDiscount": 0,
     "lifecycle": {
-      "status": "legacy",
-      "retiresOn": null
+      "status": "ga",
+      "retiresOn": "2027-02-10"
     },
     "source": {
       "kind": "derived",
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "cross-checked"
+  },
+  {
+    "id": "claude-sonnet-4-5",
+    "label": "Claude Sonnet 4.5 (Foundry)",
+    "platform": "azure",
+    "vendor": "anthropic",
+    "tokenizer": "claude-legacy",
+    "contextWindow": 200000,
+    "maxOutput": 64000,
+    "prices": {
+      "global": {
+        "input": 4.2497,
+        "cachedInput": 0.425,
+        "output": 21.2483,
+        "cacheWrite": 5.3121
+      }
+    },
+    "toolUseOverheadTokens": 497,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": "2026-11-30"
+    },
+    "source": {
+      "kind": "derived",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "cross-checked"
   },
@@ -1026,29 +1529,23 @@
     "maxOutput": 64000,
     "prices": {
       "global": {
-        "input": 1.386,
-        "cachedInput": 0.1386,
-        "output": 6.93,
-        "cacheWrite": 1.7325
-      },
-      "dataZone": {
-        "input": 1.5246,
-        "cachedInput": 0.1525,
-        "output": 7.623,
-        "cacheWrite": 1.9058
+        "input": 1.4166,
+        "cachedInput": 0.1417,
+        "output": 7.0828,
+        "cacheWrite": 1.7707
       }
     },
     "toolUseOverheadTokens": 496,
-    "batchDiscount": 0.5,
+    "batchDiscount": 0,
     "lifecycle": {
       "status": "ga",
-      "retiresOn": null
+      "retiresOn": "2026-11-15"
     },
     "source": {
       "kind": "derived",
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "cross-checked"
   },
@@ -1062,14 +1559,14 @@
     "maxOutput": 64000,
     "prices": {
       "global": {
-        "input": 2.4116,
-        "cachedInput": 0.201,
-        "output": 4.8233
+        "input": 2.4648,
+        "cachedInput": 0.2054,
+        "output": 4.9296
       },
       "dataZone": {
-        "input": 2.6528,
-        "cachedInput": 0.2211,
-        "output": 5.3056
+        "input": 2.7113,
+        "cachedInput": 0.2259,
+        "output": 5.4226
       }
     },
     "toolUseOverheadTokens": 0,
@@ -1081,8 +1578,8 @@
     "source": {
       "kind": "derived",
       "url": "https://learn.microsoft.com/azure/ai-foundry/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source"
   },
@@ -1096,14 +1593,14 @@
     "maxOutput": 64000,
     "prices": {
       "global": {
-        "input": 1.7325,
-        "cachedInput": 0.2772,
-        "output": 3.465
+        "input": 1.7707,
+        "cachedInput": 0.2833,
+        "output": 3.5414
       },
       "dataZone": {
-        "input": 1.9058,
-        "cachedInput": 0.3049,
-        "output": 3.8115
+        "input": 1.9478,
+        "cachedInput": 0.3116,
+        "output": 3.8955
       }
     },
     "toolUseOverheadTokens": 0,
@@ -1115,8 +1612,8 @@
     "source": {
       "kind": "derived",
       "url": "https://learn.microsoft.com/azure/ai-foundry/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source"
   },
@@ -1130,14 +1627,14 @@
     "maxOutput": 8192,
     "prices": {
       "global": {
-        "input": 0.3465,
-        "cachedInput": 0.3465,
-        "output": 1.386
+        "input": 0.3541,
+        "cachedInput": 0.3541,
+        "output": 1.4166
       },
       "dataZone": {
-        "input": 0.3811,
-        "cachedInput": 0.3811,
-        "output": 1.5246
+        "input": 0.3896,
+        "cachedInput": 0.3896,
+        "output": 1.5582
       }
     },
     "toolUseOverheadTokens": 0,
@@ -1149,8 +1646,8 @@
     "source": {
       "kind": "derived",
       "url": "https://learn.microsoft.com/azure/ai-foundry/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source"
   },
@@ -1164,14 +1661,14 @@
     "maxOutput": 32000,
     "prices": {
       "global": {
-        "input": 0.693,
-        "cachedInput": 0.693,
-        "output": 2.079
+        "input": 0.7083,
+        "cachedInput": 0.7083,
+        "output": 2.1248
       },
       "dataZone": {
-        "input": 0.7623,
-        "cachedInput": 0.7623,
-        "output": 2.2869
+        "input": 0.7791,
+        "cachedInput": 0.7791,
+        "output": 2.3373
       }
     },
     "toolUseOverheadTokens": 0,
@@ -1183,8 +1680,8 @@
     "source": {
       "kind": "derived",
       "url": "https://learn.microsoft.com/azure/ai-foundry/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source"
   },
@@ -1195,17 +1692,12 @@
     "vendor": "microsoft",
     "tokenizer": "other",
     "contextWindow": 256000,
-    "maxOutput": 32000,
+    "maxOutput": 64000,
     "prices": {
       "global": {
-        "input": 2.772,
-        "cachedInput": 0.2772,
-        "output": 11.088
-      },
-      "dataZone": {
-        "input": 3.0492,
-        "cachedInput": 0.3049,
-        "output": 12.1968
+        "input": 2.8331,
+        "cachedInput": 0.2833,
+        "output": 11.3324
       }
     },
     "toolUseOverheadTokens": 0,
@@ -1215,12 +1707,104 @@
       "retiresOn": null
     },
     "source": {
-      "kind": "derived",
-      "url": "https://learn.microsoft.com/azure/ai-foundry/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "MAI-Thinking-1 Inp glbl 1M Tokens",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "verified"
+  },
+  {
+    "id": "mai-cyber-1-flash",
+    "label": "MAI-Cyber-1-Flash",
+    "platform": "azure",
+    "vendor": "microsoft",
+    "tokenizer": "other",
+    "contextWindow": 256000,
+    "maxOutput": 32000,
+    "prices": {
+      "global": {
+        "input": 0.8499,
+        "cachedInput": 0.085,
+        "output": 4.9579
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "preview",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "MAI-Cyber-1-Flash Inp glbl 1M Tokens",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "mai-code-1.1-flash",
+    "label": "MAI-Code-1.1-Flash",
+    "platform": "azure",
+    "vendor": "microsoft",
+    "tokenizer": "other",
+    "contextWindow": 256000,
+    "maxOutput": 32000,
+    "prices": {
+      "global": {
+        "input": 0.2833,
+        "cachedInput": 0.0283,
+        "output": 1.6999
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "preview",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Code 1.1 Flash Input glbl 1M Tokens",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "verified"
+  },
+  {
+    "id": "mai-ds-r1",
+    "label": "MAI-DS-R1",
+    "platform": "azure",
+    "vendor": "microsoft",
+    "tokenizer": "other",
+    "contextWindow": 128000,
+    "maxOutput": 32768,
+    "prices": {
+      "global": {
+        "input": 1.9,
+        "cachedInput": 1.9,
+        "output": 7.6
+      },
+      "dataZone": {
+        "input": 2.1,
+        "cachedInput": 2.1,
+        "output": 8.4
+      }
+    },
+    "toolUseOverheadTokens": 0,
+    "batchDiscount": 0,
+    "lifecycle": {
+      "status": "ga",
+      "retiresOn": null
+    },
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "MAI-DS-R1 Inp Dzone Tokens",
+      "retrievedAt": "2026-10-03"
+    },
+    "confidence": "verified"
   },
   {
     "id": "sf:claude-sonnet-5-5",

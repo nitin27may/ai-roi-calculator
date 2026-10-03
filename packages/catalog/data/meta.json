@@ -3,8 +3,14 @@
   "asOf": "2026-10-03",
   "region": "canadacentral",
   "notes": [
-    "Azure prices: Azure Retail Prices API, currencyCode CAD, Global deployment, 2026-09-17.",
-    "USD-only list prices converted at 1.386 CAD/USD (ratio of Azure CAD and USD meters) and marked source.kind = derived.",
+    "Azure prices: Azure Retail Prices API, currencyCode CAD, Global deployment; Data Zone uses the US Data Zone meters.",
+    "USD-only list prices live in usd-list.json and are converted at meta.fx.usdToCad, re-measured from the Retail API on every refresh (source.kind = derived).",
     "Snowflake: credits from the Credit Consumption Table; CAD per credit is a project setting."
-  ]
+  ],
+  "fx": {
+    "usdToCad": 1.41655,
+    "meters": 5083,
+    "asOf": "2026-10-03",
+    "source": "Azure Retail Prices API: CAD/USD ratio of 5083 matched meters (productName eq 'Azure OpenAI GPT5')"
+  }
 }

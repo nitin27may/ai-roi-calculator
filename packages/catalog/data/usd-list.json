@@ -1,0 +1,570 @@
+[
+  {
+    "file": "chat-models",
+    "id": "gpt-5.6-sol",
+    "url": "https://prices.azure.com/api/retail/prices",
+    "usd": {
+      "prices.globalList.input": 5.0,
+      "prices.globalList.cachedInput": 0.5,
+      "prices.globalList.output": 30.0
+    },
+    "note": "Promo price from the Retail API; list price USD 5 / 0.5 / 30 applies after the promo"
+  },
+  {
+    "file": "chat-models",
+    "id": "gpt-6.1-sol",
+    "url": "https://azure.microsoft.com/en-us/pricing/details/azure-openai/",
+    "usd": {
+      "prices.global.input": 2,
+      "prices.global.cachedInput": 0.1,
+      "prices.global.cacheWrite": 2.5,
+      "prices.global.output": 10,
+      "prices.dataZone.input": 2.2,
+      "prices.dataZone.cachedInput": 0.11,
+      "prices.dataZone.cacheWrite": 2.75,
+      "prices.dataZone.output": 11,
+      "longContext.prices.input": 4,
+      "longContext.prices.cachedInput": 0.2,
+      "longContext.prices.cacheWrite": 5,
+      "longContext.prices.output": 15
+    },
+    "note": "Not yet in the Retail API; Azure OpenAI pricing page, Data Zone (US) 1.1x"
+  },
+  {
+    "file": "chat-models",
+    "id": "deepseek-v4-pro",
+    "url": "https://learn.microsoft.com/azure/ai-foundry/",
+    "usd": {
+      "prices.global.input": 1.74,
+      "prices.global.cachedInput": 0.145,
+      "prices.global.output": 3.48,
+      "prices.dataZone.input": 1.914,
+      "prices.dataZone.cachedInput": 0.1595,
+      "prices.dataZone.output": 3.828
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "grok-4.3",
+    "url": "https://learn.microsoft.com/azure/ai-foundry/",
+    "usd": {
+      "prices.global.input": 1.25,
+      "prices.global.cachedInput": 0.2,
+      "prices.global.output": 2.5,
+      "prices.dataZone.input": 1.375,
+      "prices.dataZone.cachedInput": 0.22,
+      "prices.dataZone.output": 2.75
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "llama-4-maverick",
+    "url": "https://learn.microsoft.com/azure/ai-foundry/",
+    "usd": {
+      "prices.global.input": 0.25,
+      "prices.global.cachedInput": 0.25,
+      "prices.global.output": 1.0,
+      "prices.dataZone.input": 0.275,
+      "prices.dataZone.cachedInput": 0.275,
+      "prices.dataZone.output": 1.1
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "mistral-large-3",
+    "url": "https://learn.microsoft.com/azure/ai-foundry/",
+    "usd": {
+      "prices.global.input": 0.5,
+      "prices.global.cachedInput": 0.5,
+      "prices.global.output": 1.5,
+      "prices.dataZone.input": 0.55,
+      "prices.dataZone.cachedInput": 0.55,
+      "prices.dataZone.output": 1.65
+    }
+  },
+  {
+    "file": "embedding-models",
+    "id": "cohere-embed-v4",
+    "url": "https://ai.azure.com",
+    "usd": {
+      "per1M": 0.12
+    }
+  },
+  {
+    "file": "speech-engines",
+    "id": "mai-transcribe-2",
+    "url": "https://azure.microsoft.com/en-us/pricing/details/speech/",
+    "usd": {
+      "perAudioHour": 0.1
+    },
+    "note": "Promo price until 2026-12-31 (Fast Transcription enhanced mode); list price after the promo is unpublished"
+  },
+  {
+    "file": "speech-engines",
+    "id": "mai-transcribe-1.5",
+    "url": "https://azure.microsoft.com/en-us/pricing/details/speech/",
+    "usd": {
+      "perAudioHour": 0.36
+    }
+  },
+  {
+    "file": "speech-engines",
+    "id": "mai-transcribe-2-streaming",
+    "url": "https://azure.microsoft.com/en-us/pricing/details/speech/",
+    "usd": {
+      "perAudioHour": 0.54
+    },
+    "note": "UNCONFIRMED: no official streaming SKU found on 2026-10-02; streaming runs inside Voice Live at its audio-token rates"
+  },
+  {
+    "file": "speech-engines",
+    "id": "cu-audio",
+    "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
+    "usd": {
+      "perAudioHour": 0.46
+    },
+    "note": "Extraction USD 0.36/h + contextualization USD 0.10/h; LLM tokens extra"
+  },
+  {
+    "file": "unit-prices",
+    "id": "di-custom",
+    "url": "https://azure.microsoft.com/pricing/details/ai-document-intelligence/",
+    "usd": {
+      "price": 30.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "di-addon-highres",
+    "url": "https://azure.microsoft.com/pricing/details/ai-document-intelligence/",
+    "usd": {
+      "price": 6.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "di-query-fields",
+    "url": "https://azure.microsoft.com/pricing/details/ai-document-intelligence/",
+    "usd": {
+      "price": 10.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "cu-doc-standard",
+    "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
+    "usd": {
+      "price": 5.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "cu-doc-basic",
+    "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
+    "usd": {
+      "price": 1.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "cu-doc-minimal",
+    "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
+    "usd": {
+      "price": 0.01
+    },
+    "note": "Pricing page shows '$-'; one secondary source says ~USD 0.01"
+  },
+  {
+    "file": "unit-prices",
+    "id": "cu-context-standard",
+    "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
+    "usd": {
+      "price": 1.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "cu-video",
+    "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
+    "usd": {
+      "price": 1.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "search-agentic",
+    "url": "https://azure.microsoft.com/pricing/details/search/",
+    "usd": {
+      "price": 0.022
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "search-image-extract",
+    "url": "https://azure.microsoft.com/pricing/details/search/",
+    "usd": {
+      "price": 1.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "rerank-cohere-3.5",
+    "url": "https://ai.azure.com",
+    "usd": {
+      "price": 2.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "rerank-cohere-4-fast",
+    "url": "https://ai.azure.com",
+    "usd": {
+      "price": 2.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "rerank-cohere-4-pro",
+    "url": "https://ai.azure.com",
+    "usd": {
+      "price": 2.5
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "safety-text",
+    "url": "https://azure.microsoft.com/pricing/details/content-safety/",
+    "usd": {
+      "price": 0.375
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "safety-image",
+    "url": "https://azure.microsoft.com/pricing/details/content-safety/",
+    "usd": {
+      "price": 0.75
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "safety-prompt-shields",
+    "url": "https://azure.microsoft.com/pricing/details/content-safety/",
+    "usd": {
+      "price": 0.375
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "eval-safety-input",
+    "url": "https://azure.microsoft.com/pricing/details/ai-foundry/",
+    "usd": {
+      "price": 20.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "eval-safety-output",
+    "url": "https://azure.microsoft.com/pricing/details/ai-foundry/",
+    "usd": {
+      "price": 60.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "bing-grounding",
+    "url": "https://www.microsoft.com/en-us/bing/apis/grounding-pricing",
+    "usd": {
+      "price": 14.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "code-interpreter",
+    "url": "https://azure.microsoft.com/pricing/details/foundry-agent-service/",
+    "usd": {
+      "price": 0.033
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "file-search-storage",
+    "url": "https://azure.microsoft.com/pricing/details/foundry-agent-service/",
+    "usd": {
+      "price": 0.11
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "copilot-business",
+    "url": "https://github.com/features/copilot/plans",
+    "usd": {
+      "price": 19.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "copilot-enterprise",
+    "url": "https://github.com/features/copilot/plans",
+    "usd": {
+      "price": 39.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "tts-mai-voice-2",
+    "url": "https://microsoft.ai/news/",
+    "usd": {
+      "price": 22.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "tts-mai-voice-2-flash",
+    "url": "https://microsoft.ai/news/",
+    "usd": {
+      "price": 15.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "tts-gpt-4o-mini",
+    "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+    "usd": {
+      "price": 16.667
+    },
+    "note": "Derived from ~USD 0.015 per minute at ~900 characters per minute"
+  },
+  {
+    "file": "unit-prices",
+    "id": "ft-train-gpt-4.1",
+    "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+    "usd": {
+      "price": 25.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "ft-train-gpt-4.1-mini",
+    "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+    "usd": {
+      "price": 5.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "ft-train-gpt-4.1-nano",
+    "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+    "usd": {
+      "price": 1.5
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "ft-train-gpt-4o",
+    "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+    "usd": {
+      "price": 25.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "ft-train-gpt-4o-mini",
+    "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+    "usd": {
+      "price": 3.3
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "ft-train-o4-mini-rft",
+    "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+    "usd": {
+      "price": 100.0
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "ft-hosting",
+    "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
+    "usd": {
+      "price": 1.7
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "claude-fable-5-1",
+    "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x",
+    "usd": {
+      "prices.global.input": 10,
+      "prices.global.cachedInput": 0.25,
+      "prices.global.output": 50,
+      "prices.global.cacheWrite": 12.5
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "claude-fable-5",
+    "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x",
+    "usd": {
+      "prices.global.input": 10,
+      "prices.global.cachedInput": 1.0,
+      "prices.global.output": 50,
+      "prices.global.cacheWrite": 12.5
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "claude-opus-5-5",
+    "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x",
+    "usd": {
+      "prices.global.input": 4,
+      "prices.global.cachedInput": 0.2,
+      "prices.global.output": 20,
+      "prices.global.cacheWrite": 5,
+      "prices.dataZone.input": 4.4,
+      "prices.dataZone.cachedInput": 0.22,
+      "prices.dataZone.output": 22.0,
+      "prices.dataZone.cacheWrite": 5.5
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "claude-opus-5",
+    "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x",
+    "usd": {
+      "prices.global.input": 5,
+      "prices.global.cachedInput": 0.5,
+      "prices.global.output": 25,
+      "prices.global.cacheWrite": 6.25,
+      "prices.dataZone.input": 5.5,
+      "prices.dataZone.cachedInput": 0.55,
+      "prices.dataZone.output": 27.5,
+      "prices.dataZone.cacheWrite": 6.875
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "claude-opus-4-8",
+    "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x",
+    "usd": {
+      "prices.global.input": 5,
+      "prices.global.cachedInput": 0.5,
+      "prices.global.output": 25,
+      "prices.global.cacheWrite": 6.25,
+      "prices.dataZone.input": 5.5,
+      "prices.dataZone.cachedInput": 0.55,
+      "prices.dataZone.output": 27.5,
+      "prices.dataZone.cacheWrite": 6.875
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "claude-opus-4-7",
+    "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x",
+    "usd": {
+      "prices.global.input": 5,
+      "prices.global.cachedInput": 0.5,
+      "prices.global.output": 25,
+      "prices.global.cacheWrite": 6.25
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "claude-opus-4-6",
+    "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x",
+    "usd": {
+      "prices.global.input": 5,
+      "prices.global.cachedInput": 0.5,
+      "prices.global.output": 25,
+      "prices.global.cacheWrite": 6.25
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "claude-opus-4-5",
+    "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x",
+    "usd": {
+      "prices.global.input": 5,
+      "prices.global.cachedInput": 0.5,
+      "prices.global.output": 25,
+      "prices.global.cacheWrite": 6.25
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "claude-sonnet-5-5",
+    "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x",
+    "usd": {
+      "prices.global.input": 2,
+      "prices.global.cachedInput": 0.2,
+      "prices.global.output": 10,
+      "prices.global.cacheWrite": 2.5,
+      "prices.dataZone.input": 2.2,
+      "prices.dataZone.cachedInput": 0.22,
+      "prices.dataZone.output": 11.0,
+      "prices.dataZone.cacheWrite": 2.75
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "claude-sonnet-5",
+    "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x",
+    "usd": {
+      "prices.global.input": 2,
+      "prices.global.cachedInput": 0.2,
+      "prices.global.output": 10,
+      "prices.global.cacheWrite": 2.5,
+      "prices.dataZone.input": 2.2,
+      "prices.dataZone.cachedInput": 0.22,
+      "prices.dataZone.output": 11.0,
+      "prices.dataZone.cacheWrite": 2.75
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "claude-sonnet-4-6",
+    "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x",
+    "usd": {
+      "prices.global.input": 3,
+      "prices.global.cachedInput": 0.3,
+      "prices.global.output": 15,
+      "prices.global.cacheWrite": 3.75
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "claude-sonnet-4-5",
+    "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x",
+    "usd": {
+      "prices.global.input": 3,
+      "prices.global.cachedInput": 0.3,
+      "prices.global.output": 15,
+      "prices.global.cacheWrite": 3.75
+    }
+  },
+  {
+    "file": "chat-models",
+    "id": "claude-haiku-4-5",
+    "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "note": "Foundry bills Claude at Anthropic list price (CCU); Data Zone (US) is 1.1x",
+    "usd": {
+      "prices.global.input": 1,
+      "prices.global.cachedInput": 0.1,
+      "prices.global.output": 5,
+      "prices.global.cacheWrite": 1.25
+    }
+  }
+]

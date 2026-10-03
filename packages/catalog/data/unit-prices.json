@@ -54,11 +54,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/ai-document-intelligence/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 41.58
+    "price": 42.4965
   },
   {
     "id": "di-addon-highres",
@@ -68,11 +68,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/ai-document-intelligence/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 8.316
+    "price": 8.4993
   },
   {
     "id": "di-query-fields",
@@ -82,11 +82,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/ai-document-intelligence/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 13.86
+    "price": 14.1655
   },
   {
     "id": "cu-doc-standard",
@@ -96,11 +96,11 @@
     "source": {
       "kind": "derived",
       "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "cross-checked",
-    "price": 6.93
+    "price": 7.0828
   },
   {
     "id": "cu-doc-basic",
@@ -110,11 +110,11 @@
     "source": {
       "kind": "derived",
       "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 1.386
+    "price": 1.4166
   },
   {
     "id": "cu-doc-minimal",
@@ -124,11 +124,11 @@
     "source": {
       "kind": "derived",
       "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "Pricing page shows '$-'; one secondary source says ~USD 0.01",
-      "retrievedAt": "2026-10-02"
+      "note": "Pricing page shows '$-'; one secondary source says ~USD 0.01. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "unverified",
-    "price": 0.0139
+    "price": 0.0142
   },
   {
     "id": "cu-context-standard",
@@ -138,11 +138,11 @@
     "source": {
       "kind": "derived",
       "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "cross-checked",
-    "price": 1.386
+    "price": 1.4166
   },
   {
     "id": "cu-video",
@@ -152,11 +152,11 @@
     "source": {
       "kind": "derived",
       "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "cross-checked",
-    "price": 1.386
+    "price": 1.4166
   },
   {
     "id": "search-semantic",
@@ -181,11 +181,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/search/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "unverified",
-    "price": 0.0305,
+    "price": 0.0312,
     "freePerMonth": 50
   },
   {
@@ -196,11 +196,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/search/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 1.386
+    "price": 1.4166
   },
   {
     "id": "rerank-cohere-3.5",
@@ -210,11 +210,11 @@
     "source": {
       "kind": "derived",
       "url": "https://ai.azure.com",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 2.772
+    "price": 2.8331
   },
   {
     "id": "rerank-cohere-4-fast",
@@ -224,11 +224,11 @@
     "source": {
       "kind": "derived",
       "url": "https://ai.azure.com",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 2.772
+    "price": 2.8331
   },
   {
     "id": "rerank-cohere-4-pro",
@@ -238,11 +238,11 @@
     "source": {
       "kind": "derived",
       "url": "https://ai.azure.com",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 3.465
+    "price": 3.5414
   },
   {
     "id": "safety-text",
@@ -252,11 +252,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/content-safety/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 0.5197,
+    "price": 0.5312,
     "freePerMonth": 5
   },
   {
@@ -267,11 +267,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/content-safety/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 1.0395,
+    "price": 1.0624,
     "freePerMonth": 5
   },
   {
@@ -282,11 +282,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/content-safety/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "unverified",
-    "price": 0.5197
+    "price": 0.5312
   },
   {
     "id": "eval-safety-input",
@@ -296,11 +296,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/ai-foundry/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "unverified",
-    "price": 27.72
+    "price": 28.331
   },
   {
     "id": "eval-safety-output",
@@ -310,11 +310,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/ai-foundry/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "unverified",
-    "price": 83.16
+    "price": 84.993
   },
   {
     "id": "bing-grounding",
@@ -324,11 +324,11 @@
     "source": {
       "kind": "derived",
       "url": "https://www.microsoft.com/en-us/bing/apis/grounding-pricing",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "cross-checked",
-    "price": 19.404
+    "price": 19.8317
   },
   {
     "id": "code-interpreter",
@@ -338,11 +338,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/foundry-agent-service/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 0.0457
+    "price": 0.0467
   },
   {
     "id": "file-search-storage",
@@ -352,11 +352,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/foundry-agent-service/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 0.1525,
+    "price": 0.1558,
     "freePerMonth": 1
   },
   {
@@ -552,11 +552,11 @@
     "source": {
       "kind": "derived",
       "url": "https://github.com/features/copilot/plans",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "cross-checked",
-    "price": 26.334
+    "price": 26.9145
   },
   {
     "id": "copilot-enterprise",
@@ -566,11 +566,11 @@
     "source": {
       "kind": "derived",
       "url": "https://github.com/features/copilot/plans",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "cross-checked",
-    "price": 54.054
+    "price": 55.2455
   },
   {
     "id": "sf-parse-layout",
@@ -811,13 +811,13 @@
     "platform": "azure",
     "unit": "1M chars",
     "source": {
-      "kind": "derived",
-      "url": "https://azure.microsoft.com/pricing/details/speech/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "S1 Neural Text To Speech Characters",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "cross-checked",
-    "price": 20.79
+    "confidence": "verified",
+    "price": 21.2483
   },
   {
     "id": "tts-neural-hd",
@@ -825,13 +825,13 @@
     "platform": "azure",
     "unit": "1M chars",
     "source": {
-      "kind": "derived",
-      "url": "https://azure.microsoft.com/pricing/details/speech/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Neural HD Text to Speech Characters",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source",
-    "price": 30.492
+    "confidence": "verified",
+    "price": 31.1641
   },
   {
     "id": "tts-mai-voice-2",
@@ -841,11 +841,11 @@
     "source": {
       "kind": "derived",
       "url": "https://microsoft.ai/news/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 30.492
+    "price": 31.1641
   },
   {
     "id": "tts-mai-voice-2-flash",
@@ -855,11 +855,11 @@
     "source": {
       "kind": "derived",
       "url": "https://microsoft.ai/news/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "single-source",
-    "price": 20.79
+    "price": 21.2483
   },
   {
     "id": "tts-gpt-4o-mini",
@@ -869,11 +869,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
-      "note": "Derived from ~USD 0.015 per minute at ~900 characters per minute",
-      "retrievedAt": "2026-10-02"
+      "note": "Derived from ~USD 0.015 per minute at ~900 characters per minute. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "unverified",
-    "price": 23.1
+    "price": 23.6096
   },
   {
     "id": "ft-train-gpt-4.1",
@@ -883,11 +883,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "unverified",
-    "price": 34.65,
+    "price": 35.4138,
     "attrs": {
       "baseModelId": "gpt-4.1"
     }
@@ -900,11 +900,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "unverified",
-    "price": 6.93,
+    "price": 7.0828,
     "attrs": {
       "baseModelId": "gpt-4.1-mini"
     }
@@ -917,11 +917,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "unverified",
-    "price": 2.079,
+    "price": 2.1248,
     "attrs": {
       "baseModelId": "gpt-4.1-nano"
     }
@@ -934,11 +934,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "unverified",
-    "price": 34.65,
+    "price": 35.4138,
     "attrs": {
       "baseModelId": "gpt-4o"
     }
@@ -951,11 +951,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "unverified",
-    "price": 4.5738,
+    "price": 4.6746,
     "attrs": {
       "baseModelId": "gpt-4o-mini"
     }
@@ -968,11 +968,11 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "unverified",
-    "price": 138.6,
+    "price": 141.655,
     "attrs": {
       "baseModelId": "o4-mini"
     }
@@ -985,10 +985,10 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
-      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
-      "retrievedAt": "2026-10-02"
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "unverified",
-    "price": 2.3562
+    "price": 2.4081
   }
 ]
