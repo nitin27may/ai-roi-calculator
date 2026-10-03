@@ -221,7 +221,11 @@ export const BenchmarkLibrary = z.object({
 });
 
 export const Catalog = z.object({
-  meta: z.object({ currency: z.literal("CAD"), asOf: isoDate, region: z.string(), notes: z.array(z.string()) }),
+  meta: z.object({
+    currency: z.literal("CAD"), asOf: isoDate, region: z.string(), notes: z.array(z.string()),
+    /** Rate used for USD-only list prices: Azure's own CAD/USD meter ratio, re-measured on every refresh. */
+    fx: z.object({ usdToCad: z.number().positive(), meters: z.number().int().positive(), asOf: isoDate, source: z.string() }).optional(),
+  }),
   chatModels: z.array(ChatModel),
   embeddingModels: z.array(EmbeddingModel),
   speechEngines: z.array(SpeechEngine),

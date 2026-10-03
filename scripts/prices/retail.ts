@@ -75,6 +75,11 @@ export interface Match {
   armRegionName?: string;
   /** Tier lower bound; default 0 (first tier). */
   tierMinimumUnits?: number;
+  /**
+   * When the meter's price differs by region (MAI Global meters, US vs EU Data Zone), take the price
+   * of the first region in this list that carries the meter.
+   */
+  preferRegions?: string[];
 }
 
 /** Exactly one distinct price must match, otherwise the mapping is ambiguous or stale. */
@@ -84,8 +89,14 @@ export function one(rows: RetailRow[], m: Match): RetailRow {
   const hits = rows.filter((r) =>
     re.test(r.meterName) && (!pr || pr.test(r.productName)) && (!m.skuName || r.skuName === m.skuName) &&
     (m.armRegionName === undefined || r.armRegionName === m.armRegionName) && r.tierMinimumUnits === (m.tierMinimumUnits ?? 0) && r.retailPrice > 0);
-  const distinct = new Map(hits.map((h) => [`${h.meterName}|${h.skuName}|${h.productName}|${h.retailPrice}`, h]));
+  const distinctOf = (rs: RetailRow[]) => new Map(rs.map((h) => [`${h.meterName}|${h.skuName}|${h.productName}|${h.retailPrice}`, h]));
+  const distinct = distinctOf(hits);
   if (distinct.size === 1) return [...distinct.values()][0]!;
+  for (const region of distinct.size > 1 ? m.preferRegions ?? [] : []) {
+    const inRegion = distinctOf(hits.filter((h) => h.armRegionName === region));
+    if (inRegion.size === 1) return [...inRegion.values()][0]!;
+    if (inRegion.size > 1) break;
+  }
   throw new PriceMatchError(distinct.size === 0 ? `no meter matches ${JSON.stringify(m)}` : `${distinct.size} meters match ${JSON.stringify(m)}: ${[...distinct.keys()].slice(0, 4).join("; ")}`);
 }
 
