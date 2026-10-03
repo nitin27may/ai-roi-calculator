@@ -4,4 +4,5 @@ dist/
 *.tsbuildinfo
 .cache/
 .env*
-reports/
+reports/*
+!reports/prices-*.md

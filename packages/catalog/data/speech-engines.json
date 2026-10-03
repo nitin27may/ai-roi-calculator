@@ -14,12 +14,12 @@
     "afterPromoMultiplier": 3.6,
     "promo": {
       "until": "2026-12-31",
-      "note": "Introductory USD 0.10/h; list unpublished \u2014 assumes USD 0.36/h after"
+      "note": "Introductory USD 0.10/h; list unpublished — assumes USD 0.36/h after"
     },
     "source": {
       "kind": "derived",
       "url": "https://microsoft.ai/news/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     }
   },
@@ -38,7 +38,7 @@
     "source": {
       "kind": "derived",
       "url": "https://microsoft.ai/news/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     }
   },
@@ -60,7 +60,7 @@
     "source": {
       "kind": "derived",
       "url": "https://microsoft.ai/news/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     }
   },
@@ -79,7 +79,7 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/speech/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     }
   },
@@ -118,7 +118,7 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/speech/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     }
   },
@@ -137,13 +137,13 @@
     "tokens": {
       "audioTokensPerSecond": 10,
       "audioInputPer1M": 4.2,
-      "textOutputPer1M": 6.9
+      "textOutputPer1M": 7.1
     },
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt-4o-mini-transcribe-aud-inp-glbl Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     }
   },
   {
@@ -161,14 +161,14 @@
     "mode": "batch",
     "tokens": {
       "audioTokensPerSecond": 10,
-      "audioInputPer1M": 8.3,
-      "textOutputPer1M": 13.9
+      "audioInputPer1M": 8.5,
+      "textOutputPer1M": 14.2
     },
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt-4o-transcribe-aud-inp-glbl Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     }
   },
   {
@@ -182,12 +182,12 @@
     "label": "gpt-transcribe",
     "via": "Foundry",
     "mode": "batch",
-    "perAudioHour": 0.3742,
+    "perAudioHour": 0.3825,
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt-transcribe Gl Unit",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     }
   },
   {
@@ -206,7 +206,7 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     }
   },

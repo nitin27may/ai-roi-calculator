@@ -14,7 +14,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "text-embedding-3-large-glbl Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -33,7 +33,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "text-embedding-3-small-glbl Tokens (1K meter rounds to 0)",
-      "note": "USD 0.02 \u00d7 1.386; 1K meter rounds to 0",
+      "note": "USD 0.02 × 1.386; 1K meter rounds to 0",
       "retrievedAt": "2026-09-17"
     },
     "confidence": "cross-checked"
@@ -52,8 +52,8 @@
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
-      "meterName": "embedding-ada-glbl-new Tokens",
-      "retrievedAt": "2026-09-17"
+      "meterName": "embedding-ada-glbl Tokens",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -70,7 +70,7 @@
     "source": {
       "kind": "derived",
       "url": "https://ai.azure.com",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "single-source"
@@ -88,9 +88,10 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_EMBED credits per 1M tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "cross-checked"
   },
   {
     "id": "sf:snowflake-arctic-embed-l-v2.0",
@@ -105,9 +106,10 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_EMBED credits per 1M tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "cross-checked"
   },
   {
     "id": "sf:voyage-multilingual-2",
@@ -122,8 +124,9 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_EMBED credits per 1M tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "cross-checked"
   }
 ]
