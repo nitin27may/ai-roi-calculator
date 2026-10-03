@@ -17,29 +17,52 @@ export const PDF_URL = "https://www.snowflake.com/legal-files/CreditConsumptionT
 
 /** Catalogue unit-price ids and the names the consumption table uses for them. */
 export const FUNCTIONS: Record<string, string[]> = {
-  "sf-parse-layout": ["AI_PARSE_DOCUMENT (LAYOUT)", "PARSE_DOCUMENT (LAYOUT)", "AI_PARSE_DOCUMENT Layout"],
-  "sf-parse-ocr": ["AI_PARSE_DOCUMENT (OCR)", "PARSE_DOCUMENT (OCR)", "AI_PARSE_DOCUMENT OCR"],
-  "sf-ai-extract": ["AI_EXTRACT"],
+  "sf-parse-layout": ["AI_PARSE_DOCUMENT – Layout", "AI_PARSE_DOCUMENT (LAYOUT)", "PARSE_DOCUMENT (LAYOUT)"],
+  "sf-parse-ocr": ["AI_PARSE_DOCUMENT – OCR", "AI_PARSE_DOCUMENT (OCR)", "PARSE_DOCUMENT (OCR)"],
+  "sf-ai-extract": ["AI_EXTRACT – arctic-extract", "AI_EXTRACT"],
   "sf-ai-classify": ["AI_CLASSIFY"],
   "sf-ai-translate": ["AI_TRANSLATE"],
-  "sf-cortex-guard": ["Cortex Guard"],
+  "sf-cortex-guard": ["Cortex Guard", "Guard"],
   "sf-search-serving": ["Cortex Search Serving", "Cortex Search"],
 };
 
+/** Text that must follow the number, for names that appear in more than one row. */
+export const UNIT_AFTER: Record<string, RegExp> = { "sf-search-serving": /^\s*AI Credits per GB\/mo/i };
+
 export interface Found { id: string; values: number[]; context: string }
 
-const NUM = /(?<![\w.])(\d+(?:\.\d+)?)(?![\w.])/g;
+// Rates always carry a decimal point; bare integers between a name and its rate are footnote markers ("5", "5 , 22").
+const NUM = /(?<![\w.])(\d+\.\d+)(?![\w.])/g;
 
-/** First `count` numbers after the first occurrence of any alias, within `window` characters. */
-export function findNumbers(text: string, aliases: string[], count: number, window = 140): { values: number[]; context: string } | null {
+/**
+ * The PDF text renders names with spaced separators ("claude - sonnet - 4 - 5", "AI_EXTRACT – arctic - extract"),
+ * so hyphens, en dashes and dots in an alias match with or without surrounding spaces.
+ */
+function aliasPattern(alias: string): string {
+  return alias.trim().split(/\s*[-–]\s*/).map((part) =>
+    part.split(/\s*\.\s*/).map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+")).join("\\s*\\.\\s*"),
+  ).join("\\s*[-–]\\s*");
+}
+
+/**
+ * First `count` rates after an occurrence of any alias, within `window` characters. Occurrences that point elsewhere
+ * ("See … below") or whose rate is not followed by `unitAfter` are skipped in favour of later ones.
+ */
+export function findNumbers(text: string, aliases: string[], count: number, window = 140, unitAfter?: RegExp): { values: number[]; context: string } | null {
   const flat = text.replace(/\s+/g, " ");
   for (const a of aliases) {
-    const re = new RegExp(`(?<![\\w-])${a.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-])`, "i");
-    const m = re.exec(flat);
-    if (!m) continue;
-    const after = flat.slice(m.index + m[0].length, m.index + m[0].length + window);
-    const nums = [...after.matchAll(NUM)].map((x) => Number(x[1])).filter((n) => Number.isFinite(n));
-    if (nums.length >= count) return { values: nums.slice(0, count), context: flat.slice(m.index, m.index + m[0].length + window).trim() };
+    // Not followed by another name segment, so "openai-gpt-5" does not match "openai - gpt - 5 - mini" or "gpt - 5.1".
+    const re = new RegExp(`(?<![\\w-])${aliasPattern(a)}(?![\\w]|\\s*[-–.]\\s*[a-z\\d])`, "gi");
+    for (const m of flat.matchAll(re)) {
+      const end = m.index! + m[0].length;
+      const after = flat.slice(end, end + window);
+      if (/^[\s\d,]*See\b/i.test(after)) continue;
+      const nums = [...after.matchAll(NUM)].slice(0, count);
+      if (nums.length < count) continue;
+      const last = nums.at(-1)!;
+      if (unitAfter && !unitAfter.test(after.slice(last.index! + last[0].length))) continue;
+      return { values: nums.map((x) => Number(x[1])), context: flat.slice(m.index!, end + window).trim() };
+    }
   }
   return null;
 }
@@ -72,7 +95,7 @@ export function applySnowflake(text: string, chat: any[], embeddings: any[], uni
   for (const [id, aliases] of Object.entries(FUNCTIONS)) {
     const u = units.find((x) => x.id === id);
     if (!u) continue;
-    const r = findNumbers(text, aliases, 1);
+    const r = findNumbers(text, aliases, 1, 140, UNIT_AFTER[id]);
     if (!r) { missing.push(aliases[0]!); continue; }
     if (u.credits !== r.values[0]) changes.push({ id, from: String(u.credits), to: String(r.values[0]) });
     u.credits = r.values[0];
@@ -107,7 +130,9 @@ async function main() {
     writeFileSync(pdf, Buffer.from(await res.arrayBuffer()));
   }
   const text = await pdfText(pdf);
-  const table6 = text.slice(Math.max(0, text.search(/Table\s*6/i)));
+  // Table 6(a) holds the AI_COMPLETE, AI_EMBED and function rates; earlier mentions of "Table 6" are prose.
+  const start = text.search(/Table\s*6\s*\(a\)/i);
+  const table6 = text.slice(Math.max(0, start >= 0 ? start : text.search(/Table\s*6/i)));
   const read = (f: string) => JSON.parse(readFileSync(join(DATA, `${f}.json`), "utf8"));
   const chat = read("chat-models"), emb = read("embedding-models"), units = read("unit-prices");
   const r = applySnowflake(table6, chat, emb, units, today);

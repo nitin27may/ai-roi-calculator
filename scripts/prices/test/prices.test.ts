@@ -38,6 +38,28 @@ describe("Azure refresh", () => {
     expect(r.errors.length).toBeGreaterThan(0); // other models have no fixture meters
     expect(report(r, "2026-10-02", "canadacentral")).toContain("6.2 nova");
   });
+
+  it("matches the speech, embedding and language meter names live on 2026-10-02", async () => {
+    const rows: RetailRow[] = [
+      row({ productName: "Azure OpenAI", armRegionName: "canadaeast", meterName: "embedding-ada-glbl Tokens", retailPrice: 0.0001, unitOfMeasure: "1K" }),
+      row({ productName: "Azure OpenAI", armRegionName: "eastus2", meterName: "embedding-ada-glbl Tokens", retailPrice: 0.0001, unitOfMeasure: "1K" }),
+      row({ productName: "Azure OpenAI", armRegionName: "canadaeast", meterName: "gpt-4o-transcribe-aud-inp-glbl Tokens", retailPrice: 0.0085, unitOfMeasure: "1K" }),
+      row({ productName: "Azure OpenAI", armRegionName: "canadaeast", meterName: "gpt-4o-transcribe-txt-out-glbl Tokens", retailPrice: 0.0142, unitOfMeasure: "1K" }),
+      row({ productName: "Azure OpenAI Media", armRegionName: "eastus2", meterName: "gpt-transcribe Gl Unit", retailPrice: 0.38, unitOfMeasure: "1 Hour" }),
+      row({ productName: "Azure Language", serviceName: "Azure Language", armRegionName: "canadacentral", skuName: "Standard", meterName: "Standard Text Records", retailPrice: 1.4166, unitOfMeasure: "1K" }),
+      row({ productName: "Azure Language", serviceName: "Azure Language", armRegionName: "canadacentral", skuName: "Standard", meterName: "Standard Text Records", retailPrice: 1.0624, unitOfMeasure: "1K", tierMinimumUnits: 500 }),
+    ];
+    const source = async (filter: string) => rows.filter((r) => (filter.includes("Language") ? r.productName === "Azure Language" : filter.includes(`'${r.productName}'`)));
+    const embeddings = data("embedding-models"), speech = data("speech-engines"), units = data("unit-prices");
+    const r = await updateAzure({ chat: [], embeddings, speech, search: [], units }, source, "canadacentral", "2026-10-02");
+    const failed = (id: string) => r.errors.some((e) => e.startsWith(`${id}:`));
+    for (const id of ["text-embedding-ada-002", "gpt-4o-transcribe", "gpt-transcribe", "language-records"]) expect(failed(id)).toBe(false);
+    expect(embeddings.find((e: any) => e.id === "text-embedding-ada-002").per1M).toBe(0.1);
+    expect(speech.find((s: any) => s.id === "gpt-4o-transcribe").tokens).toMatchObject({ audioInputPer1M: 8.5, textOutputPer1M: 14.2 });
+    expect(speech.find((s: any) => s.id === "gpt-transcribe").perAudioHour).toBe(0.38);
+    expect(units.find((u: any) => u.id === "language-records").price).toBe(1.4166);
+    expect(r.unmapped).toEqual([]); // mapped embedding and speech meters are not new models
+  });
 });
 
 describe("Snowflake consumption table parsing", () => {
@@ -56,5 +78,28 @@ describe("Snowflake consumption table parsing", () => {
     expect(chat.find((m: any) => m.id === "sf:openai-gpt-5").credits).toMatchObject({ input: 0.69, output: 5.5 });
     expect(units.find((u: any) => u.id === "sf-parse-layout").credits).toBe(3.33);
     expect(r.missing).toContain("claude-opus-5-5");
+  });
+
+  // Excerpt of the 2026-10 PDF text layout: spaced separators, footnote markers before rates, "See … below" rows.
+  const live = `Table 6(a): Snowflake AI Features Table AI_COMPLETE – claude - opus - 5 5 3.00 15.00 AI_COMPLETE – claude - opus - 5 - 5 5 2.40 12.00
+    AI_COMPLETE – claude - sonnet - 4 - 5 1.80 9.00 AI_COMPLETE – gemini - 3.7 - flash 5 , 22 0.45 2.25 AI_COMPLETE – openai - gpt - 5 5 0.75 6.00
+    AI_COMPLETE – openai - gpt - 5 - mini 5 0.15 1.20 AI_COMPLETE – openai - gpt - 5.1 0.75 6.00 AI_EMBED – snowflake - arctic - embed - m 0.03
+    AI_EMBED – snowflake - arctic - embed - m - v1.5 0.04 AI_EXTRACT – arctic - extract 5.55 AI_FILTER 1.62
+    AI_PARSE_DOCUMENT – Layout See “Snowflake AI Features Table, Other” below AI_PARSE_DOCUMENT – OCR See “Snowflake AI Features Table, Other” below AI_REDACT 0.69
+    Guard 0.25 Table 6(g): Other AI_PARSE_DOCUMENT – Layout 3.66 AI Credits per 1,000 pages AI_PARSE_DOCUMENT – OCR 0.68 AI Credits per 1,000 pages
+    Batch Cortex Search 5 0.12 AI Credits per GB/hr of indexed data Cortex Analyst 67 Platform Credits per 1,000 messages 24 Cortex Search 6.3 AI Credits per GB/mo of indexed data`;
+  it("reads names with spaced separators and skips footnote markers", () => {
+    expect(findNumbers(live, ["claude-opus-5-5"], 2)?.values).toEqual([2.4, 12]);
+    expect(findNumbers(live, ["claude-opus-5"], 2)?.values).toEqual([3, 15]);
+    expect(findNumbers(live, ["gemini-3.7-flash"], 2)?.values).toEqual([0.45, 2.25]);
+    expect(findNumbers(live, ["openai-gpt-5"], 2)?.values).toEqual([0.75, 6]);
+    expect(findNumbers(live, ["snowflake-arctic-embed-m"], 1)?.values).toEqual([0.03]);
+    expect(findNumbers(live, ["snowflake-arctic-embed-m-v1.5"], 1)?.values).toEqual([0.04]);
+  });
+  it("follows 'See … below' rows and picks the row with the expected unit", () => {
+    const units = data("unit-prices");
+    applySnowflake(live, [], [], units, "2026-10-02");
+    const credits = (id: string) => units.find((u: any) => u.id === id).credits;
+    expect([credits("sf-parse-layout"), credits("sf-parse-ocr"), credits("sf-ai-extract"), credits("sf-cortex-guard"), credits("sf-search-serving")]).toEqual([3.66, 0.68, 5.55, 0.25, 6.3]);
   });
 });
