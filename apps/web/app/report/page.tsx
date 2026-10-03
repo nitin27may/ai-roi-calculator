@@ -129,7 +129,7 @@ export default function Report() {
         </div>
 
         <footer className="border-t border-line pt-3 text-[11.5px] text-muted">
-          Prices in CAD from the Azure Retail Prices API, the Snowflake Credit Consumption Table and curated sources, as of {catalog.meta.asOf}. List prices, no discounts. Token volumes are estimates from documented heuristics; agent costs use the typical (P50) run.
+          Prices in CAD from the Azure Retail Prices API, the Snowflake Credit Consumption Table and curated sources, as of {catalog.meta.asOf}.{catalog.meta.fx && ` USD-only list prices converted at ${catalog.meta.fx.usdToCad} CAD per USD (Azure rate, ${catalog.meta.fx.asOf}).`} List prices, no discounts. Token volumes are estimates from documented heuristics; agent costs use the typical (P50) run.
         </footer>
       </article>
     </div>

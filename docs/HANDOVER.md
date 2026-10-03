@@ -95,10 +95,25 @@ pnpm test                        # must stay green after a refresh
 - Reads the AI features table of the PDF. Pass a downloaded copy with `--pdf path/to/CreditConsumptionTable.pdf`.
 - Every number it reads is written to the report together with the surrounding text. Read the report before trusting the numbers.
 
+**Everything is CAD; USD-only prices follow the exchange rate**
+- Azure prices come from the Retail API in CAD wherever a meter exists.
+- Prices Microsoft publishes only in USD (Claude on Foundry, GPT-6.1 Sol until it gets a meter, MAI-Transcribe, preview tools, fine-tuning) are kept as USD in `packages/catalog/data/usd-list.json`, one entry per catalogue item and one key per field path.
+- `pnpm prices:azure` first measures Azure's own CAD/USD rate (the ratio of the same meters in both currencies, about 5,000 of them), stores it in `meta.json` as `fx`, converts every `usd-list.json` price, and then applies CAD meters on top. A CAD meter always wins over a USD price.
+- The Prices page and the report state the rate. On 2026-10-02 it was 1.41655, the same figure Azure's pricing page embeds for October.
+- When a USD-only model gets a Retail API meter, add its pattern to `azure-map.ts` and remove it from `usd-list.json`.
+
+**Model coverage (2026-10-02)**
+- Azure OpenAI: GPT-5.1 and later, including codex, codex-mini, codex-max and pro variants, GPT-5.6 sol/terra/luna and GPT-6 astra/sol/luna, from Retail API meters. GPT-6.1 Sol is USD-only for now. Retired chat variants (gpt-5.1/5.2/5.3-chat) are not in the catalogue. Older models (gpt-5, 4.1, 4o, o-series) are kept for existing projects.
+- Claude on Foundry: every model Microsoft lists (Fable 5.1/5, Opus 5.5/5/4.8/4.7/4.6/4.5, Sonnet 5.5/5/4.6/4.5, Haiku 4.5) at Anthropic's USD list price. Data Zone (US, 1.1x) only for the Azure-hosted ones: Opus 5.5, Opus 5, Opus 4.8, Sonnet 5.5, Sonnet 5. `batchDiscount` is 0 because Foundry documents only the Messages API for Claude.
+- MAI: Thinking-1, Cyber-1-Flash, Code-1.1-Flash and DS-R1 from Retail API meters; MAI-Transcribe-2 and 1.5 from USD prices. MAI image models are not modelled (the app has no image workload).
+- Transcription: Azure Speech real-time, batch and fast (canadacentral meters), Whisper, gpt-transcribe, gpt-live-transcribe, gpt-realtime-whisper, gpt-4o-transcribe, gpt-4o-transcribe-diarize, gpt-4o-mini-transcribe (2025-12-15), MAI-Transcribe.
+
 **Prices to confirm by hand** (`pnpm validate` lists all of them):
-- **Fine-tuning** (`ft-train-*`, `ft-hosting`): USD list price × 1.386, marked `unverified`.
-- **Snowflake Cortex credit rates:** low confidence until the PDF parse has been checked.
-- **USD-only prices** (marked `derived`): converted at 1.386 CAD/USD. Replace them with CAD meters when the Retail API has them.
+- **Fine-tuning** (`ft-train-*`, `ft-hosting`): USD list prices, marked `unverified`.
+- **MAI-Transcribe-2 Streaming:** no official SKU found; the entry is kept because the Run page uses it, marked `unverified`.
+- **Long-context threshold for GPT-5.5, 5.6 and 6.x:** 272K input tokens, as for GPT-5.4. Microsoft documents the number only for 5.4.
+- **Context and output limits** for MAI-Cyber-1-Flash, MAI-Code-1.1-Flash and MAI-DS-R1 are not published; the catalogue uses 256K/32K and 128K/32K.
+- **Snowflake Cortex credit rates:** check the PDF context in the report after each refresh.
 - **Benchmarks:** several are low-confidence or vendor-funded. The app shows this next to each benchmark.
 
 **Gotchas from the first live run**
@@ -108,6 +123,9 @@ pnpm test                        # must stay green after a refresh
 - **Most Azure "changes" can be exchange-rate moves.** On 2026-10-02 almost every CAD price moved by +2.2% at once.
 - **The Snowflake PDF text has spaced separators** ("claude - sonnet - 4 - 5", "AI_EXTRACT – arctic - extract") and footnote markers between a name and its rate ("5", "5 , 22"). The parser accepts both and reads only decimal numbers as rates.
 - **The Snowflake parser reads Table 6(a), the AI_COMPLETE rates.** Tables 6(b) to 6(e) price the same models differently (prompt caching, REST, CoWork, CoCo). Rows that say "See … below" are skipped in favour of the later row in Table 6(g).
+- **MAI Global meters are priced per region** (MAI-Thinking-1 cached input is 0.2833 in East US 2, 0.3541 in US Gov). The refresh takes Canada first, then East US 2 (`GLOBAL_REGIONS`).
+- **Data Zone has two prices** (US 1.1x, EU 1.2x) under the same meter name; the US one is used (`DZ_REGIONS`). Data Zone meter names vary: "Dz", "DZ", "Dzone", "Data Zone", "DataZone".
+- **A catalogue entry with Data Zone prices but no Data Zone meter is a mapping error**, not a deletion: an earlier version silently dropped Data Zone prices when the pattern missed.
 - **Engine tests read rates from the catalogue**, so a refresh should not break them. If a test does break after a refresh, it has a hard-coded price.
 
 Commit refreshed catalogues together with the generated report so every price change has a record:
@@ -195,9 +213,10 @@ docs/PLAN.md, DESIGN.md  plan and design decisions (DESIGN.md wins where they di
 3. Add its form fields in `ACTIVITY_SPECS`, and a line in `describe()` in `apps/web/app/build/page.tsx`.
 4. Add a test.
 
-**A new price**
-1. Add the entry to `packages/catalog/data/*.json` with `source` and `confidence`.
-2. Add a meter rule in `scripts/prices/azure-map.ts` if the Retail API carries it.
+**A new price or model**
+1. Add the entry to `packages/catalog/data/*.json` with `source` and `confidence` (prices can start at 0).
+2. If the Retail API carries it, add a meter rule in `scripts/prices/azure-map.ts`. Otherwise add its USD list prices to `usd-list.json`.
+3. Run `pnpm prices:azure` to fill the CAD prices.
 
 **A new benchmark:** add it to `packages/catalog/data/benchmarks.json` with its source, confidence and `vendorFunded` flag.
 
