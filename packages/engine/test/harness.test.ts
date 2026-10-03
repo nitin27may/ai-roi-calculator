@@ -3,14 +3,16 @@ import { loadCatalog } from "@studio/catalog";
 import { PriceBook } from "../src/pricing.js";
 import { simulateHarness, type HarnessDef } from "../src/harness.js";
 
-const book = new PriceBook(loadCatalog(), { azureDeployment: "global", snowflake: { routing: "global", edition: "enterprise" } });
+const cat = loadCatalog();
+const book = new PriceBook(cat, { azureDeployment: "global", snowflake: { routing: "global", edition: "enterprise" } });
 // Worked example from docs/research/06 §1.2: P = 5,000, g = 2,250, T = 8, h = 1,000.
 const h: HarnessDef = {
   id: "ex", label: "example", systemPromptTokens: 1500, tools: 10, tokensPerTool: 280, userInputTokens: 700,
   steps: 8, toolCallsPerStep: 1.3, toolResultTokens: 1500, outputPerStep: 300, finalOutputTokens: 300,
   reasoning: 1000, keepReasoning: false, maxTurns: 25, maxTokensPerCall: 16000, compactAtTokens: 0, compactSummaryTokens: 3000, retryRate: 0,
 };
-const gpt5 = { input: 1.7326, cached: 0.1733, output: 13.8605 };
+// Read from the catalogue so a price refresh does not invalidate the token arithmetic under test.
+const gpt5 = cat.chatModels.find((m) => m.id === "gpt-5")!.prices!.global!;
 
 describe("agent harness simulation", () => {
   it("reproduces the uncached worked example (103K in, 10.4K out)", () => {
