@@ -8,7 +8,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CHAT, CHAT_PRODUCTS, EMBEDDINGS, GLOBAL_TOKEN, SEARCH_FILTER, SEARCH_TIERS, SPEECH_HOURLY, SPEECH_TOKENS, UNIT_METERS } from "./azure-map.js";
+import { CHAT, CHAT_PRODUCTS, EMBEDDINGS, GLOBAL_TOKEN, SEARCH_FILTER, SEARCH_TIERS, SPEECH_HOURLY, SPEECH_PRODUCTS, SPEECH_TOKENS, UNIT_METERS } from "./azure-map.js";
 import { HOURS_PER_MONTH, PriceMatchError, one, per1M, retailSource, round, type RetailRow, type RowSource } from "./retail.js";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -52,20 +52,24 @@ export async function updateAzure(files: { chat: Json[]; embeddings: Json[]; spe
       [inp, out, cached].forEach((r) => r && matchedMeters.add(r.meterName));
     });
   }
-  // Anything priced per token in the chat products that no entry claims: new models to add.
-  const unmapped = [...new Set(chatRows.filter((r) => /Gl|glbl/i.test(r.meterName) && !matchedMeters.has(r.meterName) && r.retailPrice > 0).map((r) => `${r.productName} · ${r.meterName}`))].sort();
 
   for (const e of files.embeddings.filter((x) => EMBEDDINGS[x.id])) {
-    attempt(e.id, () => { const r = one(chatRows, { meterName: EMBEDDINGS[e.id]! }); set(e, "per1M", per1M(r), r.meterName); });
+    attempt(e.id, () => { const r = one(chatRows, { meterName: EMBEDDINGS[e.id]! }); set(e, "per1M", per1M(r), r.meterName); matchedMeters.add(r.meterName); });
   }
+  const mediaRows: RetailRow[] = [];
+  for (const p of SPEECH_PRODUCTS) mediaRows.push(...(await source(`productName eq '${p}'`)));
   for (const s of files.speech) {
     if (SPEECH_TOKENS[s.id]) attempt(s.id, () => {
       const a = one(chatRows, { meterName: SPEECH_TOKENS[s.id]!.audioInput }), t = one(chatRows, { meterName: SPEECH_TOKENS[s.id]!.textOutput });
       set(s, "tokens.audioInputPer1M", per1M(a), a.meterName);
       set(s, "tokens.textOutputPer1M", per1M(t), a.meterName);
+      matchedMeters.add(a.meterName).add(t.meterName);
     });
-    if (SPEECH_HOURLY[s.id]) attempt(s.id, () => { const r = one(chatRows, { meterName: SPEECH_HOURLY[s.id]! }); set(s, "perAudioHour", round(r.retailPrice), r.meterName); });
+    if (SPEECH_HOURLY[s.id]) attempt(s.id, () => { const r = one(mediaRows, { meterName: SPEECH_HOURLY[s.id]! }); set(s, "perAudioHour", round(r.retailPrice), r.meterName); });
   }
+
+  // Anything priced per token in the chat products that no entry claims: new models to add.
+  const unmapped = [...new Set(chatRows.filter((r) => /Gl|glbl/i.test(r.meterName) && !matchedMeters.has(r.meterName) && r.retailPrice > 0).map((r) => `${r.productName} · ${r.meterName}`))].sort();
 
   const searchRows = await source(`armRegionName eq '${region}' and ${SEARCH_FILTER}`);
   for (const t of files.search.filter((x) => SEARCH_TIERS[x.id])) {
