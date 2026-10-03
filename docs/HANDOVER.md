@@ -74,7 +74,7 @@ cloudflared tunnel --url http://localhost:3000    # prints a https://….tryclou
 
 ## 3. Refresh prices (do this first on a networked machine)
 
-The price-refresh scripts have **never run against the live sources**: both endpoints were blocked in the build environment. Expect to adjust meter mappings on the first run.
+The first live run was on 2026-10-02 (reports dated 2026-10-03, UTC). It needed the mapping fixes listed under "Gotchas from the first live run" below; both scripts now run clean (Azure: 0 mapping errors; Snowflake: 21 of 21 entries matched).
 
 ```bash
 pnpm prices:azure --check        # dry run: writes reports/prices-azure-<date>.md, changes nothing
@@ -100,6 +100,15 @@ pnpm test                        # must stay green after a refresh
 - **Snowflake Cortex credit rates:** low confidence until the PDF parse has been checked.
 - **USD-only prices** (marked `derived`): converted at 1.386 CAD/USD. Replace them with CAD meters when the Retail API has them.
 - **Benchmarks:** several are low-confidence or vendor-funded. The app shows this next to each benchmark.
+
+**Gotchas from the first live run**
+- **`--check` exits 1 whenever any price changed.** That is drift detection, not a failure; read the report.
+- **Azure renames meters without notice.** On 2026-10-02: `embedding-ada-glbl-new` became `embedding-ada-glbl`, transcribe text output went from `txt-opt` to `txt-out`, and Language moved from `S Text Records` to the tiered `Standard Text Records` (tier 0 is used).
+- **`gpt-transcribe` is billed under the product `Azure OpenAI Media`**, not the chat products. `SPEECH_PRODUCTS` in `azure-map.ts` fetches it.
+- **Most Azure "changes" can be exchange-rate moves.** On 2026-10-02 almost every CAD price moved by +2.2% at once.
+- **The Snowflake PDF text has spaced separators** ("claude - sonnet - 4 - 5", "AI_EXTRACT – arctic - extract") and footnote markers between a name and its rate ("5", "5 , 22"). The parser accepts both and reads only decimal numbers as rates.
+- **The Snowflake parser reads Table 6(a), the AI_COMPLETE rates.** Tables 6(b) to 6(e) price the same models differently (prompt caching, REST, CoWork, CoCo). Rows that say "See … below" are skipped in favour of the later row in Table 6(g).
+- **Engine tests read rates from the catalogue**, so a refresh should not break them. If a test does break after a refresh, it has a hard-coded price.
 
 Commit refreshed catalogues together with the generated report so every price change has a record:
 
@@ -215,9 +224,9 @@ There is no CI yet. A minimal workflow is a good first pull request: install, te
 
 | Item | Status |
 |---|---|
-| Set `main` as the default branch | **To do**: section 1 |
-| First live price refresh (Azure, Snowflake) | **To do**: section 3; expect mapping fixes |
-| Confirm fine-tune and Snowflake rates | **To do**: `pnpm validate` lists them |
+| Set `main` as the default branch | Done 2026-10-02; old branch deleted |
+| First live price refresh (Azure, Snowflake) | Done 2026-10-02; see the gotchas in section 3 |
+| Confirm fine-tune and Snowflake rates | Snowflake confirmed from the 2026-10 PDF. Fine-tune rates are still USD-derived (`pnpm validate`) |
 | CI workflow (test, typecheck, build) | Suggested |
 | Monte Carlo ranges for NPV (likelihood, not just bounds) | Idea, not started |
 | Side-by-side comparison of two projects | Idea, not started |
