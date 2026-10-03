@@ -29,7 +29,7 @@ export default function Prices() {
   return (
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(0,1fr)_330px]">
       <Card>
-        <CardHead title={`${rows.length} prices in CAD`} sub={<>As of {catalog.meta.asOf}. Refresh on your machine with <span className="num">pnpm prices</span>; the app never calls the network.</>}>
+        <CardHead title={`${rows.length} prices in CAD`} sub={<>As of {catalog.meta.asOf}.{catalog.meta.fx && <> USD-only list prices converted at <span className="num">1 USD = {catalog.meta.fx.usdToCad} CAD</span>, Azure&apos;s own rate on {catalog.meta.fx.asOf}.</>} Refresh on your machine with <span className="num">pnpm prices</span>; the app never calls the network.</>}>
           <div className="flex flex-wrap gap-2">
             <input aria-label="Search prices" placeholder="Search" className="rounded-md border border-line bg-surface-2 px-2 py-1 text-[13px]" value={q} onChange={(e) => setQ(e.target.value)} />
             <Seg label="Platform" value={platform} onChange={setPlatform} options={[{ value: "all", label: "All" }, { value: "azure", label: "Azure" }, { value: "snowflake", label: "Snowflake" }]} />
