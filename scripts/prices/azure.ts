@@ -8,7 +8,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CHAT, CHAT_PRODUCTS, EMBEDDINGS, GLOBAL_TOKEN, SEARCH_FILTER, SEARCH_TIERS, SPEECH_HOURLY, SPEECH_PRODUCTS, SPEECH_TOKENS, UNIT_METERS } from "./azure-map.js";
+import { CHAT, CHAT_PRODUCTS, DZ_REGIONS, DZ_TOKEN, EMBEDDINGS, GLOBAL_REGIONS, GLOBAL_TOKEN, REALTIME, SEARCH_FILTER, SEARCH_TIERS, SPEECH_FILTER, SPEECH_HOURLY, SPEECH_PRODUCTS, SPEECH_REGIONAL, SPEECH_TOKENS, UNIT_METERS, type TierMeters } from "./azure-map.js";
+import { applyUsdList, measureFx, type FxChange, type FxRate, type UsdEntry } from "./fx.js";
 import { HOURS_PER_MONTH, PriceMatchError, one, per1M, retailSource, round, type RetailRow, type RowSource } from "./retail.js";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -17,8 +18,9 @@ const DATA = join(ROOT, "packages/catalog/data");
 type Json = Record<string, any>;
 export interface Change { id: string; field: string; from: number | undefined; to: number; pct: number | null }
 export interface Result { files: Record<string, Json[] | Json>; changes: Change[]; errors: string[]; unmapped: string[] }
+export interface FxResult { rate: FxRate; previous?: number; changes: FxChange[]; missing: string[] }
 
-export async function updateAzure(files: { chat: Json[]; embeddings: Json[]; speech: Json[]; search: Json[]; units: Json[] }, source: RowSource, region: string, today: string): Promise<Result> {
+export async function updateAzure(files: { chat: Json[]; embeddings: Json[]; speech: Json[]; search: Json[]; units: Json[]; realtime?: Json[] }, source: RowSource, region: string, today: string): Promise<Result> {
   const changes: Change[] = [], errors: string[] = [];
   const set = (entry: Json, field: string, value: number, meter: string) => {
     const path = field.split(".");
@@ -33,23 +35,41 @@ export async function updateAzure(files: { chat: Json[]; embeddings: Json[]; spe
   };
   const attempt = (id: string, fn: () => void) => { try { fn(); } catch (e) { if (e instanceof PriceMatchError) errors.push(`${id}: ${e.message}`); else throw e; } };
 
-  // Foundry models (Global meters carry no region).
+  // Foundry models. Most Global meters carry one price everywhere; MAI Global meters are priced per region.
   const chatRows: RetailRow[] = [];
   for (const p of CHAT_PRODUCTS) chatRows.push(...(await source(`productName eq '${p}'`)));
   const matchedMeters = new Set<string>();
   for (const m of files.chat.filter((x) => x.platform === "azure" && CHAT[x.id])) {
     const spec = CHAT[m.id]!;
     attempt(m.id, () => {
-      const pick = (pat: string) => one(chatRows, { meterName: pat.replace("{r}", GLOBAL_TOKEN), productName: `${spec.product.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$` });
-      const inp = pick(spec.input), out = pick(spec.output);
-      let cached: RetailRow | null = null;
-      try { cached = pick(spec.cachedInput); } catch { /* some models have no cached meter */ }
+      const product = `${spec.product.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`;
+      const pick = (pat: string, dz: boolean) => one(chatRows, {
+        meterName: pat.replace("{r}", dz ? DZ_TOKEN : GLOBAL_TOKEN), productName: product, preferRegions: dz ? DZ_REGIONS : GLOBAL_REGIONS,
+      });
+      const tier = (t: TierMeters, dz: boolean, target: string) => {
+        const inp = pick(t.input, dz), out = pick(t.output, dz);
+        let cached: RetailRow | null = null;
+        // Some models (gpt-4.1-nano, pro models) have no cached-input meter: cached input bills as input.
+        if (t.cachedInput) try { cached = pick(t.cachedInput, dz); } catch (e) { if (!(e instanceof PriceMatchError)) throw e; }
+        const write = t.cacheWrite ? pick(t.cacheWrite, dz) : null;
+        set(m, `${target}.input`, per1M(inp), inp.meterName);
+        set(m, `${target}.cachedInput`, cached ? per1M(cached) : per1M(inp), inp.meterName);
+        set(m, `${target}.output`, per1M(out), inp.meterName);
+        if (write) set(m, `${target}.cacheWrite`, per1M(write), inp.meterName);
+        [inp, out, cached, write].forEach((r) => r && matchedMeters.add(r.meterName));
+      };
       // The API reports the price in force today (promo prices included), so it always refreshes `global`.
-      const target = "prices.global";
-      set(m, `${target}.input`, per1M(inp), inp.meterName);
-      set(m, `${target}.cachedInput`, cached ? per1M(cached) : per1M(inp), inp.meterName);
-      set(m, `${target}.output`, per1M(out), inp.meterName);
-      [inp, out, cached].forEach((r) => r && matchedMeters.add(r.meterName));
+      tier(spec, false, "prices.global");
+      if (spec.long) {
+        if (!m.longContext?.threshold) throw new PriceMatchError(`has long-context meters but no longContext.threshold in the catalogue`);
+        tier(spec.long, false, "longContext.prices");
+      }
+      // Models with no Data Zone deployment (MAI) have no `dataZone` prices; the engine then uses 1.1 × Global.
+      // A catalogue entry that has them but no matching meter is a stale pattern, so it is reported, not dropped.
+      try { tier(spec, true, "prices.dataZone"); } catch (e) {
+        if (!(e instanceof PriceMatchError)) throw e;
+        if (m.prices?.dataZone) throw new PriceMatchError(`Data Zone: ${e.message}`);
+      }
     });
   }
 
@@ -58,18 +78,41 @@ export async function updateAzure(files: { chat: Json[]; embeddings: Json[]; spe
   }
   const mediaRows: RetailRow[] = [];
   for (const p of SPEECH_PRODUCTS) mediaRows.push(...(await source(`productName eq '${p}'`)));
+  const foundryRows = [...chatRows, ...mediaRows];
+  const global = (meterName: string) => one(foundryRows, { meterName, preferRegions: GLOBAL_REGIONS });
+  const speechRows = await source(`armRegionName eq '${region}' and ${SPEECH_FILTER}`);
   for (const s of files.speech) {
     if (SPEECH_TOKENS[s.id]) attempt(s.id, () => {
-      const a = one(chatRows, { meterName: SPEECH_TOKENS[s.id]!.audioInput }), t = one(chatRows, { meterName: SPEECH_TOKENS[s.id]!.textOutput });
+      const a = global(SPEECH_TOKENS[s.id]!.audioInput), t = global(SPEECH_TOKENS[s.id]!.textOutput);
       set(s, "tokens.audioInputPer1M", per1M(a), a.meterName);
       set(s, "tokens.textOutputPer1M", per1M(t), a.meterName);
       matchedMeters.add(a.meterName).add(t.meterName);
     });
-    if (SPEECH_HOURLY[s.id]) attempt(s.id, () => { const r = one(mediaRows, { meterName: SPEECH_HOURLY[s.id]! }); set(s, "perAudioHour", round(r.retailPrice), r.meterName); });
+    if (SPEECH_HOURLY[s.id]) attempt(s.id, () => { const r = global(SPEECH_HOURLY[s.id]!); set(s, "perAudioHour", round(r.retailPrice), r.meterName); });
+    const regional = SPEECH_REGIONAL[s.id];
+    if (regional) attempt(s.id, () => {
+      const r = one(speechRows, { meterName: regional.perAudioHour });
+      set(s, "perAudioHour", round(r.retailPrice), r.meterName);
+      if (regional.diarizationAddOnPerHour) set(s, "diarizationAddOnPerHour", round(one(speechRows, { meterName: regional.diarizationAddOnPerHour }).retailPrice), r.meterName);
+    });
+  }
+  for (const m of files.realtime ?? []) {
+    const spec = REALTIME[m.id];
+    if (!spec) continue;
+    attempt(m.id, () => {
+      for (const kind of ["text", "audio"] as const) {
+        const t = spec[kind], pick = (pat: string) => global(pat.replace("{r}", GLOBAL_TOKEN));
+        const inp = pick(t.input), out = pick(t.output), cached = t.cachedInput ? pick(t.cachedInput) : inp;
+        set(m, `${kind}.input`, per1M(inp), inp.meterName);
+        set(m, `${kind}.cachedInput`, per1M(cached), inp.meterName);
+        set(m, `${kind}.output`, per1M(out), inp.meterName);
+      }
+    });
   }
 
-  // Anything priced per token in the chat products that no entry claims: new models to add.
-  const unmapped = [...new Set(chatRows.filter((r) => /Gl|glbl/i.test(r.meterName) && !matchedMeters.has(r.meterName) && r.retailPrice > 0).map((r) => `${r.productName} · ${r.meterName}`))].sort();
+  // Global meters for models no entry claims: new models to add. Batch, Flex and Priority Processing are tiers, not models.
+  const TIER = /\b(pp|batch|flex|fl)\b/i;
+  const unmapped = [...new Set(chatRows.filter((r) => /\b(Gl|glbl)\b/i.test(r.meterName) && !TIER.test(r.meterName) && !matchedMeters.has(r.meterName) && r.retailPrice > 0).map((r) => `${r.productName} · ${r.meterName}`))].sort();
 
   const searchRows = await source(`armRegionName eq '${region}' and ${SEARCH_FILTER}`);
   for (const t of files.search.filter((x) => SEARCH_TIERS[x.id])) {
@@ -94,10 +137,10 @@ export async function updateAzure(files: { chat: Json[]; embeddings: Json[]; spe
       set(u, "price", round(r.retailPrice * (spec.scale ?? 1)), r.meterName);
     });
   }
-  return { files: { "chat-models": files.chat, "embedding-models": files.embeddings, "speech-engines": files.speech, "search-tiers": files.search, "unit-prices": files.units }, changes, errors, unmapped };
+  return { files: { "chat-models": files.chat, "embedding-models": files.embeddings, "speech-engines": files.speech, "search-tiers": files.search, "unit-prices": files.units, ...(files.realtime ? { "realtime-models": files.realtime } : {}) }, changes, errors, unmapped };
 }
 
-export function report(r: Result, today: string, region: string): string {
+export function report(r: Result, today: string, region: string, fx?: FxResult): string {
   const big = r.changes.filter((c) => c.pct !== null && Math.abs(c.pct) > 0.3);
   const fmtPct = (p: number | null) => (p === null ? "new" : `${p > 0 ? "+" : ""}${(p * 100).toFixed(1)}%`);
   return [
@@ -106,6 +149,12 @@ export function report(r: Result, today: string, region: string): string {
     `- ${r.changes.length} values changed${big.length ? `, **${big.length} moved more than 30%** (check before using)` : ""}`,
     `- ${r.errors.length} mapping errors`,
     `- ${r.unmapped.length} Foundry meters not in the catalogue`, "",
+    ...(fx ? [
+      "## Exchange rate", "",
+      `1 USD = ${fx.rate.usdToCad} CAD${fx.previous ? ` (was ${fx.previous})` : ""}. ${fx.rate.source}.`,
+      `USD-only list prices in \`usd-list.json\` were converted at this rate: ${fx.changes.length} values changed.`,
+      ...(fx.missing.length ? ["", `**Entries in usd-list.json with no catalogue entry:** ${fx.missing.join(", ")}`] : []), "",
+    ] : []),
     "## Changes", "", "| Entry | Field | Was | Now | Change |", "|---|---|---|---|---|",
     ...r.changes.map((c) => `| ${c.id} | ${c.field} | ${c.from ?? "–"} | ${c.to} | ${Math.abs(c.pct ?? 0) > 0.3 ? "**" : ""}${fmtPct(c.pct)}${Math.abs(c.pct ?? 0) > 0.3 ? "**" : ""} |`),
     "", "## Mapping errors", "", ...(r.errors.length ? r.errors.map((e) => `- ${e}`) : ["None."]),
@@ -121,17 +170,28 @@ async function main() {
   const region = flag("--region") ?? JSON.parse(readFileSync(join(DATA, "meta.json"), "utf8")).region;
   const today = new Date().toISOString().slice(0, 10);
   const read = (f: string) => JSON.parse(readFileSync(join(DATA, `${f}.json`), "utf8"));
-  const source = retailSource({ currency: "CAD", cacheDir: flag("--cache") ?? join(ROOT, ".cache/prices", today), log: (m) => console.log(m) });
+  const cache = flag("--cache") ?? join(ROOT, ".cache/prices", today);
+  const source = retailSource({ currency: "CAD", cacheDir: cache, log: (m) => console.log(m) });
+  const files = { chat: read("chat-models"), embeddings: read("embedding-models"), speech: read("speech-engines"), search: read("search-tiers"), units: read("unit-prices"), realtime: read("realtime-models") };
+  const meta = read("meta");
+
+  // USD-only list prices first, at Azure's own CAD/USD rate; CAD meters below override them.
+  console.log("Measuring Azure's CAD/USD rate…");
+  const rate = await measureFx(source, retailSource({ currency: "USD", cacheDir: `${cache}-usd`, log: (m) => console.log(m) }), today);
+  const usd = applyUsdList({ "chat-models": files.chat, "embedding-models": files.embeddings, "speech-engines": files.speech, "unit-prices": files.units, "realtime-models": files.realtime }, read("usd-list") as UsdEntry[], rate);
+  const fx: FxResult = { rate, previous: meta.fx?.usdToCad, ...usd };
+  console.log(`1 USD = ${rate.usdToCad} CAD (${rate.meters} meters); ${usd.changes.length} USD-derived values changed.`);
+
   console.log(`Fetching Azure Retail Prices (CAD, ${region})…`);
-  const r = await updateAzure({ chat: read("chat-models"), embeddings: read("embedding-models"), speech: read("speech-engines"), search: read("search-tiers"), units: read("unit-prices") }, source, region, today);
+  const r = await updateAzure(files, source, region, today);
   mkdirSync(join(ROOT, "reports"), { recursive: true });
   const reportPath = join(ROOT, "reports", `prices-azure-${today}.md`);
-  writeFileSync(reportPath, report(r, today, region));
+  writeFileSync(reportPath, report(r, today, region, fx));
   console.log(`${r.changes.length} changes, ${r.errors.length} errors, ${r.unmapped.length} unmapped meters. Report: ${reportPath}`);
-  if (check) { process.exitCode = r.changes.length ? 1 : 0; return; }
+  if (check) { process.exitCode = r.changes.length || usd.changes.length ? 1 : 0; return; }
   for (const [name, data] of Object.entries(r.files)) writeFileSync(join(DATA, `${name}.json`), `${JSON.stringify(data, null, 2)}\n`);
-  const meta = read("meta");
   meta.asOf = today;
+  meta.fx = rate;
   writeFileSync(join(DATA, "meta.json"), `${JSON.stringify(meta, null, 2)}\n`);
   console.log("Catalogue updated. Run `pnpm test` to validate it.");
 }
