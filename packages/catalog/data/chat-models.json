@@ -9,9 +9,9 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 5.5442,
-        "cachedInput": 0.5544,
-        "output": 27.721
+        "input": 5.6662,
+        "cachedInput": 0.5666,
+        "output": 28.331
       },
       "dataZone": {
         "input": 6.0986,
@@ -34,7 +34,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "5.6 sol ShortCo Inp Std Gl 1M Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified",
     "longContext": {
@@ -60,9 +60,9 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 2.7721,
-        "cachedInput": 0.2772,
-        "output": 16.6326
+        "input": 2.8331,
+        "cachedInput": 0.2833,
+        "output": 16.9986
       },
       "dataZone": {
         "input": 3.0493,
@@ -80,7 +80,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "5.6 terra ShortCo Inp Std Gl 1M Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified",
     "longContext": {
@@ -102,9 +102,9 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 0.2772,
-        "cachedInput": 0.0277,
-        "output": 1.6633
+        "input": 0.2833,
+        "cachedInput": 0.0283,
+        "output": 1.6999
       },
       "dataZone": {
         "input": 0.3049,
@@ -122,7 +122,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "5.6 luna ShortCo Inp Std Gl 1M Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified",
     "longContext": {
@@ -144,9 +144,9 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 6.9303,
-        "cachedInput": 0.693,
-        "output": 41.5815
+        "input": 7.0828,
+        "cachedInput": 0.7083,
+        "output": 42.4965
       },
       "dataZone": {
         "input": 7.6233,
@@ -164,7 +164,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "5.5 ShortCo inp Gl 1M Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified",
     "longContext": {
@@ -186,9 +186,9 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 3.4651,
-        "cachedInput": 0.3465,
-        "output": 20.7908
+        "input": 3.5414,
+        "cachedInput": 0.3541,
+        "output": 21.2483
       },
       "dataZone": {
         "input": 3.8116,
@@ -206,7 +206,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "5.4 inp Gl 1M Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified",
     "longContext": {
@@ -228,9 +228,9 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 1.0395,
-        "cachedInput": 0.104,
-        "output": 6.2372
+        "input": 1.0624,
+        "cachedInput": 0.1062,
+        "output": 6.3745
       },
       "dataZone": {
         "input": 1.1435,
@@ -248,7 +248,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "5.4 mini Inp Gl 1M Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -262,9 +262,9 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 0.2772,
-        "cachedInput": 0.0277,
-        "output": 1.7326
+        "input": 0.2833,
+        "cachedInput": 0.0283,
+        "output": 1.7707
       },
       "dataZone": {
         "input": 0.3049,
@@ -282,7 +282,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "5.4 nano Inp Gl 1M Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -296,9 +296,9 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 2.4256,
-        "cachedInput": 0.2426,
-        "output": 19.4047
+        "input": 2.479,
+        "cachedInput": 0.2479,
+        "output": 19.8317
       },
       "dataZone": {
         "input": 2.6682,
@@ -316,7 +316,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "GPT 5.2 inp Gl 1M Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -330,9 +330,9 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 1.7326,
-        "cachedInput": 0.1733,
-        "output": 13.8605
+        "input": 1.7707,
+        "cachedInput": 0.1771,
+        "output": 14.1655
       },
       "dataZone": {
         "input": 1.9059,
@@ -350,7 +350,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "GPT 5.1 inp Gl 1M Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -364,9 +364,9 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 1.7326,
-        "cachedInput": 0.1733,
-        "output": 13.8605
+        "input": 1.7707,
+        "cachedInput": 0.1771,
+        "output": 14.1655
       },
       "dataZone": {
         "input": 1.9059,
@@ -384,7 +384,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "GPT 5 Inpt Glbl 1M Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -398,9 +398,9 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 0.3465,
-        "cachedInput": 0.0347,
-        "output": 2.7721
+        "input": 0.3541,
+        "cachedInput": 0.0354,
+        "output": 2.8331
       },
       "dataZone": {
         "input": 0.3811,
@@ -418,7 +418,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "GPT 5 Mini Inpt Glbl 1M Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -432,9 +432,9 @@
     "maxOutput": 128000,
     "prices": {
       "global": {
-        "input": 0.0693,
-        "cachedInput": 0.0069,
-        "output": 0.5544
+        "input": 0.0708,
+        "cachedInput": 0.0071,
+        "output": 0.5666
       },
       "dataZone": {
         "input": 0.0762,
@@ -452,7 +452,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "GPT 5 Nano Inpt Glbl 1M Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -468,7 +468,7 @@
       "global": {
         "input": 2.8,
         "cachedInput": 0.7,
-        "output": 11.1
+        "output": 11.3
       },
       "dataZone": {
         "input": 3.08,
@@ -486,7 +486,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt 4.1 Inp glbl Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -502,7 +502,7 @@
       "global": {
         "input": 0.6,
         "cachedInput": 0.1,
-        "output": 2.2
+        "output": 2.3
       },
       "dataZone": {
         "input": 0.66,
@@ -520,7 +520,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt 4.1 mini Inp glbl Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -535,12 +535,12 @@
     "prices": {
       "global": {
         "input": 0.1,
-        "cachedInput": 0,
+        "cachedInput": 0.1,
         "output": 0.6
       },
       "dataZone": {
         "input": 0.11,
-        "cachedInput": 0.0,
+        "cachedInput": 0,
         "output": 0.66
       }
     },
@@ -554,7 +554,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt 4.1 nano Inp glbl Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -569,8 +569,8 @@
     "prices": {
       "global": {
         "input": 3.5,
-        "cachedInput": 1.7,
-        "output": 13.9
+        "cachedInput": 1.8,
+        "output": 14.2
       },
       "dataZone": {
         "input": 3.85,
@@ -588,7 +588,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt 4o 1120 Inp glbl Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -622,7 +622,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt-4o-mini-0718-Inp-glbl Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -638,7 +638,7 @@
       "global": {
         "input": 2.8,
         "cachedInput": 0.7,
-        "output": 11.1
+        "output": 11.3
       },
       "dataZone": {
         "input": 3.08,
@@ -656,7 +656,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "o3 0416 Inp glbl Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -670,9 +670,9 @@
     "maxOutput": 100000,
     "prices": {
       "global": {
-        "input": 1.5,
+        "input": 1.6,
         "cachedInput": 0.4,
-        "output": 6.1
+        "output": 6.2
       },
       "dataZone": {
         "input": 1.65,
@@ -690,7 +690,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "o4-mini 0416 Inp glbl Tokens",
-      "retrievedAt": "2026-09-17"
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "verified"
   },
@@ -759,7 +759,7 @@
     "source": {
       "kind": "derived",
       "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "cross-checked"
@@ -795,7 +795,7 @@
     "source": {
       "kind": "derived",
       "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "cross-checked"
@@ -831,7 +831,7 @@
     "source": {
       "kind": "derived",
       "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "cross-checked"
@@ -867,7 +867,7 @@
     "source": {
       "kind": "derived",
       "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "single-source"
@@ -903,7 +903,7 @@
     "source": {
       "kind": "derived",
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "note": "Foundry bills Claude at Anthropic list price (CCU); USD \u00d7 1.386",
+      "note": "Foundry bills Claude at Anthropic list price (CCU); USD × 1.386",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "cross-checked"
@@ -939,7 +939,7 @@
     "source": {
       "kind": "derived",
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "note": "Foundry bills Claude at Anthropic list price (CCU); USD \u00d7 1.386",
+      "note": "Foundry bills Claude at Anthropic list price (CCU); USD × 1.386",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "cross-checked"
@@ -975,7 +975,7 @@
     "source": {
       "kind": "derived",
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "cross-checked"
@@ -1011,7 +1011,7 @@
     "source": {
       "kind": "derived",
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "cross-checked"
@@ -1047,7 +1047,7 @@
     "source": {
       "kind": "derived",
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "cross-checked"
@@ -1081,7 +1081,7 @@
     "source": {
       "kind": "derived",
       "url": "https://learn.microsoft.com/azure/ai-foundry/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "single-source"
@@ -1115,7 +1115,7 @@
     "source": {
       "kind": "derived",
       "url": "https://learn.microsoft.com/azure/ai-foundry/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "single-source"
@@ -1149,7 +1149,7 @@
     "source": {
       "kind": "derived",
       "url": "https://learn.microsoft.com/azure/ai-foundry/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "single-source"
@@ -1183,7 +1183,7 @@
     "source": {
       "kind": "derived",
       "url": "https://learn.microsoft.com/azure/ai-foundry/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "single-source"
@@ -1217,7 +1217,7 @@
     "source": {
       "kind": "derived",
       "url": "https://learn.microsoft.com/azure/ai-foundry/",
-      "note": "USD list price \u00d7 1.386 (Azure CAD/USD meter ratio)",
+      "note": "USD list price × 1.386 (Azure CAD/USD meter ratio)",
       "retrievedAt": "2026-10-02"
     },
     "confidence": "single-source"
@@ -1231,8 +1231,8 @@
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "credits": {
-      "input": 1.1,
-      "output": 5.5
+      "input": 1.2,
+      "output": 6
     },
     "snowflakeRouting": "any-region",
     "toolUseOverheadTokens": 0,
@@ -1243,10 +1243,10 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "note": "derived from list price pattern (list \u00f7 2 \u00d7 1.1)",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_COMPLETE credits per 1M input / output tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "unverified"
+    "confidence": "cross-checked"
   },
   {
     "id": "sf:claude-opus-5-5",
@@ -1257,8 +1257,8 @@
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "credits": {
-      "input": 2.2,
-      "output": 11.0
+      "input": 2.4,
+      "output": 12
     },
     "snowflakeRouting": "any-region",
     "toolUseOverheadTokens": 0,
@@ -1269,10 +1269,10 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "note": "derived from list price pattern (list \u00f7 2 \u00d7 1.1)",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_COMPLETE credits per 1M input / output tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "unverified"
+    "confidence": "cross-checked"
   },
   {
     "id": "sf:claude-sonnet-4-5",
@@ -1283,8 +1283,8 @@
     "contextWindow": 200000,
     "maxOutput": 64000,
     "credits": {
-      "input": 1.65,
-      "output": 8.25
+      "input": 1.8,
+      "output": 9
     },
     "snowflakeRouting": "any-region",
     "toolUseOverheadTokens": 0,
@@ -1295,7 +1295,8 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_COMPLETE credits per 1M input / output tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
     "confidence": "cross-checked"
   },
@@ -1308,8 +1309,8 @@
     "contextWindow": 200000,
     "maxOutput": 64000,
     "credits": {
-      "input": 0.55,
-      "output": 2.75
+      "input": 0.6,
+      "output": 3
     },
     "snowflakeRouting": "any-region",
     "toolUseOverheadTokens": 0,
@@ -1320,9 +1321,10 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_COMPLETE credits per 1M input / output tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "cross-checked"
   },
   {
     "id": "sf:openai-gpt-5.4",
@@ -1333,8 +1335,8 @@
     "contextWindow": 400000,
     "maxOutput": 128000,
     "credits": {
-      "input": 1.38,
-      "output": 8.25
+      "input": 1.5,
+      "output": 9
     },
     "snowflakeRouting": "azure-cross-region",
     "toolUseOverheadTokens": 0,
@@ -1345,9 +1347,10 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_COMPLETE credits per 1M input / output tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "cross-checked"
   },
   {
     "id": "sf:openai-gpt-5",
@@ -1358,8 +1361,8 @@
     "contextWindow": 272000,
     "maxOutput": 8192,
     "credits": {
-      "input": 0.69,
-      "output": 5.5
+      "input": 0.75,
+      "output": 6
     },
     "snowflakeRouting": "azure-cross-region",
     "toolUseOverheadTokens": 0,
@@ -1370,9 +1373,10 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_COMPLETE credits per 1M input / output tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "cross-checked"
   },
   {
     "id": "sf:openai-gpt-5-mini",
@@ -1383,8 +1387,8 @@
     "contextWindow": 272000,
     "maxOutput": 8192,
     "credits": {
-      "input": 0.14,
-      "output": 1.1
+      "input": 0.15,
+      "output": 1.2
     },
     "snowflakeRouting": "azure-cross-region",
     "toolUseOverheadTokens": 0,
@@ -1395,9 +1399,10 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_COMPLETE credits per 1M input / output tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "cross-checked"
   },
   {
     "id": "sf:openai-gpt-4.1",
@@ -1408,8 +1413,8 @@
     "contextWindow": 128000,
     "maxOutput": 32000,
     "credits": {
-      "input": 1.0,
-      "output": 4.0
+      "input": 1.2,
+      "output": 4.8
     },
     "snowflakeRouting": "native",
     "toolUseOverheadTokens": 0,
@@ -1420,9 +1425,10 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_COMPLETE credits per 1M input / output tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "cross-checked"
   },
   {
     "id": "sf:llama3.3-70b",
@@ -1433,8 +1439,8 @@
     "contextWindow": 128000,
     "maxOutput": 8192,
     "credits": {
-      "input": 0.36,
-      "output": 0.36
+      "input": 0.432,
+      "output": 0.432
     },
     "snowflakeRouting": "azure-cross-region",
     "toolUseOverheadTokens": 0,
@@ -1445,9 +1451,10 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_COMPLETE credits per 1M input / output tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "cross-checked"
   },
   {
     "id": "sf:llama3.1-8b",
@@ -1458,8 +1465,8 @@
     "contextWindow": 128000,
     "maxOutput": 8192,
     "credits": {
-      "input": 0.11,
-      "output": 0.11
+      "input": 0.132,
+      "output": 0.132
     },
     "snowflakeRouting": "native",
     "toolUseOverheadTokens": 0,
@@ -1470,9 +1477,10 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_COMPLETE credits per 1M input / output tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "cross-checked"
   },
   {
     "id": "sf:mistral-large2",
@@ -1483,8 +1491,8 @@
     "contextWindow": 128000,
     "maxOutput": 8192,
     "credits": {
-      "input": 1.0,
-      "output": 3.0
+      "input": 1.2,
+      "output": 3.6
     },
     "snowflakeRouting": "native",
     "toolUseOverheadTokens": 0,
@@ -1495,8 +1503,9 @@
     "source": {
       "kind": "snowflake-consumption-table",
       "url": "https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf",
-      "retrievedAt": "2026-10-02"
+      "note": "AI_COMPLETE credits per 1M input / output tokens (Table 6)",
+      "retrievedAt": "2026-10-03"
     },
-    "confidence": "single-source"
+    "confidence": "cross-checked"
   }
 ]

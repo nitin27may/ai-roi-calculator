@@ -1,6 +1,6 @@
 {
   "currency": "CAD",
-  "asOf": "2026-10-02",
+  "asOf": "2026-10-03",
   "region": "canadacentral",
   "notes": [
     "Azure prices: Azure Retail Prices API, currencyCode CAD, Global deployment, 2026-09-17.",
