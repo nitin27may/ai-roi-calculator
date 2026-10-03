@@ -1,6 +1,9 @@
 """One-off seed of packages/catalog/data from the workgraph.ai canadacentral.CAD price set
 (Azure Retail Prices API, CAD, 2026-09-17) plus the research notes in docs/research.
-After this, `pnpm prices` owns the Azure and Snowflake fields; edit manual entries by hand."""
+After this, `pnpm prices` owns the Azure and Snowflake fields; edit manual entries by hand.
+Superseded for USD-only prices: those now live in packages/catalog/data/usd-list.json and
+`pnpm prices:azure` converts them at Azure's current CAD/USD rate. Do not rerun this script
+over the catalogue; it predates the Foundry model additions of 2026-10-02."""
 import json, os, pathlib
 
 FX = 1.386  # CAD per USD, ratio of Azure CAD/USD meters on 2026-09-17 (only for USD-only list prices)
