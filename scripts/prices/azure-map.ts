@@ -32,13 +32,15 @@ export const CHAT: Record<string, { product: string; input: string; cachedInput:
 
 export const EMBEDDINGS: Record<string, string> = {
   "text-embedding-3-large": "^text-embedding-3-large-glbl Tokens$",
-  "text-embedding-ada-002": "^embedding-ada-glbl-new Tokens$",
+  "text-embedding-ada-002": "^embedding-ada-glbl Tokens$",
 };
 
 export const SPEECH_TOKENS: Record<string, { audioInput: string; textOutput: string }> = {
-  "gpt-4o-mini-transcribe": { audioInput: "^gpt-4o-mini-transcribe-aud-inp-glbl Tokens$", textOutput: "^gpt-4o-mini-transcribe-txt-opt-glbl Tokens$" },
-  "gpt-4o-transcribe": { audioInput: "^gpt-4o-transcribe-aud-inp-glbl Tokens$", textOutput: "^gpt-4o-transcribe-txt-opt-glbl Tokens$" },
+  "gpt-4o-mini-transcribe": { audioInput: "^gpt-4o-mini-transcribe-aud-inp-glbl Tokens$", textOutput: "^gpt-4o-mini-transcribe-txt-out-glbl Tokens$" },
+  "gpt-4o-transcribe": { audioInput: "^gpt-4o-transcribe-aud-inp-glbl Tokens$", textOutput: "^gpt-4o-transcribe-txt-out-glbl Tokens$" },
 };
+/** Per-hour transcription meters are billed under a separate product from the token meters. */
+export const SPEECH_PRODUCTS = ["Azure OpenAI Media"];
 export const SPEECH_HOURLY: Record<string, string> = { "gpt-transcribe": "^gpt-transcribe Gl Unit$" };
 
 /** Region-scoped service meters. `perHour` meters are multiplied by 730 for a monthly price. */
@@ -54,7 +56,7 @@ export const UNIT_METERS: Record<string, ServiceMeter> = {
   "log-analytics-ingest": { filter: "(serviceName eq 'Log Analytics' or serviceName eq 'Azure Monitor')", meterName: "^Analytics Logs Data Ingestion$", pick: "max" },
   "blob-hot": { filter: "productName eq 'General Block Blob v2' and skuName eq 'Hot LRS'", meterName: "^Hot LRS Data Stored$" },
   "key-vault-ops": { filter: "serviceName eq 'Key Vault'", meterName: "^Operations$", skuName: "Standard" },
-  "language-records": { filter: "contains(productName,'Language')", meterName: "^S Text Records$" },
+  "language-records": { filter: "contains(productName,'Language')", meterName: "^Standard Text Records$", skuName: "Standard" },
   "translator-text": { filter: "contains(productName,'Translator')", meterName: "^S1 Characters$" },
 };
 
