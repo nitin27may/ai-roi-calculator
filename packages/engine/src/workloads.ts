@@ -16,7 +16,8 @@ const tokensForPages = (pages: number, type: keyof typeof H.pages.wordsPerPage) 
 
 /** Monthly lines for one production workload at full adoption. */
 export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
-  const { book, date } = c;
+  const { date } = c;
+  const book = "deployment" in w ? c.book.withDeployment(w.deployment) : c.book;
   const id = w.id;
   const llm = (part: string, label: string, modelId: string, calls: number, inTok: number, cachedTok: number, outTok: number, behaviour: "usage" | "fixed" = "usage", batch = 0): Line => {
     const tk = book.tokenizerMultiplier(modelId);

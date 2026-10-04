@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { loadCatalog } from "@studio/catalog";
-import { PriceBook, ProjectSchema, availableIn, meetingIntelligence, type AzureDeployment } from "../src/index.js";
+import { PriceBook, ProjectSchema, availableIn, meetingIntelligence, workloadLines, type AzureDeployment, type Workload } from "../src/index.js";
 
 const cat = loadCatalog();
 const book = (d: AzureDeployment) => new PriceBook(cat, { azureDeployment: d, snowflake: { routing: "global", edition: "enterprise" } });
 const model = (id: string) => cat.chatModels.find((m) => m.id === id)!;
 const DATE = "2026-11-01";
 
-describe("Canada Regional and US Data Zone deployments", () => {
+describe("Global, Canada Regional and US Data Zone deployments", () => {
   it("prices a model at its own deployment price", () => {
     expect(book("regional").tokenPrices("gpt-4o", DATE)).toEqual(model("gpt-4o").prices!.regional);
     expect(book("dataZone").tokenPrices("gpt-4o", DATE)).toEqual(model("gpt-4o").prices!.dataZone);
@@ -36,7 +36,7 @@ describe("Canada Regional and US Data Zone deployments", () => {
     expect(book("dataZone").embeddingPer1M(e.id)).toBe(e.deployments!.dataZone);
     const b = book("regional");
     b.speechPerHour("mai-transcribe-2", DATE);
-    expect([...b.notes.keys()]).toContain("unavailable:mai-transcribe-2");
+    expect([...b.notes.keys()]).toContain("unavailable:regional:mai-transcribe-2");
   });
 
   it("availability follows availableIn first, then prices", () => {
@@ -48,8 +48,39 @@ describe("Canada Regional and US Data Zone deployments", () => {
     expect(availableIn({ platform: "snowflake" }, "regional")).toBe(true);
   });
 
-  it("opens projects saved with Global Standard as US Data Zone", () => {
+  it("keeps Global Standard as a project default", () => {
     const saved = { ...structuredClone(meetingIntelligence), settings: { ...meetingIntelligence.settings, azureDeployment: "global" } };
-    expect(ProjectSchema.parse(saved).settings.azureDeployment).toBe("dataZone");
+    expect(ProjectSchema.parse(saved).settings.azureDeployment).toBe("global");
+    expect(book("global").tokenPrices("gpt-5.4", DATE)).toEqual(model("gpt-5.4").prices!.global);
+  });
+
+  it("offers OpenAI audio models only on Global, and MAI-Transcribe through a US Speech resource", () => {
+    const e = (id: string) => cat.speechEngines.find((x) => x.id === id)!;
+    expect(availableIn(e("gpt-4o-transcribe-diarize"), "global")).toBe(true);
+    expect(availableIn(e("gpt-4o-transcribe-diarize"), "regional")).toBe(false);
+    expect(availableIn(e("mai-transcribe-2"), "regional")).toBe(false);
+    expect(availableIn(e("mai-transcribe-2"), "dataZone")).toBe(true);
+    expect(e("mai-transcribe-2").via).toMatch(/Azure Speech \(Cognitive Services\)/);
+    expect(availableIn(e("speech-batch"), "regional")).toBe(true);
+  });
+
+  it("lets a workload use its own deployment and collects its alerts in the project book", () => {
+    const base = book("regional");
+    const ctx = { book: base, date: DATE, harnesses: new Map(), percentile: "p50" as const };
+    const stt = (deployment?: AzureDeployment): Workload => ({ kind: "transcription", id: "t", label: "Calls", hoursPerMonth: 100, engineId: "gpt-4o-transcribe-diarize", diarize: true, deployment });
+    workloadLines(stt("global"), ctx);
+    expect([...base.notes.keys()].some((k) => k.includes("gpt-4o-transcribe-diarize"))).toBe(false);
+    workloadLines(stt(), ctx);
+    expect([...base.notes.keys()]).toContain("unavailable:regional:gpt-4o-transcribe-diarize");
+    expect(base.withDeployment("global").notes).toBe(base.notes);
+    expect(base.withDeployment(undefined)).toBe(base);
+  });
+
+  it("prices a chat workload at its own deployment", () => {
+    const ctx = { book: book("regional"), date: DATE, harnesses: new Map(), percentile: "p50" as const };
+    const chat = (deployment?: AzureDeployment) => ({ ...(meetingIntelligence.workloads.find((w) => w.kind === "chat") as Extract<Workload, { kind: "chat" }>), modelId: "gpt-4o", router: undefined, deployment });
+    const cost = (w: Workload) => workloadLines(w, ctx).reduce((a, l) => a + l.unitPrice * l.quantity, 0);
+    const r = model("gpt-4o").prices!;
+    expect(cost(chat("global")) / cost(chat())).toBeCloseTo(r.global.input / r.regional!.input, 2);
   });
 });

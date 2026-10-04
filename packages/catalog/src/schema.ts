@@ -49,8 +49,12 @@ export const CreditRates = z.object({
 export const TokenizerFamily = z.enum(["o200k", "claude-legacy", "claude-47", "other"]);
 export type TokenizerFamily = z.infer<typeof TokenizerFamily>;
 
-/** Azure deployment types the app offers. */
-export const Deployment = z.enum(["regional", "dataZone"]);
+/**
+ * Azure deployment types the app offers. For Foundry models these are deployment types; for engines that
+ * run in an Azure Speech (Cognitive Services) resource they mean where the resource is: Canada for
+ * `regional`, a US region for `dataZone` and `global`.
+ */
+export const Deployment = z.enum(["global", "regional", "dataZone"]);
 export type Deployment = z.infer<typeof Deployment>;
 
 export const ChatModel = z.object({
@@ -104,7 +108,7 @@ export const EmbeddingModel = z.object({
   maxInputTokens: z.number().int().positive(),
   /** Global reference price, CAD per 1M tokens. */
   per1M: z.number().nonnegative().optional(),
-  /** CAD per 1M tokens by deployment; an Azure model is offered only where it has a price. */
+  /** CAD per 1M tokens by deployment (`per1M` is the Global price); an Azure model is offered only where it has a price. */
   deployments: z.object({ regional: z.number().nonnegative().optional(), dataZone: z.number().nonnegative().optional() }).optional(),
   availableIn: z.array(Deployment).optional(),
   credits: z.number().nonnegative().optional(),
