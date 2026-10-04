@@ -19,9 +19,12 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/en-us/pricing/details/speech/",
-      "note": "Promo price until 2026-12-31 (Fast Transcription enhanced mode); list price after the promo is unpublished. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
-      "retrievedAt": "2026-10-03"
-    }
+      "note": "Promo price until 2026-12-31 (Fast Transcription enhanced mode); list price after the promo is unpublished. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-04)",
+      "retrievedAt": "2026-10-04"
+    },
+    "availableIn": [
+      "dataZone"
+    ]
   },
   {
     "platform": "azure",
@@ -38,9 +41,12 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/en-us/pricing/details/speech/",
-      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
-      "retrievedAt": "2026-10-03"
-    }
+      "note": "USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-04)",
+      "retrievedAt": "2026-10-04"
+    },
+    "availableIn": [
+      "dataZone"
+    ]
   },
   {
     "platform": "azure",
@@ -60,9 +66,10 @@
     "source": {
       "kind": "derived",
       "url": "https://azure.microsoft.com/en-us/pricing/details/speech/",
-      "note": "UNCONFIRMED: no official streaming SKU found on 2026-10-02; streaming runs inside Voice Live at its audio-token rates. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
-      "retrievedAt": "2026-10-03"
-    }
+      "note": "UNCONFIRMED: no official streaming SKU found on 2026-10-02; streaming runs inside Voice Live at its audio-token rates. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-04)",
+      "retrievedAt": "2026-10-04"
+    },
+    "availableIn": []
   },
   {
     "platform": "azure",
@@ -80,8 +87,12 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "S1 Speech to Text Batch",
-      "retrievedAt": "2026-10-03"
-    }
+      "retrievedAt": "2026-10-04"
+    },
+    "availableIn": [
+      "regional",
+      "dataZone"
+    ]
   },
   {
     "platform": "azure",
@@ -99,8 +110,12 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "Fast Transcription Speech To Text",
-      "retrievedAt": "2026-10-03"
-    }
+      "retrievedAt": "2026-10-04"
+    },
+    "availableIn": [
+      "regional",
+      "dataZone"
+    ]
   },
   {
     "platform": "azure",
@@ -119,8 +134,12 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "S1 Speech To Text",
-      "retrievedAt": "2026-10-03"
-    }
+      "retrievedAt": "2026-10-04"
+    },
+    "availableIn": [
+      "regional",
+      "dataZone"
+    ]
   },
   {
     "platform": "azure",
@@ -143,8 +162,9 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt4o mn trscb aud in gl 1215 1M Tokens",
-      "retrievedAt": "2026-10-03"
-    }
+      "retrievedAt": "2026-10-04"
+    },
+    "availableIn": []
   },
   {
     "platform": "azure",
@@ -161,15 +181,16 @@
     "mode": "batch",
     "tokens": {
       "audioTokensPerSecond": 10,
-      "audioInputPer1M": 8.5,
-      "textOutputPer1M": 14.2
+      "audioInputPer1M": 8.4993,
+      "textOutputPer1M": 14.1655
     },
     "source": {
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt-4o-transcribe-aud-inp-glbl Tokens",
-      "retrievedAt": "2026-10-03"
-    }
+      "retrievedAt": "2026-10-04"
+    },
+    "availableIn": []
   },
   {
     "platform": "azure",
@@ -187,8 +208,9 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt-transcribe Gl Unit",
-      "retrievedAt": "2026-10-03"
-    }
+      "retrievedAt": "2026-10-04"
+    },
+    "availableIn": []
   },
   {
     "id": "gpt-4o-transcribe-diarize",
@@ -198,8 +220,8 @@
     "mode": "batch",
     "tokens": {
       "audioTokensPerSecond": 10,
-      "audioInputPer1M": 8.5,
-      "textOutputPer1M": 14.2
+      "audioInputPer1M": 8.4993,
+      "textOutputPer1M": 14.1655
     },
     "diarization": "included",
     "lifecycle": {
@@ -210,9 +232,10 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt 4o tcrb d aud inp glbl Tokens",
-      "retrievedAt": "2026-10-03"
+      "retrievedAt": "2026-10-04"
     },
-    "confidence": "verified"
+    "confidence": "verified",
+    "availableIn": []
   },
   {
     "id": "gpt-live-transcribe",
@@ -229,9 +252,10 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt-live-transcribe Gl Unit",
-      "retrievedAt": "2026-10-03"
+      "retrievedAt": "2026-10-04"
     },
-    "confidence": "verified"
+    "confidence": "verified",
+    "availableIn": []
   },
   {
     "id": "gpt-realtime-whisper",
@@ -248,9 +272,10 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt-realtime-whisper Opt Gl Unit",
-      "retrievedAt": "2026-10-03"
+      "retrievedAt": "2026-10-04"
     },
-    "confidence": "verified"
+    "confidence": "verified",
+    "availableIn": []
   },
   {
     "platform": "azure",
@@ -269,8 +294,11 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "Speech-to-Text-Batch-Whisper-glbl Unit",
-      "retrievedAt": "2026-10-03"
-    }
+      "retrievedAt": "2026-10-04"
+    },
+    "availableIn": [
+      "dataZone"
+    ]
   },
   {
     "platform": "azure",
@@ -287,9 +315,13 @@
     "source": {
       "kind": "derived",
       "url": "https://github.com/MicrosoftDocs/azure-ai-docs",
-      "note": "Extraction USD 0.36/h + contextualization USD 0.10/h; LLM tokens extra. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-03)",
-      "retrievedAt": "2026-10-03"
-    }
+      "note": "Extraction USD 0.36/h + contextualization USD 0.10/h; LLM tokens extra. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-04)",
+      "retrievedAt": "2026-10-04"
+    },
+    "availableIn": [
+      "regional",
+      "dataZone"
+    ]
   },
   {
     "id": "sf:ai-transcribe",
