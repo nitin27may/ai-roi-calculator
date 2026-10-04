@@ -80,6 +80,8 @@ export interface Match {
    * of the first region in this list that carries the meter.
    */
   preferRegions?: string[];
+  /** Only rows in these regions count (Canada for Regional Standard, the US for Data Zone). */
+  regions?: string[];
 }
 
 /** Exactly one distinct price must match, otherwise the mapping is ambiguous or stale. */
@@ -88,7 +90,7 @@ export function one(rows: RetailRow[], m: Match): RetailRow {
   const pr = m.productName ? new RegExp(m.productName, "i") : null;
   const hits = rows.filter((r) =>
     re.test(r.meterName) && (!pr || pr.test(r.productName)) && (!m.skuName || r.skuName === m.skuName) &&
-    (m.armRegionName === undefined || r.armRegionName === m.armRegionName) && r.tierMinimumUnits === (m.tierMinimumUnits ?? 0) && r.retailPrice > 0);
+    (m.armRegionName === undefined || r.armRegionName === m.armRegionName) && (!m.regions || m.regions.includes(r.armRegionName)) && r.tierMinimumUnits === (m.tierMinimumUnits ?? 0) && r.retailPrice > 0);
   const distinctOf = (rs: RetailRow[]) => new Map(rs.map((h) => [`${h.meterName}|${h.skuName}|${h.productName}|${h.retailPrice}`, h]));
   const distinct = distinctOf(hits);
   if (distinct.size === 1) return [...distinct.values()][0]!;
@@ -111,3 +113,16 @@ export function per1M(row: RetailRow): number {
 
 export const HOURS_PER_MONTH = 730;
 export const round = (n: number, d = 4) => Math.round(n * 10 ** d) / 10 ** d;
+
+/**
+ * Per-1K token meters carry CAD rounded to 4 decimals (0.0007 for 0.000686), which is 2-30% off per 1M.
+ * Replace each 1K row's CAD price with its USD twin × the rate Azure bills at, which keeps 6+ digits.
+ */
+export function preciseRows(cad: RetailRow[], usd: RetailRow[], usdToCad: number): RetailRow[] {
+  const key = (r: RetailRow) => `${r.meterId}|${r.armRegionName}|${r.tierMinimumUnits}`;
+  const twin = new Map(usd.map((r) => [key(r), r.retailPrice]));
+  return cad.map((r) => {
+    const u = r.unitOfMeasure.replace(/\s+/g, "") === "1K" ? twin.get(key(r)) : undefined;
+    return u === undefined ? r : { ...r, retailPrice: u * usdToCad };
+  });
+}
