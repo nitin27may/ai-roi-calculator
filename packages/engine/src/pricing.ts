@@ -3,6 +3,7 @@ import { heuristics } from "@studio/catalog";
 
 /** Global Standard, Canada Regional Standard or US Data Zone Standard. */
 export type AzureDeployment = Deployment;
+export type { ProcessingTier } from "@studio/catalog";
 
 export const DEPLOYMENT_LABEL: Record<AzureDeployment, string> = { global: "Global Standard", regional: "Canada Regional Standard", dataZone: "US Data Zone Standard" };
 export const DEPLOYMENTS: AzureDeployment[] = ["global", "regional", "dataZone"];

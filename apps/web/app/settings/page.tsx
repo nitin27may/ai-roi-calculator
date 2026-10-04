@@ -3,7 +3,7 @@ import { Card, CardHead, Field, NumberInput, Select } from "@/components/ui";
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad } from "@/lib/format";
-import { DEPLOYMENT_LABEL, DEPLOYMENTS, type AzureDeployment } from "@studio/engine";
+import { DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, type AzureDeployment, type ProcessingTier } from "@studio/engine";
 
 export default function Settings() {
   const project = useStudio((s) => s.project);
@@ -27,9 +27,11 @@ export default function Settings() {
         <CardHead title="Azure" sub="Foundry deployment type for all models" />
         <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 px-3.5 pb-3.5">
           <Field label="Default deployment"><Select value={project.settings.azureDeployment} options={DEPLOYMENTS.map((d) => ({ value: d, label: DEPLOYMENT_LABEL[d] }))} onChange={(v) => edit((d) => { d.settings.azureDeployment = v as AzureDeployment; })} /></Field>
+          <Field label="Processing tier"><Select value={project.settings.processingTier ?? "standard"} options={TIERS.map((t) => ({ value: t, label: TIER_LABEL[t] }))} onChange={(v) => edit((d) => { d.settings.processingTier = v as ProcessingTier; })} /></Field>
         </div>
         <div className="space-y-1.5 px-3.5 pb-3.5 text-[11.5px] text-muted">
-          <p>Every Azure workload uses this unless you set its own Deployment on the Run page, so chat can stay in Canada while transcription runs on Global.</p>
+          <p>Every Azure workload uses this unless you set its own Deployment or Tier on the Run page, so chat can stay in Canada while transcription runs on Global.</p>
+          <p>Priority and Flex processing are not priced yet; only Standard and Batch are selectable here.</p>
           <p><b className="text-ink-2">Global Standard</b>: every Foundry model, including the OpenAI audio and realtime models; requests can be processed in any Azure region. <b className="text-ink-2">Canada Regional Standard</b>: data stays in Canada, but only gpt-4o, gpt-4.1-mini, OpenAI embeddings and Azure Speech are offered. <b className="text-ink-2">US Data Zone Standard</b>: data stays in the US; GPT-5.x/6, the Azure-hosted Claude models and partner models.</p>
           <p>Azure Speech and MAI-Transcribe are not Foundry deployments: they run in an Azure Speech (Cognitive Services) resource. Canada Regional means a resource in Canada, where MAI-Transcribe is not offered; Global and US Data Zone mean a resource in a US region such as East US.</p>
         </div>
