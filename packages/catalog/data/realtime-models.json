@@ -21,9 +21,10 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt-realtime-2.1 Audio inp Gl 1M Tokens",
-      "retrievedAt": "2026-10-03"
+      "retrievedAt": "2026-10-04"
     },
-    "confidence": "verified"
+    "confidence": "verified",
+    "availableIn": []
   },
   {
     "id": "gpt-realtime-2.1-mini",
@@ -47,9 +48,10 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt-realtime-2.1-mini Audio inp Gl 1M Tokens",
-      "retrievedAt": "2026-10-03"
+      "retrievedAt": "2026-10-04"
     },
-    "confidence": "verified"
+    "confidence": "verified",
+    "availableIn": []
   },
   {
     "id": "gpt-realtime-1.5",
@@ -73,8 +75,9 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "gpt rt 1.5 aud inp Gl 1M Tokens",
-      "retrievedAt": "2026-10-03"
+      "retrievedAt": "2026-10-04"
     },
-    "confidence": "verified"
+    "confidence": "verified",
+    "availableIn": []
   }
 ]

@@ -1,6 +1,6 @@
 {
   "currency": "CAD",
-  "asOf": "2026-10-03",
+  "asOf": "2026-10-04",
   "region": "canadacentral",
   "notes": [
     "Azure prices: Azure Retail Prices API, currencyCode CAD, Global deployment; Data Zone uses the US Data Zone meters.",
@@ -10,7 +10,7 @@
   "fx": {
     "usdToCad": 1.41655,
     "meters": 5083,
-    "asOf": "2026-10-03",
+    "asOf": "2026-10-04",
     "source": "Azure Retail Prices API: CAD/USD ratio of 5083 matched meters (productName eq 'Azure OpenAI GPT5')"
   }
 }

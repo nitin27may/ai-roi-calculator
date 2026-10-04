@@ -29,7 +29,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "Basic Unit",
-      "retrievedAt": "2026-10-03"
+      "retrievedAt": "2026-10-04"
     },
     "confidence": "verified"
   },
@@ -46,7 +46,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "Standard S1 Unit",
-      "retrievedAt": "2026-10-03"
+      "retrievedAt": "2026-10-04"
     },
     "confidence": "verified"
   },
@@ -63,7 +63,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "Standard S2 Unit",
-      "retrievedAt": "2026-10-03"
+      "retrievedAt": "2026-10-04"
     },
     "confidence": "verified"
   },
@@ -80,7 +80,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "Standard S3 Unit",
-      "retrievedAt": "2026-10-03"
+      "retrievedAt": "2026-10-04"
     },
     "confidence": "verified"
   },
@@ -113,7 +113,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "Storage Optimized L1 Unit",
-      "retrievedAt": "2026-10-03"
+      "retrievedAt": "2026-10-04"
     },
     "confidence": "verified"
   },
@@ -130,7 +130,7 @@
       "kind": "azure-retail-api",
       "url": "https://prices.azure.com/api/retail/prices",
       "meterName": "Storage Optimized L2 Unit",
-      "retrievedAt": "2026-10-03"
+      "retrievedAt": "2026-10-04"
     },
     "confidence": "verified"
   }
