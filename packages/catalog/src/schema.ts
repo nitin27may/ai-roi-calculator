@@ -57,6 +57,17 @@ export type TokenizerFamily = z.infer<typeof TokenizerFamily>;
 export const Deployment = z.enum(["global", "regional", "dataZone"]);
 export type Deployment = z.infer<typeof Deployment>;
 
+/**
+ * Azure Foundry processing tier. Only `standard` and `batch` are priced today; the enum stays
+ * open so `priority` and `flex` can be added later as catalogue data (see `ChatModel.tiers`).
+ */
+export const ProcessingTier = z.enum(["standard", "batch"]);
+export type ProcessingTier = z.infer<typeof ProcessingTier>;
+
+/** A tier's price relative to Standard: a flat discount/premium factor, or its own published prices. */
+export const TierPricing = z.union([z.object({ factor: z.number().positive() }), z.object({ prices: TokenPrices })]);
+export type TierPricing = z.infer<typeof TierPricing>;
+
 export const ChatModel = z.object({
   id: z.string(),
   label: z.string(),
@@ -92,7 +103,14 @@ export const ChatModel = z.object({
   /** Snowflake: cross-region setting needed from an Azure-hosted account. */
   snowflakeRouting: z.enum(["native", "azure-cross-region", "any-region"]).optional(),
   toolUseOverheadTokens: z.number().int().nonnegative().default(0),
+  /**
+   * Azure Batch discount, derived from Azure Batch meters (see `scripts/prices/azure.ts`). Kept as the
+   * data source for `batch`; `tiers` overrides it per tier and is how Priority/Flex get added later
+   * without a schema migration for every existing model.
+   */
   batchDiscount: z.number().min(0).max(1).default(0),
+  /** Price or factor per processing tier, keyed by `ProcessingTier` minus `standard`. Overrides `batchDiscount` for `batch` when present. */
+  tiers: z.record(ProcessingTier, TierPricing).optional(),
   promo: Promo.optional(),
   lifecycle: Lifecycle,
   source: Source,

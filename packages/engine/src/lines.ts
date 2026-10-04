@@ -1,3 +1,5 @@
+import type { ProcessingTier } from "@studio/catalog";
+
 /** Which part of the lifecycle a cost belongs to. */
 export type Stream = "labour" | "devlab" | "devenv" | "run" | "platform" | "maint" | "transition";
 
@@ -26,6 +28,8 @@ export interface Line {
   seat?: number;
   /** For LLM lines: tokens per unit of quantity (per call, task or run). */
   tokens?: { input: number; cachedInput: number; output: number };
+  /** Processing tier this line billed at (Standard when absent); keeps PTU and other per-meter grouping from merging tiers. */
+  tier?: ProcessingTier;
 }
 
 export const line = (l: Omit<Line, "cost"> & { cost?: number }): Line => ({ ...l, cost: l.cost ?? l.quantity * l.unitPrice });

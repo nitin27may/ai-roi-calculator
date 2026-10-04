@@ -52,6 +52,8 @@ export function ptuAnalysis(p: Project, ledger: Ledger, cat: Catalog, opts: { pe
   const byModel = new Map<string, { tokens: TokensPerMinute; payg: number }>();
   for (const l of month.lines) {
     if (l.stream !== "run" || !l.tokens) continue;
+    // Batch (and any future non-Standard tier) never runs on provisioned capacity; size PTUs off Standard usage only.
+    if (l.tier && l.tier !== "standard") continue;
     const m = cat.chatModels.find((x) => x.id === l.meter);
     if (!m || m.platform !== "azure") continue;
     const e = byModel.get(l.meter) ?? { tokens: { input: 0, cachedInput: 0, output: 0 }, payg: 0 };
