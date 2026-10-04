@@ -280,3 +280,12 @@ CI (`.github/workflows/ci.yml`) runs the same three on every pull request and on
 - **`docs/research/`:** pricing and behaviour research with sources, the starting point when a price looks wrong.
 - **`README.md`:** the feature list.
 - **`docs/PR_DESCRIPTION.md`:** a summary of everything built in the first iteration.
+
+## Hosting (Cloudflare Pages)
+
+The web app is a static export (`output: "export"` in `apps/web/next.config.ts`; all state is in the browser, no server routes). It is published to the Pages project `token-calculator` at https://token-calculator-532.pages.dev. Deploy with `pnpm deploy` from the repo root.
+
+Gotchas:
+- Use wrangler 3 for Pages. Wrangler 4 delegates `pages` commands to Workers auto-configuration and will not create or deploy a Pages project from this workspace.
+- Auth is the existing `wrangler login --device` token on nks-ubuntu. Never put a Cloudflare token in the repo.
+- Adding a server route, middleware or `cookies()`/`headers()` call breaks the export. Build will fail; do not remove `output: "export"` to get around it.

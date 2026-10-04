@@ -13,7 +13,8 @@
     "prices": "pnpm prices:azure && pnpm prices:snowflake",
     "prices:azure": "tsx scripts/prices/azure.ts",
     "prices:snowflake": "tsx scripts/prices/snowflake.ts",
-    "validate": "tsx scripts/validate-catalog.ts"
+    "validate": "tsx scripts/validate-catalog.ts",
+    "deploy": "pnpm --filter @studio/web build && cd apps/web && npx -y wrangler@3 pages deploy out --project-name token-calculator --branch main --commit-dirty=true"
   },
   "devDependencies": {
     "@studio/catalog": "workspace:*",
