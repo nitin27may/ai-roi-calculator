@@ -10,8 +10,8 @@ Updated in every PR and posted after every merge. Plan: [docs/plan](plan/README.
 | 4 | Dev Lab | Sample covers all 9 activities | Done | #7 | |
 | 5 | Prices | Batch discounts from Azure meters | Done | #9 | |
 | 6 | Plan | Audit and plan docs | Done | #10 | P0 |
-| 7 | Foundation | Migration, C$, palette | In review | #11 | P1 |
-| 8 | Pricing | Configurable processing tier | Pending | | P2; Priority and Flex deferred |
+| 7 | Foundation | Migration, C$, palette | Done | #11 | P1 |
+| 8 | Pricing | Configurable processing tier | Done | #12 | P2; Priority and Flex deferred |
 | 9 | Accuracy | Token accuracy I | Pending | | P3 |
 | 10 | Exec | Summary page | Pending | | P4 |
 | 11 | Flexibility | Feature model and timing | Pending | | P5 |
