@@ -6,11 +6,11 @@ import { catalog, useLedger } from "@/lib/compute";
 import { cad, fmt } from "@/lib/format";
 
 const STREAMS = [
-  { key: "labour", label: "Build labour", color: "var(--s1)" },
-  { key: "devlab", label: "AI Dev Lab", color: "var(--s2)" },
-  { key: "run", label: "Production AI usage", color: "var(--s3)" },
-  { key: "platform", label: "Platform", color: "var(--s4)" },
-  { key: "maint", label: "Maintenance & transition", color: "var(--s5)" },
+  { key: "labour", label: "Build labour", color: "var(--build-2)" },
+  { key: "devlab", label: "AI Dev Lab", color: "var(--build)" },
+  { key: "run", label: "Production AI usage", color: "var(--run)" },
+  { key: "platform", label: "Platform", color: "var(--platform)" },
+  { key: "maint", label: "Maintenance & transition", color: "var(--maint)" },
 ];
 
 /** A printable one-document summary. Use the browser's Print → Save as PDF. */

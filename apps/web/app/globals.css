@@ -5,7 +5,10 @@
   --bg: #f4f6f4; --surface: #ffffff; --surface-2: #eef2ef; --ink: #13201b; --ink-2: #4b5853; --muted: #6c7873; --line: #dbe1dd;
   --accent: #0d6b57; --accent-ink: #ffffff; --accent-soft: #dcefe8;
   --good: #1b7a3a; --warn: #a15c00; --crit: #b42318; --good-soft: #e0f2e6; --warn-soft: #fdf1dc; --crit-soft: #fbe4e1;
-  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+  /* One meaning per colour everywhere: build/devlab orange, run green, platform slate, maintenance amber-brown, benefit teal, risk red. */
+  --build: #eb6834; --build-2: #b84b1a; --run: #1baf7a; --platform: #51707a; --maint: #8a6a3a; --benefit: var(--accent); --risk: var(--crit);
+  /* Generic categorical series for charts that distinguish many items rather than a cost category (no purple, no yellow). */
+  --s1: #2a78d6; --s2: var(--build); --s3: var(--run); --s4: var(--platform); --s5: var(--maint); --s6: #8a7a1e; --s7: #a24a3a;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -13,7 +16,8 @@
     --bg: #0f1513; --surface: #161e1b; --surface-2: #1d2723; --ink: #eef3f0; --ink-2: #b9c4bf; --muted: #8e9b95; --line: #2a3631;
     --accent: #3fbf9c; --accent-ink: #06231b; --accent-soft: #163a31;
     --good: #5cc97f; --warn: #e9a443; --crit: #f07a6e; --good-soft: #15301f; --warn-soft: #3a2b12; --crit-soft: #3d1c19;
-    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+    --build: #d95926; --build-2: #e2834a; --run: #199e70; --platform: #7c97a0; --maint: #c08a4e; --benefit: var(--accent); --risk: var(--crit);
+    --s1: #3987e5; --s2: var(--build); --s3: var(--run); --s4: var(--platform); --s5: var(--maint); --s6: #c2ab4a; --s7: #c97a66;
     color-scheme: dark;
   }
 }
@@ -21,7 +25,8 @@
   --bg: #0f1513; --surface: #161e1b; --surface-2: #1d2723; --ink: #eef3f0; --ink-2: #b9c4bf; --muted: #8e9b95; --line: #2a3631;
   --accent: #3fbf9c; --accent-ink: #06231b; --accent-soft: #163a31;
   --good: #5cc97f; --warn: #e9a443; --crit: #f07a6e; --good-soft: #15301f; --warn-soft: #3a2b12; --crit-soft: #3d1c19;
-  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+  --build: #d95926; --build-2: #e2834a; --run: #199e70; --platform: #7c97a0; --maint: #c08a4e; --benefit: var(--accent); --risk: var(--crit);
+  --s1: #3987e5; --s2: var(--build); --s3: var(--run); --s4: var(--platform); --s5: var(--maint); --s6: #c2ab4a; --s7: #c97a66;
   color-scheme: dark;
 }
 

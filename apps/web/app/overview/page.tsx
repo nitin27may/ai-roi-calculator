@@ -16,7 +16,7 @@ export default function Overview() {
       <div className="grid min-h-0 gap-3.5 lg:grid-cols-[minmax(0,1fr)_330px]">
         <Card>
           <CardHead title="Lifecycle" sub={<>Each lane is a cost stream by month. <b>Drag the go-live line</b> (or focus it and use the arrow keys) to change how long the build runs.</>}>
-            <Legend items={[{ label: "Build", color: "var(--s2)" }, { label: "Production", color: "var(--s3)" }, { label: "Benefit", color: "var(--accent)" }]} />
+            <Legend items={[{ label: "Build", color: "var(--build)" }, { label: "Production", color: "var(--run)" }, { label: "Benefit", color: "var(--benefit)" }]} />
           </CardHead>
           <LifecycleCanvas />
         </Card>
@@ -65,15 +65,15 @@ function LifecycleCanvas() {
   const comp = (m: Month, ids: string[]) => m.lines.filter((l) => l.stream === "devlab" && ids.includes(l.componentId)).reduce((s, l) => s + l.cost, 0);
   const kinds = (k: string[]) => project.build.activities.filter((a) => k.includes(a.kind)).map((a) => a.id);
   const lanes: [string, string, number[]][] = [
-    ["Build labour", "var(--s2)", months.map((m) => m.byStream.labour)],
-    ["Model bake-off", "var(--s2)", months.map((m) => comp(m, kinds(["bakeoff"])))],
-    ["Harness iterations", "var(--s2)", months.map((m) => comp(m, kinds(["iterations"])))],
-    ["Regression, eval & red team", "var(--s2)", months.map((m) => comp(m, kinds(["regression", "evaluation", "redteam"])))],
-    ["Tools & dev environment", "var(--s2)", months.map((m) => comp(m, kinds(["playground", "tooling"])) + m.byStream.devenv)],
-    ["Production AI usage", "var(--s3)", months.map((m) => m.byStream.run)],
-    ["Platform & infrastructure", "var(--s3)", months.map((m) => m.byStream.platform)],
-    ["Maintenance", "var(--s3)", months.map((m) => m.byStream.maint)],
-    ["Benefit", "var(--accent)", months.map((m) => m.benefit)],
+    ["Build labour", "var(--build-2)", months.map((m) => m.byStream.labour)],
+    ["Model bake-off", "var(--build)", months.map((m) => comp(m, kinds(["bakeoff"])))],
+    ["Harness iterations", "var(--build)", months.map((m) => comp(m, kinds(["iterations"])))],
+    ["Regression, eval & red team", "var(--build)", months.map((m) => comp(m, kinds(["regression", "evaluation", "redteam"])))],
+    ["Tools & dev environment", "var(--build)", months.map((m) => comp(m, kinds(["playground", "tooling"])) + m.byStream.devenv)],
+    ["Production AI usage", "var(--run)", months.map((m) => m.byStream.run)],
+    ["Platform & infrastructure", "var(--platform)", months.map((m) => m.byStream.platform)],
+    ["Maintenance", "var(--maint)", months.map((m) => m.byStream.maint)],
+    ["Benefit", "var(--benefit)", months.map((m) => m.benefit)],
   ];
   const W = Math.max(480, w), Ht = Math.max(360, h), L = 178, R = 70, T = 22, cumH = 86;
   const laneH = Math.max(24, Math.min(40, (Ht - T - cumH - 34) / lanes.length)), bw = (W - L - R) / Hm, x = (m: number) => L + m * bw;
@@ -93,7 +93,7 @@ function LifecycleCanvas() {
     <div ref={ref} className="relative min-h-[400px] flex-1 overflow-hidden px-1.5 pb-1.5">
       {w > 0 && (
         <svg className="chart absolute inset-0 h-full w-full" viewBox={`0 0 ${W} ${Ht}`} role="img" aria-label="Lifecycle cost lanes by month">
-          <rect x={L} y={0} width={B * bw} height={T + lanes.length * laneH} fill="var(--s2)" opacity={0.06} />
+          <rect x={L} y={0} width={B * bw} height={T + lanes.length * laneH} fill="var(--build)" opacity={0.06} />
           <text x={L + 4} y={14}>Build</text>
           <text x={gx + 42} y={14}>Production</text>
           {Array.from({ length: Hm }, (_, m) => m).filter((m) => m % 6 === 0 || m === Hm - 1).map((m) => <text key={m} x={x(m) + bw / 2} y={T + lanes.length * laneH + 14} textAnchor="middle">M{m + 1}</text>)}
