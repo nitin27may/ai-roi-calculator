@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { one, per1M, preciseRows, PriceMatchError, type RetailRow } from "../retail.js";
 import { updateAzure, report } from "../azure.js";
+import { batchInputPattern } from "../azure-map.js";
 import { applyUsdList, fxFromRows } from "../fx.js";
 import { applySnowflake, findNumbers } from "../snowflake.js";
 
@@ -215,5 +216,19 @@ describe("Snowflake consumption table parsing", () => {
     applySnowflake(live, [], [], units, "2026-10-02");
     const credits = (id: string) => units.find((u: any) => u.id === id).credits;
     expect([credits("sf-parse-layout"), credits("sf-parse-ocr"), credits("sf-ai-extract"), credits("sf-cortex-guard"), credits("sf-search-serving")]).toEqual([3.66, 0.68, 5.55, 0.25, 6.3]);
+  });
+});
+
+describe("batch meter patterns", () => {
+  const match = (pattern: string, meter: string) => new RegExp(batchInputPattern(pattern).replace("{r}", "(Gl|glbl|Glbl)"), "i").test(meter);
+  it("finds the Batch twin of each input meter naming style", () => {
+    expect(match("^5\\.4 inp {r} 1M", "5.4 Batch inp Gl 1M Tokens")).toBe(true);
+    expect(match("^GPT 5 Nano Inpt {r} 1M", "GPT 5 Nano Batch Inpt Glbl 1M Tokens")).toBe(true);
+    expect(match("^gpt 4\\.1 Inp {r} Tokens", "gpt 4.1 Batch Inp glbl Tokens")).toBe(true);
+    expect(match("^gpt.?4o.?mini.?0718.?Inp.?{r} Tokens", "gpt-4o-mini-0718-Batch-Inp-glbl Tokens")).toBe(true);
+  });
+  it("does not match the standard meter or a Data Zone batch meter", () => {
+    expect(match("^5\\.4 inp {r} 1M", "5.4 inp Gl 1M Tokens")).toBe(false);
+    expect(match("^5\\.4 inp {r} 1M", "5.4 Batch inp Dz 1M Tokens")).toBe(false);
   });
 });
