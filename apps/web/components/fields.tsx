@@ -1,6 +1,6 @@
 "use client";
 import { Field, NumberInput, Select } from "@/components/ui";
-import { catalog, modelOptions } from "@/lib/compute";
+import { catalog, deploymentOptions, modelOptions } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 
 export type Spec =
@@ -21,10 +21,10 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
   const set = (key: string, v: unknown) => edit((d) => { const o = locate(d); if (o) o[key] = v; });
   const optionsFor = (t: string) => {
     if (t === "model") return modelOptions();
-    if (t === "embedding") return catalog.embeddingModels.map((m) => ({ value: m.id, label: m.label }));
-    if (t === "speech") return catalog.speechEngines.map((m) => ({ value: m.id, label: `${m.label} · ${m.via}` }));
+    if (t === "embedding") return deploymentOptions(catalog.embeddingModels);
+    if (t === "speech") return deploymentOptions(catalog.speechEngines, (m) => `${m.label} · ${m.via}`);
     if (t === "harness") return harnesses.map((h) => ({ value: h.id, label: h.label }));
-    if (t === "realtime") return catalog.realtimeModels.map((m) => ({ value: m.id, label: m.label }));
+    if (t === "realtime") return deploymentOptions(catalog.realtimeModels);
     if (t === "sfModel") return modelOptions((m) => m.platform === "snowflake");
     if (t === "sfEmbedding") return catalog.embeddingModels.filter((m) => m.platform === "snowflake").map((m) => ({ value: m.id, label: m.label }));
     if (t === "sfFunction") return catalog.unitPrices.filter((u) => u.platform === "snowflake" && u.unit === "1M tokens").map((u) => ({ value: u.id, label: u.label }));
