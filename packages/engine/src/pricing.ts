@@ -1,12 +1,13 @@
 import type { Catalog, ChatModel, Deployment, TokenPrices, UnitPrice } from "@studio/catalog";
 import { heuristics } from "@studio/catalog";
 
-/** Canada Regional Standard or US Data Zone Standard. */
+/** Global Standard, Canada Regional Standard or US Data Zone Standard. */
 export type AzureDeployment = Deployment;
 
-export const DEPLOYMENT_LABEL: Record<AzureDeployment, string> = { regional: "Canada Regional Standard", dataZone: "US Data Zone Standard" };
+export const DEPLOYMENT_LABEL: Record<AzureDeployment, string> = { global: "Global Standard", regional: "Canada Regional Standard", dataZone: "US Data Zone Standard" };
+export const DEPLOYMENTS: AzureDeployment[] = ["global", "regional", "dataZone"];
 
-type Availability = { prices?: Partial<Record<AzureDeployment, unknown>>; deployments?: Partial<Record<AzureDeployment, unknown>>; availableIn?: AzureDeployment[]; platform?: string };
+type Availability = { prices?: Partial<Record<AzureDeployment, unknown>>; deployments?: Partial<Record<AzureDeployment, unknown>>; per1M?: number; availableIn?: AzureDeployment[]; platform?: string };
 
 /**
  * Whether a catalogue entry can be deployed under `d`: its `availableIn` list when it has one, else whether it
@@ -16,7 +17,7 @@ export function availableIn(e: Availability, d: AzureDeployment): boolean {
   if (e.platform === "snowflake") return true;
   if (e.availableIn) return e.availableIn.includes(d);
   if (e.prices) return e.prices[d] !== undefined;
-  if (e.deployments) return e.deployments[d] !== undefined;
+  if (e.deployments) return d === "global" ? e.per1M !== undefined : e.deployments[d] !== undefined;
   return true;
 }
 
@@ -50,8 +51,13 @@ export interface PriceNote {
  * retirement that falls inside the project timeline is priced and flagged correctly.
  */
 export class PriceBook {
-  readonly notes = new Map<string, PriceNote>();
-  constructor(readonly catalog: Catalog, readonly settings: PricingSettings) {}
+  /** `notes` is shared with books made by `withDeployment`, so one project collects every alert. */
+  constructor(readonly catalog: Catalog, readonly settings: PricingSettings, readonly notes = new Map<string, PriceNote>()) {}
+
+  /** The same book priced for another deployment (a workload's own choice). */
+  withDeployment(d: AzureDeployment | undefined): PriceBook {
+    return !d || d === this.settings.azureDeployment ? this : new PriceBook(this.catalog, { ...this.settings, azureDeployment: d }, this.notes);
+  }
 
   private note(key: string, n: PriceNote) {
     if (!this.notes.has(key)) this.notes.set(key, n);
@@ -115,7 +121,7 @@ export class PriceBook {
   /** Records that an entry is not offered under the project's deployment and returns the fallback tier's prices. */
   private unavailable(id: string, label: string, d: AzureDeployment, fallback: AzureDeployment | null): TokenPrices | undefined {
     const m = this.catalog.chatModels.find((x) => x.id === id);
-    this.note(`unavailable:${id}`, {
+    this.note(`unavailable:${d}:${id}`, {
       kind: "unavailable",
       message: `${label} is not offered as ${DEPLOYMENT_LABEL[d]}; priced as ${fallback ? DEPLOYMENT_LABEL[fallback] : "Global × 1.1"} until you pick another model`,
     });
@@ -125,7 +131,7 @@ export class PriceBook {
   /** Notes an engine or model that cannot run under the project's deployment (prices are the same either way). */
   private checkAvailable(e: Availability & { id: string; label: string }) {
     const d = this.settings.azureDeployment;
-    if (!availableIn(e, d)) this.note(`unavailable:${e.id}`, { kind: "unavailable", message: `${e.label} is not offered as ${DEPLOYMENT_LABEL[d]}` });
+    if (!availableIn(e, d)) this.note(`unavailable:${d}:${e.id}`, { kind: "unavailable", message: `${e.label} is not offered as ${DEPLOYMENT_LABEL[d]}` });
   }
 
   /** CAD for a token usage on a model. */
@@ -144,7 +150,7 @@ export class PriceBook {
     if (!e) throw new Error(`Unknown embedding model "${id}"`);
     if (e.platform === "snowflake") return (e.credits ?? 0) * this.aiCreditCad();
     const d = this.settings.azureDeployment;
-    const price = e.deployments?.[d];
+    const price = d === "global" ? e.per1M : e.deployments?.[d];
     this.checkAvailable(e);
     if (price !== undefined) return price;
     return e.deployments?.dataZone ?? e.per1M ?? 0;
