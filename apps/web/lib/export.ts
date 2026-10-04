@@ -29,7 +29,7 @@ export async function exportXlsx(p: Project, ledger: Ledger, roi: RoiResult) {
     ws.addRows(rows);
     ws.getRow(1).font = { bold: true };
     ws.views = [{ state: "frozen", ySplit: 1 }];
-    for (const c of money) { const col = ws.getColumn(c); col.numFmt = '"$"#,##0.00'; }
+    for (const c of money) { const col = ws.getColumn(c); col.numFmt = '"C$"#,##0.00'; }
     return ws;
   };
   sheet("Summary", summaryRows(p, ledger, roi));
