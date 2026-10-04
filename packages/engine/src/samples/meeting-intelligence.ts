@@ -56,6 +56,8 @@ export const meetingIntelligence: Project = {
       },
       { kind: "redteam", id: "redteam", label: "AI red teaming", targetModelId: "gpt-5.4", scansPerMonth: 8, categories: 4, objectivesPerCategory: 10, strategies: 5, multiTurnShare: 0.2, fromMonth: 5, monthFactors: [1] },
       { kind: "playground", id: "playground", label: "Playground & prompt work", modelId: "gpt-5.4", callsPerDevPerDay: 40, inputTokens: 3000, outputTokens: 600, workingDays: 21, monthFactors: [1] },
+      { kind: "synthetic", id: "synthetic", workstreamId: "ws-ask", label: "Synthetic test data", generatorModelId: "gpt-5.4", acceptedPerMonth: 2000, passRate: 0.6, genInputTokens: 1500, genOutputTokens: 700, judgeModelId: "gpt-5.4-mini", judgeInputTokens: 1200, judgeOutputTokens: 150, batchShare: 1, monthFactors: [1, 1, 0.5, 0] },
+      { kind: "finetune", id: "finetune", workstreamId: "ws-notes", label: "Fine-tune follow-up classifier", trainingPriceId: "ft-train-gpt-4.1-mini", runsPerMonth: 3, examples: 5000, tokensPerExample: 1500, epochs: 3, hoursPerRun: 0, deployments: 1, hostingHoursPerMonth: 160, monthFactors: [0, 0, 1, 1, 0] },
       { kind: "tooling", id: "tooling", label: "AI coding tools", copilotSeatsPerDev: 1, copilotPlan: "copilot-business", codingModelId: "claude-sonnet-5-5", codingTokensPerDevPerDay: { input: 400000, cachedInput: 2400000, output: 60000 }, workingDays: 21, monthFactors: [1] },
     ],
     environment: [
