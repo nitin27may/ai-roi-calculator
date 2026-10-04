@@ -3,7 +3,7 @@ import { loadCatalog } from "@studio/catalog";
 import { PriceBook, cascadeCall, harnessUsage, meetingIntelligence, newHarness, voiceCall, type Workload } from "../src/index.js";
 
 const cat = loadCatalog();
-const book = new PriceBook(cat, { azureDeployment: "global", snowflake: { routing: "global", edition: "enterprise" } });
+const book = new PriceBook(cat, { azureDeployment: "dataZone", snowflake: { routing: "global", edition: "enterprise" } });
 type Voice = Extract<Workload, { kind: "voiceAgent" }>;
 const base: Voice = { kind: "voiceAgent", id: "v", label: "Voice", modelId: "gpt-realtime-2.1-mini", callsPerMonth: 1000, minutesPerCall: 5, turnsPerCall: 1, agentTalkShare: 0.5, systemPromptTokens: 1500, cacheHit: 0, telephonyPerMinute: 0 };
 

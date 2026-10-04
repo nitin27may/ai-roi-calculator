@@ -49,6 +49,10 @@ export const CreditRates = z.object({
 export const TokenizerFamily = z.enum(["o200k", "claude-legacy", "claude-47", "other"]);
 export type TokenizerFamily = z.infer<typeof TokenizerFamily>;
 
+/** Azure deployment types the app offers. */
+export const Deployment = z.enum(["regional", "dataZone"]);
+export type Deployment = z.infer<typeof Deployment>;
+
 export const ChatModel = z.object({
   id: z.string(),
   label: z.string(),
@@ -57,15 +61,26 @@ export const ChatModel = z.object({
   tokenizer: TokenizerFamily,
   contextWindow: z.number().int().positive(),
   maxOutput: z.number().int().positive(),
-  /** Azure: CAD per 1M tokens by deployment type. */
+  /**
+   * Azure: CAD per 1M tokens by deployment type. The project picks Canada Regional Standard or US Data
+   * Zone Standard; a model is offered for a deployment only if it has that price. `global` is the
+   * Retail API reference that long-context and promo prices are scaled from.
+   */
   prices: z
     .object({
       global: TokenPrices,
       dataZone: TokenPrices.optional(),
+      /** Regional Standard in Canada (canadaeast / canadacentral). */
+      regional: TokenPrices.optional(),
       /** Price that applies after a promo window ends. */
       globalList: TokenPrices.optional(),
     })
     .optional(),
+  /**
+   * Azure deployments Microsoft offers the model under (region availability tables). This decides
+   * availability; a price for a deployment may exist in the Retail API without the deployment being offered.
+   */
+  availableIn: z.array(Deployment).optional(),
   /** Requests whose input exceeds this many tokens are billed entirely at `longContext`. */
   longContext: z.object({ threshold: z.number().int().positive(), prices: TokenPrices }).optional(),
   /** Snowflake: credits per 1M tokens (AI Credits). */
@@ -87,7 +102,11 @@ export const EmbeddingModel = z.object({
   platform: z.enum(["azure", "snowflake"]),
   dims: z.number().int().positive(),
   maxInputTokens: z.number().int().positive(),
+  /** Global reference price, CAD per 1M tokens. */
   per1M: z.number().nonnegative().optional(),
+  /** CAD per 1M tokens by deployment; an Azure model is offered only where it has a price. */
+  deployments: z.object({ regional: z.number().nonnegative().optional(), dataZone: z.number().nonnegative().optional() }).optional(),
+  availableIn: z.array(Deployment).optional(),
   credits: z.number().nonnegative().optional(),
   lifecycle: Lifecycle,
   source: Source,
@@ -109,6 +128,8 @@ export const SpeechEngine = z.object({
     .optional(),
   /** Snowflake: AI credits per audio hour. */
   creditsPerHour: z.number().nonnegative().optional(),
+  /** Azure deployments this engine can run under; absent = available under both. */
+  availableIn: z.array(Deployment).optional(),
   diarization: z.enum(["included", "add-on", "none"]),
   diarizationAddOnPerHour: z.number().nonnegative().optional(),
   /** Price multiplier after the promo window (e.g. list price unpublished → assumption). */
@@ -173,6 +194,8 @@ export const RealtimeModel = z.object({
   audio: TokenPrices,
   audioTokensPerSecondIn: z.number().positive(),
   audioTokensPerSecondOut: z.number().positive(),
+  /** Azure deployments this model can run under; absent = available under both. */
+  availableIn: z.array(Deployment).optional(),
   lifecycle: Lifecycle,
   source: Source,
   confidence: Confidence,
