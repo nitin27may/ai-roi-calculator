@@ -20,3 +20,18 @@ describe("project templates", () => {
     });
   }
 });
+
+describe("sample project Dev Lab coverage", () => {
+  it("includes every Dev Lab activity kind and each one costs something", async () => {
+    const { loadCatalog } = await import("@studio/catalog");
+    const { PriceBook, devLabLines, meetingIntelligence, ACTIVITY_KINDS } = await import("../src/index.js");
+    const book = new PriceBook(loadCatalog(), meetingIntelligence.settings);
+    const have = new Set(meetingIntelligence.build.activities.map((a) => a.kind));
+    for (const k of ACTIVITY_KINDS) expect(have.has(k.kind), `missing ${k.kind}`).toBe(true);
+    for (const a of meetingIntelligence.build.activities) {
+      let total = 0;
+      for (let m = 1; m <= meetingIntelligence.timeline.buildMonths; m++) total += devLabLines(meetingIntelligence, m, book, meetingIntelligence.startDate).filter((l) => l.componentId === a.id).reduce((s, l) => s + l.cost, 0);
+      expect(total, a.id).toBeGreaterThan(0);
+    }
+  });
+});
