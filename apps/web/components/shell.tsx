@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 import { Download, Upload, RotateCcw, FileSpreadsheet, FileText, Printer, Undo2, Redo2 } from "lucide-react";
 import { exportCsv, exportXlsx } from "@/lib/export";
-import { DEPLOYMENT_LABEL, ProjectSchema, meetingIntelligence } from "@studio/engine";
+import { DEPLOYMENT_LABEL, ProjectSchema, meetingIntelligence, migrateProject } from "@studio/engine";
 import { useStudio } from "@/lib/store";
 import { catalog, useLedger } from "@/lib/compute";
 import { cad, cn, fmt } from "@/lib/format";
@@ -153,7 +153,15 @@ function ProjectFile() {
   };
   const importFile = async (f: File) => {
     try {
-      const parsed = ProjectSchema.safeParse(JSON.parse(await f.text()));
+      const raw = JSON.parse(await f.text());
+      let migrated: unknown;
+      try {
+        migrated = migrateProject(raw);
+      } catch (err) {
+        useStudio.setState({ problem: `${f.name}: ${err instanceof Error ? err.message : String(err)}` });
+        return;
+      }
+      const parsed = ProjectSchema.safeParse(migrated);
       if (parsed.success) add(parsed.data);
       else useStudio.setState({ problem: `${f.name} is not a valid project (${parsed.error.issues[0]?.path.join(".")}: ${parsed.error.issues[0]?.message})` });
     } catch {

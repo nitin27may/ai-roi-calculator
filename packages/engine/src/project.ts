@@ -241,9 +241,12 @@ export const ScenarioSchema = z.object({ id, label: z.string(), edits: z.array(S
 export type Scenario = z.infer<typeof ScenarioSchema>;
 export type ScenarioEdit = z.infer<typeof ScenarioEditSchema>;
 
+/** Bump when the project shape changes; add a step in migrate.ts for every bump. */
+export const CURRENT_PROJECT_VERSION = 2;
+
 export const ProjectSchema = z.object({
   schema: z.literal("ai-cost-roi-studio/project"),
-  version: z.literal(1),
+  version: z.literal(CURRENT_PROJECT_VERSION),
   name: z.string(),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   settings: z.object({
