@@ -296,3 +296,7 @@ Gotchas:
 - `batchDiscount` is derived on every `pnpm prices:azure` run: 1 minus the Global Batch input meter over the Global standard input meter. No Batch meter means 0, because Azure does not offer Batch for that model.
 - As of 2026-10-04 Batch meters exist for GPT-4 and o-series, GPT-5 to 5.5 (including 5.2 pro and 5.4 pro) at 50%. They do not exist for GPT-5.6, GPT-6, the Codex models, Claude or MAI, so those are 0. The refresh picks them up when Azure publishes them.
 - GPT-5.6 has Standard (`Std`) and Priority (`PP`) meters. Priority and Flex are not modelled yet.
+
+## Plan and progress
+
+The 2026-10-04 audit and the roadmap are in [docs/plan](plan/README.md). The done/pending matrix is [docs/PROGRESS.md](PROGRESS.md); update it in every PR.
