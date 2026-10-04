@@ -1,7 +1,24 @@
-import type { Catalog, ChatModel, TokenPrices, UnitPrice } from "@studio/catalog";
+import type { Catalog, ChatModel, Deployment, TokenPrices, UnitPrice } from "@studio/catalog";
 import { heuristics } from "@studio/catalog";
 
-export type AzureDeployment = "global" | "dataZone";
+/** Canada Regional Standard or US Data Zone Standard. */
+export type AzureDeployment = Deployment;
+
+export const DEPLOYMENT_LABEL: Record<AzureDeployment, string> = { regional: "Canada Regional Standard", dataZone: "US Data Zone Standard" };
+
+type Availability = { prices?: Partial<Record<AzureDeployment, unknown>>; deployments?: Partial<Record<AzureDeployment, unknown>>; availableIn?: AzureDeployment[]; platform?: string };
+
+/**
+ * Whether a catalogue entry can be deployed under `d`: its `availableIn` list when it has one, else whether it
+ * has a price for `d`. Snowflake entries and entries with no availability data always can.
+ */
+export function availableIn(e: Availability, d: AzureDeployment): boolean {
+  if (e.platform === "snowflake") return true;
+  if (e.availableIn) return e.availableIn.includes(d);
+  if (e.prices) return e.prices[d] !== undefined;
+  if (e.deployments) return e.deployments[d] !== undefined;
+  return true;
+}
 
 export interface PricingSettings {
   azureDeployment: AzureDeployment;
@@ -24,7 +41,7 @@ export interface TokenUsage {
 }
 
 export interface PriceNote {
-  kind: "promo-ended" | "deprecated" | "retired" | "unverified" | "long-context" | "routing";
+  kind: "promo-ended" | "deprecated" | "retired" | "unverified" | "long-context" | "routing" | "unavailable";
   message: string;
 }
 
@@ -49,6 +66,7 @@ export class PriceBook {
   realtimeModel(id: string) {
     const m = this.catalog.realtimeModels.find((x) => x.id === id);
     if (!m) throw new Error(`Unknown realtime model "${id}"`);
+    this.checkAvailable(m);
     return m;
   }
 
@@ -85,11 +103,29 @@ export class PriceBook {
       base = m.longContext.prices;
       this.note(`lc:${m.id}`, { kind: "long-context", message: `${m.label} requests above ${m.longContext.threshold.toLocaleString()} input tokens bill at the long-context rate` });
     }
-    if (this.settings.azureDeployment === "dataZone") {
-      const dzFactor = p.dataZone && p.global.input > 0 ? p.dataZone.input / p.global.input : 1.1;
-      base = scale(base, dzFactor);
-    }
-    return base;
+    // Long-context and promo prices are published for Global; scale them by the deployment's ratio to Global.
+    const d = this.settings.azureDeployment;
+    const offered = availableIn(m, d);
+    const target = offered && p[d] ? p[d] : this.unavailable(m.id, m.label, d, p[d] ? d : p.dataZone ? "dataZone" : null);
+    if (target && base === p.global) return target;
+    const factor = target && p.global.input > 0 ? target.input / p.global.input : 1.1;
+    return scale(base, factor);
+  }
+
+  /** Records that an entry is not offered under the project's deployment and returns the fallback tier's prices. */
+  private unavailable(id: string, label: string, d: AzureDeployment, fallback: AzureDeployment | null): TokenPrices | undefined {
+    const m = this.catalog.chatModels.find((x) => x.id === id);
+    this.note(`unavailable:${id}`, {
+      kind: "unavailable",
+      message: `${label} is not offered as ${DEPLOYMENT_LABEL[d]}; priced as ${fallback ? DEPLOYMENT_LABEL[fallback] : "Global × 1.1"} until you pick another model`,
+    });
+    return fallback ? m?.prices?.[fallback] : undefined;
+  }
+
+  /** Notes an engine or model that cannot run under the project's deployment (prices are the same either way). */
+  private checkAvailable(e: Availability & { id: string; label: string }) {
+    const d = this.settings.azureDeployment;
+    if (!availableIn(e, d)) this.note(`unavailable:${e.id}`, { kind: "unavailable", message: `${e.label} is not offered as ${DEPLOYMENT_LABEL[d]}` });
   }
 
   /** CAD for a token usage on a model. */
@@ -106,7 +142,12 @@ export class PriceBook {
   embeddingPer1M(id: string): number {
     const e = this.catalog.embeddingModels.find((x) => x.id === id);
     if (!e) throw new Error(`Unknown embedding model "${id}"`);
-    return e.per1M ?? (e.credits ?? 0) * this.aiCreditCad();
+    if (e.platform === "snowflake") return (e.credits ?? 0) * this.aiCreditCad();
+    const d = this.settings.azureDeployment;
+    const price = e.deployments?.[d];
+    this.checkAvailable(e);
+    if (price !== undefined) return price;
+    return e.deployments?.dataZone ?? e.per1M ?? 0;
   }
 
   embeddingDims(id: string): number {
@@ -120,6 +161,7 @@ export class PriceBook {
     const e = this.catalog.speechEngines.find((x) => x.id === id);
     if (!e) throw new Error(`Unknown speech engine "${id}"`);
     this.lifecycleNote(e.id, e.label, e.lifecycle, date);
+    this.checkAvailable(e);
     let rate: number;
     if (e.perAudioHour !== undefined) rate = e.perAudioHour;
     else if (e.tokens) {

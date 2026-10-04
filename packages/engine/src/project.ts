@@ -244,7 +244,8 @@ export const ProjectSchema = z.object({
   name: z.string(),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   settings: z.object({
-    azureDeployment: z.enum(["global", "dataZone"]),
+    // Global Standard is no longer offered; files saved with it open as US Data Zone, the option that keeps every model.
+    azureDeployment: z.preprocess((v) => (v === "global" ? "dataZone" : v), z.enum(["regional", "dataZone"])),
     snowflake: z.object({
       routing: z.enum(["global", "regional"]),
       edition: z.enum(["standard", "enterprise", "businessCritical", "vps"]),

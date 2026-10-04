@@ -6,7 +6,7 @@ export const meetingIntelligence: Project = {
   version: 1,
   name: "Meeting Intelligence Agent",
   startDate: "2026-11-01",
-  settings: { azureDeployment: "global", snowflake: { routing: "global", edition: "enterprise" } },
+  settings: { azureDeployment: "dataZone", snowflake: { routing: "global", edition: "enterprise" } },
   timeline: { buildMonths: 6, horizonMonths: 36, adoptionRampMonths: 6 },
   rateCard: [
     { id: "dev", label: "AI developer", hourlyRate: 95 },

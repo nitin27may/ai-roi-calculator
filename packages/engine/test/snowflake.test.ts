@@ -3,7 +3,7 @@ import { loadCatalog } from "@studio/catalog";
 import { PriceBook, newWorkload, meetingIntelligence, workloadLines, type Workload } from "../src/index.js";
 
 const cat = loadCatalog();
-const book = new PriceBook(cat, { azureDeployment: "global", snowflake: { routing: "global", edition: "enterprise" } });
+const book = new PriceBook(cat, { azureDeployment: "dataZone", snowflake: { routing: "global", edition: "enterprise" } });
 const ctx = { book, date: "2027-01-01", harnesses: new Map(), percentile: "p50" as const };
 const lines = (w: Workload) => workloadLines(w, ctx);
 const platform = cat.snowflake.platformCredit.enterprise!;
