@@ -44,6 +44,9 @@ const mai = (stem: string, words = { inp: "Inp", cd: "Cd Inp", opt: "Opt" }): Ch
  * Only the standard tier is mapped. Batch, Flex and Priority Processing ("pp") meters are pricing
  * options of the same models; the catalogue models batch as `batchDiscount`.
  */
+/** Batch meters sit next to the standard ones with "Batch" before the input/output word ("5.4 Batch inp Gl 1M"). */
+export const batchInputPattern = (input: string): string => input.replace(/(inpt|inp|input)/i, "Batch.?$1");
+
 export const CHAT: Record<string, ChatSpec> = {
   "gpt-6-astra": gpt6("astra"),
   "gpt-6-sol": gpt6("sol"),

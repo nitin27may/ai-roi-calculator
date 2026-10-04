@@ -290,3 +290,9 @@ Gotchas:
 - `pnpm deploy` is a built-in pnpm command and does not run the script; always use `pnpm run deploy`.
 - Auth is the existing `wrangler login --device` token on nks-ubuntu. Never put a Cloudflare token in the repo.
 - Adding a server route, middleware or `cookies()`/`headers()` call breaks the export. Build will fail; do not remove `output: "export"` to get around it.
+
+## Batch and processing tiers
+
+- `batchDiscount` is derived on every `pnpm prices:azure` run: 1 minus the Global Batch input meter over the Global standard input meter. No Batch meter means 0, because Azure does not offer Batch for that model.
+- As of 2026-10-04 Batch meters exist for GPT-4 and o-series, GPT-5 to 5.5 (including 5.2 pro and 5.4 pro) at 50%. They do not exist for GPT-5.6, GPT-6, the Codex models, Claude or MAI, so those are 0. The refresh picks them up when Azure publishes them.
+- GPT-5.6 has Standard (`Std`) and Priority (`PP`) meters. Priority and Flex are not modelled yet.

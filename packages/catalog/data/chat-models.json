@@ -31,7 +31,7 @@
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
-    "batchDiscount": 0.5,
+    "batchDiscount": 0,
     "lifecycle": {
       "status": "ga",
       "retiresOn": "2028-01-11"
@@ -84,7 +84,7 @@
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
-    "batchDiscount": 0.5,
+    "batchDiscount": 0,
     "lifecycle": {
       "status": "ga",
       "retiresOn": "2028-01-11"
@@ -133,7 +133,7 @@
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
-    "batchDiscount": 0.5,
+    "batchDiscount": 0,
     "lifecycle": {
       "status": "ga",
       "retiresOn": "2028-01-11"
@@ -271,7 +271,7 @@
       "global"
     ],
     "toolUseOverheadTokens": 0,
-    "batchDiscount": 0,
+    "batchDiscount": 0.5,
     "lifecycle": {
       "status": "ga",
       "retiresOn": "2027-09-07"

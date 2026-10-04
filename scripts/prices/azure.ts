@@ -8,7 +8,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CANADA_REGIONS, CHAT, CHAT_PRODUCTS, DZ_REGIONS, DZ_TOKEN, EMBEDDINGS, GLOBAL_REGIONS, GLOBAL_TOKEN, REALTIME, REGIONAL_TOKEN, SEARCH_FILTER, SEARCH_TIERS, SPEECH_FILTER, SPEECH_HOURLY, SPEECH_PRODUCTS, SPEECH_REGIONAL, SPEECH_TOKENS, UNIT_METERS, type TierMeters } from "./azure-map.js";
+import { batchInputPattern, CANADA_REGIONS, CHAT, CHAT_PRODUCTS, DZ_REGIONS, DZ_TOKEN, EMBEDDINGS, GLOBAL_REGIONS, GLOBAL_TOKEN, REALTIME, REGIONAL_TOKEN, SEARCH_FILTER, SEARCH_TIERS, SPEECH_FILTER, SPEECH_HOURLY, SPEECH_PRODUCTS, SPEECH_REGIONAL, SPEECH_TOKENS, UNIT_METERS, type TierMeters } from "./azure-map.js";
 import { applyUsdList, measureFx, type FxChange, type FxRate, type UsdEntry } from "./fx.js";
 import { HOURS_PER_MONTH, PriceMatchError, one, per1M, preciseRows, retailSource, round, type RetailRow, type RowSource } from "./retail.js";
 
@@ -52,7 +52,7 @@ export async function updateAzure(files: { chat: Json[]; embeddings: Json[]; spe
       const pick = (pat: string, k: Kind) => one(chatRows, {
         meterName: pat.replace("{r}", TOKEN[k]), productName: product, preferRegions: REGIONS[k], ...(k === "global" ? {} : { regions: REGIONS[k] }),
       });
-      const tier = (t: TierMeters, dz: Kind, target: string) => {
+      const tier = (t: TierMeters, dz: Kind, target: string): RetailRow => {
         const inp = pick(t.input, dz), out = pick(t.output, dz);
         let cached: RetailRow | null = null;
         // Some models (gpt-4.1-nano, pro models) have no cached-input meter: cached input bills as input.
@@ -63,9 +63,18 @@ export async function updateAzure(files: { chat: Json[]; embeddings: Json[]; spe
         set(m, `${target}.output`, per1M(out), inp.meterName);
         if (write) set(m, `${target}.cacheWrite`, per1M(write), inp.meterName);
         [inp, out, cached, write].forEach((r) => r && matchedMeters.add(r.meterName));
+        return inp;
       };
       // The API reports the price in force today (promo prices included), so it always refreshes `global`.
-      tier(spec, "global", "prices.global");
+      const globalInput = tier(spec, "global", "prices.global");
+      // Batch is a Global-only discount. Azure publishes Batch meters for some models only; no meter means no Batch pricing.
+      const batchPattern = batchInputPattern(spec.input);
+      let batch: RetailRow | null = null;
+      try { batch = pick(batchPattern, "global"); } catch (e) { if (!(e instanceof PriceMatchError)) throw e; }
+      const discount = batch ? Math.round((1 - per1M(batch) / per1M(globalInput)) * 100) / 100 : 0;
+      if (batch) matchedMeters.add(batch.meterName);
+      if ((m.batchDiscount ?? 0) !== discount) changes.push({ id: m.id, field: "batchDiscount", from: m.batchDiscount, to: discount, pct: null });
+      m.batchDiscount = discount;
       if (spec.long) {
         if (!m.longContext?.threshold) throw new PriceMatchError(`has long-context meters but no longContext.threshold in the catalogue`);
         tier(spec.long, "global", "longContext.prices");

@@ -2,7 +2,7 @@
 
 Source: Azure Retail Prices API, currency CAD, region canadacentral (Foundry models: Global meters).
 
-- 67 values changed, **5 moved more than 30%** (check before using)
+- 4 values changed
 - 0 mapping errors
 - 224 Foundry meters not in the catalogue
 
@@ -15,73 +15,10 @@ USD-only list prices in `usd-list.json` were converted at this rate: 0 values ch
 
 | Entry | Field | Was | Now | Change |
 |---|---|---|---|---|
-| gpt-4.1 | prices.global.input | 2.8 | 2.8331 | +1.2% |
-| gpt-4.1 | prices.global.cachedInput | 0.7 | 0.7083 | +1.2% |
-| gpt-4.1 | prices.global.output | 11.3 | 11.3324 | +0.3% |
-| gpt-4.1 | prices.dataZone.input | 3.1 | 3.1164 | +0.5% |
-| gpt-4.1 | prices.dataZone.cachedInput | 0.8 | 0.7791 | -2.6% |
-| gpt-4.1 | prices.dataZone.output | 12.5 | 12.4656 | -0.3% |
-| gpt-4.1-mini | prices.global.input | 0.6 | 0.5666 | -5.6% |
-| gpt-4.1-mini | prices.global.cachedInput | 0.1 | 0.1417 | **+41.7%** |
-| gpt-4.1-mini | prices.global.output | 2.3 | 2.2665 | -1.5% |
-| gpt-4.1-mini | prices.dataZone.input | 0.6 | 0.6233 | +3.9% |
-| gpt-4.1-mini | prices.dataZone.cachedInput | 0.2 | 0.1558 | -22.1% |
-| gpt-4.1-mini | prices.dataZone.output | 2.5 | 2.4931 | -0.3% |
-| gpt-4.1-mini | prices.regional.input | – | 0.6856 | new |
-| gpt-4.1-mini | prices.regional.cachedInput | – | 0.1714 | new |
-| gpt-4.1-mini | prices.regional.output | – | 2.7424 | new |
-| gpt-4.1-nano | prices.global.input | 0.1 | 0.1417 | **+41.7%** |
-| gpt-4.1-nano | prices.global.cachedInput | 0.1 | 0.0354 | **-64.6%** |
-| gpt-4.1-nano | prices.global.output | 0.6 | 0.5666 | -5.6% |
-| gpt-4.1-nano | prices.dataZone.input | 0.2 | 0.1558 | -22.1% |
-| gpt-4.1-nano | prices.dataZone.cachedInput | 0.2 | 0.0397 | **-80.2%** |
-| gpt-4.1-nano | prices.dataZone.output | 0.6 | 0.6233 | +3.9% |
-| gpt-4o | prices.global.input | 3.5 | 3.5414 | +1.2% |
-| gpt-4o | prices.global.cachedInput | 1.8 | 1.7707 | -1.6% |
-| gpt-4o | prices.global.output | 14.2 | 14.1655 | -0.2% |
-| gpt-4o | prices.dataZone.input | 3.9 | 3.8955 | -0.1% |
-| gpt-4o | prices.dataZone.cachedInput | 1.9 | 1.9478 | +2.5% |
-| gpt-4o | prices.dataZone.output | 15.6 | 15.5821 | -0.1% |
-| gpt-4o | prices.regional.input | – | 4.2851 | new |
-| gpt-4o | prices.regional.cachedInput | – | 2.1432 | new |
-| gpt-4o | prices.regional.output | – | 17.1403 | new |
-| gpt-4o-mini | prices.global.input | 0.2 | 0.2125 | +6.2% |
-| gpt-4o-mini | prices.global.cachedInput | 0.1 | 0.1062 | +6.2% |
-| gpt-4o-mini | prices.global.output | 0.8 | 0.8499 | +6.2% |
-| gpt-4o-mini | prices.dataZone.input | 0.2 | 0.2337 | +16.8% |
-| gpt-4o-mini | prices.dataZone.cachedInput | 0.1 | 0.1176 | +17.6% |
-| gpt-4o-mini | prices.dataZone.output | 0.9 | 0.9349 | +3.9% |
-| o3 | prices.global.input | 2.8 | 2.8331 | +1.2% |
-| o3 | prices.global.cachedInput | 0.7 | 0.7083 | +1.2% |
-| o3 | prices.global.output | 11.3 | 11.3324 | +0.3% |
-| o3 | prices.dataZone.input | 3.1 | 3.1164 | +0.5% |
-| o3 | prices.dataZone.cachedInput | 0.8 | 0.7791 | -2.6% |
-| o3 | prices.dataZone.output | 12.5 | 12.4656 | -0.3% |
-| o4-mini | prices.global.input | 1.6 | 1.5582 | -2.6% |
-| o4-mini | prices.global.cachedInput | 0.4 | 0.3896 | -2.6% |
-| o4-mini | prices.global.output | 6.2 | 6.2328 | +0.5% |
-| o4-mini | prices.dataZone.input | 1.7 | 1.714 | +0.8% |
-| o4-mini | prices.dataZone.cachedInput | 0.4 | 0.4292 | +7.3% |
-| o4-mini | prices.dataZone.output | 6.9 | 6.8561 | -0.6% |
-| mai-ds-r1 | prices.global.input | 1.9 | 1.9123 | +0.6% |
-| mai-ds-r1 | prices.global.cachedInput | 1.9 | 1.9123 | +0.6% |
-| mai-ds-r1 | prices.global.output | 7.6 | 7.6494 | +0.7% |
-| mai-ds-r1 | prices.dataZone.input | 2.1 | 2.1036 | +0.2% |
-| mai-ds-r1 | prices.dataZone.cachedInput | 2.1 | 2.1036 | +0.2% |
-| mai-ds-r1 | prices.dataZone.output | 8.4 | 8.4143 | +0.2% |
-| text-embedding-3-large | per1M | 0.2 | 0.1842 | -7.9% |
-| text-embedding-3-large | deployments.regional | – | 0.2238 | new |
-| text-embedding-3-large | deployments.dataZone | – | 0.2026 | new |
-| text-embedding-3-small | per1M | 0.0277 | 0.0283 | +2.2% |
-| text-embedding-3-small | deployments.regional | – | 0.0354 | new |
-| text-embedding-3-small | deployments.dataZone | – | 0.0312 | new |
-| text-embedding-ada-002 | per1M | 0.1 | 0.1417 | **+41.7%** |
-| text-embedding-ada-002 | deployments.regional | – | 0.1714 | new |
-| text-embedding-ada-002 | deployments.dataZone | – | 0.1558 | new |
-| gpt-4o-transcribe | tokens.audioInputPer1M | 8.5 | 8.4993 | -0.0% |
-| gpt-4o-transcribe | tokens.textOutputPer1M | 14.2 | 14.1655 | -0.2% |
-| gpt-4o-transcribe-diarize | tokens.audioInputPer1M | 8.5 | 8.4993 | -0.0% |
-| gpt-4o-transcribe-diarize | tokens.textOutputPer1M | 14.2 | 14.1655 | -0.2% |
+| gpt-5.6-sol | batchDiscount | 0.5 | 0 | new |
+| gpt-5.6-terra | batchDiscount | 0.5 | 0 | new |
+| gpt-5.6-luna | batchDiscount | 0.5 | 0 | new |
+| gpt-5.4-pro | batchDiscount | 0 | 0.5 | new |
 
 ## Mapping errors
 
