@@ -194,13 +194,13 @@ function BeforeAfterView() {
       </div>
       <div className="grid grid-cols-[90px_1fr_auto] items-center gap-x-3 gap-y-2 text-[12.5px]">
         <span className="text-muted">Today</span>
-        {bar([{ label: "People's time", value: labourBefore, color: "var(--s1)" }, { label: "Avoidable costs", value: ba.avoided, color: "var(--s4)" }])}
+        {bar([{ label: "People's time", value: labourBefore, color: "var(--s1)" }, { label: "Avoidable costs", value: ba.avoided, color: "var(--platform)" }])}
         <span className="num font-semibold">{cad(ba.before)}</span>
         <span className="text-muted">With AI</span>
-        {bar([{ label: "People's time", value: Math.max(0, labourAfter - ba.savedWithoutBaseline), color: "var(--s1)" }, { label: "AI usage and platform", value: ba.ai, color: "var(--s2)" }, { label: "Maintenance", value: ba.maint, color: "var(--s3)" }])}
+        {bar([{ label: "People's time", value: Math.max(0, labourAfter - ba.savedWithoutBaseline), color: "var(--s1)" }, { label: "AI usage and platform", value: ba.ai, color: "var(--run)" }, { label: "Maintenance", value: ba.maint, color: "var(--maint)" }])}
         <span className="num font-semibold">{cad(ba.after)}</span>
       </div>
-      <Legend items={[{ label: "People's time", color: "var(--s1)" }, { label: "Avoidable costs", color: "var(--s4)" }, { label: "AI usage and platform", color: "var(--s2)" }, { label: "Maintenance", color: "var(--s3)" }]} />
+      <Legend items={[{ label: "People's time", color: "var(--s1)" }, { label: "Avoidable costs", color: "var(--platform)" }, { label: "AI usage and platform", color: "var(--run)" }, { label: "Maintenance", color: "var(--maint)" }]} />
       <table className="data">
         <thead><tr><th>Capability</th><th className="n">Hours today</th><th className="n">Hours saved</th><th className="n">Reduction</th><th className="n">Today</th><th className="n">With AI</th></tr></thead>
         <tbody>
