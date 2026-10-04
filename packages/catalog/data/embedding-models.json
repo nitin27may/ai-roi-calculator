@@ -18,6 +18,7 @@
     },
     "confidence": "verified",
     "availableIn": [
+      "global",
       "regional",
       "dataZone"
     ],
@@ -45,6 +46,7 @@
     },
     "confidence": "verified",
     "availableIn": [
+      "global",
       "regional",
       "dataZone"
     ],
@@ -72,6 +74,7 @@
     },
     "confidence": "verified",
     "availableIn": [
+      "global",
       "regional",
       "dataZone"
     ],

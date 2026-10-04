@@ -8,7 +8,7 @@
     "confidence": "single-source",
     "id": "mai-transcribe-2",
     "label": "MAI-Transcribe-2",
-    "via": "Azure Speech (LLM Speech API)",
+    "via": "Azure Speech (Cognitive Services), LLM Speech",
     "mode": "batch",
     "perAudioHour": 0.1417,
     "afterPromoMultiplier": 3.6,
@@ -23,6 +23,7 @@
       "retrievedAt": "2026-10-04"
     },
     "availableIn": [
+      "global",
       "dataZone"
     ]
   },
@@ -35,7 +36,7 @@
     "confidence": "single-source",
     "id": "mai-transcribe-1.5",
     "label": "MAI-Transcribe-1.5",
-    "via": "Azure Speech (LLM Speech API)",
+    "via": "Azure Speech (Cognitive Services), LLM Speech",
     "mode": "batch",
     "perAudioHour": 0.51,
     "source": {
@@ -45,6 +46,7 @@
       "retrievedAt": "2026-10-04"
     },
     "availableIn": [
+      "global",
       "dataZone"
     ]
   },
@@ -57,7 +59,7 @@
     "confidence": "unverified",
     "id": "mai-transcribe-2-streaming",
     "label": "MAI-Transcribe-2 Streaming",
-    "via": "Azure Speech",
+    "via": "Azure Speech (Cognitive Services), Voice Live",
     "mode": "streaming",
     "perAudioHour": 0.7649,
     "promo": {
@@ -69,7 +71,9 @@
       "note": "UNCONFIRMED: no official streaming SKU found on 2026-10-02; streaming runs inside Voice Live at its audio-token rates. USD list price × 1.41655 (Azure CAD/USD rate on 2026-10-04)",
       "retrievedAt": "2026-10-04"
     },
-    "availableIn": []
+    "availableIn": [
+      "global"
+    ]
   },
   {
     "platform": "azure",
@@ -80,7 +84,7 @@
     "confidence": "verified",
     "id": "speech-batch",
     "label": "Speech to text, batch",
-    "via": "Azure Speech",
+    "via": "Azure Speech (Cognitive Services)",
     "mode": "batch",
     "perAudioHour": 0.255,
     "source": {
@@ -90,6 +94,7 @@
       "retrievedAt": "2026-10-04"
     },
     "availableIn": [
+      "global",
       "regional",
       "dataZone"
     ]
@@ -103,7 +108,7 @@
     "confidence": "verified",
     "id": "speech-fast",
     "label": "Speech to text, fast transcription",
-    "via": "Azure Speech",
+    "via": "Azure Speech (Cognitive Services)",
     "mode": "fast",
     "perAudioHour": 0.51,
     "source": {
@@ -113,6 +118,7 @@
       "retrievedAt": "2026-10-04"
     },
     "availableIn": [
+      "global",
       "regional",
       "dataZone"
     ]
@@ -126,7 +132,7 @@
     "confidence": "verified",
     "id": "speech-realtime",
     "label": "Speech to text, real-time",
-    "via": "Azure Speech",
+    "via": "Azure Speech (Cognitive Services)",
     "mode": "realtime",
     "perAudioHour": 1.4166,
     "diarizationAddOnPerHour": 0.425,
@@ -137,6 +143,7 @@
       "retrievedAt": "2026-10-04"
     },
     "availableIn": [
+      "global",
       "regional",
       "dataZone"
     ]
@@ -151,7 +158,7 @@
     "confidence": "verified",
     "id": "gpt-4o-mini-transcribe",
     "label": "gpt-4o-mini-transcribe (2025-12-15)",
-    "via": "Foundry",
+    "via": "Foundry (Azure OpenAI)",
     "mode": "batch",
     "tokens": {
       "audioTokensPerSecond": 10,
@@ -164,7 +171,9 @@
       "meterName": "gpt4o mn trscb aud in gl 1215 1M Tokens",
       "retrievedAt": "2026-10-04"
     },
-    "availableIn": []
+    "availableIn": [
+      "global"
+    ]
   },
   {
     "platform": "azure",
@@ -177,7 +186,7 @@
     "confidence": "verified",
     "id": "gpt-4o-transcribe",
     "label": "gpt-4o-transcribe",
-    "via": "Foundry",
+    "via": "Foundry (Azure OpenAI)",
     "mode": "batch",
     "tokens": {
       "audioTokensPerSecond": 10,
@@ -190,7 +199,9 @@
       "meterName": "gpt-4o-transcribe-aud-inp-glbl Tokens",
       "retrievedAt": "2026-10-04"
     },
-    "availableIn": []
+    "availableIn": [
+      "global"
+    ]
   },
   {
     "platform": "azure",
@@ -201,7 +212,7 @@
     "confidence": "verified",
     "id": "gpt-transcribe",
     "label": "gpt-transcribe",
-    "via": "Foundry",
+    "via": "Foundry (Azure OpenAI)",
     "mode": "batch",
     "perAudioHour": 0.3825,
     "source": {
@@ -210,13 +221,15 @@
       "meterName": "gpt-transcribe Gl Unit",
       "retrievedAt": "2026-10-04"
     },
-    "availableIn": []
+    "availableIn": [
+      "global"
+    ]
   },
   {
     "id": "gpt-4o-transcribe-diarize",
     "label": "gpt-4o-transcribe-diarize",
     "platform": "azure",
-    "via": "Foundry",
+    "via": "Foundry (Azure OpenAI)",
     "mode": "batch",
     "tokens": {
       "audioTokensPerSecond": 10,
@@ -235,13 +248,15 @@
       "retrievedAt": "2026-10-04"
     },
     "confidence": "verified",
-    "availableIn": []
+    "availableIn": [
+      "global"
+    ]
   },
   {
     "id": "gpt-live-transcribe",
     "label": "gpt-live-transcribe",
     "platform": "azure",
-    "via": "Foundry",
+    "via": "Foundry (Azure OpenAI)",
     "mode": "realtime",
     "perAudioHour": 1.4449,
     "diarization": "none",
@@ -255,13 +270,15 @@
       "retrievedAt": "2026-10-04"
     },
     "confidence": "verified",
-    "availableIn": []
+    "availableIn": [
+      "global"
+    ]
   },
   {
     "id": "gpt-realtime-whisper",
     "label": "gpt-realtime-whisper",
     "platform": "azure",
-    "via": "Foundry",
+    "via": "Foundry (Azure OpenAI)",
     "mode": "realtime",
     "perAudioHour": 1.4449,
     "diarization": "none",
@@ -275,7 +292,9 @@
       "retrievedAt": "2026-10-04"
     },
     "confidence": "verified",
-    "availableIn": []
+    "availableIn": [
+      "global"
+    ]
   },
   {
     "platform": "azure",
@@ -287,7 +306,7 @@
     "confidence": "verified",
     "id": "whisper",
     "label": "Whisper",
-    "via": "Foundry",
+    "via": "Foundry (Azure OpenAI)",
     "mode": "batch",
     "perAudioHour": 0.51,
     "source": {
@@ -319,6 +338,7 @@
       "retrievedAt": "2026-10-04"
     },
     "availableIn": [
+      "global",
       "regional",
       "dataZone"
     ]
