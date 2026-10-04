@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { PriceBook, WORKLOAD_KINDS, cascadeCall, harnessUsage, newHarness, newWorkload, removeWorkload, simulateHarness, sizeSearch, voiceCall, type Workload } from "@studio/engine";
+import { DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, availableIn, type AzureDeployment, cascadeCall, harnessUsage, newHarness, newWorkload, removeWorkload, simulateHarness, sizeSearch, voiceCall, type Workload } from "@studio/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Pill, Seg, Select } from "@/components/ui";
 import { Plus, Trash2 } from "lucide-react";
 import { Explain } from "@/components/explain";
@@ -177,7 +177,7 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
           <p className="mt-1.5 text-[11.5px] text-muted">Snowflake recommends MEDIUM or smaller for AI functions; a larger warehouse does not speed them up. Hours are billed per second with a 60-second minimum per resume, in platform credits.</p>
         </div>
       )}
-      {w.kind === "transcription" && <SpeechCompare hours={w.hoursPerMonth} current={w.engineId} id={w.id} diarize={w.diarize} />}
+      {w.kind === "transcription" && <SpeechCompare hours={w.hoursPerMonth} current={w.engineId} id={w.id} diarize={w.diarize} deployment={w.deployment} />}
       {w.kind === "voiceAgent" && <VoiceCompare id={w.id} />}
       {w.kind === "agent" && <HarnessTable harnessId={w.harnessId} modelId={w.modelId} cacheHit={w.cacheHit} tasks={w.tasksPerMonth} />}
       {w.kind === "aiSearch" && <SearchSizing w={w} />}
@@ -187,10 +187,10 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
 }
 
 function VoiceCompare({ id }: { id: string }) {
-  const book = useBook();
   const { project, ledger } = useLedger();
   const edit = useStudio((s) => s.edit);
   const w = project.workloads.find((x) => x.id === id);
+  const book = useBook(w && "deployment" in w ? w.deployment : undefined);
   if (w?.kind !== "voiceAgent") return null;
   const date = (ledger.months.find((m) => m.phase === "production") ?? ledger.months.at(-1)!).date;
   const rows = [
@@ -239,13 +239,19 @@ function DocumentRoute({ id }: { id: string }) {
   );
 }
 
-function useBook() {
+const SHORT: Record<AzureDeployment, string> = { global: "Global", regional: "Canada Regional", dataZone: "US Data Zone" };
+/** Deployments that offer an engine, e.g. "Global" or "Global, US Data Zone". */
+const offeredIn = (e: Parameters<typeof availableIn>[0]) => DEPLOYMENTS.filter((x) => availableIn(e, x)).map((x) => SHORT[x]).join(", ");
+
+/** Price book for a workload: its own deployment, else the project default. */
+function useBook(deployment?: AzureDeployment) {
   const project = useStudio((s) => s.project);
-  return useMemo(() => new PriceBook(catalog, project.settings), [project.settings]);
+  return useMemo(() => new PriceBook(catalog, project.settings).withDeployment(deployment), [project.settings, deployment]);
 }
 
-function SpeechCompare({ hours, current, id, diarize }: { hours: number; current: string; id: string; diarize: boolean }) {
-  const book = useBook();
+function SpeechCompare({ hours, current, id, diarize, deployment }: { hours: number; current: string; id: string; diarize: boolean; deployment?: AzureDeployment }) {
+  const book = useBook(deployment);
+  const d = book.settings.azureDeployment;
   const { ledger } = useLedger();
   const edit = useStudio((s) => s.edit);
   const date = ledger.months.at(-1)!.date;
@@ -253,18 +259,19 @@ function SpeechCompare({ hours, current, id, diarize }: { hours: number; current
   return (
     <div>
       <h3 className="mb-1.5 text-sm font-semibold">Every engine for the same {fmt(hours)} hours, priced at month {ledger.months.length} (end of plan)</h3>
+      <p className="mb-1.5 text-[11.5px] text-muted">This workload uses {DEPLOYMENT_LABEL[d]}. Engines it does not offer show where they are offered; &quot;Use&quot; switches the engine and, if needed, the workload&apos;s deployment.</p>
       <table className="data">
         <thead><tr><th>Engine</th><th>Via</th><th className="n">CAD / hour</th><th className="n">CAD / month</th><th /></tr></thead>
         <tbody>
           {rows.map(({ e, rate }) => (
             <tr key={e.id} style={e.id === current ? { background: "var(--accent-soft)" } : undefined}>
-              <td>{e.label} {e.diarization === "none" && <Pill>no diarization</Pill>}</td>
+              <td>{e.label} {e.diarization === "none" && <Pill>no diarization</Pill>} {!availableIn(e, d) && <Pill tone="crit">{offeredIn(e) ? `${offeredIn(e)} only` : "not offered"}</Pill>}</td>
               <td>{e.via}</td>
               <td className="n">{cad(rate, 2)}</td>
               <td className="n">{cad(rate * hours)}</td>
               <td className="whitespace-nowrap">
                 {e.lifecycle.retiresOn && <Pill tone="crit">retires {e.lifecycle.retiresOn}</Pill>} {e.promo && <Pill tone="warn">promo to {e.promo.until}</Pill>} {e.confidence === "unverified" && <Pill>unverified</Pill>}
-                {e.id !== current && <button type="button" className="ml-1 rounded border border-line px-1.5 text-xs hover:bg-surface-2" onClick={() => edit((d) => { const w = d.workloads.find((x) => x.id === id); if (w?.kind === "transcription") w.engineId = e.id; })}>Use</button>}
+                {e.id !== current && <button type="button" className="ml-1 rounded border border-line px-1.5 text-xs hover:bg-surface-2" onClick={() => edit((p) => { const w = p.workloads.find((x) => x.id === id); if (w?.kind !== "transcription") return; w.engineId = e.id; if (!availableIn(e, d)) w.deployment = DEPLOYMENTS.find((x) => availableIn(e, x)); })}>{availableIn(e, d) || !offeredIn(e) ? "Use" : `Use on ${SHORT[DEPLOYMENTS.find((x) => availableIn(e, x))!]}`}</button>}
               </td>
             </tr>
           ))}

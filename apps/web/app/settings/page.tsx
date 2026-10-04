@@ -3,7 +3,7 @@ import { Card, CardHead, Field, NumberInput, Select } from "@/components/ui";
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad } from "@/lib/format";
-import { DEPLOYMENT_LABEL, type AzureDeployment } from "@studio/engine";
+import { DEPLOYMENT_LABEL, DEPLOYMENTS, type AzureDeployment } from "@studio/engine";
 
 export default function Settings() {
   const project = useStudio((s) => s.project);
@@ -26,9 +26,13 @@ export default function Settings() {
       <Card>
         <CardHead title="Azure" sub="Foundry deployment type for all models" />
         <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 px-3.5 pb-3.5">
-          <Field label="Deployment type"><Select value={project.settings.azureDeployment} options={[{ value: "regional", label: DEPLOYMENT_LABEL.regional }, { value: "dataZone", label: DEPLOYMENT_LABEL.dataZone }]} onChange={(v) => edit((d) => { d.settings.azureDeployment = v as AzureDeployment; })} /></Field>
+          <Field label="Default deployment"><Select value={project.settings.azureDeployment} options={DEPLOYMENTS.map((d) => ({ value: d, label: DEPLOYMENT_LABEL[d] }))} onChange={(v) => edit((d) => { d.settings.azureDeployment = v as AzureDeployment; })} /></Field>
         </div>
-        <p className="px-3.5 pb-3.5 text-[11.5px] text-muted">Canada Regional Standard keeps data in Canada (Canada East / Canada Central) but offers few pay-as-you-go models. US Data Zone Standard (East US / East US 2) keeps data in the US and offers every model at about 10% over Global. Model lists show only what the chosen deployment offers.</p>
+        <div className="space-y-1.5 px-3.5 pb-3.5 text-[11.5px] text-muted">
+          <p>Every Azure workload uses this unless you set its own Deployment on the Run page, so chat can stay in Canada while transcription runs on Global.</p>
+          <p><b className="text-ink-2">Global Standard</b>: every Foundry model, including the OpenAI audio and realtime models; requests can be processed in any Azure region. <b className="text-ink-2">Canada Regional Standard</b>: data stays in Canada, but only gpt-4o, gpt-4.1-mini, OpenAI embeddings and Azure Speech are offered. <b className="text-ink-2">US Data Zone Standard</b>: data stays in the US; GPT-5.x/6, the Azure-hosted Claude models and partner models.</p>
+          <p>Azure Speech and MAI-Transcribe are not Foundry deployments: they run in an Azure Speech (Cognitive Services) resource. Canada Regional means a resource in Canada, where MAI-Transcribe is not offered; Global and US Data Zone mean a resource in a US region such as East US.</p>
+        </div>
       </Card>
       <Card>
         <CardHead title="Snowflake" sub="Credit prices in CAD" />

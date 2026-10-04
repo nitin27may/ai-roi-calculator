@@ -1,5 +1,6 @@
 "use client";
 import { Field, NumberInput, Select } from "@/components/ui";
+import { DEPLOYMENT_LABEL, DEPLOYMENTS, type AzureDeployment } from "@studio/engine";
 import { catalog, deploymentOptions, modelOptions } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 
@@ -8,6 +9,7 @@ export type Spec =
   | { key: string; label: string; type: "percent" }
   | { key: string; label: string; type: "model" | "embedding" | "speech" | "harness" | "unitPrice" | "sfModel" | "sfFunction" | "sfEmbedding" | "extractor" | "realtime" | "ftTraining" }
   | { key: string; label: string; type: "optionalModel" }
+  | { key: string; label: string; type: "deployment" }
   | { key: string; label: string; type: "select"; options: { value: string; label: string }[]; numeric?: boolean }
   | { key: string; label: string; type: "toggle" }
   | { key: string; label: string; type: "list"; hint: string };
@@ -19,12 +21,15 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
   const edit = useStudio((s) => s.edit);
   const harnesses = useStudio((s) => s.project.harnesses);
   const set = (key: string, v: unknown) => edit((d) => { const o = locate(d); if (o) o[key] = v; });
+  const projectDeployment = useStudio((s) => s.project.settings.azureDeployment);
+  // Pickers filter by the workload's own deployment when it has one.
+  const deployment = (value.deployment as AzureDeployment | undefined) ?? projectDeployment;
   const optionsFor = (t: string) => {
-    if (t === "model") return modelOptions();
-    if (t === "embedding") return deploymentOptions(catalog.embeddingModels);
-    if (t === "speech") return deploymentOptions(catalog.speechEngines, (m) => `${m.label} · ${m.via}`);
+    if (t === "model") return modelOptions(undefined, deployment);
+    if (t === "embedding") return deploymentOptions(catalog.embeddingModels, undefined, deployment);
+    if (t === "speech") return deploymentOptions(catalog.speechEngines, (m) => `${m.label} · ${m.via}`, deployment);
     if (t === "harness") return harnesses.map((h) => ({ value: h.id, label: h.label }));
-    if (t === "realtime") return deploymentOptions(catalog.realtimeModels);
+    if (t === "realtime") return deploymentOptions(catalog.realtimeModels, undefined, deployment);
     if (t === "sfModel") return modelOptions((m) => m.platform === "snowflake");
     if (t === "sfEmbedding") return catalog.embeddingModels.filter((m) => m.platform === "snowflake").map((m) => ({ value: m.id, label: m.label }));
     if (t === "sfFunction") return catalog.unitPrices.filter((u) => u.platform === "snowflake" && u.unit === "1M tokens").map((u) => ({ value: u.id, label: u.label }));
@@ -46,7 +51,14 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
           case "toggle":
             return <Field key={s.key} label={s.label}><Select value={v ? "yes" : "no"} options={[{ value: "yes", label: "Yes" }, { value: "no", label: "No" }]} onChange={(x) => set(s.key, x === "yes")} /></Field>;
           case "optionalModel":
-            return <Field key={s.key} label={s.label}><Select value={v ? String(v) : ""} options={[{ value: "", label: "None" }, ...modelOptions()]} onChange={(x) => set(s.key, x || undefined)} /></Field>;
+            return <Field key={s.key} label={s.label}><Select value={v ? String(v) : ""} options={[{ value: "", label: "None" }, ...modelOptions(undefined, deployment)]} onChange={(x) => set(s.key, x || undefined)} /></Field>;
+          case "deployment":
+            return (
+              <Field key={s.key} label={s.label}>
+                <Select value={v ? String(v) : ""} onChange={(x) => set(s.key, x || undefined)}
+                  options={[{ value: "", label: `Project default (${DEPLOYMENT_LABEL[projectDeployment]})` }, ...DEPLOYMENTS.map((d) => ({ value: d, label: DEPLOYMENT_LABEL[d] }))]} />
+              </Field>
+            );
           case "list":
             return (
               // Keyed by value so edits made elsewhere (e.g. the plan grid) show up here.
@@ -149,15 +161,18 @@ export const ACTIVITY_SPECS: Record<string, Spec[]> = {
 
 export const WORKLOAD_SPECS: Record<string, Spec[]> = {
   transcription: [
+    { key: "deployment", label: "Deployment", type: "deployment" },
     { key: "hoursPerMonth", label: "Audio hours / month", type: "number" },
     { key: "engineId", label: "Engine", type: "speech" },
     { key: "diarize", label: "Speaker diarization", type: "toggle" },
   ],
   documents: [
+    { key: "deployment", label: "Deployment", type: "deployment" },
     { key: "pagesPerMonth", label: "Pages / month", type: "number" },
     { key: "pageType", label: "Page type", type: "select", options: ["plain", "dense", "slide", "spreadsheet"].map((v) => ({ value: v, label: v })) },
   ],
   email: [
+    { key: "deployment", label: "Deployment", type: "deployment" },
     { key: "emailsPerMonth", label: "Emails / month", type: "number" },
     { key: "bodyExtractorId", label: "Body extraction", type: "unitPrice" },
     { key: "attachmentExtractorId", label: "Attachment extraction", type: "unitPrice" },
@@ -167,6 +182,7 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
     { key: "dedupe", label: "After de-duplication", type: "percent" },
   ],
   embeddings: [
+    { key: "deployment", label: "Deployment", type: "deployment" },
     { key: "tokensPerMonth", label: "Tokens / month", type: "number" },
     { key: "modelId", label: "Embedding model", type: "embedding" },
   ],
@@ -178,10 +194,12 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
     { key: "replicas", label: "Replicas", type: "number", min: 1, max: 12 },
   ],
   retrieval: [
+    { key: "deployment", label: "Deployment", type: "deployment" },
     { key: "queriesPerMonth", label: "Queries / month", type: "number" },
     { key: "semanticShare", label: "Semantic ranker share", type: "percent" },
   ],
   chat: [
+    { key: "deployment", label: "Deployment", type: "deployment" },
     { key: "users", label: "Users", type: "number" },
     { key: "conversationsPerUser", label: "Conversations / user / month", type: "number" },
     { key: "turns", label: "Turns per conversation", type: "number", min: 1 },
@@ -194,12 +212,14 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
     { key: "cacheHit", label: "Cache hit", type: "percent" },
   ],
   agent: [
+    { key: "deployment", label: "Deployment", type: "deployment" },
     { key: "harnessId", label: "Harness", type: "harness" },
     { key: "modelId", label: "Model", type: "model" },
     { key: "tasksPerMonth", label: "Tasks / month", type: "number" },
     { key: "cacheHit", label: "Cache hit", type: "percent" },
   ],
   continuousEval: [
+    { key: "deployment", label: "Deployment", type: "deployment" },
     { key: "interactionsPerMonth", label: "Interactions / month", type: "number" },
     { key: "sampleShare", label: "Sampled", type: "percent" },
     { key: "judgeModelId", label: "Judge model", type: "model" },
@@ -210,6 +230,7 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
     { key: "charsPerRequest", label: "Characters per request", type: "number" },
   ],
   llm: [
+    { key: "deployment", label: "Deployment", type: "deployment" },
     { key: "callsPerMonth", label: "Calls / month", type: "number" },
     { key: "modelId", label: "Model", type: "model" },
     { key: "inputTokens", label: "Input tokens", type: "number" },
@@ -221,6 +242,7 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
 
 Object.assign(WORKLOAD_SPECS, {
   voiceAgent: [
+    { key: "deployment", label: "Deployment", type: "deployment" },
     { key: "modelId", label: "Realtime model", type: "realtime" },
     { key: "callsPerMonth", label: "Calls / month", type: "number" },
     { key: "minutesPerCall", label: "Minutes per call", type: "number", step: 0.5, min: 0.1 },

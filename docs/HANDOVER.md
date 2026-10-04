@@ -102,14 +102,17 @@ pnpm test                        # must stay green after a refresh
 - The Prices page and the report state the rate. On 2026-10-02 it was 1.41655, the same figure Azure's pricing page embeds for October.
 - When a USD-only model gets a Retail API meter, add its pattern to `azure-map.ts` and remove it from `usd-list.json`.
 
-**Deployments: Canada Regional Standard or US Data Zone Standard (decided 2026-10-04)**
-- The project setting offers only these two. Global Standard was removed; files saved with it open as US Data Zone.
+**Deployments: Global, Canada Regional or US Data Zone, per workload (decided 2026-10-04)**
+- Settings holds the project's default deployment; every Azure workload on the Run page has its own Deployment dropdown ("Project default" unless changed). Typical setup: chat on Canada Regional or US Data Zone, transcription on Global.
+- **Global Standard**: every Foundry model, including the OpenAI audio and realtime models (gpt-4o-transcribe family, gpt-transcribe, realtime). Requests can be processed in any Azure region.
+- **Azure Speech and MAI-Transcribe are not Foundry deployments.** They run in an Azure Speech (Cognitive Services / Foundry Tools) resource, so for them the deployment means where the resource is: Canada Regional = a resource in Canada (Azure Speech only; MAI-Transcribe is not offered in Canada), Global and US Data Zone = a resource in a US region such as East US. Their `via` says "Azure Speech (Cognitive Services)".
+- The transcription comparison on the Run page marks engines the workload's deployment does not offer ("Global only") and its button switches both engine and deployment ("Use on Global").
 - **Canada Regional Standard** (data stays in Canada): only gpt-4o (2024-11-20), gpt-4.1-mini, the three OpenAI embedding models and Azure Speech. Canada Central has no Regional Standard column at all in Microsoft's matrix. Prices come from the Canada East "regnl" meters, about 1.1x US Data Zone.
 - **US Data Zone Standard** (East US / East US 2): all GPT-5.x and GPT-6 except the 5.1/5.2 codex variants and 5.4-pro (Global only), older GPT and o-series models, Claude Opus 5.5 / Opus 5 / Opus 4.8 / Sonnet 5.5 / Sonnet 5, DeepSeek V4 Pro, Grok 4.3 and Mistral Large 3. MAI-Transcribe and Whisper run in US regions and count as available.
-- **Offered under neither:** every OpenAI audio model (gpt-4o-transcribe family, gpt-transcribe, realtime models), Anthropic-hosted Claude models and Haiku 4.5, MAI-Thinking/Cyber/Code, Llama 4 Maverick, Cohere Embed v4. MAI-DS-R1 is retired (2026-02-27).
+- **Global only:** every OpenAI audio and realtime model, Anthropic-hosted Claude models and Haiku 4.5, MAI-Thinking/Cyber/Code, Llama 4 Maverick, the 5.1/5.2 codex variants and 5.4-pro. Cohere Embed v4 is in no region table (offered nowhere until confirmed). MAI-DS-R1 is retired (2026-02-27).
 - **Availability is `availableIn` on each entry**, taken from Microsoft's region tables (MicrosoftDocs/azure-ai-docs `foundry-models/includes/model-matrix/deployments-standard.md` and `marketplace-deployments-standard.md`, repo snapshot 2026-10-03). It is curated by hand: the Retail API has Data Zone meters for models Microsoft does not offer under Data Zone (5.1 codex), so a price never implies availability.
 - Model pickers list what the project's deployment offers first and label the rest "(not offered in …)". A workload that uses one is priced at the closest tier and Overview shows a "Not offered" note.
-- The Prices page is the filterable catalogue: offered in, platform, type, vendor, status, with the Canada Regional and US Data Zone price side by side.
+- The Prices page is the filterable catalogue: offered in, platform, type, vendor, status, with the Global, Canada Regional and US Data Zone price side by side.
 - **Per-1K meters are rounded to 4 decimals in CAD** (gpt-4.1-mini regional showed 0.0007 for 0.000686). The refresh replaces them with the USD twin × the rate (`preciseRows`).
 
 **Model coverage (2026-10-02); see the deployment section above for what each deployment offers**

@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Card, CardHead, Pill, Seg, Select } from "@/components/ui";
-import { availableIn, DEPLOYMENT_LABEL } from "@studio/engine";
+import { availableIn, DEPLOYMENT_LABEL, type AzureDeployment } from "@studio/engine";
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad } from "@/lib/format";
@@ -10,8 +10,10 @@ type Offer = string | null;
 interface Row {
   id: string; label: string; platform: string; kind: string; vendor: string; status: string;
   /** Price under each deployment, or null when not offered there. */
-  regional: Offer; dataZone: Offer;
+  global: Offer; regional: Offer; dataZone: Offer;
   source: string; confidence: string; url?: string; retrievedAt: string;
+  /** Where a speech engine runs: a Foundry deployment or an Azure Speech (Cognitive Services) resource. */
+  via?: string;
 }
 
 const tone = (c: string) => (c === "verified" ? "ok" : c === "cross-checked" ? "n" : "warn") as "ok" | "n" | "warn";
@@ -19,13 +21,15 @@ const KINDS = ["Model", "Embedding", "Speech", "Realtime", "Search tier", "Servi
 const VENDOR_LABEL: Record<string, string> = { openai: "OpenAI", anthropic: "Anthropic", microsoft: "Microsoft", snowflake: "Snowflake" };
 const tokens = (p: { input: number; cachedInput: number; output: number } | undefined): Offer =>
   p ? `${cad(p.input, 2)} / ${cad(p.cachedInput, 3)} / ${cad(p.output, 2)}` : null;
-/** Same price under both deployments, offered where the entry says it is. */
-const both = (e: Parameters<typeof availableIn>[0], price: string) => ({ regional: availableIn(e, "regional") ? price : null, dataZone: availableIn(e, "dataZone") ? price : null });
+/** Same price under every deployment, offered where the entry says it is. */
+const both = (e: Parameters<typeof availableIn>[0], price: string) =>
+  ({ global: availableIn(e, "global") ? price : null, regional: availableIn(e, "regional") ? price : null, dataZone: availableIn(e, "dataZone") ? price : null });
+const VENDOR_OF_SPEECH = (id: string, via: string) => (via.startsWith("Snowflake") ? "snowflake" : id.startsWith("gpt-") || id === "whisper" ? "openai" : "microsoft");
 
 export default function Prices() {
   const deployment = useStudio((s) => s.project.settings.azureDeployment);
   const [q, setQ] = useState("");
-  const [offered, setOffered] = useState<"all" | "regional" | "dataZone">(deployment);
+  const [offered, setOffered] = useState<"all" | AzureDeployment>(deployment);
   const [kind, setKind] = useState("all");
   const [vendor, setVendor] = useState("all");
   const [status, setStatus] = useState("all");
@@ -35,16 +39,22 @@ export default function Prices() {
     ...catalog.chatModels.map((m) => {
       const credits = m.credits ? `${m.credits.input} / ${m.credits.output} credits /1M` : null;
       return { id: m.id, label: m.label, platform: m.platform, kind: "Model", vendor: m.vendor, status: m.lifecycle.status,
-        regional: m.prices ? tokens(m.prices.regional) : credits, dataZone: m.prices ? tokens(m.prices.dataZone) : credits,
+        global: m.prices ? (availableIn(m, "global") ? tokens(m.prices.global) : null) : credits,
+        regional: m.prices ? (availableIn(m, "regional") ? tokens(m.prices.regional) : null) : credits,
+        dataZone: m.prices ? (availableIn(m, "dataZone") ? tokens(m.prices.dataZone) : null) : credits,
         source: m.source.kind, confidence: m.confidence, url: m.source.url, retrievedAt: m.source.retrievedAt };
     }),
     ...catalog.embeddingModels.map((m) => {
       const credits = m.credits !== undefined ? `${m.credits} credits /1M` : null;
-      const at = (d: "regional" | "dataZone") => (m.platform === "snowflake" ? credits : m.deployments?.[d] !== undefined ? `${cad(m.deployments[d]!, 4)} /1M` : null);
+      const at = (d: AzureDeployment) => {
+        if (m.platform === "snowflake") return credits;
+        const price = d === "global" ? m.per1M : m.deployments?.[d];
+        return availableIn(m, d) && price !== undefined ? `${cad(price, 4)} /1M` : null;
+      };
       return { id: m.id, label: m.label, platform: m.platform, kind: "Embedding", vendor: m.platform === "snowflake" ? "snowflake" : m.id.startsWith("cohere") ? "cohere" : "openai", status: m.lifecycle.status,
-        regional: at("regional"), dataZone: at("dataZone"), source: m.source.kind, confidence: m.confidence, url: m.source.url, retrievedAt: m.source.retrievedAt };
+        global: at("global"), regional: at("regional"), dataZone: at("dataZone"), source: m.source.kind, confidence: m.confidence, url: m.source.url, retrievedAt: m.source.retrievedAt };
     }),
-    ...catalog.speechEngines.map((e) => ({ id: e.id, label: e.label, platform: e.platform, kind: "Speech", vendor: e.via, status: e.lifecycle.status,
+    ...catalog.speechEngines.map((e) => ({ id: e.id, label: e.label, platform: e.platform, kind: "Speech", vendor: VENDOR_OF_SPEECH(e.id, e.via), status: e.lifecycle.status, via: e.via,
       ...both(e, e.perAudioHour !== undefined ? `${cad(e.perAudioHour, 3)} /hour` : e.tokens ? `${cad(e.tokens.audioInputPer1M, 2)} /1M audio tokens` : `${e.creditsPerHour} credits /hour`),
       source: e.source.kind, confidence: e.confidence, url: e.source.url, retrievedAt: e.source.retrievedAt })),
     ...catalog.realtimeModels.map((m) => ({ id: m.id, label: m.label, platform: "azure", kind: "Realtime", vendor: "openai", status: m.lifecycle.status,
@@ -72,7 +82,7 @@ export default function Prices() {
         <CardHead title={`${shown.length} of ${rows.length} prices in CAD`} sub={<>As of {catalog.meta.asOf}.{catalog.meta.fx && <> USD-only list prices converted at <span className="num">1 USD = {catalog.meta.fx.usdToCad} CAD</span>, Azure&apos;s own rate on {catalog.meta.fx.asOf}.</>} This project uses {DEPLOYMENT_LABEL[deployment]}. Refresh on your machine with <span className="num">pnpm prices</span>; the app never calls the network.</>}>
           <div className="flex flex-wrap items-center gap-2">
             <input aria-label="Search prices" placeholder="Search" className="rounded-md border border-line bg-surface-2 px-2 py-1 text-[13px]" value={q} onChange={(e) => setQ(e.target.value)} />
-            <Seg label="Offered in" value={offered} onChange={setOffered} options={[{ value: "all", label: "Any deployment" }, { value: "regional", label: "Canada Regional" }, { value: "dataZone", label: "US Data Zone" }]} />
+            <Seg label="Offered in" value={offered} onChange={setOffered} options={[{ value: "all", label: "Any deployment" }, { value: "global", label: "Global" }, { value: "regional", label: "Canada Regional" }, { value: "dataZone", label: "US Data Zone" }]} />
             <Seg label="Platform" value={platform} onChange={setPlatform} options={[{ value: "all", label: "All" }, { value: "azure", label: "Azure" }, { value: "snowflake", label: "Snowflake" }]} />
             <div className="w-36" aria-label="Type"><Select value={kind} onChange={(v) => { setKind(v); setVendor("all"); }} options={[{ value: "all", label: "Any type" }, ...KINDS.map((k) => ({ value: k, label: k }))]} /></div>
             <div className="w-40" aria-label="Vendor"><Select value={vendor} onChange={setVendor} options={[{ value: "all", label: "Any vendor" }, ...vendors.map((v) => ({ value: v, label: VENDOR_LABEL[v] ?? v }))]} /></div>
@@ -82,12 +92,13 @@ export default function Prices() {
         <div className="min-h-0 flex-1 overflow-auto px-3.5 pb-3.5">
           <table className="data">
             <caption className="caption-bottom pt-2 text-left text-[11.5px] text-muted">Model prices are CAD per 1M tokens: input / cached input / output.</caption>
-            <thead><tr><th>Item</th><th>Type</th><th>Canada Regional (CAD)</th><th>US Data Zone (CAD)</th><th>Source</th><th>Confidence</th></tr></thead>
+            <thead><tr><th>Item</th><th>Type</th><th>Global (CAD)</th><th>Canada Regional (CAD)</th><th>US Data Zone (CAD)</th><th>Source</th><th>Confidence</th></tr></thead>
             <tbody>
               {shown.map((r) => (
                 <tr key={`${r.kind}:${r.id}`}>
                   <td>{r.label}<div className="num text-[11px] text-muted">{r.id}</div></td>
-                  <td>{r.kind}<div className="text-[11px] text-muted">{VENDOR_LABEL[r.vendor] ?? r.vendor} · {r.status}</div></td>
+                  <td>{r.kind}<div className="text-[11px] text-muted">{VENDOR_LABEL[r.vendor] ?? r.vendor} · {r.status}{r.via ? <> · {r.via}</> : null}</div></td>
+                  <td className="num">{r.global ?? <span className="text-muted">not offered</span>}</td>
                   <td className="num">{r.regional ?? <span className="text-muted">not offered</span>}</td>
                   <td className="num">{r.dataZone ?? <span className="text-muted">not offered</span>}</td>
                   <td>{r.url ? <a className="underline decoration-line underline-offset-2" href={r.url} target="_blank" rel="noreferrer">{r.source}</a> : r.source}<div className="text-[11px] text-muted">{r.retrievedAt}</div></td>
