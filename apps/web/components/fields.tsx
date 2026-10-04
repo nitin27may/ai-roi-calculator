@@ -1,6 +1,6 @@
 "use client";
 import { Field, NumberInput, Select } from "@/components/ui";
-import { DEPLOYMENT_LABEL, DEPLOYMENTS, type AzureDeployment } from "@studio/engine";
+import { DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, type AzureDeployment } from "@studio/engine";
 import { catalog, deploymentOptions, modelOptions } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 
@@ -10,6 +10,7 @@ export type Spec =
   | { key: string; label: string; type: "model" | "embedding" | "speech" | "harness" | "unitPrice" | "sfModel" | "sfFunction" | "sfEmbedding" | "extractor" | "realtime" | "ftTraining" }
   | { key: string; label: string; type: "optionalModel" }
   | { key: string; label: string; type: "deployment" }
+  | { key: string; label: string; type: "tier" }
   | { key: string; label: string; type: "select"; options: { value: string; label: string }[]; numeric?: boolean }
   | { key: string; label: string; type: "toggle" }
   | { key: string; label: string; type: "list"; hint: string };
@@ -22,6 +23,7 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
   const harnesses = useStudio((s) => s.project.harnesses);
   const set = (key: string, v: unknown) => edit((d) => { const o = locate(d); if (o) o[key] = v; });
   const projectDeployment = useStudio((s) => s.project.settings.azureDeployment);
+  const projectTier = useStudio((s) => s.project.settings.processingTier) ?? "standard";
   // Pickers filter by the workload's own deployment when it has one.
   const deployment = (value.deployment as AzureDeployment | undefined) ?? projectDeployment;
   const optionsFor = (t: string) => {
@@ -57,6 +59,13 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
               <Field key={s.key} label={s.label}>
                 <Select value={v ? String(v) : ""} onChange={(x) => set(s.key, x || undefined)}
                   options={[{ value: "", label: `Project default (${DEPLOYMENT_LABEL[projectDeployment]})` }, ...DEPLOYMENTS.map((d) => ({ value: d, label: DEPLOYMENT_LABEL[d] }))]} />
+              </Field>
+            );
+          case "tier":
+            return (
+              <Field key={s.key} label={s.label}>
+                <Select value={v ? String(v) : ""} onChange={(x) => set(s.key, x || undefined)}
+                  options={[{ value: "", label: `Project default (${TIER_LABEL[projectTier]})` }, ...TIERS.map((t) => ({ value: t, label: TIER_LABEL[t] }))]} />
               </Field>
             );
           case "list":
@@ -200,6 +209,7 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
   ],
   chat: [
     { key: "deployment", label: "Deployment", type: "deployment" },
+    { key: "tier", label: "Tier", type: "tier" },
     { key: "users", label: "Users", type: "number" },
     { key: "conversationsPerUser", label: "Conversations / user / month", type: "number" },
     { key: "turns", label: "Turns per conversation", type: "number", min: 1 },
@@ -213,6 +223,7 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
   ],
   agent: [
     { key: "deployment", label: "Deployment", type: "deployment" },
+    { key: "tier", label: "Tier", type: "tier" },
     { key: "harnessId", label: "Harness", type: "harness" },
     { key: "modelId", label: "Model", type: "model" },
     { key: "tasksPerMonth", label: "Tasks / month", type: "number" },
@@ -220,6 +231,7 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
   ],
   continuousEval: [
     { key: "deployment", label: "Deployment", type: "deployment" },
+    { key: "tier", label: "Tier", type: "tier" },
     { key: "interactionsPerMonth", label: "Interactions / month", type: "number" },
     { key: "sampleShare", label: "Sampled", type: "percent" },
     { key: "judgeModelId", label: "Judge model", type: "model" },
@@ -231,6 +243,7 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
   ],
   llm: [
     { key: "deployment", label: "Deployment", type: "deployment" },
+    { key: "tier", label: "Tier", type: "tier" },
     { key: "callsPerMonth", label: "Calls / month", type: "number" },
     { key: "modelId", label: "Model", type: "model" },
     { key: "inputTokens", label: "Input tokens", type: "number" },

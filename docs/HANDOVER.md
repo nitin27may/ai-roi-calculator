@@ -293,9 +293,16 @@ Gotchas:
 
 ## Batch and processing tiers
 
+- `ProcessingTier` (`packages/catalog/src/schema.ts`) is `"standard" | "batch"` today; the enum stays open for `priority` and `flex`.
 - `batchDiscount` is derived on every `pnpm prices:azure` run: 1 minus the Global Batch input meter over the Global standard input meter. No Batch meter means 0, because Azure does not offer Batch for that model.
 - As of 2026-10-04 Batch meters exist for GPT-4 and o-series, GPT-5 to 5.5 (including 5.2 pro and 5.4 pro) at 50%. They do not exist for GPT-5.6, GPT-6, the Codex models, Claude or MAI, so those are 0. The refresh picks them up when Azure publishes them.
 - GPT-5.6 has Standard (`Std`) and Priority (`PP`) meters. Priority and Flex are not modelled yet.
+- `ChatModel.tiers` (optional) is where a future tier's price lives: `{ factor: number }` (a multiplier on the Standard price, like Batch) or `{ prices: TokenPrices }` (its own published CAD prices). `batch` keeps reading `batchDiscount` directly — `tiers.batch` only needs to exist once a model's Batch price stops being a flat factor off Standard, or a model has no `batchDiscount` data at all. `PriceBook.tierPricing()` (`packages/engine/src/pricing.ts`) is the one accessor both paths go through.
+- `PriceBook.withPricing({ deployment, tier })` applies the tier after deployment resolution, the same way promo and long-context scaling do (`pricing.ts`, `applyTier`). `TIER_DEPLOYMENTS` in the same file lists which deployments a tier is offered under (`batch: ["global", "dataZone"]` — Azure Batch is not available under Canada Regional); a tier outside that list falls back to Standard with a `tier-unavailable` note, shown as an Overview alert.
+- Adding **Priority** (or Flex) later is three steps, no engine rework:
+  1. Add the enum value to `ProcessingTier` in `packages/catalog/src/schema.ts` and to `TIER_LABEL`/`TIERS` in `packages/engine/src/pricing.ts` (and `TIER_DEPLOYMENTS` if the tier has a deployment constraint — Priority is Global/Data Zone only, same as Batch).
+  2. Map the `PP` (Priority) or `Flex` meter names in `scripts/prices/azure-map.ts` (next to `batchInputPattern`) and have `scripts/prices/azure.ts` derive and write the price onto `ChatModel.tiers.priority` (as `{ prices }` if Priority publishes its own CAD prices, which is what `PP` meters look like, rather than a flat factor).
+  3. Catalogue data: once step 2's script run populates `tiers.priority` on the relevant models, it prices automatically — `settings.processingTier`, a workload's own `tier`, and the Settings/per-workload UI already offer every value in `ProcessingTier`.
 
 ## Plan and progress
 
