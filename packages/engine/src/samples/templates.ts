@@ -1,11 +1,11 @@
-import type { Project } from "../project.js";
+import { CURRENT_PROJECT_VERSION, type Project } from "../project.js";
 import { meetingIntelligence } from "./meeting-intelligence.js";
 import { DEFAULT_HARNESS, newActivity, newWorkload } from "../templates.js";
 
 /** A minimal valid project: rate card, a small team, no Dev Lab activities or workloads. */
 export function blankProject(name: string, startDate = nextMonth()): Project {
   return {
-    schema: "ai-cost-roi-studio/project", version: 1, name, startDate,
+    schema: "ai-cost-roi-studio/project", version: CURRENT_PROJECT_VERSION, name, startDate,
     settings: { azureDeployment: "dataZone", snowflake: { routing: "global", edition: "enterprise" } },
     timeline: { buildMonths: 4, horizonMonths: 36, adoptionRampMonths: 6 },
     rateCard: [

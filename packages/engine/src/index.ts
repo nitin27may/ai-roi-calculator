@@ -1,4 +1,5 @@
 export * from "./project.js";
+export * from "./migrate.js";
 export * from "./pricing.js";
 export * from "./harness.js";
 export * from "./lines.js";

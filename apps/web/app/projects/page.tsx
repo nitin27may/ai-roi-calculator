@@ -11,6 +11,7 @@ import { cad, cn, fmt } from "@/lib/format";
 export default function Projects() {
   const library = useStudio((s) => s.library);
   const activeId = useStudio((s) => s.activeId);
+  const unreadableCount = useStudio((s) => s.unreadableCount);
   const { open, duplicate, remove, create } = useStudio.getState();
   const router = useRouter();
   const [name, setName] = useState("");
@@ -26,6 +27,11 @@ export default function Projects() {
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(0,1fr)_360px]">
       <Card>
         <CardHead title={`${library.length} project${library.length === 1 ? "" : "s"}`} sub="Saved in this browser. Use Save to file to keep a copy or share one." />
+        {unreadableCount > 0 && (
+          <div role="note" className="mx-3.5 mb-2 rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">
+            {unreadableCount} saved project{unreadableCount === 1 ? "" : "s"} could not be opened and {unreadableCount === 1 ? "was" : "were"} left out of this list.
+          </div>
+        )}
         <div className="grid min-h-0 flex-1 auto-rows-min grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 overflow-auto px-3.5 pb-3.5">
           {library.map((e) => {
             const s = summaries.get(e.id)!;

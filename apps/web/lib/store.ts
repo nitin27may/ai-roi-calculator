@@ -1,6 +1,6 @@
 "use client";
 import { create } from "zustand";
-import { PROJECT_TEMPLATES, ProjectSchema, meetingIntelligence, type Percentile, type Project } from "@studio/engine";
+import { PROJECT_TEMPLATES, ProjectSchema, meetingIntelligence, migrateProject, type Percentile, type Project } from "@studio/engine";
 
 const LIBRARY_KEY = "ai-cost-roi-studio:library";
 const LEGACY_KEY = "ai-cost-roi-studio:project";
@@ -23,6 +23,8 @@ interface State {
   redo: () => void;
   hydrated: boolean;
   hydrate: () => void;
+  /** Saved projects dropped during hydration because they failed validation even after migration. */
+  unreadableCount: number;
   /** Apply an edit to a copy of the active project; refused (and reported) if it no longer validates. */
   edit: (fn: (draft: Project) => void) => void;
   /** Replace the active project. `coalesce` merges it into the previous undo step when edits come in quick succession. */
@@ -39,6 +41,21 @@ let lastEditAt = 0;
 const newId = () => `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 const now = () => new Date().toISOString();
 const firstEntry = (): LibraryEntry => ({ id: "sample", project: meetingIntelligence, updatedAt: now() });
+
+/** Migrates then validates a saved project, logging why it was dropped so the Projects page can surface a count. */
+function safeMigrateAndParse(raw: unknown): { success: true; data: Project } | { success: false } {
+  try {
+    const parsed = ProjectSchema.safeParse(migrateProject(raw));
+    if (!parsed.success) {
+      console.warn("Saved project failed validation and was left out of the library:", parsed.error.issues[0]);
+      return { success: false };
+    }
+    return { success: true, data: parsed.data };
+  } catch (err) {
+    console.warn("Saved project could not be migrated and was left out of the library:", err);
+    return { success: false };
+  }
+}
 
 function persist(library: LibraryEntry[], activeId: string) {
   try {
@@ -65,21 +82,26 @@ export const useStudio = create<State>((set, get) => {
     past: [],
     future: [],
     hydrated: false,
+    unreadableCount: 0,
     hydrate: () => {
       if (get().hydrated) return;
       try {
         const raw = localStorage.getItem(LIBRARY_KEY);
         if (raw) {
           const data = JSON.parse(raw) as { library: LibraryEntry[]; activeId: string };
+          let unreadable = 0;
           const library = data.library.flatMap((e) => {
-            const parsed = ProjectSchema.safeParse(e.project);
-            return parsed.success ? [{ ...e, project: parsed.data }] : [];
+            const parsed = safeMigrateAndParse(e.project);
+            if (parsed.success) return [{ ...e, project: parsed.data }];
+            unreadable++;
+            return [];
           });
-          if (library.length) return commit(library, data.activeId, { hydrated: true });
+          if (library.length) return commit(library, data.activeId, { hydrated: true, unreadableCount: unreadable });
+          if (unreadable) set({ unreadableCount: unreadable });
         }
         const legacy = localStorage.getItem(LEGACY_KEY);
         if (legacy) {
-          const parsed = ProjectSchema.safeParse(JSON.parse(legacy));
+          const parsed = safeMigrateAndParse(JSON.parse(legacy));
           if (parsed.success) return commit([{ id: "sample", project: parsed.data, updatedAt: now() }], "sample", { hydrated: true });
         }
       } catch {
