@@ -6,7 +6,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Explain } from "@/components/explain";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
 import { Fields, HARNESS_SPECS, WAREHOUSE_SPECS, WORKLOAD_SPECS } from "@/components/fields";
-import { catalog, useLedger } from "@/lib/compute";
+import { catalog, modelOptions, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad, fmt } from "@/lib/format";
 
@@ -226,7 +226,7 @@ function DocumentRoute({ id }: { id: string }) {
   const w = project.workloads.find((x) => x.id === id);
   if (w?.kind !== "documents") return null;
   const extractors = catalog.unitPrices.filter((u) => u.unit === "1K pages").map((u) => ({ value: u.id, label: `${u.label}${u.platform === "snowflake" ? " (Snowflake)" : ""}` }));
-  const models = catalog.chatModels.filter((m) => m.platform === "azure").map((m) => ({ value: m.id, label: m.label }));
+  const models = modelOptions((m) => m.platform === "azure");
   const set = (fn: (x: Extract<typeof w, { kind: "documents" }>) => void) => edit((d) => { const x = d.workloads.find((y) => y.id === id); if (x?.kind === "documents") fn(x); });
   const route = w.route;
   return (

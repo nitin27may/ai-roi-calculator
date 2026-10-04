@@ -163,12 +163,12 @@ function Levers() {
 function Alerts() {
   const { ledger } = useLedger();
   if (!ledger.notes.length) return <p className="text-sm text-muted">Nothing needs attention.</p>;
-  const tone = { "promo-ended": "warn", retired: "crit", deprecated: "crit", unverified: "n", "long-context": "warn", routing: "n" } as const;
-  const label = { "promo-ended": "Promo", retired: "Retires", deprecated: "Deprecated", unverified: "Unverified", "long-context": "Long context", routing: "Routing" } as const;
+  const tone = { "promo-ended": "warn", retired: "crit", deprecated: "crit", unverified: "n", "long-context": "warn", routing: "n", unavailable: "crit" } as const;
+  const label = { "promo-ended": "Promo", retired: "Retires", deprecated: "Deprecated", unverified: "Unverified", "long-context": "Long context", routing: "Routing", unavailable: "Not offered" } as const;
   return (
     <div>
       {ledger.notes.map((n) => (
-        <div key={n.message} className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 border-b border-line py-2 text-[12.5px] last:border-b-0">
+        <div key={n.message} className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-2 border-b border-line py-2 text-[12.5px] last:border-b-0">
           <Pill tone={tone[n.kind]}>{label[n.kind]}</Pill>
           <span>{n.message}</span>
         </div>

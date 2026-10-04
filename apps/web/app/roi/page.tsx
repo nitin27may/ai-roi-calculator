@@ -4,7 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { LEVERS, applyScenario, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityVolume, workloadVolume, sensitivity, capabilityHours, compareScenarios, computeAllocation, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Seg, Select } from "@/components/ui";
 import { CumulativeLine, Legend } from "@/components/charts";
-import { catalog, modelOptions, useLedger } from "@/lib/compute";
+import { catalog, deploymentOptions, modelOptions, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { AddMenu } from "@/components/add-menu";
 import { cad, cn, fmt } from "@/lib/format";
@@ -445,7 +445,7 @@ function Scenarios() {
   const [draft, setDraft] = useState<{ edit: ScenarioEdit; text: string }[]>([]);
   const [kind, setKind] = useState<EditKind>("model");
   const llmWorkloads = project.workloads.filter((w) => "modelId" in w) as { id: string; label: string; kind: string; modelId: string }[];
-  const modelChoices = (id: string) => (llmWorkloads.find((w) => w.id === id)?.kind === "embeddings" ? catalog.embeddingModels.map((m) => ({ value: m.id, label: m.label })) : modelOptions());
+  const modelChoices = (id: string) => (llmWorkloads.find((w) => w.id === id)?.kind === "embeddings" ? deploymentOptions(catalog.embeddingModels) : modelOptions());
   const [wid, setWid] = useState(llmWorkloads[0]?.id ?? "");
   const [model, setModel] = useState("gpt-5.4-mini");
   const [num, setNum] = useState(50);

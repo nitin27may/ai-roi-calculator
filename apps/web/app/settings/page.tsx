@@ -3,6 +3,7 @@ import { Card, CardHead, Field, NumberInput, Select } from "@/components/ui";
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad } from "@/lib/format";
+import { DEPLOYMENT_LABEL, type AzureDeployment } from "@studio/engine";
 
 export default function Settings() {
   const project = useStudio((s) => s.project);
@@ -25,9 +26,9 @@ export default function Settings() {
       <Card>
         <CardHead title="Azure" sub="Foundry deployment type for all models" />
         <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 px-3.5 pb-3.5">
-          <Field label="Deployment type"><Select value={project.settings.azureDeployment} options={[{ value: "global", label: "Global Standard" }, { value: "dataZone", label: "Data Zone Standard (≈ +10%)" }]} onChange={(v) => edit((d) => { d.settings.azureDeployment = v as "global" | "dataZone"; })} /></Field>
+          <Field label="Deployment type"><Select value={project.settings.azureDeployment} options={[{ value: "regional", label: DEPLOYMENT_LABEL.regional }, { value: "dataZone", label: DEPLOYMENT_LABEL.dataZone }]} onChange={(v) => edit((d) => { d.settings.azureDeployment = v as AzureDeployment; })} /></Field>
         </div>
-        <p className="px-3.5 pb-3.5 text-[11.5px] text-muted">Prices come from the Azure Retail Prices API in CAD. Data Zone keeps requests in one geography for a premium of about 10%.</p>
+        <p className="px-3.5 pb-3.5 text-[11.5px] text-muted">Canada Regional Standard keeps data in Canada (Canada East / Canada Central) but offers few pay-as-you-go models. US Data Zone Standard (East US / East US 2) keeps data in the US and offers every model at about 10% over Global. Model lists show only what the chosen deployment offers.</p>
       </Card>
       <Card>
         <CardHead title="Snowflake" sub="Credit prices in CAD" />

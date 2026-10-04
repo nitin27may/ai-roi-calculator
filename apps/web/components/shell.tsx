@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 import { Download, Upload, RotateCcw, FileSpreadsheet, FileText, Printer, Undo2, Redo2 } from "lucide-react";
 import { exportCsv, exportXlsx } from "@/lib/export";
-import { ProjectSchema, meetingIntelligence } from "@studio/engine";
+import { DEPLOYMENT_LABEL, ProjectSchema, meetingIntelligence } from "@studio/engine";
 import { useStudio } from "@/lib/store";
 import { catalog, useLedger } from "@/lib/compute";
 import { cad, cn, fmt } from "@/lib/format";
@@ -79,7 +79,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <div className="flex flex-wrap items-center gap-1.5">
             <button type="button" aria-label="Undo" title="Undo (Ctrl/Cmd+Z)" disabled={!canUndo} onClick={() => useStudio.getState().undo()} className="rounded-md border border-line bg-surface p-1 text-ink-2 enabled:hover:bg-surface-2 disabled:opacity-40"><Undo2 size={15} /></button>
             <button type="button" aria-label="Redo" title="Redo (Ctrl/Cmd+Shift+Z)" disabled={!canRedo} onClick={() => useStudio.getState().redo()} className="mr-1 rounded-md border border-line bg-surface p-1 text-ink-2 enabled:hover:bg-surface-2 disabled:opacity-40"><Redo2 size={15} /></button>
-            {[["Currency", "CAD"], ["Azure", project.settings.azureDeployment === "global" ? "Global" : "Data Zone"], ["Snowflake", `${project.settings.snowflake.edition} · ${project.settings.snowflake.routing}`], ["Prices", catalog.meta.asOf]].map(([k, v]) => (
+            {[["Currency", "CAD"], ["Azure", DEPLOYMENT_LABEL[project.settings.azureDeployment]], ["Snowflake", `${project.settings.snowflake.edition} · ${project.settings.snowflake.routing}`], ["Prices", catalog.meta.asOf]].map(([k, v]) => (
               <span key={k} className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-[11.5px] text-ink-2">{k} <b className="font-semibold text-ink">{v}</b></span>
             ))}
           </div>
