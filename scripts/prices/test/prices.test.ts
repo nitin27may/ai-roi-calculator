@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { one, per1M, PriceMatchError, type RetailRow } from "../retail.js";
+import { one, per1M, preciseRows, PriceMatchError, type RetailRow } from "../retail.js";
 import { updateAzure, report } from "../azure.js";
 import { applyUsdList, fxFromRows } from "../fx.js";
 import { applySnowflake, findNumbers } from "../snowflake.js";
@@ -11,6 +11,18 @@ const data = (f: string) => JSON.parse(readFileSync(new URL(`../../../packages/c
 describe("retail matching", () => {
   it("normalises 1K token meters to per 1M", () => {
     expect(per1M(row({ retailPrice: 0.0035, unitOfMeasure: "1K" }))).toBe(3.5);
+  });
+  it("only counts rows in the required regions", () => {
+    const rows = [row({ meterName: "x Dz", armRegionName: "westeurope", retailPrice: 2 }), row({ meterName: "x Dz", armRegionName: "eastus2", retailPrice: 1.1 })];
+    expect(one(rows, { meterName: "^x Dz", regions: ["eastus2", "eastus"] }).retailPrice).toBe(1.1);
+    expect(() => one(rows.slice(0, 1), { meterName: "^x Dz", regions: ["eastus2", "eastus"] })).toThrow(PriceMatchError);
+  });
+  it("replaces rounded per-1K CAD prices with USD x rate", () => {
+    const cad = [row({ meterId: "a", unitOfMeasure: "1K", retailPrice: 0.0007 }), row({ meterId: "b", unitOfMeasure: "1M", retailPrice: 3.5414 })];
+    const usd = [row({ meterId: "a", unitOfMeasure: "1K", retailPrice: 0.000484 }), row({ meterId: "b", unitOfMeasure: "1M", retailPrice: 2.5 })];
+    const out = preciseRows(cad, usd, 1.41655);
+    expect(per1M(out[0]!)).toBe(0.6856);
+    expect(out[1]!.retailPrice).toBe(3.5414); // 1M meters already carry enough digits
   });
   it("refuses ambiguous matches", () => {
     const rows = [row({ meterName: "5.4 inp Gl 1M", retailPrice: 3.4 }), row({ meterName: "5.4 inp glbl 1M", retailPrice: 3.5 })];
@@ -44,6 +56,9 @@ describe("Azure refresh", () => {
     const rows: RetailRow[] = [
       row({ productName: "Azure OpenAI", armRegionName: "canadaeast", meterName: "embedding-ada-glbl Tokens", retailPrice: 0.0001, unitOfMeasure: "1K" }),
       row({ productName: "Azure OpenAI", armRegionName: "eastus2", meterName: "embedding-ada-glbl Tokens", retailPrice: 0.0001, unitOfMeasure: "1K" }),
+      row({ productName: "Azure OpenAI", armRegionName: "canadaeast", meterName: "embedding-ada-regional Tokens", retailPrice: 0.000121, unitOfMeasure: "1K" }),
+      row({ productName: "Azure OpenAI", armRegionName: "eastus2", meterName: "embedding-ada-regional Tokens", retailPrice: 0.00011, unitOfMeasure: "1K" }),
+      row({ productName: "Azure OpenAI", armRegionName: "eastus2", meterName: "embedding-ada-datazone Tokens", retailPrice: 0.00011, unitOfMeasure: "1K" }),
       row({ productName: "Azure OpenAI", armRegionName: "canadaeast", meterName: "gpt-4o-transcribe-aud-inp-glbl Tokens", retailPrice: 0.0085, unitOfMeasure: "1K" }),
       row({ productName: "Azure OpenAI", armRegionName: "canadaeast", meterName: "gpt-4o-transcribe-txt-out-glbl Tokens", retailPrice: 0.0142, unitOfMeasure: "1K" }),
       row({ productName: "Azure OpenAI Media", armRegionName: "eastus2", meterName: "gpt-transcribe Gl Unit", retailPrice: 0.38, unitOfMeasure: "1 Hour" }),
@@ -55,7 +70,7 @@ describe("Azure refresh", () => {
     const r = await updateAzure({ chat: [], embeddings, speech, search: [], units }, source, "canadacentral", "2026-10-02");
     const failed = (id: string) => r.errors.some((e) => e.startsWith(`${id}:`));
     for (const id of ["text-embedding-ada-002", "gpt-4o-transcribe", "gpt-transcribe", "language-records"]) expect(failed(id)).toBe(false);
-    expect(embeddings.find((e: any) => e.id === "text-embedding-ada-002").per1M).toBe(0.1);
+    expect(embeddings.find((e: any) => e.id === "text-embedding-ada-002")).toMatchObject({ per1M: 0.1, deployments: { regional: 0.121, dataZone: 0.11 } });
     expect(speech.find((s: any) => s.id === "gpt-4o-transcribe").tokens).toMatchObject({ audioInputPer1M: 8.5, textOutputPer1M: 14.2 });
     expect(speech.find((s: any) => s.id === "gpt-transcribe").perAudioHour).toBe(0.38);
     expect(units.find((u: any) => u.id === "language-records").price).toBe(1.4166);

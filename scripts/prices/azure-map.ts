@@ -7,7 +7,10 @@
 export const GLOBAL_TOKEN = "(Gl|glbl|Glbl)";
 /** Data Zone meters: "Dz", "DZ", "dzone", "Data Zone", "DataZone". US and EU Data Zones differ; the US price is used (closest to Canada). */
 export const DZ_TOKEN = "(Dz|Dzone|Data ?Zone)"; // matched case-insensitively
-export const DZ_REGIONS = ["eastus2", "eastus", "centralus"];
+export const DZ_REGIONS = ["eastus2", "eastus"];
+/** Regional Standard in Canada: per-region meters ("regnl", "regional"). Canada East carries the token meters. */
+export const REGIONAL_TOKEN = "(regnl|rgnl|regional|Regional)";
+export const CANADA_REGIONS = ["canadaeast", "canadacentral"];
 /** Global meters that are priced per region (MAI) take the price in Canada first, then East US 2. */
 export const GLOBAL_REGIONS = ["canadacentral", "canadaeast", "eastus2", "eastus"];
 
@@ -79,9 +82,11 @@ export const CHAT: Record<string, ChatSpec> = {
   "mai-code-1.1-flash": mai("Code 1\\.1 Flash", { inp: "Input", cd: "Cd Input", opt: "Output" }),
 };
 
-export const EMBEDDINGS: Record<string, string> = {
-  "text-embedding-3-large": "^text-embedding-3-large-glbl Tokens$",
-  "text-embedding-ada-002": "^embedding-ada-glbl Tokens$",
+/** Embedding meters: Global reference, Canada regional, and US Data Zone (falls back to US regional, priced the same). */
+export const EMBEDDINGS: Record<string, { global: string; regional: string; dataZone: string[] }> = {
+  "text-embedding-3-large": { global: "^text-embedding-3-large-glbl Tokens$", regional: "^text-embedding-3-large-regional Tokens$", dataZone: ["^text-embedding-3-large-(dzone|datazone) Tokens$", "^text-embedding-3-large-regional Tokens$"] },
+  "text-embedding-3-small": { global: "^text-embedding-3-small-glbl Tokens$", regional: "^text-embedding-3-small-regional Tokens$", dataZone: ["^text-embedding-3-small-(dzone|datazone) Tokens$", "^text-embedding-3-small-regional Tokens$"] },
+  "text-embedding-ada-002": { global: "^embedding-ada-glbl Tokens$", regional: "^embedding-ada-regional Tokens$", dataZone: ["^embedding-ada-datazone Tokens$", "^embedding-ada-regional Tokens$"] },
 };
 
 /** Token-billed transcription: audio input and text output meters (Azure OpenAI and Azure OpenAI Media products). */
