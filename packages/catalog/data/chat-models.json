@@ -27,6 +27,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -79,6 +80,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -127,6 +129,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -173,6 +176,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -218,6 +222,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -262,7 +267,9 @@
         "output": 280.4769
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 0,
     "batchDiscount": 0,
     "lifecycle": {
@@ -306,6 +313,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -343,6 +351,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -380,6 +389,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -417,6 +427,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -453,7 +464,9 @@
         "output": 21.8149
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 0,
     "batchDiscount": 0,
     "lifecycle": {
@@ -489,6 +502,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -525,7 +539,9 @@
         "output": 15.5821
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 0,
     "batchDiscount": 0,
     "lifecycle": {
@@ -560,7 +576,9 @@
         "output": 15.5821
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 0,
     "batchDiscount": 0,
     "lifecycle": {
@@ -595,7 +613,9 @@
         "output": 3.1164
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 0,
     "batchDiscount": 0,
     "lifecycle": {
@@ -631,6 +651,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -668,6 +689,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -705,6 +727,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -742,6 +765,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -784,6 +808,7 @@
       }
     },
     "availableIn": [
+      "global",
       "regional",
       "dataZone"
     ],
@@ -822,6 +847,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -864,6 +890,7 @@
       }
     },
     "availableIn": [
+      "global",
       "regional",
       "dataZone"
     ],
@@ -902,6 +929,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -939,6 +967,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -976,6 +1005,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -1013,6 +1043,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -1052,6 +1083,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -1100,6 +1132,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -1148,6 +1181,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -1196,6 +1230,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -1244,6 +1279,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 286,
@@ -1283,6 +1319,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 286,
@@ -1315,7 +1352,9 @@
         "cacheWrite": 17.7069
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 286,
     "batchDiscount": 0,
     "lifecycle": {
@@ -1346,7 +1385,9 @@
         "cacheWrite": 17.7069
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 286,
     "batchDiscount": 0,
     "lifecycle": {
@@ -1384,6 +1425,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 290,
@@ -1423,6 +1465,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 286,
@@ -1462,6 +1505,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 290,
@@ -1494,7 +1538,9 @@
         "cacheWrite": 8.8534
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 290,
     "batchDiscount": 0,
     "lifecycle": {
@@ -1525,7 +1571,9 @@
         "cacheWrite": 8.8534
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 497,
     "batchDiscount": 0,
     "lifecycle": {
@@ -1556,7 +1604,9 @@
         "cacheWrite": 8.8534
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 497,
     "batchDiscount": 0,
     "lifecycle": {
@@ -1587,7 +1637,9 @@
         "cacheWrite": 5.3121
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 497,
     "batchDiscount": 0,
     "lifecycle": {
@@ -1618,7 +1670,9 @@
         "cacheWrite": 5.3121
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 497,
     "batchDiscount": 0,
     "lifecycle": {
@@ -1649,7 +1703,9 @@
         "cacheWrite": 1.7707
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 496,
     "batchDiscount": 0,
     "lifecycle": {
@@ -1685,6 +1741,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -1722,6 +1779,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -1758,7 +1816,9 @@
         "output": 1.5582
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 0,
     "batchDiscount": 0,
     "lifecycle": {
@@ -1794,6 +1854,7 @@
       }
     },
     "availableIn": [
+      "global",
       "dataZone"
     ],
     "toolUseOverheadTokens": 0,
@@ -1825,7 +1886,9 @@
         "output": 11.3324
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 0,
     "batchDiscount": 0,
     "lifecycle": {
@@ -1855,7 +1918,9 @@
         "output": 4.9579
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 0,
     "batchDiscount": 0,
     "lifecycle": {
@@ -1885,7 +1950,9 @@
         "output": 1.6999
       }
     },
-    "availableIn": [],
+    "availableIn": [
+      "global"
+    ],
     "toolUseOverheadTokens": 0,
     "batchDiscount": 0,
     "lifecycle": {

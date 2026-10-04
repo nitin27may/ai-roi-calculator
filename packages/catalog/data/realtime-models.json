@@ -24,7 +24,9 @@
       "retrievedAt": "2026-10-04"
     },
     "confidence": "verified",
-    "availableIn": []
+    "availableIn": [
+      "global"
+    ]
   },
   {
     "id": "gpt-realtime-2.1-mini",
@@ -51,7 +53,9 @@
       "retrievedAt": "2026-10-04"
     },
     "confidence": "verified",
-    "availableIn": []
+    "availableIn": [
+      "global"
+    ]
   },
   {
     "id": "gpt-realtime-1.5",
@@ -78,6 +82,8 @@
       "retrievedAt": "2026-10-04"
     },
     "confidence": "verified",
-    "availableIn": []
+    "availableIn": [
+      "global"
+    ]
   }
 ]
