@@ -17,15 +17,34 @@ const tokensForPages = (pages: number, type: keyof typeof H.pages.wordsPerPage) 
 /** Monthly lines for one production workload at full adoption. */
 export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
   const { date } = c;
-  const book = "deployment" in w ? c.book.withDeployment(w.deployment) : c.book;
+  const book = "deployment" in w ? c.book.withPricing({ deployment: w.deployment, tier: w.tier }) : c.book;
   const id = w.id;
-  const llm = (part: string, label: string, modelId: string, calls: number, inTok: number, cachedTok: number, outTok: number, behaviour: "usage" | "fixed" = "usage", batch = 0): Line => {
+  /**
+   * One line per processing tier the calls split across. `batchShare` of the calls price at the
+   * Batch tier (if offered — see `PriceBook.applyTier`); the rest stay at the book's own tier.
+   * Splitting by tier (rather than blending into one line) keeps PTU sizing from counting Batch
+   * tokens, which never run on provisioned capacity.
+   */
+  const llm = (part: string, label: string, modelId: string, calls: number, inTok: number, cachedTok: number, outTok: number, behaviour: "usage" | "fixed" = "usage", batchShare = 0): Line[] => {
     const tk = book.tokenizerMultiplier(modelId);
-    const per = book.chatCost(modelId, { input: inTok * tk, cachedInput: cachedTok * tk, output: outTok * tk }, date, (inTok + cachedTok) * tk);
-    const disc = 1 - batch * book.chatModel(modelId).batchDiscount;
-    return line({ id: `${id}:${part}`, componentId: id, label, stream: "run", behaviour, meter: modelId, quantity: calls, unit: "call", unitPrice: per * disc,
-      tokens: { input: inTok * tk, cachedInput: cachedTok * tk, output: outTok * tk },
-      formula: `${fmtInt(calls)} calls × (${fmtInt(inTok * tk)} in + ${fmtInt(cachedTok * tk)} cached + ${fmtInt(outTok * tk)} out tokens) on ${book.chatModel(modelId).label}${batch ? ` · ${Math.round(batch * 100)}% via Batch` : ""}` });
+    const tokens = { input: inTok * tk, cachedInput: cachedTok * tk, output: outTok * tk };
+    const reqTokens = (inTok + cachedTok) * tk;
+    const modelLabel = book.chatModel(modelId).label;
+    const tierLine = (tier: "standard" | "batch", qty: number): Line => {
+      const b = tier === "standard" ? book : book.withPricing({ tier });
+      const per = b.chatCost(modelId, tokens, date, reqTokens);
+      const idSuffix = tier === "batch" ? ":batch" : "";
+      const batchNote = tier === "batch" ? ` · ${Math.round(batchShare * 100)}% via Batch` : "";
+      return line({ id: `${id}:${part}${idSuffix}`, componentId: id, label, stream: "run", behaviour, meter: modelId, tier, quantity: qty, unit: "call", unitPrice: per, tokens,
+        formula: `${fmtInt(qty)} calls × (${fmtInt(tokens.input)} in + ${fmtInt(tokens.cachedInput)} cached + ${fmtInt(tokens.output)} out tokens) on ${modelLabel}${batchNote}` });
+    };
+    if (!batchShare) return [tierLine("standard", calls)];
+    const out: Line[] = [];
+    const standardCalls = calls * (1 - batchShare);
+    if (standardCalls > 0) out.push(tierLine("standard", standardCalls));
+    const batchCalls = calls * batchShare;
+    if (batchCalls > 0) out.push(tierLine("batch", batchCalls));
+    return out;
   };
   const unit = (part: string, label: string, unitPriceId: string, qty: number, behaviour: "usage" | "fixed" = "usage", stream: Line["stream"] = "run"): Line => {
     const u = book.unit(unitPriceId);
@@ -39,7 +58,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       const out: Line[] = [line({ id: `${id}:stt`, componentId: id, label: w.label, stream: "run", behaviour: "usage", meter: w.engineId, quantity: w.hoursPerMonth, unit: "audio hour", unitPrice: rate, formula: `${fmtInt(w.hoursPerMonth)} h × CAD ${rate.toFixed(3)}/h` })];
       if (w.summary) {
         const transcript = H.speech.wordsPerMinute * 60 * H.tokens.perWord * (1 + (w.diarize ? H.speech.diarizationOverhead.names : 0));
-        out.push(llm("summary", `${w.label}: summaries`, w.summary.modelId, w.hoursPerMonth, transcript + H.chat.systemPrompt, 0, w.summary.outputTokens));
+        out.push(...llm("summary", `${w.label}: summaries`, w.summary.modelId, w.hoursPerMonth, transcript + H.chat.systemPrompt, 0, w.summary.outputTokens));
       }
       return out;
     }
@@ -50,13 +69,13 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
         for (const a of w.route.addOnIds) out.push(unit(`addon-${a}`, `${w.label}: ${book.unit(a).label}`, a, w.pagesPerMonth / 1000));
       } else {
         const perPage = H.pages.directPdfTokensPerPage[book.chatModel(w.route.modelId).tokenizer] / book.tokenizerMultiplier(w.route.modelId);
-        out.push(llm("direct", `${w.label}: direct to model`, w.route.modelId, w.pagesPerMonth, perPage, 0, 0));
+        out.push(...llm("direct", `${w.label}: direct to model`, w.route.modelId, w.pagesPerMonth, perPage, 0, 0));
       }
       if (w.warehouse) out.push(warehouseLine(id, w.label, w.warehouse, book, "usage"));
       if (w.enrich) {
         const docs = w.pagesPerMonth / w.enrich.pagesPerDoc;
         const inTok = tokensForPages(w.enrich.pagesPerDoc, w.pageType) * H.pages.layoutMarkdownOverhead + H.chat.systemPrompt;
-        out.push(llm("enrich", `${w.label}: enrichment`, w.enrich.modelId, docs, inTok, 0, w.enrich.outputTokensPerDoc));
+        out.push(...llm("enrich", `${w.label}: enrichment`, w.enrich.modelId, docs, inTok, 0, w.enrich.outputTokensPerDoc));
       }
       return out;
     }
@@ -67,7 +86,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       const out = [unit("bodies", `${w.label}: bodies`, w.bodyExtractorId, bodyPages / 1000), unit("attachments", `${w.label}: attachments`, w.attachmentExtractorId, attPages / 1000)];
       if (w.triage) {
         const inTok = H.email.bodyWords * H.tokens.perWord + H.email.overheadTokens + H.chat.systemPrompt;
-        out.push(llm("triage", `${w.label}: triage`, w.triage.modelId, w.emailsPerMonth, inTok, 0, w.triage.outputTokens));
+        out.push(...llm("triage", `${w.label}: triage`, w.triage.modelId, w.emailsPerMonth, inTok, 0, w.triage.outputTokens));
       }
       return out;
     }
@@ -87,7 +106,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       if (w.agentic) {
         const a = w.agentic;
         out.push(unit("agentic", `${w.label}: agentic retrieval`, "search-agentic", (w.queriesPerMonth * a.subqueries * a.chunksPerSubquery * a.tokensPerChunk) / 1e6));
-        out.push(llm("planner", `${w.label}: query planning`, a.plannerModelId, w.queriesPerMonth, 2000, 0, 350));
+        out.push(...llm("planner", `${w.label}: query planning`, a.plannerModelId, w.queriesPerMonth, 2000, 0, 350));
       }
       return out;
     }
@@ -98,8 +117,8 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       const prompt = w.systemPromptTokens + H.chat.ragTemplate + w.topK * w.chunkTokens + avgHistory + w.userTurnTokens;
       const cached = Math.min(prompt, w.systemPromptTokens + avgHistory) * w.cacheHit;
       const split = w.router?.share ?? 0;
-      const out = [llm("main", w.label, w.modelId, turnsMonth * (1 - split), prompt - cached, cached, w.assistantTurnTokens)];
-      if (w.router && split > 0) out.push(llm("routed", `${w.label}: routed turns`, w.router.modelId, turnsMonth * split, prompt - cached, cached, w.assistantTurnTokens));
+      const out = llm("main", w.label, w.modelId, turnsMonth * (1 - split), prompt - cached, cached, w.assistantTurnTokens);
+      if (w.router && split > 0) out.push(...llm("routed", `${w.label}: routed turns`, w.router.modelId, turnsMonth * split, prompt - cached, cached, w.assistantTurnTokens));
       return out;
     }
     case "agent": {
@@ -121,7 +140,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       return w.unitPriceIds.map((u) => unit(u, `${w.label}: ${book.unit(u).label}`, u, records / 1000));
     }
     case "llm":
-      return [llm("calls", w.label, w.modelId, w.callsPerMonth, w.inputTokens, w.cachedInputTokens, w.outputTokens, "usage", w.batchShare)];
+      return llm("calls", w.label, w.modelId, w.callsPerMonth, w.inputTokens, w.cachedInputTokens, w.outputTokens, "usage", w.batchShare);
     case "fixed":
       return w.items.map((it) => unit(it.id, it.label, it.unitPriceId, it.quantity, "fixed", "platform"));
     case "voiceAgent": {
@@ -134,7 +153,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
     case "snowflakeComplete": {
       const m = book.chatModel(w.modelId);
       if (m.platform !== "snowflake") throw new Error(`${w.label}: ${m.label} is not a Snowflake Cortex model`);
-      return [llm("complete", `${w.label}: AI_COMPLETE`, w.modelId, w.rowsPerMonth, w.inputTokens, 0, w.outputTokens), warehouseLine(id, w.label, w.warehouse, book, "usage")];
+      return [...llm("complete", `${w.label}: AI_COMPLETE`, w.modelId, w.rowsPerMonth, w.inputTokens, 0, w.outputTokens), warehouseLine(id, w.label, w.warehouse, book, "usage")];
     }
     case "snowflakeFunction": {
       const u = book.unit(w.functionId);

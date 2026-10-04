@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ProcessingTier } from "@studio/catalog";
 
 /** Project file schema (`*.aicost.json`). All money is CAD. */
 
@@ -97,14 +98,16 @@ export const Warehouse = z.object({ size: z.enum(["xs", "s", "m", "l", "xl"]), h
 
 /** A workload's own Azure deployment; absent = the project's default (Settings). */
 const deployment = z.enum(["global", "regional", "dataZone"]).optional();
+/** A workload's own processing tier; absent = the project's default (Settings, itself defaulting to Standard). */
+const tier = ProcessingTier.optional();
 
 export const WorkloadSchema = z.discriminatedUnion("kind", [
   z.object({
-    kind: z.literal("transcription"), id, label: z.string(), deployment, hoursPerMonth: n0, engineId: id, diarize: z.boolean(),
+    kind: z.literal("transcription"), id, label: z.string(), deployment, tier, hoursPerMonth: n0, engineId: id, diarize: z.boolean(),
     summary: z.object({ modelId: id, outputTokens: n0 }).optional(),
   }),
   z.object({
-    kind: z.literal("documents"), id, label: z.string(), deployment, pagesPerMonth: n0,
+    kind: z.literal("documents"), id, label: z.string(), deployment, tier, pagesPerMonth: n0,
     pageType: z.enum(["plain", "dense", "slide", "spreadsheet"]),
     route: z.discriminatedUnion("type", [
       z.object({ type: z.literal("extract"), extractorId: id, addOnIds: z.array(id).default([]) }),
@@ -115,41 +118,41 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
     warehouse: Warehouse.optional(),
   }),
   z.object({
-    kind: z.literal("email"), id, label: z.string(), deployment, emailsPerMonth: n0, bodyExtractorId: id, attachmentExtractorId: id,
+    kind: z.literal("email"), id, label: z.string(), deployment, tier, emailsPerMonth: n0, bodyExtractorId: id, attachmentExtractorId: id,
     attachmentShare: share, attachmentsPerEmail: n0, pagesPerAttachment: n0, dedupe: share,
     triage: z.object({ modelId: id, outputTokens: n0 }).optional(),
   }),
-  z.object({ kind: z.literal("embeddings"), id, label: z.string(), deployment, tokensPerMonth: n0, modelId: id }),
+  z.object({ kind: z.literal("embeddings"), id, label: z.string(), deployment, tier, tokensPerMonth: n0, modelId: id }),
   z.object({
     kind: z.literal("aiSearch"), id, label: z.string(), tier: z.enum(["basic", "s1", "s2", "s3", "s3hd", "l1", "l2"]).optional(),
     chunks: n0, embeddingModelId: id, bytesPerDim: z.number().positive(), chunkTokens: n0, replicas: z.number().int().positive(),
   }),
   z.object({
-    kind: z.literal("retrieval"), id, label: z.string(), deployment, queriesPerMonth: n0, semanticShare: share,
+    kind: z.literal("retrieval"), id, label: z.string(), deployment, tier, queriesPerMonth: n0, semanticShare: share,
     rerankerId: id.optional(), agentic: z.object({ subqueries: n0, chunksPerSubquery: n0, tokensPerChunk: n0, plannerModelId: id }).optional(),
   }),
   z.object({
-    kind: z.literal("chat"), id, label: z.string(), deployment, users: n0, conversationsPerUser: n0, turns: z.number().positive(), modelId: id,
+    kind: z.literal("chat"), id, label: z.string(), deployment, tier, users: n0, conversationsPerUser: n0, turns: z.number().positive(), modelId: id,
     systemPromptTokens: n0, userTurnTokens: n0, assistantTurnTokens: n0, topK: n0, chunkTokens: n0, cacheHit: share,
     /** Share of turns routed to a cheaper model. */
     router: z.object({ modelId: id, share }).optional(),
   }),
   z.object({
-    kind: z.literal("agent"), id, label: z.string(), deployment, harnessId: id, modelId: id, tasksPerMonth: n0, cacheHit: share,
+    kind: z.literal("agent"), id, label: z.string(), deployment, tier, harnessId: id, modelId: id, tasksPerMonth: n0, cacheHit: share,
     toolFees: z.array(z.object({ unitPriceId: id, perTask: n0 })).default([]),
   }),
   z.object({
-    kind: z.literal("continuousEval"), id, label: z.string(), deployment, interactionsPerMonth: n0, sampleShare: share, judgeModelId: id,
+    kind: z.literal("continuousEval"), id, label: z.string(), deployment, tier, interactionsPerMonth: n0, sampleShare: share, judgeModelId: id,
     evaluators: z.array(z.string()), contextTokens: n0, responseTokens: n0, safetyEvaluators: z.number().int().nonnegative(),
   }),
   z.object({ kind: z.literal("contentSafety"), id, label: z.string(), requestsPerMonth: n0, charsPerRequest: n0, unitPriceIds: z.array(id) }),
   z.object({
-    kind: z.literal("llm"), id, label: z.string(), deployment, callsPerMonth: n0, modelId: id,
+    kind: z.literal("llm"), id, label: z.string(), deployment, tier, callsPerMonth: n0, modelId: id,
     inputTokens: n0, cachedInputTokens: n0, outputTokens: n0, batchShare: share,
   }),
   z.object({ kind: z.literal("fixed"), id, label: z.string(), group: z.string(), items: z.array(FixedItemSchema) }),
   z.object({
-    kind: z.literal("voiceAgent"), id, label: z.string(), deployment, modelId: id, callsPerMonth: n0, minutesPerCall: z.number().positive(),
+    kind: z.literal("voiceAgent"), id, label: z.string(), deployment, tier, modelId: id, callsPerMonth: n0, minutesPerCall: z.number().positive(),
     turnsPerCall: z.number().int().positive(), agentTalkShare: share, systemPromptTokens: n0, cacheHit: share,
     /** Phone or ACS calling cost per minute in CAD (0 for web/app voice). */
     telephonyPerMinute: n0,
@@ -252,6 +255,8 @@ export const ProjectSchema = z.object({
   settings: z.object({
     /** Default deployment for every Azure workload; each workload can choose its own. */
     azureDeployment: z.enum(["global", "regional", "dataZone"]),
+    /** Default processing tier for every Azure chat workload; each workload can choose its own. Absent = Standard. */
+    processingTier: ProcessingTier.optional(),
     snowflake: z.object({
       routing: z.enum(["global", "regional"]),
       edition: z.enum(["standard", "enterprise", "businessCritical", "vps"]),

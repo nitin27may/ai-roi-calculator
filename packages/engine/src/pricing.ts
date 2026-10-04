@@ -1,4 +1,4 @@
-import type { Catalog, ChatModel, Deployment, TokenPrices, UnitPrice } from "@studio/catalog";
+import type { Catalog, ChatModel, Deployment, ProcessingTier, TierPricing, TokenPrices, UnitPrice } from "@studio/catalog";
 import { heuristics } from "@studio/catalog";
 
 /** Global Standard, Canada Regional Standard or US Data Zone Standard. */
@@ -6,6 +6,17 @@ export type AzureDeployment = Deployment;
 
 export const DEPLOYMENT_LABEL: Record<AzureDeployment, string> = { global: "Global Standard", regional: "Canada Regional Standard", dataZone: "US Data Zone Standard" };
 export const DEPLOYMENTS: AzureDeployment[] = ["global", "regional", "dataZone"];
+
+export const TIER_LABEL: Record<ProcessingTier, string> = { standard: "Standard", batch: "Batch" };
+export const TIERS: ProcessingTier[] = ["standard", "batch"];
+
+/**
+ * Deployments each tier is offered under. Batch is a Global/Data Zone discount only — Azure does
+ * not offer the Batch API in Canada Regional. Adding Priority or Flex later means adding an entry
+ * here (or omitting one, for a tier with no deployment constraint) plus the catalogue data; no
+ * other engine change is needed.
+ */
+const TIER_DEPLOYMENTS: Partial<Record<ProcessingTier, AzureDeployment[]>> = { batch: ["global", "dataZone"] };
 
 type Availability = { prices?: Partial<Record<AzureDeployment, unknown>>; deployments?: Partial<Record<AzureDeployment, unknown>>; per1M?: number; availableIn?: AzureDeployment[]; platform?: string };
 
@@ -23,6 +34,8 @@ export function availableIn(e: Availability, d: AzureDeployment): boolean {
 
 export interface PricingSettings {
   azureDeployment: AzureDeployment;
+  /** Project-wide default processing tier; a workload can override it (see `withPricing`). Absent means `standard`. */
+  processingTier?: ProcessingTier;
   snowflake: {
     /** Global routing (ANY_REGION / *_GLOBAL) or regional (AZURE_US / AZURE_EU / DISABLED). */
     routing: "global" | "regional";
@@ -42,7 +55,7 @@ export interface TokenUsage {
 }
 
 export interface PriceNote {
-  kind: "promo-ended" | "deprecated" | "retired" | "unverified" | "long-context" | "routing" | "unavailable";
+  kind: "promo-ended" | "deprecated" | "retired" | "unverified" | "long-context" | "routing" | "unavailable" | "tier-unavailable";
   message: string;
 }
 
@@ -54,9 +67,22 @@ export class PriceBook {
   /** `notes` is shared with books made by `withDeployment`, so one project collects every alert. */
   constructor(readonly catalog: Catalog, readonly settings: PricingSettings, readonly notes = new Map<string, PriceNote>()) {}
 
+  /** The same book priced for another deployment and/or processing tier (a workload's own choice). */
+  withPricing(p: { deployment?: AzureDeployment; tier?: ProcessingTier }): PriceBook {
+    const deployment = p.deployment ?? this.settings.azureDeployment;
+    const tier = p.tier ?? this.tier;
+    if (deployment === this.settings.azureDeployment && tier === this.tier) return this;
+    return new PriceBook(this.catalog, { ...this.settings, azureDeployment: deployment, processingTier: tier }, this.notes);
+  }
+
   /** The same book priced for another deployment (a workload's own choice). */
   withDeployment(d: AzureDeployment | undefined): PriceBook {
-    return !d || d === this.settings.azureDeployment ? this : new PriceBook(this.catalog, { ...this.settings, azureDeployment: d }, this.notes);
+    return d === undefined ? this : this.withPricing({ deployment: d });
+  }
+
+  /** The project's default tier unless a workload overrode it. */
+  get tier(): ProcessingTier {
+    return this.settings.processingTier ?? "standard";
   }
 
   private note(key: string, n: PriceNote) {
@@ -113,9 +139,9 @@ export class PriceBook {
     const d = this.settings.azureDeployment;
     const offered = availableIn(m, d);
     const target = offered && p[d] ? p[d] : this.unavailable(m.id, m.label, d, p[d] ? d : p.dataZone ? "dataZone" : null);
-    if (target && base === p.global) return target;
+    if (target && base === p.global) return this.applyTier(m, target);
     const factor = target && p.global.input > 0 ? target.input / p.global.input : 1.1;
-    return scale(base, factor);
+    return this.applyTier(m, scale(base, factor));
   }
 
   /** Records that an entry is not offered under the project's deployment and returns the fallback tier's prices. */
@@ -132,6 +158,48 @@ export class PriceBook {
   private checkAvailable(e: Availability & { id: string; label: string }) {
     const d = this.settings.azureDeployment;
     if (!availableIn(e, d)) this.note(`unavailable:${d}:${e.id}`, { kind: "unavailable", message: `${e.label} is not offered as ${DEPLOYMENT_LABEL[d]}` });
+  }
+
+  /** The tier override for `m`, or `undefined` if the tier isn't offered (deployment constraint or no catalogue data). */
+  private tierPricing(m: ChatModel, tier: ProcessingTier): TierPricing | undefined {
+    const constraint = TIER_DEPLOYMENTS[tier];
+    if (constraint && !constraint.includes(this.settings.azureDeployment)) return undefined;
+    const t = m.tiers?.[tier];
+    if (t) return t;
+    // Legacy data: `batch` falls back to the scalar `batchDiscount` derived from Azure Batch meters.
+    return tier === "batch" ? { factor: 1 - m.batchDiscount } : undefined;
+  }
+
+  /** Applies the book's active processing tier to a deployment-resolved price, falling back to Standard with a note when the tier isn't offered. */
+  private applyTier(m: ChatModel, base: TokenPrices): TokenPrices {
+    const tier = this.tier;
+    if (tier === "standard") return base;
+    const t = this.tierPricing(m, tier);
+    if (!t) {
+      const d = this.settings.azureDeployment;
+      this.note(`tier-unavailable:${tier}:${d}:${m.id}`, {
+        kind: "tier-unavailable",
+        message: `${m.label} ${TIER_LABEL[tier]} is not offered as ${DEPLOYMENT_LABEL[d]}; priced as ${TIER_LABEL.standard}`,
+      });
+      return base;
+    }
+    return "factor" in t ? scale(base, t.factor) : t.prices;
+  }
+
+  /**
+   * Factor applied to the Standard price for the Batch tier (1 = no change, including when Batch isn't
+   * offered for the model or the deployment). Used by Dev Lab lines, which blend a `batchShare` into a
+   * single scalar rather than splitting into per-tier lines.
+   */
+  batchFactor(id: string): number {
+    const m = this.chatModel(id);
+    const t = this.tierPricing(m, "batch");
+    if (!t) {
+      const d = this.settings.azureDeployment;
+      this.note(`tier-unavailable:batch:${d}:${id}`, { kind: "tier-unavailable", message: `${m.label} Batch is not offered as ${DEPLOYMENT_LABEL[d]}; priced as ${TIER_LABEL.standard}` });
+      return 1;
+    }
+    return "factor" in t ? t.factor : t.prices.input / (m.prices?.global.input || 1);
   }
 
   /** CAD for a token usage on a model. */

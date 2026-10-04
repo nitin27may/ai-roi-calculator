@@ -41,7 +41,7 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
           const n = a.cases * a.repeats * sweeps;
           if (n === 0) continue;
           const r = runCost(h, c.modelId, a.cacheHit);
-          const disc = 1 - a.batchShare * book.chatModel(c.modelId).batchDiscount;
+          const disc = 1 - a.batchShare * (1 - book.batchFactor(c.modelId));
           runs.bakeoff += n;
           out.push(line({ id: `${a.id}:${c.modelId}`, componentId: a.id, label: `${a.label}: ${book.chatModel(c.modelId).label}`, stream: "devlab", behaviour: "usage", meter: c.modelId, quantity: n, unit: "harness run", unitPrice: r.cost * disc,
             formula: `${a.cases} cases × ${a.repeats} repeats × ${sweeps} sweeps = ${fmtInt(n)} runs × CAD ${r.cost.toFixed(4)}${a.batchShare ? ` · ${Math.round(a.batchShare * 100)}% Batch` : ""}` }));
@@ -66,10 +66,10 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
           const n = a.runsPerMonth * a.cases * f;
           if (n === 0) continue;
           const r = runCost(h, modelId, a.cacheHit);
-          const disc = 1 - a.batchShare * book.chatModel(modelId).batchDiscount;
+          const disc = 1 - a.batchShare * (1 - book.batchFactor(modelId));
           runs.regression += n;
           out.push(line({ id: `${a.id}:${modelId}`, componentId: a.id, label: `${a.label}: ${book.chatModel(modelId).label}`, stream: "devlab", behaviour: "usage", meter: modelId, quantity: n, unit: "harness run", unitPrice: r.cost * disc,
-            formula: `${a.runsPerMonth} runs × ${a.cases} cases${f !== 1 ? ` × ${f}` : ""}${a.batchShare ? ` · ${Math.round(a.batchShare * 100)}% Batch (−${Math.round(book.chatModel(modelId).batchDiscount * 100)}%)` : ""}` }));
+            formula: `${a.runsPerMonth} runs × ${a.cases} cases${f !== 1 ? ` × ${f}` : ""}${a.batchShare ? ` · ${Math.round(a.batchShare * 100)}% Batch (−${Math.round((1 - book.batchFactor(modelId)) * 100)}%)` : ""}` }));
         }
         break;
       }
@@ -113,7 +113,7 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
         if (generated === 0) break;
         const call = (modelId: string, input: number, output: number) => {
           const tk = book.tokenizerMultiplier(modelId);
-          return book.chatCost(modelId, { input: input * tk, output: output * tk }, date) * (1 - a.batchShare * book.chatModel(modelId).batchDiscount);
+          return book.chatCost(modelId, { input: input * tk, output: output * tk }, date) * (1 - a.batchShare * (1 - book.batchFactor(modelId)));
         };
         const batch = a.batchShare ? ` · ${Math.round(a.batchShare * 100)}% Batch` : "";
         out.push(line({ id: `${a.id}:generate`, componentId: a.id, label: `${a.label}: generation (${book.chatModel(a.generatorModelId).label})`, stream: "devlab", behaviour: "usage", meter: a.generatorModelId, quantity: generated, unit: "example", unitPrice: call(a.generatorModelId, a.genInputTokens, a.genOutputTokens),
