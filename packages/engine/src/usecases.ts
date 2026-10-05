@@ -1,7 +1,7 @@
 import type { Catalog, ChatModel, ProcessingTier } from "@studio/catalog";
 import { DEPLOYMENT_LABEL, PriceBook, availableIn, type AzureDeployment } from "./pricing.js";
 import {
-  ProjectSchema, type Capability, type DevActivity, type Feature, type Harness, type Project, type Workload, type Workstream,
+  ProjectSchema, type Capability, type DevActivity, type Feature, type Harness, type Project, type ValueItem, type Workload, type Workstream,
 } from "./project.js";
 import { DEFAULT_HARNESS, newActivity, ACTIVITY_KINDS } from "./templates.js";
 import { blankProject } from "./samples/templates.js";
@@ -41,10 +41,38 @@ export interface BenefitInput {
   /** Minutes the task takes today: per user per week (perUser) or per item (perItem). */
   baselineMinutes?: number;
   savedPct?: number;
-  /** costAvoided, revenue, quality, risk: a C$ amount. */
+  /** costAvoided: a C$ amount, monthly or once at go-live. */
   amountCad?: number;
   cadence?: "monthly" | "once";
   label?: string;
+  /** revenue: extra sales per month and the margin kept. */
+  monthlyRevenue?: number;
+  marginPct?: number;
+  /** quality: error rates before and after, and what one error costs. Items checked come from the feature's volume. */
+  errorRateBeforePct?: number;
+  errorRateAfterPct?: number;
+  costPerError?: number;
+  /** risk: events a year, cost of one, and the share the feature prevents. */
+  eventsPerYear?: number;
+  impactCad?: number;
+  reductionPct?: number;
+  /** How sure the benefit will arrive, in percent. Absent means the default for the type (see `defaultConfidence`). */
+  confidencePct?: number;
+}
+
+/** Evidence grade of a library benchmark as a starting confidence. A placeholder to replace, not a measurement. */
+const GRADE_CONFIDENCE = { high: 90, medium: 70, low: 50, none: 30 } as const;
+
+/**
+ * Starting confidence for a benefit: a benchmark's evidence grade, else a placeholder by type
+ * (cost avoided is a known contract, revenue and risk are forecasts, so they start lower).
+ */
+export function defaultConfidence(b: BenefitInput, benchmarks?: Catalog["benchmarks"]): number {
+  if (b.type === "timeSaved") {
+    const bm = b.basis === "benchmark" ? benchmarks?.capabilities.find((x) => x.id === b.benchmarkId) : undefined;
+    return bm ? GRADE_CONFIDENCE[bm.confidence] : 70;
+  }
+  return { costAvoided: 90, quality: 60, revenue: 50, risk: 50, none: 100 }[b.type];
 }
 
 export interface Assumption {
@@ -55,7 +83,7 @@ export interface Assumption {
   unit: string;
   source: string;
   /** Where the value lives in the built project, so the review step can edit it. Absent means it is explained only. */
-  target?: { collection: "workloads" | "harnesses" | "activities" | "capabilities"; id: string; field: string[] };
+  target?: { collection: "workloads" | "harnesses" | "activities" | "capabilities" | "value" | "avoidedCosts"; id: string; field: string[] };
 }
 
 export interface RecipeVolume { users?: number; monthlyItems: number; oneTimeItems: number; unit: string; mainWorkloadId?: string }
@@ -90,6 +118,8 @@ export interface RecipeResult {
   capabilities: Capability[];
   avoidedCosts: Project["benefits"]["avoidedCosts"];
   oneOff: Project["benefits"]["oneOff"];
+  /** Revenue, quality and risk-reduction benefits. */
+  value: ValueItem[];
   assumptions: Assumption[];
   volume: RecipeVolume;
 }
@@ -183,7 +213,7 @@ class Out {
     const ben = makeBenefits(a, volume, extra.workloadIds ?? this.workloads.filter((w) => w.kind !== "fixed").map((w) => w.id), this.workstreams.map((w) => w.id));
     return {
       feature: { id: a.featureId, label: a.label }, workloads: this.workloads, harnesses: this.harnesses, workstreams: this.workstreams, activities: this.activities,
-      capabilities: ben.capabilities, avoidedCosts: ben.avoidedCosts, oneOff: ben.oneOff, assumptions: [...this.assumptions, ...ben.assumptions], volume,
+      capabilities: ben.capabilities, avoidedCosts: ben.avoidedCosts, oneOff: ben.oneOff, value: ben.value, assumptions: [...this.assumptions, ...ben.assumptions], volume,
     };
   }
 }
@@ -239,50 +269,61 @@ function devActivities(out: Out, recipe: Recipe, modelId: string, harnessIds: st
   if (a.dev.kinds.length) out.note("dev", "Dev Lab activities", out.activities.length, "activities", `The ones you ticked on the Building it step, with volumes split across ${round(1 / Math.max(0.01, share))} feature(s) sharing the team.`);
 }
 
-/** Time-saved and money benefits for a feature, from the benefit step. */
+/**
+ * The feature's benefit, in the project's real P8 structures: time saved is a capability (benchmark or own minutes),
+ * cost avoided an avoided cost, revenue, quality and risk are value items. Every benefit carries a confidence and,
+ * for the non-time types, is attributed to a capability of the feature (an hours-zero one, so ROI by capability
+ * shows the feature's value next to the cost of the workloads it uses).
+ */
 function makeBenefits(a: RecipeAnswers, vol: RecipeVolume, workloadIds: string[], workstreamIds: string[]) {
-  const out = { capabilities: [] as Capability[], avoidedCosts: [] as Project["benefits"]["avoidedCosts"], oneOff: [] as Project["benefits"]["oneOff"], assumptions: [] as Assumption[] };
+  const out = { capabilities: [] as Capability[], avoidedCosts: [] as Project["benefits"]["avoidedCosts"], oneOff: [] as Project["benefits"]["oneOff"], value: [] as ValueItem[], assumptions: [] as Assumption[] };
   const b = a.benefit;
   if (!b || b.type === "none") return out;
   const f = a.featureId;
-  const src = (s: string) => s;
-  const note = (id: string, label: string, value: number | string, unit: string, source: string, cap?: string) =>
-    out.assumptions.push({ id: `${f}-benefit-${id}`, featureId: f, label: `${a.label} benefit: ${label}`, value, unit, source, ...(cap ? { target: { collection: "capabilities" as const, id: cap, field: [id] } } : {}) });
+  const capId = p(a, "benefit");
+  const links = { featureId: f, workloadIds, workstreamIds };
+  const conf = Math.min(100, Math.max(0, b.confidencePct ?? defaultConfidence(b, a.benchmarks)));
+  const note = (id: string, label: string, value: number | string, unit: string, source: string, target?: Assumption["target"]) =>
+    out.assumptions.push({ id: `${f}-benefit-${id}`, featureId: f, label: `${a.label} benefit: ${label}`, value, unit, source, ...(target ? { target } : {}) });
+  const on = (collection: "capabilities" | "value" | "avoidedCosts", id: string, field: string): Assumption["target"] => ({ collection, id, field: [field] });
   const rate = a.rateCad ?? 62.5;
+  const confidenceNote = (target: Assumption["target"], source: string) =>
+    note("confidence", "confidence that it arrives", conf, "%", b.confidencePct === undefined ? source : `${YOU} The benefit counts at this share of its value.`, target);
   if (b.type === "timeSaved") {
-    const capId = p(a, "benefit");
-    const links = { featureId: f, workloadIds, workstreamIds };
     if (b.basis === "benchmark") {
       const bm = a.benchmarks?.capabilities.find((x) => x.id === b.benchmarkId);
       if (!bm) return out;
       const users = b.users ?? vol.users ?? 100;
       const cap: Capability = {
         id: capId, label: `${a.label}: ${bm.label}`, roleId: bm.roleId, ...links, hoursSavedPerMonth: 0, driver: bm.driver, benchmarkId: bm.id,
-        baselineMinutes: bm.baselineMinutes, savings: { ...bm.savings }, unit: bm.unit, licenceOverlap: bm.licenceOverlap,
+        baselineMinutes: bm.baselineMinutes, savings: { ...bm.savings }, unit: bm.unit, licenceOverlap: bm.licenceOverlap, confidencePct: conf,
         ...(bm.driver === "perVolume" ? { itemsPerMonth: vol.monthlyItems, handledPct: 100 } : { users }),
         ...(bm.driver === "perTask" ? { tasksPerUserPerDay: b.tasksPerUserPerDay ?? 1 } : {}),
       };
       out.capabilities.push(cap);
-      note("users", "users who get the saving", users, "users", YOU, bm.driver === "perVolume" ? undefined : capId);
+      note("users", "users who get the saving", users, "users", YOU, bm.driver === "perVolume" ? undefined : on("capabilities", capId, "users"));
       note("benchmark", `time saved per ${bm.driver === "perUserWeek" ? "user per week" : "task"}`, `${bm.savings.typical} ${bm.unit === "pct" ? "%" : "minutes"} (typical), from ${bm.sourceLabel}`, bm.unit === "pct" ? "%" : "minutes", `Benchmark library: ${bm.sourceLabel}.`);
+      confidenceNote(on("capabilities", capId, "confidencePct"), `Starts from the benchmark's evidence grade (${bm.confidence}${bm.vendorFunded ? ", vendor funded" : ""}): ${bm.sourceLabel}.`);
     } else if (b.basis === "perUser") {
       const m = b.baselineMinutes ?? 120, pct = b.savedPct ?? 20, users = b.users ?? vol.users ?? 100;
       out.capabilities.push({
         id: capId, label: `${a.label}: time saved`, roleId: "knowledgeWorker", ...links, hoursSavedPerMonth: 0, driver: "perUserWeek", users,
-        baselineMinutes: m, savings: pctTriple(pct), unit: "pct",
+        baselineMinutes: m, savings: pctTriple(pct), unit: "pct", confidencePct: conf,
       });
-      note("users", "users who get the saving", users, "users", YOU, capId);
-      note("baselineMinutes", "minutes per user per week on this task today", m, "minutes", YOU, capId);
+      note("users", "users who get the saving", users, "users", YOU, on("capabilities", capId, "users"));
+      note("baselineMinutes", "minutes per user per week on this task today", m, "minutes", YOU, on("capabilities", capId, "baselineMinutes"));
       note("savedPct", "share of that time saved (typical)", pct, "%", YOU);
+      confidenceNote(on("capabilities", capId, "confidencePct"), "Placeholder for time you estimate yourself; replace it with a pilot result.");
     } else {
       const m = b.baselineMinutes ?? 10, pct = b.savedPct ?? 50;
       if (vol.monthlyItems > 0) {
         out.capabilities.push({
           id: capId, label: `${a.label}: time saved per ${vol.unit.replace(/s$/, "")}`, roleId: "knowledgeWorker", ...links, hoursSavedPerMonth: 0, driver: "perVolume",
-          itemsPerMonth: vol.monthlyItems, handledPct: 100, baselineMinutes: m, savings: pctTriple(pct), unit: "pct",
+          itemsPerMonth: vol.monthlyItems, handledPct: 100, baselineMinutes: m, savings: pctTriple(pct), unit: "pct", confidencePct: conf,
           ...(vol.mainWorkloadId ? { volumeFrom: vol.mainWorkloadId } : {}),
         });
-        note("baselineMinutes", `minutes per ${vol.unit.replace(/s$/, "")} today`, m, "minutes", YOU, capId);
+        note("baselineMinutes", `minutes per ${vol.unit.replace(/s$/, "")} today`, m, "minutes", YOU, on("capabilities", capId, "baselineMinutes"));
+        confidenceNote(on("capabilities", capId, "confidencePct"), "Placeholder for time you estimate yourself; replace it with a pilot result.");
       }
       if (vol.oneTimeItems > 0) {
         const amount = round((vol.oneTimeItems * m) / 60 * (pct / 100) * rate);
@@ -293,14 +334,61 @@ function makeBenefits(a: RecipeAnswers, vol: RecipeVolume, workloadIds: string[]
     }
     return out;
   }
-  const amount = b.amountCad ?? 0;
-  if (amount <= 0) return out;
   const prefix = { costAvoided: "Cost avoided", revenue: "Added revenue", quality: "Quality gain (rework avoided)", risk: "Risk reduced (expected loss avoided)" }[b.type];
   const label = `${a.label}: ${b.label?.trim() || prefix}`;
-  if (b.cadence === "once") out.oneOff.push({ id: p(a, "benefit-once"), label, amount, month: GOLIVE(a) });
-  else out.avoidedCosts.push({ id: p(a, "benefit"), label, monthly: amount });
-  note("amount", `${prefix.toLowerCase()} (${b.cadence === "once" ? "once" : "per month"})`, amount, "C$", `${YOU} It enters the model as a ${b.cadence === "once" ? "one-off" : "monthly"} amount, not scaled by adoption.`);
-  void src;
+  // A one-off has no confidence or capability to carry, so only cost avoided may be once.
+  if (b.type === "costAvoided" && b.cadence === "once") {
+    if ((b.amountCad ?? 0) <= 0) return out;
+    out.oneOff.push({ id: p(a, "benefit-once"), label, amount: b.amountCad!, month: GOLIVE(a) });
+    note("amount", "cost avoided (once)", b.amountCad!, "C$", `${YOU} It enters the model as a one-off amount, not scaled by adoption.`);
+    return out;
+  }
+  const item: ValueItem = { id: `${capId}-value`, label, kind: "revenue", capabilityId: capId, featureId: f, confidencePct: conf, startMonth: GOLIVE(a) };
+  let confTarget: Assumption["target"];
+  let placeholder: string;
+  if (b.type === "costAvoided") {
+    const amount = b.amountCad ?? 0;
+    if (amount <= 0) return out;
+    out.avoidedCosts.push({ id: capId, label, monthly: amount, capabilityId: capId, confidencePct: conf });
+    note("amount", "cost avoided (per month)", amount, "C$", `${YOU} It enters the model as a monthly amount, not scaled by adoption.`, on("avoidedCosts", capId, "monthly"));
+    confTarget = on("avoidedCosts", capId, "confidencePct");
+    placeholder = "A cost you can point to (a licence, a contract) starts high; lower it if it is not yet agreed.";
+  } else if (b.type === "revenue") {
+    const revenue = b.monthlyRevenue ?? 0, margin = b.marginPct ?? 40;
+    if (revenue <= 0) return out;
+    Object.assign(item, { kind: "revenue", monthlyRevenue: revenue, marginPct: margin });
+    out.value.push(item);
+    note("revenue", "extra revenue per month", revenue, "C$", `${YOU} Follows the adoption ramp from go-live.`, on("value", item.id, "monthlyRevenue"));
+    note("margin", "margin kept on that revenue", margin, "%", `${YOU} Only the margin is a benefit, not the sales.`, on("value", item.id, "marginPct"));
+    confTarget = on("value", item.id, "confidencePct");
+    placeholder = "Forecast revenue is the least certain benefit, so it starts at half.";
+  } else if (b.type === "quality") {
+    const before = b.errorRateBeforePct ?? 0, after = b.errorRateAfterPct ?? 0, per = b.costPerError ?? 0;
+    const items = vol.monthlyItems;
+    if (items <= 0 || before <= after || per <= 0) return out;
+    Object.assign(item, { kind: "quality", errorRateBeforePct: before, errorRateAfterPct: after, costPerError: per, ...(vol.mainWorkloadId ? { volumeFrom: vol.mainWorkloadId } : { volumePerMonth: items }) });
+    out.value.push(item);
+    note("errorBefore", "error rate today", before, "%", YOU, on("value", item.id, "errorRateBeforePct"));
+    note("errorAfter", "error rate with AI", after, "%", YOU, on("value", item.id, "errorRateAfterPct"));
+    note("costPerError", "cost of one error", per, "C$", YOU, on("value", item.id, "costPerError"));
+    note("checked", `${vol.unit} checked per month`, Math.round(items), vol.unit, "Taken from this feature's volume on How much, so the two stay in step.");
+    confTarget = on("value", item.id, "confidencePct");
+    placeholder = "Error rates are usually measured on a sample; lower this if yours is a guess.";
+  } else {
+    const events = b.eventsPerYear ?? 0, impact = b.impactCad ?? 0, share = b.reductionPct ?? 0;
+    if (events <= 0 || impact <= 0 || share <= 0) return out;
+    Object.assign(item, { kind: "risk", eventsPerYear: events, impactCad: impact, reductionPct: share });
+    out.value.push(item);
+    note("events", "events per year", events, "events", YOU, on("value", item.id, "eventsPerYear"));
+    note("impact", "cost of one event", impact, "C$", YOU, on("value", item.id, "impactCad"));
+    note("reduction", "share of events prevented", share, "%", YOU, on("value", item.id, "reductionPct"));
+    confTarget = on("value", item.id, "confidencePct");
+    placeholder = "A rare event is a forecast, so it starts at half.";
+  }
+  const cap: Capability = { id: capId, label: `${a.label}: ${prefix.split(" (")[0]!.toLowerCase()}`, roleId: "knowledgeWorker", ...links, hoursSavedPerMonth: 0, driver: "hours" };
+  out.capabilities.push(cap);
+  confidenceNote(confTarget, placeholder);
+  note("capability", "counted under capability", cap.label, "capability", `This feature's capability, so ROI by capability sets what ${a.label} is worth against what it costs.`);
   return out;
 }
 
@@ -971,6 +1059,7 @@ export function buildWizardProject(cat: Catalog, input: WizardInput): WizardResu
     }
     p0.benefits.avoidedCosts.push(...res.avoidedCosts);
     p0.benefits.oneOff.push(...res.oneOff);
+    p0.benefits.value.push(...res.value);
     assumptions.push(...res.assumptions);
     features.push({ id: fid, label, recipeId: r.id });
   });
@@ -986,7 +1075,8 @@ export function buildWizardProject(cat: Catalog, input: WizardInput): WizardResu
 export function applyAssumption(p: Project, a: Assumption, value: number | string | boolean): boolean {
   const t = a.target;
   if (!t) return false;
-  const list = (t.collection === "workloads" ? p.workloads : t.collection === "harnesses" ? p.harnesses : t.collection === "activities" ? p.build.activities : p.benefits.capabilities) as unknown as Record<string, unknown>[];
+  const lists = { workloads: p.workloads, harnesses: p.harnesses, activities: p.build.activities, capabilities: p.benefits.capabilities, value: p.benefits.value, avoidedCosts: p.benefits.avoidedCosts };
+  const list = lists[t.collection] as unknown as Record<string, unknown>[];
   let cur: Record<string, unknown> | undefined = list.find((x) => x.id === t.id);
   if (!cur) return false;
   for (const k of t.field.slice(0, -1)) {
