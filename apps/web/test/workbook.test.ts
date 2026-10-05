@@ -30,7 +30,7 @@ describe("workbook", () => {
     expect(wb.worksheets.map((w) => w.name)).toEqual(["Summary", "Months", "Line items", "ROI by capability", "Assumptions", "Prices used"]);
     const ws = wb.getWorksheet("Summary")!;
     expect(ws.getImages()).toHaveLength(1);
-    expect(JSON.stringify(ws.conditionalFormattings)).toContain("dataBar");
+    expect(JSON.stringify((ws as unknown as { conditionalFormattings: unknown }).conditionalFormattings)).toContain("dataBar");
     const buf = Buffer.from(await wb.xlsx.writeBuffer());
     expect(buf.includes("xl/media/image")).toBe(true);
   });
@@ -39,7 +39,7 @@ describe("workbook", () => {
     const wb = await buildWorkbook(p, ledger, roi, catalog);
     const ws = wb.getWorksheet("Summary")!;
     expect(ws.getImages()).toHaveLength(0);
-    expect(JSON.stringify(ws.model.rows)).not.toContain("Chart: monthly");
+    expect(JSON.stringify((ws.model as unknown as { rows: unknown }).rows)).not.toContain("Chart: monthly");
     expect(Buffer.from(await wb.xlsx.writeBuffer()).includes("xl/media/image")).toBe(false);
   });
 });
