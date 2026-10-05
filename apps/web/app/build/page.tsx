@@ -7,6 +7,7 @@ import { Explain } from "@/components/explain";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
 import { Legend, Spark, StackedBars } from "@/components/charts";
 import { ACTIVITY_SPECS, Fields } from "@/components/fields";
+import { CostItems, FeatureSelect } from "@/components/feature-fields";
 import { catalog, modelOptions, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad, fmt } from "@/lib/format";
@@ -249,6 +250,7 @@ function WorkstreamPanel({ id, onRemoved, onOpen }: { id: string; onRemoved: () 
       {row.people === 0 && acts.some((a) => a.kind === "iterations" || a.kind === "playground") && (
         <div role="note" className="rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">Nobody is allocated to this workstream yet, so its iterations and playground work cost nothing. Give people a share of their time below.</div>
       )}
+      <div className="max-w-xs"><FeatureSelect value={w.featureId} onChange={(v) => upd((x) => { if (v) x.featureId = v; else delete x.featureId; })} /></div>
       <div className="font-display text-[26px] font-bold">{cad(row.total)}<span className="ml-1.5 font-sans text-xs font-normal text-muted">{cad(row.labour)} labour · {cad(row.devlab)} AI Dev Lab · {fmt(row.people, 2)} people on average</span></div>
       <div>
         <h3 className="mb-1.5 text-sm font-semibold">People</h3>
@@ -298,7 +300,7 @@ function WorkstreamPanel({ id, onRemoved, onOpen }: { id: string; onRemoved: () 
           {project.benefits.capabilities.length === 0 && <p className="text-xs text-muted">No capabilities yet (Value &amp; ROI).</p>}
           {project.benefits.capabilities.map((c) => (
             <label key={c.id} className="flex items-center gap-2 py-0.5 text-[12.5px]">
-              <input type="checkbox" checked={c.componentIds.includes(id)} onChange={(e) => edit((d) => { const x = d.benefits.capabilities.find((y) => y.id === c.id)!; x.componentIds = e.target.checked ? [...x.componentIds, id] : x.componentIds.filter((y) => y !== id); })} />
+              <input type="checkbox" checked={c.workstreamIds.includes(id)} onChange={(e) => edit((d) => { const x = d.benefits.capabilities.find((y) => y.id === c.id)!; x.workstreamIds = e.target.checked ? [...x.workstreamIds, id] : x.workstreamIds.filter((y) => y !== id); })} />
               {c.label}
             </label>
           ))}
@@ -377,7 +379,13 @@ function Team() {
       <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2.5">
         {project.rateCard.map((r, i) => <Field key={r.id} label={r.label} help="hourlyRate"><NumberInput value={r.hourlyRate} onChange={(v) => edit((d) => { d.rateCard[i]!.hourlyRate = v; })} /></Field>)}
       </div>
-      <Field label="Contingency" help="contingency"><NumberInput value={project.build.contingencyPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.build.contingencyPct = v; })} /></Field>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-2.5">
+        <Field label="Contingency" help="contingency"><NumberInput value={project.build.contingencyPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.build.contingencyPct = v; })} /></Field>
+        <Field label="Contingency applies to" help="contingencyScope">
+          <Select value={project.build.contingencyScope} options={[{ value: "labour", label: "Build labour only" }, { value: "all", label: "Labour, Dev Lab, environment and one-time costs" }]}
+            onChange={(v) => edit((d) => { d.build.contingencyScope = v === "all" ? "all" : "labour"; })} />
+        </Field>
+      </div>
     </>
   );
 }
@@ -418,36 +426,14 @@ function AllocationMatrix() {
 /** Fixed and metered services the team runs while building (per month). */
 function DevEnvironment() {
   const { project, ledger } = useLedger();
-  const edit = useStudio((s) => s.edit);
   const B = project.timeline.buildMonths;
   const lines = ledger.months.slice(0, B).flatMap((m) => m.lines.filter((l) => l.stream === "devenv"));
-  const options = catalog.unitPrices.filter((u) => u.platform === "azure").map((u) => ({ value: u.id, label: `${u.label} (${u.unit})` }));
-  const unitOf = (id: string) => catalog.unitPrices.find((u) => u.id === id);
   return (
     <>
       <div><h2 className="text-base font-bold">Dev environment</h2><div className="text-xs text-muted">Services the team runs while building, billed every build month: dev search index, API gateway, logging, sandboxes.</div></div>
       <div className="font-display text-[26px] font-bold">{cad(lines.reduce((s, l) => s + l.cost, 0))}<span className="ml-1.5 font-sans text-xs font-normal text-muted">over {B} months</span></div>
-      <div className="flex-none overflow-x-auto">
-        <table className="data">
-          <thead><tr><th>Item</th><th>Priced as</th><th className="n">Quantity / month</th><th className="n">Per month</th><th /></tr></thead>
-          <tbody>
-            {project.build.environment.map((it, i) => {
-              const u = unitOf(it.unitPriceId);
-              return (
-                <tr key={it.id}>
-                  <td><input aria-label="Item name" className="w-44 rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]" value={it.label} onChange={(e) => edit((d) => { d.build.environment[i]!.label = e.target.value; })} /></td>
-                  <td className="min-w-[220px]"><Select label={`${it.label} price`} value={it.unitPriceId} options={options} onChange={(v) => edit((d) => { d.build.environment[i]!.unitPriceId = v; })} /></td>
-                  <td className="n min-w-[120px]"><NumberInput label={`${it.label} quantity`} value={it.quantity} suffix={u?.unit} onChange={(v) => edit((d) => { d.build.environment[i]!.quantity = v; })} /></td>
-                  <td className="n">{cad(it.quantity * (u?.price ?? 0))}</td>
-                  <td><TrashButton label="Remove item" onClick={() => edit((d) => { d.build.environment.splice(i, 1); })} /></td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      <button type="button" className="flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2" onClick={() => edit((d) => { let n = 1; while (d.build.environment.some((x) => x.id === `env-${n}`)) n++; d.build.environment.push({ id: `env-${n}`, label: "New item", unitPriceId: "log-analytics-ingest", quantity: 1 }); })}><Plus size={14} />Add item</button>
-      <p className="text-[11.5px] text-muted">The Per month column is before free allowances; the total above applies them.</p>
+      <CostItems items={project.build.environment} locate={(d) => d.build.environment} idPrefix="env" firstMonthLabel="build month 1" />
+      <p className="text-[11.5px] text-muted">Catalogue items are before free allowances; the total above applies them. A free-text cost needs no catalogue price: enter C$ per month or once.</p>
       <Explain title="How this is calculated" lines={lines} months={B} />
     </>
   );
@@ -487,6 +473,7 @@ function Activity({ id, onRemoved }: { id: string; onRemoved: () => void }) {
             onChange={(v) => edit((d) => { const x = d.build.activities.find((y) => y.id === id); if (!x) return; if (v) x.workstreamId = v; else delete x.workstreamId; })} />
         </Field>
       )}
+      {!a.workstreamId && <div className="max-w-xs"><FeatureSelect value={a.featureId} onChange={(v) => edit((d) => { const x = d.build.activities.find((y) => y.id === id); if (!x) return; if (v) x.featureId = v; else delete x.featureId; })} /></div>}
       {(a.kind === "iterations" || a.kind === "playground") && !a.workstreamId && project.build.activities.some((x) => x.kind === a.kind && x.workstreamId) && (
         <div role="note" className="rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">This project-wide activity counts every developer, and workstreams have their own {a.kind === "iterations" ? "iterations" : "playground work"} too. Check you are not counting the same effort twice.</div>
       )}

@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
-import { LEVERS, applyScenario, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityVolume, workloadVolume, sensitivity, capabilityHours, compareScenarios, computeAllocation, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
+import { LEVERS, applyScenario, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityVolume, workloadVolume, sensitivity, capabilityHours, compareScenarios, computeAllocation, linkCapabilityToFeature, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Seg, Select, TextInput, TrashButton } from "@/components/ui";
 import type { HelpId } from "@/lib/help";
 import { CumulativeLine, Legend } from "@/components/charts";
@@ -263,7 +263,7 @@ function CapabilityEditor() {
       <div className="flex flex-wrap gap-2">
         <AddMenu label="Add from benchmarks" items={lib.capabilities.map((b) => ({ kind: b.id, label: b.label, detail: `${b.confidence} confidence${b.vendorFunded ? " · vendor-funded" : ""} · ${b.sourceLabel}` }))}
           onPick={(id) => edit((d) => { const c = capabilityFromBenchmark(d, id, lib, defaultUsers); ensureBenchmarkRole(d, c.roleId, lib); d.benefits.capabilities.push(c); })} />
-        <button type="button" className="flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2" onClick={() => edit((d) => { d.benefits.capabilities.push({ id: `cap-${Date.now()}`, label: "New capability", hoursSavedPerMonth: 100, roleId: d.rateCard.at(-1)!.id, componentIds: [] }); })}><Plus size={14} />Enter hours</button>
+        <button type="button" className="flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2" onClick={() => edit((d) => { d.benefits.capabilities.push({ id: `cap-${Date.now()}`, label: "New capability", hoursSavedPerMonth: 100, roleId: d.rateCard.at(-1)!.id, workloadIds: [], workstreamIds: [] }); })}><Plus size={14} />Enter hours</button>
       </div>
     </section>
   );
@@ -346,13 +346,25 @@ function CapabilityCard({ c, i }: { c: Capability; i: number }) {
         </details>
       )}
       {driver === "hours" && <Field label={`Live from month (go-live ${B + 1})`} help="capLiveFrom"><NumberInput value={c.liveFromMonth ?? B + 1} min={B + 1} max={H} onChange={(v) => upd((x) => { x.liveFromMonth = Math.round(v) > B + 1 ? Math.round(v) : undefined; })} /></Field>}
+      {project.features.length > 0 && (
+        <Field label="Feature" help="featureId">
+          <Select value={c.featureId ?? ""} options={[{ value: "", label: "Shared by the project" }, ...project.features.map((f) => ({ value: f.id, label: f.label }))]}
+            onChange={(v) => edit((d) => { if (v) linkCapabilityToFeature(d, c.id, v); else { const x = d.benefits.capabilities.find((y) => y.id === c.id); if (x) delete x.featureId; } })} />
+        </Field>
+      )}
       <details className="text-xs">
-        <summary className="cursor-pointer text-ink-2">Uses {c.componentIds.length} workload{c.componentIds.length === 1 ? "" : "s"} or workstream{c.componentIds.length === 1 ? "" : "s"} (for ROI by capability)</summary>
+        <summary className="cursor-pointer text-ink-2">Uses {c.workloadIds.length + c.workstreamIds.length} workload{c.workloadIds.length + c.workstreamIds.length === 1 ? "" : "s"} or workstream{c.workloadIds.length + c.workstreamIds.length === 1 ? "" : "s"} (for ROI by capability)</summary>
         <div className="mt-1.5 grid grid-cols-2 gap-1">
-          {[...project.workloads.filter((w) => w.kind !== "fixed"), ...project.build.workstreams.map((w) => ({ id: w.id, label: `Build: ${w.label}` }))].map((w) => (
+          {project.workloads.filter((w) => w.kind !== "fixed").map((w) => (
             <label key={w.id} className="flex items-center gap-1.5">
-              <input type="checkbox" checked={c.componentIds.includes(w.id)} onChange={(e) => upd((x) => { x.componentIds = e.target.checked ? [...x.componentIds, w.id] : x.componentIds.filter((y) => y !== w.id); })} />
+              <input type="checkbox" checked={c.workloadIds.includes(w.id)} onChange={(e) => upd((x) => { x.workloadIds = e.target.checked ? [...x.workloadIds, w.id] : x.workloadIds.filter((y) => y !== w.id); })} />
               <span className="truncate">{w.label}</span>
+            </label>
+          ))}
+          {project.build.workstreams.map((w) => (
+            <label key={w.id} className="flex items-center gap-1.5">
+              <input type="checkbox" checked={c.workstreamIds.includes(w.id)} onChange={(e) => upd((x) => { x.workstreamIds = e.target.checked ? [...x.workstreamIds, w.id] : x.workstreamIds.filter((y) => y !== w.id); })} />
+              <span className="truncate">{`Build: ${w.label}`}</span>
             </label>
           ))}
         </div>

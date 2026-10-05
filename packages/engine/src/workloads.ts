@@ -1,6 +1,6 @@
 import { heuristics } from "@studio/catalog";
 import type { PriceBook } from "./pricing.js";
-import type { Harness, Workload } from "./project.js";
+import { isCashItem, type CashItem, type Harness, type Workload } from "./project.js";
 import { simulateHarness, reasoningTokens, type Percentile, type ReasoningEffort } from "./harness.js";
 import { fmtInt, line, type Line } from "./lines.js";
 
@@ -26,6 +26,16 @@ function reasoningOut(book: PriceBook, modelId: string, r: ReasoningEffort | num
 function languageFactor(w: { language?: string }, c: { language?: string }): number {
   const lang = w.language ?? c.language ?? "en";
   return LANG[lang as keyof typeof LANG] ?? 1;
+}
+
+/** A free-text CAD cost as a ledger line: fixed monthly, or one-time (landing in the item's month, or the owner's first month). */
+export function cashLine(lineId: string, componentId: string, it: CashItem, stream: Line["stream"]): Line {
+  const once = it.cadence === "once";
+  return line({
+    id: lineId, componentId, label: once ? `${it.label} (one-time)` : it.label, stream, behaviour: "fixed", meter: `cad:${it.id}`,
+    quantity: 1, unit: once ? "once" : "month", unitPrice: it.amountCad, formula: `CAD ${it.amountCad.toLocaleString("en-CA")} ${once ? "once" : "per month"}`,
+    ...(once ? { once: true } : {}), ...(once && it.month !== undefined ? { onceMonth: it.month } : {}),
+  });
 }
 
 /** Monthly lines for one production workload at full adoption. */
@@ -186,7 +196,9 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       return llm("calls", w.label, w.modelId, w.callsPerMonth, w.inputTokens * lang, w.cachedInputTokens * lang, outTok, "usage", w.batchShare);
     }
     case "fixed":
-      return w.items.map((it) => unit(it.id, it.label, it.unitPriceId, it.quantity, "fixed", "platform"));
+      return w.items.map((it) => (isCashItem(it)
+        ? cashLine(`${id}:${it.id}`, id, it, "platform")
+        : unit(it.id, it.label, it.unitPriceId, it.quantity, "fixed", "platform")));
     case "voiceAgent": {
       const v = voiceCall(w, book);
       const out = [line({ id: `${id}:realtime`, componentId: id, label: `${w.label}: ${book.realtimeModel(w.modelId).label}`, stream: "run", behaviour: "usage", meter: w.modelId, quantity: w.callsPerMonth, unit: "call", unitPrice: v.cost,

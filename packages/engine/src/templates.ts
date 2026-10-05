@@ -44,18 +44,34 @@ export const WORKLOAD_KINDS: { kind: Workload["kind"]; label: string; detail: st
 
 /** An id not used by any activity, workload or harness in the project. */
 export function uniqueId(p: Project, base: string): string {
-  const taken = new Set([...p.build.activities.map((a) => a.id), ...p.workloads.map((w) => w.id), ...p.harnesses.map((h) => h.id), ...p.build.workstreams.map((w) => w.id), ...p.benefits.capabilities.map((c) => c.id)]);
+  const taken = new Set([...p.features.map((f) => f.id), ...p.build.activities.map((a) => a.id), ...p.workloads.map((w) => w.id), ...p.harnesses.map((h) => h.id), ...p.build.workstreams.map((w) => w.id), ...p.benefits.capabilities.map((c) => c.id)]);
   if (!taken.has(base)) return base;
   let i = 2;
   while (taken.has(`${base}-${i}`)) i++;
   return `${base}-${i}`;
 }
 
-/** Ensure the project has a harness to point at; returns its id (adds the default if none). */
+/** Activity and workload kinds that run an agent harness. Nothing else ever adds one. */
+export const HARNESS_ACTIVITY_KINDS: DevActivity["kind"][] = ["bakeoff", "iterations", "regression"];
+export const HARNESS_WORKLOAD_KINDS: Workload["kind"][] = ["agent"];
+
+/** Whether adding this kind needs an agent harness the project may not have yet. */
+export function needsHarness(kind: DevActivity["kind"] | Workload["kind"]): boolean {
+  return (HARNESS_ACTIVITY_KINDS as string[]).includes(kind) || (HARNESS_WORKLOAD_KINDS as string[]).includes(kind);
+}
+
+/**
+ * The harness a harness-driven activity or workload points at. Only called for kinds that need one
+ * (see `needsHarness`); adds the default agent when the project has none. Callers that add such an item
+ * should tell the user, since the agent is a new assumption (see `agentAddedFor`).
+ */
 export function ensureHarness(p: Project): string {
   if (!p.harnesses.length) p.harnesses.push({ ...DEFAULT_HARNESS });
   return p.harnesses[0]!.id;
 }
+
+/** True when adding an item of this kind to the project will add an agent, so the UI can say so first. */
+export const agentAddedFor = (p: Project, kind: DevActivity["kind"] | Workload["kind"]): boolean => needsHarness(kind) && p.harnesses.length === 0;
 
 /** A new activity of the given kind with sensible defaults. Mutates `p` only to add a harness when needed. */
 export function newActivity(p: Project, kind: DevActivity["kind"]): DevActivity {
@@ -66,7 +82,12 @@ export function newActivity(p: Project, kind: DevActivity["kind"]): DevActivity 
     case "bakeoff": return { kind, id, label, harnessId: ensureHarness(p), candidates: [{ modelId: DEFAULT_MODEL, fromMonth: 1 }, { modelId: "claude-sonnet-5-5", fromMonth: 1, toMonth: Math.min(2, B) }], cases: 200, repeats: 3, sweepsPerMonth: [4, 4, 2], cacheHit: 0.3, batchShare: 0 };
     case "iterations": return { kind, id, label, harnessId: ensureHarness(p), modelId: DEFAULT_MODEL, runsPerDevPerDay: 10, subsetCases: 20, workingDays: 21, cacheHit: 0.3, monthFactors: [1] };
     case "regression": return { kind, id, label, harnessId: ensureHarness(p), modelIds: [DEFAULT_MODEL], runsPerMonth: 30, cases: 200, cacheHit: 0.5, batchShare: 1, fromMonth: Math.min(3, B), monthFactors: [1] };
-    case "evaluation": return { kind, id, label, judgeModelId: JUDGE_MODEL, evaluators: ["groundedness", "relevance", "coherence", "taskAdherence"], queryTokens: 150, contextTokens: 2500, responseTokens: 600, scoredShare: { bakeoff: 1, iterations: 0.3, regression: 1 }, safetyEvaluators: 4 };
+    case "evaluation": {
+      // Score only what the project actually runs: no bake-off, iterations or regression is assumed.
+      const has = (k: DevActivity["kind"]) => p.build.activities.some((a) => a.kind === k);
+      return { kind, id, label, judgeModelId: JUDGE_MODEL, evaluators: ["groundedness", "relevance", "coherence", "taskAdherence"], queryTokens: 150, contextTokens: 2500, responseTokens: 600,
+        scoredShare: { bakeoff: has("bakeoff") ? 1 : 0, iterations: has("iterations") ? 0.3 : 0, regression: has("regression") ? 1 : 0 }, safetyEvaluators: 4 };
+    }
     case "redteam": return { kind, id, label, targetModelId: DEFAULT_MODEL, scansPerMonth: 4, categories: 4, objectivesPerCategory: 10, strategies: 5, multiTurnShare: 0.2, fromMonth: Math.max(1, B - 1), monthFactors: [1] };
     case "playground": return { kind, id, label, modelId: DEFAULT_MODEL, callsPerDevPerDay: 40, inputTokens: 3000, outputTokens: 600, workingDays: 21, reasoning: "none", monthFactors: [1] };
     case "synthetic": return { kind, id, label, generatorModelId: DEFAULT_MODEL, acceptedPerMonth: 2000, passRate: 0.6, genInputTokens: 1500, genOutputTokens: 700, reasoning: "none", judgeModelId: JUDGE_MODEL, judgeInputTokens: 1200, judgeOutputTokens: 150, batchShare: 1, monthFactors: [1, 0.5, 0] };
@@ -103,7 +124,7 @@ export function removeWorkload(p: Project, id: string): void {
   const w = p.workloads.find((x) => x.id === id);
   p.workloads = p.workloads.filter((x) => x.id !== id);
   for (const c of p.benefits.capabilities) {
-    c.componentIds = c.componentIds.filter((x) => x !== id);
+    c.workloadIds = c.workloadIds.filter((x) => x !== id);
     // A capability that took its volume from this workload keeps the last numbers as its own.
     if (c.volumeFrom === id && w) {
       const v = workloadVolume(w);
@@ -137,7 +158,7 @@ export function removeWorkstream(p: Project, id: string): void {
   p.build.workstreams = p.build.workstreams.filter((w) => w.id !== id);
   for (const a of p.build.activities) if (a.workstreamId === id) delete a.workstreamId;
   for (const t of p.build.team) if (t.allocations) t.allocations = t.allocations.filter((x) => x.workstreamId !== id);
-  for (const c of p.benefits.capabilities) c.componentIds = c.componentIds.filter((x) => x !== id);
+  for (const c of p.benefits.capabilities) c.workstreamIds = c.workstreamIds.filter((x) => x !== id);
 }
 
 /** Set one team line's share of a workstream (0 removes the allocation). */

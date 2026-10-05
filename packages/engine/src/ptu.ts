@@ -1,5 +1,5 @@
 import type { Catalog } from "@studio/catalog";
-import type { Ledger } from "./ledger.js";
+import { steadyState, type Ledger } from "./ledger.js";
 import type { Project } from "./project.js";
 
 export type PtuDeployment = "global" | "dataZone" | "regional";
@@ -48,10 +48,10 @@ export interface PtuRow {
  * peak the deployment must absorb (PTU is sized for peak, billed every hour).
  */
 export function ptuAnalysis(p: Project, ledger: Ledger, cat: Catalog, opts: { peakToAverage: number; deployment: PtuDeployment }): { rows: PtuRow[]; unsupported: { modelId: string; label: string; payg: number }[]; month: number } {
-  const month = ledger.months.find((m) => m.phase === "production" && m.adoption >= 1) ?? ledger.months.at(-1)!;
+  const month = steadyState(ledger);
   const byModel = new Map<string, { tokens: TokensPerMinute; payg: number }>();
   for (const l of month.lines) {
-    if (l.stream !== "run" || !l.tokens) continue;
+    if (l.stream !== "run" || !l.tokens || l.once) continue;
     // Batch (and any future non-Standard tier) never runs on provisioned capacity; size PTUs off Standard usage only.
     if (l.tier && l.tier !== "standard") continue;
     const m = cat.chatModels.find((x) => x.id === l.meter);

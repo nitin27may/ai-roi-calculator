@@ -1,3 +1,4 @@
+import { capabilityLinks } from "./features.js";
 import type { Ledger } from "./ledger.js";
 import type { Project } from "./project.js";
 import type { CostBasis } from "./roi.js";
@@ -36,7 +37,7 @@ const SHARED: Stream[] = ["labour", "devlab", "devenv", "platform", "maint", "tr
 export function computeAllocation(p: Project, ledger: Ledger, basis: CostBasis): Allocation {
   const included = new Set<Stream>(basis === "run" ? ["run", "platform"] : basis === "runMaint" ? ["run", "platform", "maint", "transition"] : [...SHARED, "run"]);
   const byComponent = new Map<string, { label: string; cost: number; stream: Stream }>();
-  const linked = new Set(p.benefits.capabilities.flatMap((c) => c.componentIds));
+  const linked = new Set(p.benefits.capabilities.flatMap((c) => capabilityLinks(c)));
   for (const mo of ledger.months) {
     for (const l of mo.lines) {
       if (!included.has(l.stream)) continue;
@@ -50,12 +51,12 @@ export function computeAllocation(p: Project, ledger: Ledger, basis: CostBasis):
     }
   }
   const linkCount = new Map<string, number>();
-  for (const c of p.benefits.capabilities) for (const id of c.componentIds) linkCount.set(id, (linkCount.get(id) ?? 0) + 1);
+  for (const c of p.benefits.capabilities) for (const id of capabilityLinks(c)) linkCount.set(id, (linkCount.get(id) ?? 0) + 1);
 
   const benefitOf = (id: string) => ledger.months.reduce((s, mo) => s + (mo.benefitBy.capabilities[id] ?? 0), 0);
   const caps = p.benefits.capabilities.map((c) => ({
     id: c.id, label: c.label, benefit: benefitOf(c.id),
-    direct: c.componentIds.reduce((s, id) => s + (byComponent.get(id)?.cost ?? 0) / (linkCount.get(id) ?? 1), 0),
+    direct: capabilityLinks(c).reduce((s, id) => s + (byComponent.get(id)?.cost ?? 0) / (linkCount.get(id) ?? 1), 0),
   }));
 
   const sharedPool = [...byComponent.entries()].filter(([k]) => k.startsWith("shared:")).reduce((s, [, v]) => s + v.cost, 0);

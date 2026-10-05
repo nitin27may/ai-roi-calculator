@@ -1,6 +1,6 @@
 import type { Catalog } from "@studio/catalog";
 import type { PriceNote } from "./pricing.js";
-import type { Ledger, Month } from "./ledger.js";
+import { steadyState, type Ledger, type Month } from "./ledger.js";
 import type { Project } from "./project.js";
 import type { RoiResult } from "./roi.js";
 import { basisCost } from "./roi.js";
@@ -120,14 +120,14 @@ const UNIT_LABEL: Record<string, string> = {
  * ordered by cost descending; capped to a small, defensible set.
  */
 export function unitCosts(p: Project, ledger: Ledger, cat: Catalog): UnitCostRow[] {
-  const firstFull = ledger.months.find((m) => m.phase === "production" && m.adoption >= 1) ?? ledger.months.at(-1)!;
+  const firstFull = steadyState(ledger);
   const ba = beforeAfter(p, cat.benchmarks, ledger.totals);
   const perUser: UnitCostRow[] = [];
   const perItem: UnitCostRow[] = [];
   for (const w of p.workloads) {
     const id = w.id, label = w.label;
     const v = workloadVolume(w);
-    const cost = sum(firstFull.lines.filter((l) => l.componentId === id && (l.stream === "run" || l.stream === "platform")).map((l) => l.cost));
+    const cost = sum(firstFull.lines.filter((l) => l.componentId === id && (l.stream === "run" || l.stream === "platform") && !l.once).map((l) => l.cost));
     if (cost <= 0) continue;
     const cap = p.benefits.capabilities.find((c) => c.volumeFrom === id);
     const baseRow = cap ? ba.rows.find((r) => r.id === cap.id) : undefined;

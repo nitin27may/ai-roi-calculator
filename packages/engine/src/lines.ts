@@ -30,6 +30,10 @@ export interface Line {
   tokens?: { input: number; cachedInput: number; output: number; cacheWrite?: number };
   /** Processing tier this line billed at (Standard when absent); keeps PTU and other per-meter grouping from merging tiers. */
   tier?: ProcessingTier;
+  /** A one-time cost (backfill, set-up fee), billed once rather than every month; excluded from run-rate figures. */
+  once?: boolean;
+  /** Project month a one-time line lands in, when its own item names one; otherwise the owner's first month. */
+  onceMonth?: number;
 }
 
 export const line = (l: Omit<Line, "cost"> & { cost?: number }): Line => ({ ...l, cost: l.cost ?? l.quantity * l.unitPrice });

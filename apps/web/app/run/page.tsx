@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, availableIn, type AzureDeployment, cascadeCall, harnessUsage, newHarness, newWorkload, removeWorkload, simulateHarness, sizeSearch, voiceCall, type Workload } from "@studio/engine";
+import { DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, availableIn, type AzureDeployment, cascadeCall, agentAddedFor, featureBreakdown, harnessUsage, newFeature, newHarness, newWorkload, removeFeature, removeWorkload, simulateHarness, sizeSearch, steadyState, voiceCall, type Workload } from "@studio/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Pill, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
 import { Plus } from "lucide-react";
 import { Explain } from "@/components/explain";
@@ -9,6 +9,7 @@ import { Fields, HARNESS_SPECS, WAREHOUSE_SPECS, WORKLOAD_SPECS } from "@/compon
 import { catalog, modelOptions, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad, fmt } from "@/lib/format";
+import { CostItems, FeatureSelect, WorkloadTiming } from "@/components/feature-fields";
 
 const GROUP: Record<Workload["kind"], string> = {
   transcription: "Ingestion", documents: "Ingestion", email: "Ingestion", embeddings: "Retrieval", aiSearch: "Retrieval", retrieval: "Retrieval",
@@ -21,14 +22,25 @@ export default function Run() {
   const { project, ledger } = useLedger();
   const percentile = useStudio((s) => s.percentile);
   const setPercentile = useStudio((s) => s.setPercentile);
+  const edit = useStudio((s) => s.edit);
   const [sel, setSel] = useState(() => {
     const f = useStudio.getState().focus;
     if (f) useStudio.setState({ focus: null });
     return f ?? project.workloads[0]?.id ?? "maintenance";
   });
-  const steady = ledger.months.find((m) => m.phase === "production" && m.adoption >= 1) ?? ledger.months.at(-1)!;
-  const costOf = (id: string) => steady.lines.filter((l) => l.componentId === id).reduce((s, l) => s + l.cost, 0);
-  const groups = ORDER.map((g) => [g, project.workloads.filter((w) => GROUP[w.kind] === g)] as const).filter(([, ws]) => ws.length);
+  const steady = steadyState(ledger);
+  const costOf = (id: string) => steady.lines.filter((l) => l.componentId === id && !l.once).reduce((s, l) => s + l.cost, 0);
+  const groupsOf = (ws: Workload[]) => ORDER.map((g) => [g, ws.filter((w) => GROUP[w.kind] === g)] as const).filter(([, x]) => x.length);
+  const hasFeatures = project.features.length > 0;
+  const sections = hasFeatures
+    ? [...project.features.map((f) => ({ id: f.id, label: f.label, ws: project.workloads.filter((w) => w.featureId === f.id) })), { id: "", label: "Shared by the project", ws: project.workloads.filter((w) => !w.featureId) }]
+    : [{ id: "", label: "", ws: project.workloads }];
+  const selFeature = sel.startsWith("f:") ? sel.slice(2) : project.workloads.find((w) => w.id === sel)?.featureId;
+  const rowOf = (w: Workload, g: string) => {
+    const usage = steady.lines.some((l) => l.componentId === w.id && l.behaviour === "usage");
+    const timed = w.startMonth !== undefined || w.endMonth !== undefined || w.rampMonths !== undefined || w.oneTime !== undefined;
+    return <ListRow key={w.id} selected={sel === w.id} onClick={() => setSel(w.id)} title={w.label} sub={`${hasFeatures ? `${g} · ` : ""}${summary(w)}`} aside={<>{timed && <Pill>timed</Pill>} <Pill>{usage ? "usage" : "fixed"}</Pill></>} value={cad(costOf(w.id))} />;
+  };
 
   return (
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
@@ -37,16 +49,25 @@ export default function Run() {
           <Seg label="Agent estimate" value={percentile} onChange={setPercentile} options={[{ value: "p50", label: "P50" }, { value: "p90", label: "P90" }, { value: "worst", label: "Worst" }]} />
         </CardHead>
         <div role="listbox" aria-label="Production workloads" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
-          {groups.map(([g, ws]) => (
-            <div key={g}>
-              <GroupHead>{g}</GroupHead>
-              {ws.map((w) => {
-                const usage = steady.lines.some((l) => l.componentId === w.id && l.behaviour === "usage");
-                return <ListRow key={w.id} selected={sel === w.id} onClick={() => setSel(w.id)} title={w.label} sub={summary(w)} aside={<Pill>{usage ? "usage" : "fixed"}</Pill>} value={cad(costOf(w.id))} />;
-              })}
+          {sections.filter((sec) => !hasFeatures || sec.id !== "" || sec.ws.length > 0).map((sec) => (
+            <div key={sec.id || "shared"}>
+              {hasFeatures && sec.id !== "" && (
+                <ListRow selected={sel === `f:${sec.id}`} onClick={() => setSel(`f:${sec.id}`)} title={sec.label} sub={`Feature · ${sec.ws.length} workload${sec.ws.length === 1 ? "" : "s"}`} aside={<Pill>feature</Pill>} value={cad(sec.ws.reduce((t, w) => t + costOf(w.id), 0))} />
+              )}
+              {hasFeatures && sec.id === "" && <GroupHead>{sec.label}</GroupHead>}
+              {hasFeatures
+                ? sec.ws.map((w) => rowOf(w, GROUP[w.kind]))
+                : groupsOf(sec.ws).map(([g, ws]) => <div key={g}><GroupHead>{g}</GroupHead>{ws.map((w) => rowOf(w, g))}</div>)}
+              {hasFeatures && sec.id !== "" && sec.ws.length === 0 && <p className="px-3.5 py-1.5 text-xs text-muted">No workloads yet. Add one below, or move one here from its panel.</p>}
             </div>
           ))}
-          <div className="px-3.5 py-2.5"><AddWorkload onAdded={setSel} /></div>
+          <div className="flex flex-wrap gap-2 px-3.5 py-2.5">
+            <AddWorkload onAdded={setSel} featureId={selFeature} />
+            <button type="button" className="flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2"
+              onClick={() => { let id = ""; edit((d) => { const f = newFeature(d); id = f.id; d.features.push(f); }); if (id) setSel(`f:${id}`); }}>
+              <Plus size={14} />Add feature
+            </button>
+          </div>
           <GroupHead>Agent harnesses</GroupHead>
           {project.harnesses.map((h) => <ListRow key={h.id} selected={sel === `h:${h.id}`} onClick={() => setSel(`h:${h.id}`)} title={h.label} sub={`${h.tools} tools · ${h.steps} steps · max ${h.maxTurns} turns`} value="" />)}
           <div className="px-3.5 py-2.5"><AddHarness onAdded={(id) => setSel(`h:${id}`)} /></div>
@@ -94,14 +115,20 @@ function AddHarness({ onAdded }: { onAdded: (id: string) => void }) {
   );
 }
 
-function AddWorkload({ onAdded }: { onAdded: (id: string) => void }) {
+function AddWorkload({ onAdded, featureId }: { onAdded: (id: string) => void; featureId?: string }) {
   const edit = useStudio((s) => s.edit);
+  const [notice, setNotice] = useState("");
   return (
-    <AddMenu label="Add workload" items={WORKLOAD_KINDS} onPick={(kind) => {
-      let id = "";
-      edit((d) => { const w = newWorkload(d, kind); id = w.id; d.workloads.push(w); });
-      if (id) onAdded(id);
-    }} />
+    <>
+      <AddMenu label="Add workload" items={WORKLOAD_KINDS} onPick={(kind) => {
+        let id = "";
+        let agent = false;
+        edit((d) => { agent = agentAddedFor(d, kind); const w = newWorkload(d, kind); id = w.id; if (featureId) w.featureId = featureId; d.workloads.push(w); });
+        setNotice(agent ? "An agent workload needs a harness, so a default one was added under Agent harnesses. Review its steps and tools." : "");
+        if (id) onAdded(id);
+      }} />
+      {notice && <div role="note" className="w-full rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">{notice} <button type="button" className="underline" onClick={() => setNotice("")}>Dismiss</button></div>}
+    </>
   );
 }
 
@@ -111,7 +138,47 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
   useEffect(() => setBlocked([]), [sel]);
   const { project, ledger } = useLedger();
   const percentile = useStudio((s) => s.percentile);
-  const steady = ledger.months.find((m) => m.phase === "production" && m.adoption >= 1) ?? ledger.months.at(-1)!;
+  const steady = steadyState(ledger);
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  useEffect(() => setConfirmRemove(false), [sel]);
+  if (sel.startsWith("f:")) {
+    const id = sel.slice(2), f = project.features.find((x) => x.id === id);
+    if (!f) return null;
+    const row = featureBreakdown(project, ledger).find((r) => r.id === id);
+    const owned = project.workloads.filter((w) => w.featureId === id).length, ws = project.build.workstreams.filter((w) => w.featureId === id).length;
+    const caps = project.benefits.capabilities.filter((c) => c.featureId === id).length;
+    const monthly = steady.lines.filter((l) => !l.once && project.workloads.some((w) => w.featureId === id && w.id === l.componentId)).reduce((t, l) => t + l.cost, 0);
+    return (
+      <>
+        <ItemHeader label={f.label} sub="A feature owns its workloads (run), workstreams and activities (build) and the capabilities it delivers" removeLabel="Remove feature"
+          onRename={(v) => edit((d) => { const x = d.features.find((y) => y.id === id); if (x) x.label = v; })}
+          onRemove={() => setConfirmRemove(true)} />
+        {confirmRemove && (
+          <div role="alert" className="flex flex-wrap items-center gap-3 rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">
+            <span>Remove &quot;{f.label}&quot;? Its {owned} workload{owned === 1 ? "" : "s"}, {ws} workstream{ws === 1 ? "" : "s"} and {caps} capabilit{caps === 1 ? "y" : "ies"} stay in the project but become shared. No cost is deleted.</span>
+            <button type="button" className="rounded border border-line bg-surface px-2 py-0.5 text-crit" onClick={() => { edit((d) => removeFeature(d, id)); onRemoved(); }}>Remove feature</button>
+            <button type="button" className="rounded border border-line bg-surface px-2 py-0.5 text-ink-2" onClick={() => setConfirmRemove(false)}>Keep it</button>
+          </div>
+        )}
+        <div className="font-display text-[26px] font-bold">{cad(monthly)}<span className="ml-1.5 font-sans text-xs font-normal text-muted">per month to run at steady state</span></div>
+        <Field label="What it does" help="featureDescription">
+          <input aria-label="Description" className="rounded-md border border-line bg-surface-2 px-2 py-1.5 text-[13px] text-ink" value={f.description ?? ""} onChange={(e) => edit((d) => { const x = d.features.find((y) => y.id === id); if (x) { if (e.target.value) x.description = e.target.value; else delete x.description; } })} />
+        </Field>
+        {row && (
+          <table className="data">
+            <thead><tr><th>Over {project.timeline.horizonMonths} months</th><th className="n">C$</th></tr></thead>
+            <tbody>
+              <tr><td>Build (labour, Dev Lab, environment)</td><td className="n">{cad(row.build)}</td></tr>
+              <tr><td>Run (usage and platform)</td><td className="n">{cad(row.run)}</td></tr>
+              <tr><td>Benefit (time saved by its capabilities)</td><td className="n">{cad(row.benefit)}</td></tr>
+              <tr><td className="font-semibold">Net</td><td className="n font-semibold">{cad(row.net)}</td></tr>
+            </tbody>
+          </table>
+        )}
+        <p className="text-[11.5px] text-muted">Maintenance, transition costs, avoided costs and shared labour belong to the project and are not split across features. Set a workload&apos;s feature in its panel, a workstream&apos;s on the Build page and a capability&apos;s on Value &amp; ROI.</p>
+      </>
+    );
+  }
   if (sel === "maintenance") {
     return (
       <>
@@ -159,7 +226,7 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
   }
   const w = project.workloads.find((x) => x.id === sel);
   if (!w) return null;
-  const lines = steady.lines.filter((l) => l.componentId === w.id);
+  const lines = steady.lines.filter((l) => l.componentId === w.id && !l.once);
   const total = lines.reduce((s, l) => s + l.cost, 0);
   const locate = (d: typeof project) => d.workloads.find((x) => x.id === w.id) as unknown as Record<string, unknown>;
   return (
@@ -168,8 +235,10 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
         onRename={(v) => edit((d) => { const x = d.workloads.find((y) => y.id === w.id); if (x) x.label = v; })}
         onRemove={() => { edit((d) => removeWorkload(d, w.id)); onRemoved(); }} />
       <div className="font-display text-[26px] font-bold">{cad(total)}<span className="ml-1.5 font-sans text-xs font-normal text-muted">per month at full adoption{w.kind === "agent" ? ` · ${percentile.toUpperCase()}` : ""}</span></div>
+      <div className="max-w-xs"><FeatureSelect value={w.featureId} onChange={(v) => edit((d) => { const x = d.workloads.find((y) => y.id === w.id); if (x) { if (v) x.featureId = v; else delete x.featureId; } })} /></div>
       {WORKLOAD_SPECS[w.kind] && <Fields specs={WORKLOAD_SPECS[w.kind]!} value={w as unknown as Record<string, unknown>} locate={locate} />}
       {w.kind === "documents" && <DocumentRoute id={w.id} />}
+      {w.kind === "fixed" && <CostItems items={w.items} locate={(d) => { const x = d.workloads.find((y) => y.id === w.id); return x?.kind === "fixed" ? x.items : undefined; }} idPrefix="item" firstMonthLabel="go-live" />}
       {"warehouse" in w && w.warehouse && (
         <div>
           <h3 className="mb-1.5 text-sm font-semibold">Snowflake warehouse</h3>
@@ -181,6 +250,7 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
       {w.kind === "voiceAgent" && <VoiceCompare id={w.id} />}
       {w.kind === "agent" && <HarnessTable harnessId={w.harnessId} modelId={w.modelId} cacheHit={w.cacheHit} tasks={w.tasksPerMonth} />}
       {w.kind === "aiSearch" && <SearchSizing w={w} />}
+      <WorkloadTiming w={w} />
       <Explain title="How this is calculated" lines={lines} months={1} />
     </>
   );

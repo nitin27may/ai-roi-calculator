@@ -8,6 +8,10 @@ export const meetingIntelligence: Project = {
   startDate: "2026-11-01",
   settings: { azureDeployment: "dataZone", language: "en", snowflake: { routing: "global", edition: "enterprise" } },
   timeline: { buildMonths: 6, horizonMonths: 36, adoptionRampMonths: 6 },
+  features: [
+    { id: "notes", label: "Notes and follow-up", description: "Transcribe meetings, write notes, extract actions and send follow-ups." },
+    { id: "ask", label: "Ask my meetings", description: "Answer questions over past meetings and shared documents." },
+  ],
   rateCard: [
     { id: "dev", label: "AI developer", hourlyRate: 95 },
     { id: "architect", label: "Solution architect", hourlyRate: 120 },
@@ -30,11 +34,12 @@ export const meetingIntelligence: Project = {
     ],
     includeLabour: true,
     workstreams: [
-      { id: "ws-notes", label: "Notes & follow-up agent", harnessIds: ["followup"], evaluated: true },
-      { id: "ws-ask", label: "Ask-my-meetings (RAG)", harnessIds: [], evaluated: true },
+      { id: "ws-notes", featureId: "notes", label: "Notes & follow-up agent", harnessIds: ["followup"], evaluated: true },
+      { id: "ws-ask", featureId: "ask", label: "Ask-my-meetings (RAG)", harnessIds: [], evaluated: true },
       { id: "ws-shared", label: "Shared ingestion & retrieval", harnessIds: [], evaluated: false },
     ],
     contingencyPct: 0,
+    contingencyScope: "labour",
     activities: [
       {
         kind: "bakeoff", id: "bakeoff", label: "Model bake-off", harnessId: "followup",
@@ -67,14 +72,14 @@ export const meetingIntelligence: Project = {
     ],
   },
   workloads: [
-    { kind: "transcription", id: "stt", label: "Meeting transcription", hoursPerMonth: 1800, engineId: "mai-transcribe-2", diarize: true, summary: { modelId: "gpt-5.4-mini", outputTokens: 1200, reasoning: "none" } },
-    { kind: "documents", id: "docs", label: "Shared documents", pagesPerMonth: 20000, pageType: "dense", route: { type: "extract", extractorId: "di-layout", addOnIds: [] } },
-    { kind: "email", id: "email", label: "Email follow-ups", emailsPerMonth: 150000, bodyExtractorId: "cu-doc-minimal", attachmentExtractorId: "di-read", attachmentShare: 0.25, attachmentsPerEmail: 1.5, pagesPerAttachment: 5, dedupe: 0.7 },
-    { kind: "embeddings", id: "embed", label: "Embeddings", tokensPerMonth: 45_000_000, modelId: "text-embedding-3-large" },
-    { kind: "aiSearch", id: "search", label: "Azure AI Search", chunks: 410_000, embeddingModelId: "text-embedding-3-large", bytesPerDim: 4, chunkTokens: 512, replicas: 2 },
-    { kind: "retrieval", id: "retrieval", label: "Retrieval", queriesPerMonth: 96_000, semanticShare: 0.65 },
-    { kind: "chat", id: "chat", label: "Ask-my-meetings chat", users: 800, conversationsPerUser: 30, turns: 4, modelId: "gpt-5.4", systemPromptTokens: 600, userTurnTokens: 100, assistantTurnTokens: 400, topK: 5, chunkTokens: 512, cacheHit: 0.4, reasoning: "low", language: "en" },
-    { kind: "agent", id: "agent", label: "Follow-up agent", harnessId: "followup", modelId: "gpt-5.4", tasksPerMonth: 6000, cacheHit: 0.8, toolFees: [] },
+    { kind: "transcription", id: "stt", featureId: "notes", label: "Meeting transcription", hoursPerMonth: 1800, engineId: "mai-transcribe-2", diarize: true, summary: { modelId: "gpt-5.4-mini", outputTokens: 1200, reasoning: "none" } },
+    { kind: "documents", id: "docs", featureId: "ask", label: "Shared documents", pagesPerMonth: 20000, pageType: "dense", route: { type: "extract", extractorId: "di-layout", addOnIds: [] } },
+    { kind: "email", id: "email", featureId: "notes", label: "Email follow-ups", emailsPerMonth: 150000, bodyExtractorId: "cu-doc-minimal", attachmentExtractorId: "di-read", attachmentShare: 0.25, attachmentsPerEmail: 1.5, pagesPerAttachment: 5, dedupe: 0.7 },
+    { kind: "embeddings", id: "embed", featureId: "ask", label: "Embeddings", tokensPerMonth: 45_000_000, modelId: "text-embedding-3-large" },
+    { kind: "aiSearch", id: "search", featureId: "ask", label: "Azure AI Search", chunks: 410_000, embeddingModelId: "text-embedding-3-large", bytesPerDim: 4, chunkTokens: 512, replicas: 2 },
+    { kind: "retrieval", id: "retrieval", featureId: "ask", label: "Retrieval", queriesPerMonth: 96_000, semanticShare: 0.65 },
+    { kind: "chat", id: "chat", featureId: "ask", label: "Ask-my-meetings chat", users: 800, conversationsPerUser: 30, turns: 4, modelId: "gpt-5.4", systemPromptTokens: 600, userTurnTokens: 100, assistantTurnTokens: 400, topK: 5, chunkTokens: 512, cacheHit: 0.4, reasoning: "low", language: "en" },
+    { kind: "agent", id: "agent", featureId: "notes", label: "Follow-up agent", harnessId: "followup", modelId: "gpt-5.4", tasksPerMonth: 6000, cacheHit: 0.8, toolFees: [] },
     { kind: "continuousEval", id: "ceval", label: "Continuous evaluation", interactionsPerMonth: 102_000, sampleShare: 0.05, judgeModelId: "gpt-5.4-mini", evaluators: ["groundedness", "relevance", "coherence"], contextTokens: 2500, responseTokens: 400, safetyEvaluators: 0 },
     { kind: "contentSafety", id: "safety", label: "Content Safety", requestsPerMonth: 102_000, charsPerRequest: 3000, unitPriceIds: ["safety-text", "safety-prompt-shields"] },
     {
@@ -92,8 +97,8 @@ export const meetingIntelligence: Project = {
   benefits: {
     capabilities: [
       { id: "notes", label: "Meeting notes and action items", hoursSavedPerMonth: 0, roleId: "knowledgeWorker",
-        driver: "perTask", benchmarkId: "meeting_prep", users: 800, volumeFrom: "chat", tasksPerUserPerDay: 0.5, baselineMinutes: 30, savings: { conservative: 5, typical: 17, optimistic: 50 }, unit: "minutes", licenceOverlap: 0.4, componentIds: ["stt", "agent", "email", "ws-notes", "ws-shared"] },
-      { id: "ask", label: "Ask-my-meetings answers", hoursSavedPerMonth: 140, roleId: "knowledgeWorker", componentIds: ["chat", "retrieval", "search", "embed", "docs", "ws-ask", "ws-shared"] },
+        driver: "perTask", benchmarkId: "meeting_prep", users: 800, volumeFrom: "chat", tasksPerUserPerDay: 0.5, baselineMinutes: 30, savings: { conservative: 5, typical: 17, optimistic: 50 }, unit: "minutes", licenceOverlap: 0.4, featureId: "notes", workloadIds: ["stt", "agent", "email"], workstreamIds: ["ws-notes", "ws-shared"] },
+      { id: "ask", label: "Ask-my-meetings answers", hoursSavedPerMonth: 140, roleId: "knowledgeWorker", featureId: "ask", workloadIds: ["chat", "retrieval", "search", "embed", "docs"], workstreamIds: ["ws-ask", "ws-shared"] },
     ],
     avoidedCosts: [{ id: "licence", label: "Retire third-party transcription licence", monthly: 4000, startMonth: 10 }],
     oneOff: [],

@@ -21,8 +21,8 @@ export const HarnessSchema = z.object({
   compactAtTokens: n0, compactSummaryTokens: n0, retryRate: share,
 });
 
-/** Optional workstream the activity belongs to; absent means project-wide. */
-const Scope = { workstreamId: id.optional() };
+/** Optional workstream the activity belongs to; absent means project-wide. `featureId` is for an activity with no workstream that still belongs to one feature (a workstream's own feature wins). */
+const Scope = { workstreamId: id.optional(), featureId: id.optional() };
 const Window = { fromMonth: z.number().int().positive().default(1), toMonth: z.number().int().positive().optional() };
 
 export const DevActivitySchema = z.discriminatedUnion("kind", [
@@ -48,8 +48,8 @@ export const DevActivitySchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("evaluation"), id, label: z.string(), ...Scope, judgeModelId: id, evaluators: z.array(z.string()),
     queryTokens: n0, contextTokens: n0, responseTokens: n0,
-    /** Share of the runs from other activities that are scored. */
-    scoredShare: z.object({ bakeoff: share, iterations: share, regression: share }),
+    /** Share of the runs from other activities that are scored. An absent kind is not scored: nothing is assumed about activities the project does not have. */
+    scoredShare: z.object({ bakeoff: share.default(0), iterations: share.default(0), regression: share.default(0) }).default({}),
     safetyEvaluators: z.number().int().nonnegative(),
   }),
   z.object({
@@ -96,7 +96,16 @@ export type DevActivity = z.infer<typeof DevActivitySchema>;
 export type Workstream = z.infer<typeof WorkstreamSchema>;
 
 /** A fixed or metered catalogue item: quantity of unitPriceId per month. */
-export const FixedItemSchema = z.object({ id, label: z.string(), unitPriceId: id, quantity: n0 });
+export const CatalogItemSchema = z.object({ id, label: z.string(), unitPriceId: id, quantity: n0 });
+/**
+ * A free-text cost with no catalogue price: a CAD amount a month, or once. `month` is the project
+ * month a one-time amount lands in (defaults to the first month of the workload, or of the build for the dev environment).
+ */
+export const CashItemSchema = z.object({ id, label: z.string(), amountCad: n0, cadence: z.enum(["monthly", "once"]).default("monthly"), month: z.number().int().positive().optional() });
+export const FixedItemSchema = z.union([CatalogItemSchema, CashItemSchema]);
+export type FixedItem = z.infer<typeof FixedItemSchema>;
+export type CashItem = z.infer<typeof CashItemSchema>;
+export const isCashItem = (it: FixedItem): it is CashItem => "amountCad" in it;
 
 /** A Snowflake virtual warehouse: size and running hours per month at full volume. */
 export const Warehouse = z.object({ size: z.enum(["xs", "s", "m", "l", "xl"]), hoursPerMonth: n0 });
@@ -106,13 +115,26 @@ const deployment = z.enum(["global", "regional", "dataZone"]).optional();
 /** A workload's own processing tier; absent = the project's default (Settings, itself defaulting to Standard). */
 const tier = ProcessingTier.optional();
 
+/**
+ * Fields every workload shares. Timing is in project months and defaults to go-live and the project's adoption ramp:
+ * `startMonth`/`endMonth` bound when it bills (months before go-live count as go-live), `rampMonths` is its own ramp
+ * to full volume, `oneTime` is a volume (in the units of its main monthly field) billed once in `month`.
+ */
+const Common = {
+  featureId: id.optional(),
+  startMonth: z.number().int().positive().optional(),
+  endMonth: z.number().int().positive().optional(),
+  rampMonths: z.number().int().min(0).max(24).optional(),
+  oneTime: z.object({ volume: n0, month: z.number().int().positive().optional() }).optional(),
+};
+
 export const WorkloadSchema = z.discriminatedUnion("kind", [
   z.object({
-    kind: z.literal("transcription"), id, label: z.string(), deployment, tier, hoursPerMonth: n0, engineId: id, diarize: z.boolean(),
+    kind: z.literal("transcription"), id, label: z.string(), ...Common, deployment, tier, hoursPerMonth: n0, engineId: id, diarize: z.boolean(),
     summary: z.object({ modelId: id, outputTokens: n0, reasoning: ReasoningSetting }).optional(),
   }),
   z.object({
-    kind: z.literal("documents"), id, label: z.string(), deployment, tier, pagesPerMonth: n0,
+    kind: z.literal("documents"), id, label: z.string(), ...Common, deployment, tier, pagesPerMonth: n0,
     pageType: z.enum(["plain", "dense", "slide", "spreadsheet"]),
     route: z.discriminatedUnion("type", [
       z.object({ type: z.literal("extract"), extractorId: id, addOnIds: z.array(id).default([]) }),
@@ -124,58 +146,58 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
     warehouse: Warehouse.optional(),
   }),
   z.object({
-    kind: z.literal("email"), id, label: z.string(), deployment, tier, emailsPerMonth: n0, bodyExtractorId: id, attachmentExtractorId: id,
+    kind: z.literal("email"), id, label: z.string(), ...Common, deployment, tier, emailsPerMonth: n0, bodyExtractorId: id, attachmentExtractorId: id,
     attachmentShare: share, attachmentsPerEmail: n0, pagesPerAttachment: n0, dedupe: share,
     triage: z.object({ modelId: id, outputTokens: n0, reasoning: ReasoningSetting }).optional(),
   }),
-  z.object({ kind: z.literal("embeddings"), id, label: z.string(), deployment, tier, tokensPerMonth: n0, modelId: id }),
+  z.object({ kind: z.literal("embeddings"), id, label: z.string(), ...Common, deployment, tier, tokensPerMonth: n0, modelId: id }),
   z.object({
-    kind: z.literal("aiSearch"), id, label: z.string(), tier: z.enum(["basic", "s1", "s2", "s3", "s3hd", "l1", "l2"]).optional(),
+    kind: z.literal("aiSearch"), id, label: z.string(), ...Common, tier: z.enum(["basic", "s1", "s2", "s3", "s3hd", "l1", "l2"]).optional(),
     chunks: n0, embeddingModelId: id, bytesPerDim: z.number().positive(), chunkTokens: n0, replicas: z.number().int().positive(),
   }),
   z.object({
-    kind: z.literal("retrieval"), id, label: z.string(), deployment, tier, queriesPerMonth: n0, semanticShare: share,
+    kind: z.literal("retrieval"), id, label: z.string(), ...Common, deployment, tier, queriesPerMonth: n0, semanticShare: share,
     rerankerId: id.optional(), agentic: z.object({ subqueries: n0, chunksPerSubquery: n0, tokensPerChunk: n0, plannerModelId: id, reasoning: ReasoningSetting }).optional(),
   }),
   z.object({
-    kind: z.literal("chat"), id, label: z.string(), deployment, tier, users: n0, conversationsPerUser: n0, turns: z.number().positive(), modelId: id,
+    kind: z.literal("chat"), id, label: z.string(), ...Common, deployment, tier, users: n0, conversationsPerUser: n0, turns: z.number().positive(), modelId: id,
     systemPromptTokens: n0, userTurnTokens: n0, assistantTurnTokens: n0, topK: n0, chunkTokens: n0, cacheHit: share,
     reasoning: ReasoningSetting, language: LanguageSetting,
     /** Share of turns routed to a cheaper model. */
     router: z.object({ modelId: id, share }).optional(),
   }),
   z.object({
-    kind: z.literal("agent"), id, label: z.string(), deployment, tier, harnessId: id, modelId: id, tasksPerMonth: n0, cacheHit: share,
+    kind: z.literal("agent"), id, label: z.string(), ...Common, deployment, tier, harnessId: id, modelId: id, tasksPerMonth: n0, cacheHit: share,
     toolFees: z.array(z.object({ unitPriceId: id, perTask: n0 })).default([]),
   }),
   z.object({
-    kind: z.literal("continuousEval"), id, label: z.string(), deployment, tier, interactionsPerMonth: n0, sampleShare: share, judgeModelId: id,
+    kind: z.literal("continuousEval"), id, label: z.string(), ...Common, deployment, tier, interactionsPerMonth: n0, sampleShare: share, judgeModelId: id,
     evaluators: z.array(z.string()), contextTokens: n0, responseTokens: n0, safetyEvaluators: z.number().int().nonnegative(),
   }),
-  z.object({ kind: z.literal("contentSafety"), id, label: z.string(), requestsPerMonth: n0, charsPerRequest: n0, unitPriceIds: z.array(id) }),
+  z.object({ kind: z.literal("contentSafety"), id, label: z.string(), ...Common, requestsPerMonth: n0, charsPerRequest: n0, unitPriceIds: z.array(id) }),
   z.object({
-    kind: z.literal("llm"), id, label: z.string(), deployment, tier, callsPerMonth: n0, modelId: id,
+    kind: z.literal("llm"), id, label: z.string(), ...Common, deployment, tier, callsPerMonth: n0, modelId: id,
     inputTokens: n0, cachedInputTokens: n0, outputTokens: n0, batchShare: share,
     reasoning: ReasoningSetting, language: LanguageSetting,
   }),
-  z.object({ kind: z.literal("fixed"), id, label: z.string(), group: z.string(), items: z.array(FixedItemSchema) }),
+  z.object({ kind: z.literal("fixed"), id, label: z.string(), ...Common, group: z.string(), items: z.array(FixedItemSchema) }),
   z.object({
-    kind: z.literal("voiceAgent"), id, label: z.string(), deployment, tier, modelId: id, callsPerMonth: n0, minutesPerCall: z.number().positive(),
+    kind: z.literal("voiceAgent"), id, label: z.string(), ...Common, deployment, tier, modelId: id, callsPerMonth: n0, minutesPerCall: z.number().positive(),
     turnsPerCall: z.number().int().positive(), agentTalkShare: share, systemPromptTokens: n0, cacheHit: share,
     /** Phone or ACS calling cost per minute in CAD (0 for web/app voice). */
     telephonyPerMinute: n0,
   }),
   z.object({
-    kind: z.literal("snowflakeComplete"), id, label: z.string(), modelId: id, rowsPerMonth: n0,
+    kind: z.literal("snowflakeComplete"), id, label: z.string(), ...Common, modelId: id, rowsPerMonth: n0,
     inputTokens: n0, outputTokens: n0, warehouse: Warehouse,
   }),
   z.object({
-    kind: z.literal("snowflakeFunction"), id, label: z.string(), functionId: id, rowsPerMonth: n0,
+    kind: z.literal("snowflakeFunction"), id, label: z.string(), ...Common, functionId: id, rowsPerMonth: n0,
     /** Billed tokens per row: your text plus labels/examples; the function's hidden prompt is added on top. */
     tokensPerRow: n0, hiddenPromptTokens: n0, outputTokensPerRow: n0, warehouse: Warehouse,
   }),
   z.object({
-    kind: z.literal("cortexSearch"), id, label: z.string(), rows: n0, vectorColumns: z.number().int().positive(),
+    kind: z.literal("cortexSearch"), id, label: z.string(), ...Common, rows: n0, vectorColumns: z.number().int().positive(),
     embeddingModelId: id, avgRowBytes: n0, tokensPerRow: n0, changedShareMonthly: share, warehouse: Warehouse,
   }),
 ]);
@@ -193,8 +215,11 @@ const pct = z.number().min(0).max(100);
  */
 export const CapabilitySchema = z.object({
   id, label: z.string(), roleId: id,
-  /** Workloads and workstreams this capability uses, for cost allocation. */
-  componentIds: z.array(id).default([]),
+  /** The feature this capability's benefit belongs to. */
+  featureId: id.optional(),
+  /** Workloads and workstreams this capability uses, for cost allocation (ids are checked against the project). */
+  workloadIds: z.array(id).default([]),
+  workstreamIds: z.array(id).default([]),
   hoursSavedPerMonth: n0,
   driver: z.enum(["hours", "perTask", "perUserWeek", "perVolume"]).optional(),
   benchmarkId: id.optional(),
@@ -226,6 +251,7 @@ export const AllocationSchema = z.object({ workstreamId: id, share, fromMonth: z
  */
 export const WorkstreamSchema = z.object({
   id, label: z.string(), harnessIds: z.array(id).default([]),
+  featureId: id.optional(),
   /** When false, no evaluation activity scores this workstream's runs. */
   evaluated: z.boolean().default(true),
 });
@@ -253,9 +279,16 @@ export type Scenario = z.infer<typeof ScenarioSchema>;
 export type ScenarioEdit = z.infer<typeof ScenarioEditSchema>;
 
 /** Bump when the project shape changes; add a step in migrate.ts for every bump. */
-export const CURRENT_PROJECT_VERSION = 2;
+export const CURRENT_PROJECT_VERSION = 3;
 
-export const ProjectSchema = z.object({
+/**
+ * A feature: the unit an executive funds. It owns workloads (run), workstreams and Dev Lab activities (build)
+ * and benefit capabilities, each pointing at it with `featureId`. Items with no `featureId` are shared by the project.
+ */
+export const FeatureSchema = z.object({ id, label: z.string(), description: z.string().optional() });
+export type Feature = z.infer<typeof FeatureSchema>;
+
+const ProjectObject = z.object({
   schema: z.literal("ai-cost-roi-studio/project"),
   version: z.literal(CURRENT_PROJECT_VERSION),
   name: z.string(),
@@ -279,6 +312,7 @@ export const ProjectSchema = z.object({
     horizonMonths: z.number().int().min(12).max(120),
     adoptionRampMonths: z.number().int().min(0).max(24),
   }),
+  features: z.array(FeatureSchema).default([]),
   rateCard: z.array(RoleSchema),
   harnesses: z.array(HarnessSchema),
   build: z.object({
@@ -289,6 +323,8 @@ export const ProjectSchema = z.object({
     /** Optional AI Dev Lab budget per experimenting person per month (CAD). */
     devBudgetPerMonth: n0.optional(),
     contingencyPct: n0,
+    /** What contingency is added to: build labour only (default), or also Dev Lab, dev environment and one-time build costs. */
+    contingencyScope: z.enum(["labour", "all"]).default("labour"),
     activities: z.array(DevActivitySchema),
     environment: z.array(FixedItemSchema),
   }),
@@ -299,7 +335,7 @@ export const ProjectSchema = z.object({
     z.object({ mode: z.literal("none") }),
   ]),
   benefits: z.object({
-    /** Time saved at full adoption. `componentIds`: workloads this capability uses, for cost allocation. */
+    /** Time saved at full adoption. `workloadIds`/`workstreamIds`: what this capability uses, for cost allocation. */
     capabilities: z.array(CapabilitySchema),
     /** Costs that stop (licences, contracts, headcount). Not scaled by adoption; start at go-live unless `startMonth` is set. */
     avoidedCosts: z.array(z.object({
@@ -330,6 +366,28 @@ export const ProjectSchema = z.object({
     discountRatePct: z.number().min(0).max(50).default(0),
   }),
   scenarios: z.array(ScenarioSchema).default([]),
+});
+
+/** Referential problems a saved project can have: ids that point at nothing. Empty when the project is consistent. */
+export function projectIssues(p: z.infer<typeof ProjectObject>): { path: (string | number)[]; message: string }[] {
+  const out: { path: (string | number)[]; message: string }[] = [];
+  const features = new Set(p.features.map((f) => f.id));
+  const workloads = new Set(p.workloads.map((w) => w.id));
+  const workstreams = new Set(p.build.workstreams.map((w) => w.id));
+  const feat = (path: (string | number)[], fid: string | undefined) => { if (fid !== undefined && !features.has(fid)) out.push({ path, message: `Unknown feature "${fid}"` }); };
+  p.workloads.forEach((w, i) => feat(["workloads", i, "featureId"], w.featureId));
+  p.build.workstreams.forEach((w, i) => feat(["build", "workstreams", i, "featureId"], w.featureId));
+  p.build.activities.forEach((a, i) => feat(["build", "activities", i, "featureId"], a.featureId));
+  p.benefits.capabilities.forEach((c, i) => {
+    feat(["benefits", "capabilities", i, "featureId"], c.featureId);
+    c.workloadIds.forEach((x, k) => { if (!workloads.has(x)) out.push({ path: ["benefits", "capabilities", i, "workloadIds", k], message: `Unknown workload "${x}"` }); });
+    c.workstreamIds.forEach((x, k) => { if (!workstreams.has(x)) out.push({ path: ["benefits", "capabilities", i, "workstreamIds", k], message: `Unknown workstream "${x}"` }); });
+  });
+  return out;
+}
+
+export const ProjectSchema = ProjectObject.superRefine((p, ctx) => {
+  for (const i of projectIssues(p)) ctx.addIssue({ code: z.ZodIssueCode.custom, path: i.path, message: i.message });
 });
 export type Project = z.infer<typeof ProjectSchema>;
 export type Harness = z.infer<typeof HarnessSchema>;

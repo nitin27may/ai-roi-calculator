@@ -9,7 +9,7 @@
 | P2 | Processing tier | Configurable tier (Standard/Batch), alerts for unavailable tiers | E15 (tier part) | Batch results identical to today |
 | P3 | Token accuracy I | Cache writes, reasoning everywhere, language multiplier, warm prefix, tokenizer gaps, long context, missing workload tests | E1–E6, E16 | One test per gap; golden total change explained |
 | P4 | Executive Summary | Executive Summary spec in 10-target-product.md (point estimates), plain labels, alert summary | U1, U3, V2, V4, V6 | Desktop screenshot review |
-| P5 | Feature model and timing | Feature entity; per-workload start, end and ramp; one-time volumes; free-text CAD items; non-labour contingency; no silent agent; Run grouped by feature | F1, F3, F4, F7, E11 | Migration puts existing projects into one feature |
+| P5 | Feature model and timing | Feature entity; per-workload start, end and ramp; one-time volumes; free-text CAD items; non-labour contingency; no silent agent; Run grouped by feature | F1, F3, F4, F7, E11 | Migration puts existing projects into one feature. Delivered: schema v3, golden fixture proves totals identical (packages/engine/test/golden-migration.test.ts) |
 | P6 | Guided input and help | Hints, glossary, inline validation, page intros, keyboard and labels | U7, U8, part of U10 | Every field has help |
 | P7 | Product tour | Help, glossary and tour spec in 10-target-product.md | U6 | Skip persists after reload; relaunch works |
 | P8 | Ranges and CFO depth | Per-workload ranges, Dev Lab percentiles, retries, wider sensitivity, IRR, discounted payback, risk weighting, capex/opex, new benefit types | E9, E10, E12, E14, F6, U2 | IRR checked against known cash flows |
