@@ -17,8 +17,8 @@ Updated in every PR and posted after every merge. Plan: [docs/plan](plan/README.
 | 11 | Flexibility | Feature model and timing | Done | #16 | P5 |
 | 12 | Guidance | Help, glossary, validation | Done | #15 | P6 |
 | 13 | Guidance | Product tour | Done | #17 | P7 |
-| 14 | Accuracy / CFO | Ranges, IRR, risk weighting | In review | #18 | P8; see docs/plan/20-roadmap.md and 10-target-product.md |
-| 15 | Flexibility | Use-case wizard | In review | #19 | P9 |
+| 14 | Accuracy / CFO | Ranges, IRR, risk weighting | Done | #18 | P8; see docs/plan/20-roadmap.md and 10-target-product.md |
+| 15 | Flexibility | Use-case wizard | Done | #19 | P9 |
 | 16 | Coverage | Infra, tools, images, PTU in ledger | Pending | | P10 |
 | 17 | Exec | Report v2, comparison | Pending | | P11 |
 | 18 | Quality | Responsive, accessibility | Pending | | P12 |
