@@ -132,7 +132,7 @@ export const REALTIME: Record<string, { text: TierMeters; audio: TierMeters }> =
 };
 
 /** Region-scoped service meters. `perHour` meters are multiplied by 730 for a monthly price. */
-export interface ServiceMeter { filter: string; meterName: string; skuName?: string; tierMinimumUnits?: number; scale?: number; pick?: "max" }
+export interface ServiceMeter { filter: string; meterName: string; skuName?: string; tierMinimumUnits?: number; scale?: number; pick?: "max"; /** Overrides the refresh region (Defender meters are priced in "Global"). */ region?: string }
 export const UNIT_METERS: Record<string, ServiceMeter> = {
   "di-read": { filter: "contains(productName,'Document Intelligence')", meterName: "^S0 Read Pages$", skuName: "S0" },
   "di-layout": { filter: "contains(productName,'Document Intelligence')", meterName: "^S0 Pre-built Pages$", skuName: "S0" },
@@ -147,6 +147,18 @@ export const UNIT_METERS: Record<string, ServiceMeter> = {
   "language-records": { filter: "contains(productName,'Language')", meterName: "^Standard Text Records$", skuName: "Standard" },
   "tts-neural": { filter: "productName eq 'Azure Speech'", meterName: "^S1 Neural Text To Speech Characters$" },
   "tts-neural-hd": { filter: "productName eq 'Azure Speech'", meterName: "^Neural HD Text to Speech Characters$" },
+  "apim-consumption-calls": { filter: "serviceName eq 'API Management'", meterName: "^Consumption Calls$", skuName: "Consumption", tierMinimumUnits: 100 },
+  "apim-premium": { filter: "serviceName eq 'API Management'", meterName: "^Premium Unit$", skuName: "Premium", scale: 730 },
+  "cosmos-ru-100": { filter: "serviceName eq 'Azure Cosmos DB'", meterName: "^100 RU/s$", skuName: "RUs", scale: 730 },
+  "cosmos-storage-gb": { filter: "serviceName eq 'Azure Cosmos DB'", meterName: "^Data Stored$", skuName: "RUs" },
+  "app-service-p0v3-linux": { filter: "productName eq 'Azure App Service Premium v3 Plan - Linux'", meterName: "^P0v3 App$", skuName: "P0v3", scale: 730 },
+  "app-service-p1v3-linux": { filter: "productName eq 'Azure App Service Premium v3 Plan - Linux'", meterName: "^P1 v3 App$", skuName: "P1 v3", scale: 730 },
+  "aks-uptime-sla": { filter: "serviceName eq 'Azure Kubernetes Service' and productName eq 'Azure Kubernetes Service'", meterName: "^Standard Uptime SLA$", skuName: "Standard", scale: 730 },
+  "egress-gb": { filter: "productName eq 'Rtn Preference: MGN'", meterName: "^Standard Data Transfer Out$", tierMinimumUnits: 100 },
+  "defender-app-service-node": { filter: "productName eq 'Microsoft Defender for App Service'", meterName: "^Standard Node$", skuName: "Standard", scale: 730, region: "Global" },
+  "defender-containers-vcore": { filter: "productName eq 'Microsoft Defender for Containers'", meterName: "^Standard vCore vCore Pack$", skuName: "Standard vCore", scale: 730, region: "Global" },
+  "defender-cosmos-100ru": { filter: "productName eq 'Microsoft Defender for Azure Cosmos DB'", meterName: "^Standard 100 RU/s$", skuName: "Standard", scale: 730, region: "Global" },
+  "mai-web-grounding": { filter: "productName eq 'MAI Models'", meterName: "^Web Grounding Calls$" },
   "translator-text": { filter: "contains(productName,'Translator')", meterName: "^S1 Characters$" },
 };
 

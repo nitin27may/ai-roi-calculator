@@ -153,7 +153,7 @@ export async function updateAzure(files: { chat: Json[]; embeddings: Json[]; spe
     }
     const spec = UNIT_METERS[u.id];
     if (!spec) continue;
-    const rows = await source(`armRegionName eq '${region}' and ${spec.filter}`);
+    const rows = await source(`armRegionName eq '${spec.region ?? region}' and ${spec.filter}`);
     attempt(u.id, () => {
       let r: RetailRow;
       if (spec.pick === "max") {

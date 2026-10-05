@@ -393,15 +393,18 @@
     "platform": "azure",
     "unit": "vCPU-second",
     "source": {
-      "kind": "azure-retail-api",
+      "kind": "derived",
       "url": "https://prices.azure.com/api/retail/prices",
-      "retrievedAt": "2026-09-17"
+      "meterName": "Standard vCPU Active Usage",
+      "retrievedAt": "2026-10-05",
+      "note": "The CAD Retail API rows for this meter carry only the free-grant tier (price 0), which is why this was 0 before. Paid rate taken from the USD canadacentral row (0.000034 per vCPU-second, 0.000004 per GiB-second; the API publishes 6 decimals, so memory is accurate to about 12%) x 1.41655"
     },
-    "confidence": "verified",
-    "price": 0,
+    "confidence": "single-source",
+    "price": 0.0000482,
     "attrs": {
       "freeVcpuSeconds": 180000
-    }
+    },
+    "freePerMonth": 180000
   },
   {
     "id": "container-apps-gib-s",
@@ -409,15 +412,18 @@
     "platform": "azure",
     "unit": "GiB-second",
     "source": {
-      "kind": "azure-retail-api",
+      "kind": "derived",
       "url": "https://prices.azure.com/api/retail/prices",
-      "retrievedAt": "2026-09-17"
+      "meterName": "Standard Memory Active Usage",
+      "retrievedAt": "2026-10-05",
+      "note": "The CAD Retail API rows for this meter carry only the free-grant tier (price 0), which is why this was 0 before. Paid rate taken from the USD canadacentral row (0.000034 per vCPU-second, 0.000004 per GiB-second; the API publishes 6 decimals, so memory is accurate to about 12%) x 1.41655"
     },
-    "confidence": "verified",
-    "price": 0,
+    "confidence": "single-source",
+    "price": 0.00000567,
     "attrs": {
       "freeGibSeconds": 360000
-    }
+    },
+    "freePerMonth": 360000
   },
   {
     "id": "container-apps-requests",
@@ -990,5 +996,179 @@
     },
     "confidence": "unverified",
     "price": 2.4081
+  },
+  {
+    "id": "apim-consumption-calls",
+    "label": "API Management Consumption calls",
+    "platform": "azure",
+    "unit": "10K calls",
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Consumption Calls",
+      "retrievedAt": "2026-10-05",
+      "note": "Price above the first 1M calls a month (tier from 100 x 10K); the first 1M calls are free"
+    },
+    "confidence": "verified",
+    "price": 0.0496,
+    "freePerMonth": 100
+  },
+  {
+    "id": "apim-premium",
+    "label": "API Management Premium",
+    "platform": "azure",
+    "unit": "unit-month",
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Premium Unit",
+      "retrievedAt": "2026-10-05"
+    },
+    "confidence": "verified",
+    "price": 3959.52
+  },
+  {
+    "id": "cosmos-ru-100",
+    "label": "Cosmos DB provisioned throughput",
+    "platform": "azure",
+    "unit": "100 RU/s-month",
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "100 RU/s",
+      "retrievedAt": "2026-10-05"
+    },
+    "confidence": "verified",
+    "price": 9.125
+  },
+  {
+    "id": "cosmos-storage-gb",
+    "label": "Cosmos DB transactional storage",
+    "platform": "azure",
+    "unit": "GB-month",
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Data Stored",
+      "retrievedAt": "2026-10-05"
+    },
+    "confidence": "verified",
+    "price": 0.3896
+  },
+  {
+    "id": "app-service-p0v3-linux",
+    "label": "App Service Premium v0 (P0v3, Linux)",
+    "platform": "azure",
+    "unit": "instance-month",
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "P0v3 App",
+      "retrievedAt": "2026-10-05"
+    },
+    "confidence": "verified",
+    "price": 86.87
+  },
+  {
+    "id": "app-service-p1v3-linux",
+    "label": "App Service Premium v3 (P1v3, Linux)",
+    "platform": "azure",
+    "unit": "instance-month",
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "P1 v3 App",
+      "retrievedAt": "2026-10-05"
+    },
+    "confidence": "verified",
+    "price": 173.74
+  },
+  {
+    "id": "aks-uptime-sla",
+    "label": "AKS Standard tier (uptime SLA control plane)",
+    "platform": "azure",
+    "unit": "cluster-month",
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Standard Uptime SLA",
+      "retrievedAt": "2026-10-05",
+      "note": "Control plane only; node pool VMs are billed as virtual machines and are not in the catalogue"
+    },
+    "confidence": "verified",
+    "price": 103.441
+  },
+  {
+    "id": "egress-gb",
+    "label": "Outbound data transfer (Microsoft global network, Canada Central)",
+    "platform": "azure",
+    "unit": "GB",
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Standard Data Transfer Out",
+      "retrievedAt": "2026-10-05",
+      "note": "First paid tier (100 GB to 10 TB a month); the first 100 GB a month are free"
+    },
+    "confidence": "verified",
+    "price": 0.1232,
+    "freePerMonth": 100
+  },
+  {
+    "id": "defender-app-service-node",
+    "label": "Defender for App Service",
+    "platform": "azure",
+    "unit": "instance-month",
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Standard Node",
+      "retrievedAt": "2026-10-05"
+    },
+    "confidence": "verified",
+    "price": 20.659
+  },
+  {
+    "id": "defender-containers-vcore",
+    "label": "Defender for Containers",
+    "platform": "azure",
+    "unit": "vCore-month",
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Standard vCore vCore Pack",
+      "retrievedAt": "2026-10-05"
+    },
+    "confidence": "verified",
+    "price": 9.709
+  },
+  {
+    "id": "defender-cosmos-100ru",
+    "label": "Defender for Cosmos DB",
+    "platform": "azure",
+    "unit": "100 RU/s-month",
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Standard 100 RU/s",
+      "retrievedAt": "2026-10-05",
+      "note": "Hourly meter is published to 4 decimals (0.0017), so this monthly figure is accurate to about 3%"
+    },
+    "confidence": "verified",
+    "price": 1.241
+  },
+  {
+    "id": "mai-web-grounding",
+    "label": "Web grounding (MAI Models)",
+    "platform": "azure",
+    "unit": "1K calls",
+    "source": {
+      "kind": "azure-retail-api",
+      "url": "https://prices.azure.com/api/retail/prices",
+      "meterName": "Web Grounding Calls",
+      "retrievedAt": "2026-10-05"
+    },
+    "confidence": "verified",
+    "price": 19.8317
   }
 ]
