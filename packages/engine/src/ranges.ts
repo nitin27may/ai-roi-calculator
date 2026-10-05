@@ -5,6 +5,8 @@ import { buildLedger, type Ledger } from "./ledger.js";
 import type { Project, Workload } from "./project.js";
 import { computeRoi, roiOptions, type RoiResult } from "./roi.js";
 import { workloadLines } from "./workloads.js";
+import { resolveAssumptions } from "./assumptions.js";
+import { requestVolumes } from "./hosting.js";
 
 /**
  * Ranges. Two kinds, both built from documented assumptions rather than a simulation of uncertainty:
@@ -82,7 +84,7 @@ export function projectRange(p: Project, cat: Catalog, opts: { percentile?: Perc
 export function workloadRange(p: Project, cat: Catalog, w: Workload, percentile: Percentile = "p50"): Range & { spread: boolean } {
   const book = new PriceBook(cat, p.settings);
   const harnesses = new Map(p.harnesses.map((h) => [h.id, h]));
-  const at = (pc: Percentile) => workloadLines(w, { book, date: p.startDate, harnesses, percentile: pc, language: p.settings.language })
+  const at = (pc: Percentile) => workloadLines(w, { book, date: p.startDate, harnesses, percentile: pc, language: p.settings.language, assumptions: resolveAssumptions(p), volumes: requestVolumes(p.workloads) })
     .filter((l) => (l.stream === "run" || l.stream === "platform") && !l.once)
     .reduce((s, l) => s + l.cost, 0);
   const expected = at(percentile), a = at("p10"), b = at("p90");

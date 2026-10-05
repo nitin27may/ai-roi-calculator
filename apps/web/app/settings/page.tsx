@@ -3,7 +3,7 @@ import { Card, CardHead, Field, NumberInput, Select, TextInput } from "@/compone
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad } from "@/lib/format";
-import { DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, type AzureDeployment, type ProcessingTier } from "@studio/engine";
+import { DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, resolveAssumptions, type AzureDeployment, type ProcessingTier } from "@studio/engine";
 
 /** heuristics.tokens.language keys, with display names. */
 const LANGUAGE_OPTIONS = [
@@ -18,6 +18,8 @@ export default function Settings() {
   const sf = project.settings.snowflake;
   const defaultAi = sf.routing === "global" ? catalog.snowflake.aiCreditGlobal : catalog.snowflake.aiCreditRegional;
   const defaultPlatform = catalog.snowflake.platformCredit[sf.edition] ?? catalog.snowflake.platformCredit.enterprise!;
+  const A = resolveAssumptions(project);
+  const setA = (key: keyof typeof A, v: number) => edit((d) => { d.settings.assumptions = { ...d.settings.assumptions, [key]: v }; });
   return (
     <div data-tour="settings-azure" className="grid min-h-0 gap-3.5 overflow-auto lg:grid-cols-2">
       <Card>
@@ -50,6 +52,18 @@ export default function Settings() {
           <p><b className="text-ink-2">Global Standard</b>: every Foundry model, including the OpenAI audio and realtime models; requests can be processed in any Azure region. <b className="text-ink-2">Canada Regional Standard</b>: data stays in Canada, but only gpt-4o, gpt-4.1-mini, OpenAI embeddings and Azure Speech are offered. <b className="text-ink-2">US Data Zone Standard</b>: data stays in the US; GPT-5.x/6, the Azure-hosted Claude models and partner models.</p>
           <p>Azure Speech and MAI-Transcribe are not Foundry deployments: they run in an Azure Speech (Cognitive Services) resource. Canada Regional means a resource in Canada, where MAI-Transcribe is not offered; Global and US Data Zone mean a resource in a US region such as East US.</p>
         </div>
+      </Card>
+      <Card>
+        <CardHead title="Assumptions" sub="Numbers built into the estimates, now editable" />
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3 px-3.5 pb-3.5">
+          <Field label="Retrieval planner input tokens" help="assumpPlannerIn"><NumberInput value={A.plannerInputTokens} onChange={(v) => setA("plannerInputTokens", v)} /></Field>
+          <Field label="Retrieval planner output tokens" help="assumpPlannerOut"><NumberInput value={A.plannerOutputTokens} onChange={(v) => setA("plannerOutputTokens", v)} /></Field>
+          <Field label="Red-team scoring output tokens" help="assumpRedTeam"><NumberInput value={A.redTeamScoringOutputTokens} onChange={(v) => setA("redTeamScoringOutputTokens", v)} /></Field>
+          <Field label="Voice function-call input tokens per turn" help="assumpVoiceIn"><NumberInput value={A.voiceFunctionCallInputTokens} onChange={(v) => setA("voiceFunctionCallInputTokens", v)} /></Field>
+          <Field label="Voice function-call output tokens per turn" help="assumpVoiceOut"><NumberInput value={A.voiceFunctionCallOutputTokens} onChange={(v) => setA("voiceFunctionCallOutputTokens", v)} /></Field>
+          <Field label="Peak minute vs average minute" help="assumpPeak"><NumberInput value={A.peakToAverage} min={1} max={50} step={0.5} onChange={(v) => setA("peakToAverage", v)} /></Field>
+        </div>
+        <p className="px-3.5 pb-3.5 text-[11.5px] text-muted">The planner and red-team defaults are the figures the studio always used, so nothing moves until you change them. Voice function calls default to zero because earlier versions did not price them. The peak factor feeds the PTU sizing and the TPM quota check.</p>
       </Card>
       <Card>
         <CardHead title="Snowflake" sub="Credit prices in CAD" />

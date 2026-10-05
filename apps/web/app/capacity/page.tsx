@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { ptuAnalysis, sizePtu, type PtuDeployment } from "@studio/engine";
+import { DEPLOYMENT_LABEL, ptuAnalysis, resolveAssumptions, sizePtu, type PtuDeployment } from "@studio/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Select } from "@/components/ui";
 import { catalog, useLedger } from "@/lib/compute";
 import { cad, fmt } from "@/lib/format";
@@ -10,9 +10,11 @@ const NAMES = { payg: "Pay-as-you-go", hourly: "PTU hourly", monthlyReservation:
 
 export default function Capacity() {
   const { project, ledger } = useLedger();
-  const [deployment, setDeployment] = useState<PtuDeployment>("global");
-  const [peak, setPeak] = useState(3);
-  const a = useMemo(() => ptuAnalysis(project, ledger, catalog, { peakToAverage: peak, deployment }), [project, ledger, peak, deployment]);
+  // "own" prices each workload at its own deployment (the default); the others force one deployment for what-if comparison.
+  const [choice, setChoice] = useState<PtuDeployment | "own">("own");
+  const [peak, setPeak] = useState(resolveAssumptions(project).peakToAverage);
+  const deployment: PtuDeployment = choice === "own" ? project.settings.azureDeployment : choice;
+  const a = useMemo(() => ptuAnalysis(project, ledger, catalog, { peakToAverage: peak, deployment: choice === "own" ? undefined : choice }), [project, ledger, peak, choice]);
   const rate = catalog.ptu.rates[deployment];
   const anyPtuWins = a.rows.some((r) => r.cheapest !== "payg");
   return (
@@ -20,7 +22,7 @@ export default function Capacity() {
       <Card>
         <CardHead title="Provisioned throughput (PTU) or pay-as-you-go" sub={`Azure models in production at month ${a.month} (first month at full adoption). PTU is sized for peak and billed every hour.`}>
           <div className="flex flex-wrap items-end gap-2.5">
-            <Field label="Deployment" help="ptuDeployment"><Select value={deployment} options={DEPLOY} onChange={(v) => setDeployment(v as PtuDeployment)} /></Field>
+            <Field label="Deployment" help="ptuDeployment"><Select value={choice} options={[{ value: "own", label: "Each workload's own deployment" }, ...DEPLOY]} onChange={(v) => setChoice(v as PtuDeployment | "own")} /></Field>
             <Field label="Peak ÷ average load" help="peakFactor"><NumberInput value={peak} min={1} max={20} step={0.5} onChange={setPeak} /></Field>
           </div>
         </CardHead>
@@ -32,13 +34,14 @@ export default function Capacity() {
           </div>
           {a.rows.length === 0 ? <p className="text-sm text-muted">No Azure OpenAI models with a PTU table are used in production.</p> : (
             <table className="data">
-              <thead><tr><th>Model</th><th className="n">Tokens / month</th><th className="n">PTUs for peak</th><th className="n">Utilization</th><th className="n">PAYG</th><th className="n">PTU hourly</th><th className="n">1-month res.</th><th className="n">1-year res.</th><th className="n">Break-even (1-mo / 1-yr)</th></tr></thead>
+              <thead><tr><th>Model</th><th>Deployment</th><th className="n">Tokens / month</th><th className="n">PTUs for peak</th><th className="n">Utilization</th><th className="n">PAYG</th><th className="n">PTU hourly</th><th className="n">1-month res.</th><th className="n">1-year res.</th><th className="n">Break-even (1-mo / 1-yr)</th></tr></thead>
               <tbody>
                 {a.rows.map((r) => {
                   const cell = (k: keyof typeof NAMES, v: number) => <td className="n" style={r.cheapest === k ? { background: "var(--good-soft)", fontWeight: 600 } : undefined}>{cad(v)}</td>;
                   return (
-                    <tr key={r.modelId}>
+                    <tr key={`${r.deployment}|${r.modelId}`}>
                       <td className="whitespace-nowrap">{r.label}</td>
+                      <td className="whitespace-nowrap">{DEPLOYMENT_LABEL[r.deployment]}</td>
                       <td className="n">{fmt((r.monthlyTokens.input + r.monthlyTokens.cachedInput + r.monthlyTokens.output) / 1e6, 1)}M</td>
                       <td className="n">{r.ptus}</td>
                       <td className="n">{fmt(r.utilization * 100)}%</td>

@@ -4,6 +4,7 @@ import type { DevActivity, Harness, Project } from "./project.js";
 import { simulateHarness, reasoningTokens, type ReasoningEffort } from "./harness.js";
 import { evaluationLines } from "./workloads.js";
 import { fmtInt, line, sum, type Line } from "./lines.js";
+import { resolveAssumptions } from "./assumptions.js";
 
 /** Reasoning tokens for a Dev Lab call, billed as output, only for models the catalogue marks as reasoning models (E2). */
 const reasoningOut = (book: PriceBook, modelId: string, r: ReasoningEffort | number) => (book.isReasoningModel(modelId) ? reasoningTokens(r) : 0);
@@ -108,7 +109,7 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
         const rt = heuristics.redTeam;
         const tk = book.tokenizerMultiplier(a.targetModelId);
         const target = book.chatCost(a.targetModelId, { input: rt.probeInputTokens * turns * tk, output: rt.probeOutputTokens * turns * tk }, date);
-        const scoring = ((rt.probeInputTokens + rt.probeOutputTokens) * turns * book.unitPrice("eval-safety-input") + 200 * book.unitPrice("eval-safety-output")) / 1e6;
+        const scoring = ((rt.probeInputTokens + rt.probeOutputTokens) * turns * book.unitPrice("eval-safety-input") + resolveAssumptions(p).redTeamScoringOutputTokens * book.unitPrice("eval-safety-output")) / 1e6;
         out.push(line({ id: a.id, componentId: a.id, label: a.label, stream: "devlab", behaviour: "usage", meter: "eval-safety-input", quantity: probes, unit: "probe", unitPrice: target + scoring,
           formula: `${a.scansPerMonth} scans × ${a.categories} categories × ${a.objectivesPerCategory} objectives × (1 + ${a.strategies} strategies)${f !== 1 ? ` × ${f}` : ""} = ${fmtInt(probes)} probes` }));
         break;

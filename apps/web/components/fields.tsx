@@ -255,6 +255,9 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
     { key: "tasksPerMonth", label: "Tasks / month", type: "number" },
     { key: "cacheHit", label: "Cache hit", type: "percent" },
   ],
+  hosting: [
+    { key: "requestsPerMonth", label: "Requests / month", type: "number" },
+  ],
   continuousEval: [
     { key: "deployment", label: "Deployment", type: "deployment" },
     { key: "tier", label: "Tier", type: "tier" },

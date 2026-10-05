@@ -46,6 +46,12 @@ const steps: Record<number, Step> = {
     const settings = (raw.settings ?? {}) as Record<string, unknown>;
     return { ...raw, version: 4, settings: { ...settings, devLabPercentile: "p50" }, benefits: { ...benefits, value: Array.isArray(benefits.value) ? benefits.value : [] } };
   },
+  /**
+   * v4 → v5: hosting stacks, tool fees, image input, PTU mode and editable assumptions. Every new field is optional and
+   * absent means the old behaviour (no PTU, no quota check, no images, the original planner, scoring and voice numbers),
+   * so totals do not move.
+   */
+  4: (raw) => ({ ...raw, version: 5 }),
 };
 
 /** Upgrades a saved project to `CURRENT_PROJECT_VERSION`, one step at a time. Leaves non-project input untouched so `ProjectSchema.safeParse` reports the real problem. */

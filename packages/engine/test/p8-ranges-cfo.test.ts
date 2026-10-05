@@ -114,14 +114,14 @@ describe("defaults leave existing results unchanged", () => {
     }
   });
   it("the project is at the current version and v3 projects migrate with an empty value list", () => {
-    expect(CURRENT_PROJECT_VERSION).toBe(4);
+    expect(CURRENT_PROJECT_VERSION).toBe(5);
     const v3 = structuredClone(meetingIntelligence) as unknown as Record<string, unknown>;
     v3.version = 3;
     const benefits = { ...(v3.benefits as Record<string, unknown>) };
     delete benefits.value;
     v3.benefits = benefits;
     const m = ProjectSchema.parse(migrateProject(v3));
-    expect(m.version).toBe(4);
+    expect(m.version).toBe(5);
     expect(m.benefits.value).toEqual([]);
     expect(roiOf(m).totalCost).toBeCloseTo(roiOf(sample()).totalCost, 6);
   });

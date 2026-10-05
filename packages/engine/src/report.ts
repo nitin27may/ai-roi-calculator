@@ -74,6 +74,8 @@ const ALERT_GROUP: Record<PriceNote["kind"], AlertGroup["id"]> = {
   unverified: "lowConfidence",
   "long-context": "other",
   routing: "other",
+  quota: "other",
+  capacity: "other",
 };
 const ALERT_LABEL: Record<AlertGroup["id"], string> = {
   notOffered: "Not offered in this deployment",

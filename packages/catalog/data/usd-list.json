@@ -566,5 +566,23 @@
       "prices.global.output": 5,
       "prices.global.cacheWrite": 1.25
     }
+  },
+  {
+    "file": "unit-prices",
+    "id": "container-apps-vcpu-s",
+    "url": "https://prices.azure.com/api/retail/prices",
+    "note": "Container Apps Standard vCPU Active Usage. The CAD rows carry only the free tier, so the paid rate is the Retail API USD canadacentral row",
+    "usd": {
+      "price": 0.000034
+    }
+  },
+  {
+    "file": "unit-prices",
+    "id": "container-apps-gib-s",
+    "url": "https://prices.azure.com/api/retail/prices",
+    "note": "Container Apps Standard Memory Active Usage. The CAD rows carry only the free tier, so the paid rate is the Retail API USD canadacentral row",
+    "usd": {
+      "price": 0.000004
+    }
   }
 ]

@@ -1,9 +1,12 @@
 import { heuristics } from "@studio/catalog";
-import type { PriceBook } from "./pricing.js";
+import { DEPLOYMENT_LABEL, type PriceBook } from "./pricing.js";
 import { isCashItem, type CashItem, type Harness, type Workload } from "./project.js";
 import { simulateHarness, reasoningTokens, type Percentile, type ReasoningEffort } from "./harness.js";
 import { fmtInt, line, type Line } from "./lines.js";
 import { tokenSpread } from "./spread.js";
+import { imageCost } from "./images.js";
+import { ASSUMPTION_DEFAULTS, type Assumptions } from "./assumptions.js";
+import { HOURS_PER_MONTH, MINUTES_PER_MONTH, sizePtu } from "./ptu-size.js";
 
 export interface WorkloadContext {
   book: PriceBook;
@@ -12,6 +15,10 @@ export interface WorkloadContext {
   percentile: Percentile;
   /** Project default text language (heuristics.tokens.language); a workload can override it. Defaults to "en". */
   language?: string;
+  /** The project's editable assumptions (planner tokens, scoring, voice function calls, peak factor); defaults when absent. */
+  assumptions?: Assumptions;
+  /** Requests a month by workload id, for hosting items that take their volume from another workload. */
+  volumes?: Map<string, number>;
 }
 
 const H = heuristics;
@@ -51,7 +58,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
    * Splitting by tier (rather than blending into one line) keeps PTU sizing from counting Batch
    * tokens, which never run on provisioned capacity.
    */
-  const llm = (part: string, label: string, modelId: string, calls: number, inTok: number, cachedTok: number, outTok: number, behaviour: "usage" | "fixed" = "usage", batchShare = 0, writeTok = 0): Line[] => {
+  const llm = (part: string, label: string, modelId: string, calls: number, inTok: number, cachedTok: number, outTok: number, behaviour: "usage" | "fixed" = "usage", batchShare = 0, writeTok = 0, note = ""): Line[] => {
     const tk = book.tokenizerMultiplier(modelId);
     const tokens = { input: inTok * tk, cachedInput: cachedTok * tk, output: outTok * tk, ...(writeTok ? { cacheWrite: writeTok * tk } : {}) };
     const reqTokens = (inTok + cachedTok + writeTok) * tk;
@@ -62,8 +69,8 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       const idSuffix = tier === "batch" ? ":batch" : "";
       const batchNote = tier === "batch" ? ` · ${Math.round(batchShare * 100)}% via Batch` : "";
       const writeNote = writeTok ? ` + ${fmtInt(tokens.cacheWrite ?? 0)} cache write` : "";
-      return line({ id: `${id}:${part}${idSuffix}`, componentId: id, label, stream: "run", behaviour, meter: modelId, tier, quantity: qty, unit: "call", unitPrice: per, tokens,
-        formula: `${fmtInt(qty)} calls × (${fmtInt(tokens.input)} in + ${fmtInt(tokens.cachedInput)} cached${writeNote} + ${fmtInt(tokens.output)} out tokens) on ${modelLabel}${batchNote}` });
+      return line({ id: `${id}:${part}${idSuffix}`, componentId: id, label, stream: "run", behaviour, meter: modelId, tier, quantity: qty, unit: "call", unitPrice: per, tokens, deployment: book.settings.azureDeployment,
+        formula: `${fmtInt(qty)} calls × (${fmtInt(tokens.input)} in + ${fmtInt(tokens.cachedInput)} cached${writeNote} + ${fmtInt(tokens.output)} out tokens) on ${modelLabel}${batchNote}${note}` });
     };
     if (!batchShare) return [tierLine("standard", calls)];
     const out: Line[] = [];
@@ -85,6 +92,92 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
    */
   const shieldLines = (requests: number, chars: number): Line[] =>
     book.catalog.unitPrices.some((u) => u.id === SHIELDS) ? [unit("shields", `${w.label}: Prompt Shields`, SHIELDS, (requests * Math.ceil(chars / 1000)) / 1000)] : [];
+
+  const A = c.assumptions ?? ASSUMPTION_DEFAULTS;
+
+  /** Image tokens as extra uncached input on `modelId`, already divided by its tokenizer multiplier (image tokens are billed as counted, not re-tokenized). */
+  const imageInput = (modelId: string, img: Extract<Workload, { kind: "chat" | "llm" }>["images"]): { tokens: number; note: string } => {
+    if (!img || img.perCall === 0) return { tokens: 0, note: "" };
+    const m = book.chatModel(modelId);
+    const r = imageCost(m, img);
+    if (!r.supported) book.alert(`images:${m.id}`, { kind: "unverified", message: r.formula });
+    return { tokens: r.perCall / book.tokenizerMultiplier(modelId), note: r.supported ? ` · ${r.formula}` : "" };
+  };
+
+  /** Built-in tool fees: a catalogue price or the user's own price per 1,000 calls, times calls per task (or per chat turn). */
+  const toolFeeLines = (fees: readonly import("./project.js").ToolFee[], volume: number): Line[] =>
+    fees.flatMap((f, i): Line[] => {
+      if (f.unitPriceId !== undefined) {
+        const u = book.unit(f.unitPriceId);
+        return [unit(`fee-${f.unitPriceId}`, `${w.label}: ${f.label ?? u.label}`, f.unitPriceId, (volume * f.perTask) / unitDivisor(u.unit))];
+      }
+      const price = f.cadPer1KCalls ?? 0;
+      const label = f.label ?? "Tool calls";
+      return [line({ id: `${id}:fee-own-${i}`, componentId: id, label: `${w.label}: ${label}`, stream: "run", behaviour: "usage", meter: `cad:tool:${i}`, quantity: (volume * f.perTask) / 1000, unit: "1K calls", unitPrice: price,
+        formula: `${fmtInt(volume * f.perTask)} calls × CAD ${price} per 1K (your own price)` })];
+    });
+
+  /**
+   * PTU mode and the TPM quota check for chat, llm and agent workloads (E8). With `ptu`, the workload's main-model load moves
+   * onto provisioned capacity: one fixed PTU line at the workload's own deployment rate, plus the share that spills past the
+   * capacity at pay-as-you-go. `ptus` absent sizes for the peak (average × peak-to-average), which leaves no spillover.
+   * Spill share defaults to the part of average load above capacity. It is fixed at full-adoption volume, so ramp months
+   * over-bill spillover slightly. Batch lines never run on provisioned capacity and are left alone.
+   */
+  const capacity = (cw: Extract<Workload, { kind: "chat" | "llm" | "agent" }>, modelId: string, lines: Line[]): Line[] => {
+    if (!cw.ptu && cw.tpmQuota === undefined) return lines;
+    const cat = book.catalog;
+    const deployment = book.settings.azureDeployment;
+    const peakX = A.peakToAverage;
+    const onModel = (l: Line) => l.meter === modelId && l.stream === "run" && l.tokens !== undefined && (!l.tier || l.tier === "standard");
+    const total = { input: 0, cachedInput: 0, output: 0 };
+    for (const l of lines) if (onModel(l)) {
+      total.input += l.tokens!.input * l.quantity; total.cachedInput += l.tokens!.cachedInput * l.quantity; total.output += l.tokens!.output * l.quantity;
+    }
+    const avg = { input: total.input / MINUTES_PER_MONTH, cachedInput: total.cachedInput / MINUTES_PER_MONTH, output: total.output / MINUTES_PER_MONTH };
+    const modelLabel = book.chatModel(modelId).label;
+    let out = lines;
+    let spill = 1;
+    if (cw.ptu) {
+      const t = cat.ptu.models.find((m) => m.modelId === modelId);
+      if (!t) {
+        book.alert(`ptu-model:${id}`, { kind: "capacity", message: `${cw.label}: ${modelLabel} is not offered on provisioned throughput, so it stays pay-as-you-go` });
+      } else {
+        const need = sizePtu(cat, modelId, { input: avg.input * peakX, cachedInput: avg.cachedInput * peakX, output: avg.output * peakX }, deployment)!;
+        const requested = cw.ptu.ptus ?? need.ptus;
+        const ptus = Math.max(need.min, requested);
+        if (requested < need.min) book.alert(`ptu-min:${id}`, { kind: "capacity", message: `${cw.label}: ${requested} PTUs is below the ${need.min}-PTU minimum for ${modelLabel} on ${DEPLOYMENT_LABEL[deployment]}; priced at ${need.min}` });
+        const capacityTpm = ptus * need.inputTpmPerPtu;
+        const avgNorm = avg.input + avg.output * need.outputRatio;
+        const defaultSpill = avgNorm > 0 ? Math.max(0, 1 - capacityTpm / avgNorm) : 0;
+        spill = cw.ptu.spilloverShare ?? defaultSpill;
+        if (cw.ptu.ptus !== undefined && capacityTpm < need.normTpm) {
+          book.alert(`ptu-peak:${id}`, { kind: "capacity", message: `${cw.label}: ${ptus} PTUs cover ${Math.round((capacityTpm / need.normTpm) * 100)}% of the peak load (${peakX}× average); peaks above that get throttled or spill to pay-as-you-go` });
+        }
+        const rate = cat.ptu.rates[deployment];
+        const perPtu = cw.ptu.term === "hourly" ? rate.hourly * HOURS_PER_MONTH : cw.ptu.term === "yearly" ? rate.yearlyReservationPerMonth : rate.monthlyReservation;
+        const termLabel = cw.ptu.term === "hourly" ? "hourly" : cw.ptu.term === "yearly" ? "1-year reservation" : "1-month reservation";
+        const base = line({ id: `${id}:ptu`, componentId: id, label: `${cw.label}: provisioned throughput (${ptus} PTU, ${termLabel})`, stream: "run", behaviour: "fixed", meter: `ptu:${modelId}`, quantity: ptus, unit: "PTU-month", unitPrice: perPtu,
+          formula: `${ptus} PTUs × CAD ${perPtu.toFixed(2)} per PTU-month (${termLabel}, ${DEPLOYMENT_LABEL[deployment]}) on ${modelLabel}; ${Math.round(Math.min(1, capacityTpm / Math.max(avgNorm, 1)) * 100)}% of average load fits` });
+        const rest: Line[] = [];
+        for (const l of lines) {
+          if (!onModel(l)) { rest.push(l); continue; }
+          if (spill <= 0) continue;
+          rest.push({ ...l, label: `${l.label} (pay-as-you-go spillover)`, quantity: l.quantity * spill, cost: l.cost * spill, onPtu: true,
+            formula: `${Math.round(spill * 100)}% of the load spills past the provisioned capacity: ${l.formula}` });
+        }
+        out = [base, ...rest];
+      }
+    }
+    if (cw.tpmQuota !== undefined) {
+      const share = cw.ptu ? spill : 1;
+      const peakTpm = (avg.input + avg.cachedInput + avg.output) * share * peakX;
+      if (peakTpm > cw.tpmQuota) {
+        book.alert(`quota:${id}`, { kind: "quota", message: `${cw.label}: peak about ${fmtInt(peakTpm)} tokens a minute on ${modelLabel} (${peakX}× average) is over your ${fmtInt(cw.tpmQuota)} TPM quota. Ask for more quota or split the load across deployments` });
+      }
+    }
+    return out;
+  };
 
   switch (w.kind) {
     case "transcription": {
@@ -143,8 +236,8 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       if (w.agentic) {
         const a = w.agentic;
         out.push(unit("agentic", `${w.label}: agentic retrieval`, "search-agentic", (w.queriesPerMonth * a.subqueries * a.chunksPerSubquery * a.tokensPerChunk) / 1e6));
-        const outTok = 350 + reasoningOut(book, a.plannerModelId, a.reasoning);
-        out.push(...llm("planner", `${w.label}: query planning`, a.plannerModelId, w.queriesPerMonth, 2000, 0, outTok));
+        const outTok = A.plannerOutputTokens + reasoningOut(book, a.plannerModelId, a.reasoning);
+        out.push(...llm("planner", `${w.label}: query planning`, a.plannerModelId, w.queriesPerMonth, A.plannerInputTokens, 0, outTok));
       }
       return out;
     }
@@ -163,6 +256,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       const lang = languageFactor(w, c) * tokenSpread(c.percentile);
       const outTok = (w.assistantTurnTokens + reasoningOut(book, w.modelId, w.reasoning)) * lang;
       const mainCalls = turnsMonth * (1 - split);
+      const img = imageInput(w.modelId, w.images);
       // Late turns can cross the model's long-context threshold even though the conversation's average prompt doesn't (E6): bill the share of turns at/after that point at the long-context rate.
       const lc = book.chatModel(w.modelId).longContext;
       let out: Line[];
@@ -172,14 +266,18 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
         const overPrompt = basePrompt + (w.turns - 1) * perTurn;
         out = [];
         const belowCalls = mainCalls * (1 - shareOver), aboveCalls = mainCalls * shareOver;
-        if (belowCalls > 0) out.push(...llm("main", w.label, w.modelId, belowCalls, (prompt - cached - write) * lang, cached * lang, outTok, "usage", 0, write * lang));
-        if (aboveCalls > 0) out.push(...llm("main-longctx", `${w.label}: long-context turns`, w.modelId, aboveCalls, (overPrompt - cached - write) * lang, cached * lang, outTok, "usage", 0, write * lang));
+        if (belowCalls > 0) out.push(...llm("main", w.label, w.modelId, belowCalls, (prompt - cached - write) * lang + img.tokens, cached * lang, outTok, "usage", 0, write * lang, img.note));
+        if (aboveCalls > 0) out.push(...llm("main-longctx", `${w.label}: long-context turns`, w.modelId, aboveCalls, (overPrompt - cached - write) * lang + img.tokens, cached * lang, outTok, "usage", 0, write * lang, img.note));
       } else {
-        out = llm("main", w.label, w.modelId, mainCalls, (prompt - cached - write) * lang, cached * lang, outTok, "usage", 0, write * lang);
+        out = llm("main", w.label, w.modelId, mainCalls, (prompt - cached - write) * lang + img.tokens, cached * lang, outTok, "usage", 0, write * lang, img.note);
       }
-      if (w.router && split > 0) out.push(...llm("routed", `${w.label}: routed turns`, w.router.modelId, turnsMonth * split, (prompt - cached - write) * lang, cached * lang, outTok, "usage", 0, write * lang));
+      if (w.router && split > 0) {
+        const imgR = imageInput(w.router.modelId, w.images);
+        out.push(...llm("routed", `${w.label}: routed turns`, w.router.modelId, turnsMonth * split, (prompt - cached - write) * lang + imgR.tokens, cached * lang, outTok, "usage", 0, write * lang, imgR.note));
+      }
       if (w.promptShields) out.push(...shieldLines(turnsMonth, (w.userTurnTokens + w.topK * w.chunkTokens) * 4));
-      return out;
+      if (w.toolFees?.length) out.push(...toolFeeLines(w.toolFees, turnsMonth));
+      return capacity(w, w.modelId, out);
     }
     case "agent": {
       const h = c.harnesses.get(w.harnessId);
@@ -187,11 +285,11 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       // At high enough production volume, tasks run close enough together to keep the harness's static prefix warm across tasks (E4).
       const warmPrefix = w.tasksPerMonth >= H.agents.warmPrefix.tasksPerMonthThreshold ? H.agents.warmPrefix.share : 0;
       const r = simulateHarness(h, book, { modelId: w.modelId, cacheHit: w.cacheHit, warmPrefix, percentile: c.percentile, date });
-      const out = [line({ id: `${id}:runs`, componentId: id, label: w.label, stream: "run", behaviour: "usage", meter: w.modelId, quantity: w.tasksPerMonth, unit: "task", unitPrice: r.cost,
+      const out = [line({ id: `${id}:runs`, componentId: id, label: w.label, stream: "run", behaviour: "usage", meter: w.modelId, quantity: w.tasksPerMonth, unit: "task", unitPrice: r.cost, deployment: book.settings.azureDeployment,
         tokens: { input: r.inputTokens, cachedInput: r.cachedTokens, output: r.outputTokens, cacheWrite: r.cacheWriteTokens },
         formula: `${fmtInt(w.tasksPerMonth)} tasks × ${r.steps} steps · ${fmtInt(r.inputTokens + r.cachedTokens + r.cacheWriteTokens)} in (${fmtInt(r.cachedTokens)} cached, ${fmtInt(r.cacheWriteTokens)} written) + ${fmtInt(r.outputTokens)} out per task at ${c.percentile.toUpperCase()}` })];
-      for (const f of w.toolFees) out.push(unit(`fee-${f.unitPriceId}`, `${w.label}: ${book.unit(f.unitPriceId).label}`, f.unitPriceId, (w.tasksPerMonth * f.perTask) / unitDivisor(book.unit(f.unitPriceId).unit)));
-      return out;
+      out.push(...toolFeeLines(w.toolFees, w.tasksPerMonth));
+      return capacity(w, w.modelId, out);
     }
     case "continuousEval": {
       const n = w.interactionsPerMonth * w.sampleShare;
@@ -205,14 +303,25 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       const lang = languageFactor(w, c) * tokenSpread(c.percentile);
       const outTok = (w.outputTokens + reasoningOut(book, w.modelId, w.reasoning)) * lang;
       const calls = w.callsPerMonth * (1 + (w.resendShare ?? 0));
-      return [...llm("calls", w.label, w.modelId, calls, w.inputTokens * lang, w.cachedInputTokens * lang, outTok, "usage", w.batchShare), ...(w.promptShields ? shieldLines(calls, w.inputTokens * 4) : [])];
+      const img = imageInput(w.modelId, w.images);
+      return capacity(w, w.modelId, [...llm("calls", w.label, w.modelId, calls, w.inputTokens * lang + img.tokens, w.cachedInputTokens * lang, outTok, "usage", w.batchShare, 0, img.note), ...(w.promptShields ? shieldLines(calls, w.inputTokens * 4) : [])]);
     }
     case "fixed":
       return w.items.map((it) => (isCashItem(it)
         ? cashLine(`${id}:${it.id}`, id, it, "platform")
         : unit(it.id, it.label, it.unitPriceId, it.quantity, "fixed", "platform")));
+    case "hosting": {
+      const volume = (w.volumeFrom !== undefined ? c.volumes?.get(w.volumeFrom) : undefined) ?? w.requestsPerMonth;
+      return w.items.map((it): Line => {
+        if (it.basis === "cash") return cashLine(`${id}:${it.id}`, id, { id: it.id, label: `${w.label}: ${it.label}`, amountCad: it.amountCad, cadence: "monthly" }, "platform");
+        if (it.basis === "fixed") return { ...unit(it.id, `${w.label}: ${it.label}`, it.unitPriceId, it.quantity, "fixed", "platform") };
+        const qty = (volume / 1000) * it.unitsPer1KRequests;
+        const l = unit(it.id, `${w.label}: ${it.label}`, it.unitPriceId, qty, "usage", "platform");
+        return { ...l, formula: `${fmtInt(volume)} requests × ${it.unitsPer1KRequests} ${book.unit(it.unitPriceId).unit} per 1K requests at CAD ${l.unitPrice.toFixed(4)}` };
+      });
+    }
     case "voiceAgent": {
-      const v = voiceCall(w, book);
+      const v = voiceCall(w, book, { input: A.voiceFunctionCallInputTokens, output: A.voiceFunctionCallOutputTokens });
       const out = [line({ id: `${id}:realtime`, componentId: id, label: `${w.label}: ${book.realtimeModel(w.modelId).label}`, stream: "run", behaviour: "usage", meter: w.modelId, quantity: w.callsPerMonth, unit: "call", unitPrice: v.cost,
         formula: `${fmtInt(w.callsPerMonth)} calls × ${w.minutesPerCall} min, ${w.turnsPerCall} turns · ${fmtInt(v.audioIn)} audio in (${fmtInt(v.cachedAudio)} cached) + ${fmtInt(v.audioOut)} audio out + ${fmtInt(v.textIn)} text in per call` })];
       if (w.telephonyPerMinute > 0) out.push(line({ id: `${id}:telephony`, componentId: id, label: `${w.label}: telephony`, stream: "run", behaviour: "usage", meter: "telephony", quantity: w.callsPerMonth * w.minutesPerCall, unit: "minute", unitPrice: w.telephonyPerMinute, formula: `${fmtInt(w.callsPerMonth * w.minutesPerCall)} minutes × CAD ${w.telephonyPerMinute}` }));
@@ -252,7 +361,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
  * One speech-to-speech call. Each turn the model re-reads the conversation so far (audio
  * history, mostly cached) plus the caller's new audio, and speaks its reply.
  */
-export function voiceCall(w: Extract<Workload, { kind: "voiceAgent" }>, book: PriceBook) {
+export function voiceCall(w: Extract<Workload, { kind: "voiceAgent" }>, book: PriceBook, functionCall: { input: number; output: number } = { input: 0, output: 0 }) {
   const m = book.realtimeModel(w.modelId);
   const secs = w.minutesPerCall * 60;
   const callerPerTurn = (secs * (1 - w.agentTalkShare) / w.turnsPerCall) * m.audioTokensPerSecondIn;
@@ -268,7 +377,9 @@ export function voiceCall(w: Extract<Workload, { kind: "voiceAgent" }>, book: Pr
     cachedText += sysCached;
     history += callerPerTurn + agentPerTurn;
   }
-  const cost = (audioIn * m.audio.input + cachedAudio * m.audio.cachedInput + audioOut * m.audio.output + textIn * m.text.input + cachedText * m.text.cachedInput) / 1e6;
+  // Tool (function) calling adds text tokens each turn: the call and its result in, the call out.
+  const fcIn = functionCall.input * w.turnsPerCall, fcOut = functionCall.output * w.turnsPerCall;
+  const cost = (audioIn * m.audio.input + cachedAudio * m.audio.cachedInput + audioOut * m.audio.output + (textIn + fcIn) * m.text.input + cachedText * m.text.cachedInput + fcOut * m.text.output) / 1e6;
   return { cost, audioIn, cachedAudio, audioOut, textIn };
 }
 
@@ -276,7 +387,7 @@ export function voiceCall(w: Extract<Workload, { kind: "voiceAgent" }>, book: Pr
  * The same call as a cascade: speech-to-text on the caller's audio, an LLM turn per exchange
  * on the transcript, and text-to-speech for the agent's words.
  */
-export function cascadeCall(w: Extract<Workload, { kind: "voiceAgent" }>, book: PriceBook, date: string, o: { sttId: string; llmId: string; ttsId: string }) {
+export function cascadeCall(w: Extract<Workload, { kind: "voiceAgent" }>, book: PriceBook, date: string, o: { sttId: string; llmId: string; ttsId: string }, functionCall: { input: number; output: number } = { input: 0, output: 0 }) {
   const H = heuristics;
   const callerMin = w.minutesPerCall * (1 - w.agentTalkShare), agentMin = w.minutesPerCall * w.agentTalkShare;
   const stt = (callerMin / 60) * book.speechPerHour(o.sttId, date);
@@ -287,7 +398,7 @@ export function cascadeCall(w: Extract<Workload, { kind: "voiceAgent" }>, book: 
   for (let t = 1; t <= w.turnsPerCall; t++) {
     const prompt = w.systemPromptTokens + history + wordsPerTurnCaller * tk;
     const cached = (w.systemPromptTokens + history) * (t === 1 ? 0 : w.cacheHit);
-    llm += book.chatCost(o.llmId, { input: prompt - cached, cachedInput: cached, output: wordsPerTurnAgent * tk }, date);
+    llm += book.chatCost(o.llmId, { input: prompt - cached + functionCall.input, cachedInput: cached, output: wordsPerTurnAgent * tk + functionCall.output }, date);
     history += (wordsPerTurnCaller + wordsPerTurnAgent) * tk;
   }
   const chars = agentMin * H.speech.wordsPerMinute * 6;

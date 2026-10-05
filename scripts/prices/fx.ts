@@ -46,7 +46,8 @@ export function applyUsdList(files: Record<string, Json[]>, list: UsdEntry[], fx
       let o = entry;
       for (const p of path.slice(0, -1)) o = o[p] ??= {};
       const last = path.at(-1)!;
-      const to = round(usd * fx.usdToCad);
+      // Per-second meters are far below 0.0001 CAD; keep four significant figures instead of four decimals.
+      const to = usd < 0.001 ? Number((usd * fx.usdToCad).toPrecision(4)) : round(usd * fx.usdToCad);
       if (o[last] !== to) changes.push({ id: u.id, field, from: o[last], to });
       o[last] = to;
     }

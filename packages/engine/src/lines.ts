@@ -34,6 +34,10 @@ export interface Line {
   once?: boolean;
   /** Project month a one-time line lands in, when its own item names one; otherwise the owner's first month. */
   onceMonth?: number;
+  /** The Azure deployment an LLM line was priced for; lets PTU analysis compare against that deployment's own price. */
+  deployment?: "global" | "regional" | "dataZone";
+  /** Pay-as-you-go spillover of a workload in PTU mode; the rest of its load runs on the provisioned capacity. */
+  onPtu?: boolean;
 }
 
 export const line = (l: Omit<Line, "cost"> & { cost?: number }): Line => ({ ...l, cost: l.cost ?? l.quantity * l.unitPrice });

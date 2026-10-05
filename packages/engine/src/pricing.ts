@@ -56,7 +56,7 @@ export interface TokenUsage {
 }
 
 export interface PriceNote {
-  kind: "promo-ended" | "deprecated" | "retired" | "unverified" | "long-context" | "routing" | "unavailable" | "tier-unavailable";
+  kind: "promo-ended" | "deprecated" | "retired" | "unverified" | "long-context" | "routing" | "unavailable" | "tier-unavailable" | "quota" | "capacity";
   message: string;
 }
 
@@ -88,6 +88,11 @@ export class PriceBook {
 
   private note(key: string, n: PriceNote) {
     if (!this.notes.has(key)) this.notes.set(key, n);
+  }
+
+  /** Raises an alert from outside the price lookups (a TPM quota or PTU capacity check). The first alert for a key wins. */
+  alert(key: string, n: PriceNote) {
+    this.note(key, n);
   }
 
   chatModel(id: string): ChatModel {

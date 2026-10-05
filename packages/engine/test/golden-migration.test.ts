@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadCatalog } from "@studio/catalog";
-import { CURRENT_PROJECT_VERSION, PROJECT_TEMPLATES, ProjectSchema, buildLedger, computeAllocation, computeRoi, migrateProject } from "../src/index.js";
+import { CURRENT_PROJECT_VERSION, PROJECT_TEMPLATES, ProjectSchema, buildLedger, computeAllocation, computeRoi, meetingIntelligence, migrateProject } from "../src/index.js";
 import golden from "./fixtures/v2-golden.json";
 
 /**
@@ -9,6 +9,18 @@ import golden from "./fixtures/v2-golden.json";
  * a saved project, and a template a user started from, costs exactly what it did.
  */
 const cat = loadCatalog();
+
+/**
+ * P10 fixed the Container Apps vCPU and memory prices, which were 0 (the Retail API's CAD rows carry only the free grant).
+ * The v2 golden figures predate that, so they are checked against the catalogue as it stood: the same two entries at price 0
+ * with no free grant. That isolates the migration and the engine; the price fix itself is pinned separately below.
+ */
+const legacyCat = structuredClone(cat);
+for (const id of ["container-apps-vcpu-s", "container-apps-gib-s"]) {
+  const u = legacyCat.unitPrices.find((x) => x.id === id)!;
+  u.price = 0;
+  delete u.freePerMonth;
+}
 const close = (a: number, b: number) => expect(a).toBeCloseTo(b, 6);
 
 type Entry = { project: Record<string, unknown>; golden: {
@@ -24,7 +36,7 @@ describe("v2 to v3 migration keeps every total", () => {
       expect(migrated.version).toBe(CURRENT_PROJECT_VERSION);
       expect(migrated.features).toHaveLength(1);
 
-      const ledger = buildLedger(migrated, cat);
+      const ledger = buildLedger(migrated, legacyCat);
       for (const [k, v] of Object.entries(entry.golden.totals)) close((ledger.totals as Record<string, number>)[k]!, v);
       expect(ledger.months).toHaveLength(entry.golden.byStream.length);
       ledger.months.forEach((mo, i) => {
@@ -48,7 +60,7 @@ describe("v2 to v3 migration keeps every total", () => {
     it(`${t.id}: a project started from the template today costs what it did before P5`, () => {
       const g = (golden as unknown as Record<string, Entry>)[t.id]!;
       const p = ProjectSchema.parse(t.make("Golden check"));
-      const ledger = buildLedger(p, cat);
+      const ledger = buildLedger(p, legacyCat);
       for (const [k, v] of Object.entries(g.golden.totals)) close((ledger.totals as Record<string, number>)[k]!, v);
       const roi = computeRoi(ledger, p.roi.basis, p.roi.discountRatePct);
       close(roi.totalCost, g.golden.roi.totalCost);
@@ -63,5 +75,49 @@ describe("v2 to v3 migration keeps every total", () => {
     expect(notes.workloadIds).toEqual(expect.arrayContaining(["stt", "agent", "email"]));
     expect(notes.workstreamIds).toEqual(expect.arrayContaining(["ws-notes", "ws-shared"]));
     expect(notes.featureId).toBe(migrated.features[0]!.id);
+  });
+});
+
+/**
+ * v4 to v5 (P10): hosting stacks, tool fees, image input, PTU mode and editable assumptions are all optional, and absent
+ * means the old behaviour. A project saved at v4 must migrate to v5 and price exactly as it did, for the sample and every template.
+ */
+describe("v4 to v5 migration keeps every total", () => {
+  const v4 = (p: unknown) => ({ ...(structuredClone(p) as Record<string, unknown>), version: 4 });
+  const sources = [["sample", meetingIntelligence as unknown], ...PROJECT_TEMPLATES.map((t) => [t.id, t.make(`v4 ${t.id}`) as unknown] as const)] as const;
+
+  for (const [name, project] of sources) {
+    it(`${name}: a v4 save migrates to v5 with identical totals, ranges and allocation`, () => {
+      const saved = v4(project);
+      const migrated = ProjectSchema.parse(migrateProject(structuredClone(saved)));
+      const current = ProjectSchema.parse(project);
+      expect(migrated.version).toBe(5);
+      expect(migrated).toEqual({ ...current, version: 5 });
+      const a = buildLedger(migrated, cat), b = buildLedger(current, cat);
+      expect(a.totals).toEqual(b.totals);
+      a.months.forEach((mo, i) => {
+        expect(mo.lines.map((l) => [l.id, l.cost])).toEqual(b.months[i]!.lines.map((l) => [l.id, l.cost]));
+        expect(mo.byStream).toEqual(b.months[i]!.byStream);
+      });
+      expect(computeAllocation(migrated, a, migrated.roi.basis)).toEqual(computeAllocation(current, b, current.roi.basis));
+    });
+  }
+
+  it("a v4 save with no new fields gains none", () => {
+    const migrated = migrateProject(v4(meetingIntelligence)) as Record<string, unknown>;
+    expect((migrated.settings as Record<string, unknown>).assumptions).toBeUndefined();
+    expect(JSON.stringify(migrated.workloads)).not.toMatch(/"(ptu|tpmQuota|images|hosting)"/);
+  });
+});
+
+/** The one intended delta in P10: the sample uses Container Apps, whose price used to be 0. */
+describe("P10 price fix: Container Apps", () => {
+  it("raises the sample's run rate by exactly the two meters' paid usage", () => {
+    const before = buildLedger(ProjectSchema.parse(meetingIntelligence), legacyCat).totals.runRate;
+    const after = buildLedger(ProjectSchema.parse(meetingIntelligence), cat).totals.runRate;
+    // 2,600,000 vCPU-s and 5,200,000 GiB-s a month, less the free grant (180,000 and 360,000), at the corrected prices.
+    const expected = (2_600_000 - 180_000) * 0.0000482 + (5_200_000 - 360_000) * 0.00000567;
+    expect(after - before).toBeCloseTo(expected, 4);
+    expect(expected).toBeCloseTo(144.0868, 4);
   });
 });

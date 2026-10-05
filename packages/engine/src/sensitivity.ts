@@ -5,6 +5,8 @@ import { computeRoi, roiOptions } from "./roi.js";
 import { applyEdit } from "./scenarios.js";
 import { PriceBook, availableIn } from "./pricing.js";
 import { workloadLines } from "./workloads.js";
+import { resolveAssumptions } from "./assumptions.js";
+import { requestVolumes } from "./hosting.js";
 import { capabilityVolume, roiAssumptions } from "./benefits.js";
 
 export interface SensitivityRow {
@@ -69,7 +71,7 @@ function modelSpend(p: Project, cat: Catalog): { modelId: string; spend: number 
   for (const w of p.workloads) {
     const modelId = (w as { modelId?: string }).modelId;
     if (!modelId || !["chat", "agent", "llm"].includes(w.kind)) continue;
-    const cost = workloadLines(w, { book, date: p.startDate, harnesses, percentile: "p50", language: p.settings.language }).reduce((s, l) => s + l.cost, 0);
+    const cost = workloadLines(w, { book, date: p.startDate, harnesses, percentile: "p50", language: p.settings.language, assumptions: resolveAssumptions(p), volumes: requestVolumes(p.workloads) }).reduce((s, l) => s + l.cost, 0);
     spend.set(modelId, (spend.get(modelId) ?? 0) + cost);
   }
   return [...spend].map(([modelId, s]) => ({ modelId, spend: s })).sort((a, b) => b.spend - a.spend);
