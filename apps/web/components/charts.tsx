@@ -16,6 +16,9 @@ export function useSize<T extends HTMLElement>() {
   return [ref, size] as const;
 }
 
+/** Percent values go into style strings; round them so server and browser markup are identical. */
+const r2 = (v: number) => Math.round(v * 100) / 100;
+
 function niceMax(v: number) {
   if (v <= 0) return 1;
   const p = 10 ** Math.floor(Math.log10(v));
@@ -215,7 +218,7 @@ export function RankedBars({ rows, className }: { rows: { label: string; value: 
           <div className="min-w-0">
             <div className="truncate text-ink-2">{r.label}</div>
             <div className="h-[9px] overflow-hidden rounded bg-surface-2">
-              {w > 0 && <div className="h-full rounded" style={{ width: `${Math.max(1.5, (100 * r.value) / max)}%`, background: DRIVER_COLOR[r.color] }} />}
+              {w > 0 && <div className="h-full rounded" style={{ width: `${r2(Math.max(1.5, (100 * r.value) / max))}%`, background: DRIVER_COLOR[r.color] }} />}
             </div>
           </div>
           <span className="num whitespace-nowrap font-semibold text-ink">{cad(r.value)}</span>
@@ -230,8 +233,8 @@ export function BulletBar({ value, baseline, color = "var(--accent)" }: { value:
   const max = Math.max(value, baseline ?? 0, 0.01) * 1.15;
   return (
     <div className="relative h-[18px] rounded bg-surface-2">
-      <div className="absolute inset-y-0 left-0 rounded" style={{ width: `${Math.max(1.5, (100 * value) / max)}%`, background: color }} />
-      {baseline !== null && <div className="absolute inset-y-[-3px] w-0.5 bg-ink" style={{ left: `${Math.min(99, (100 * baseline) / max)}%` }} title={`Today, manually: ${cadUnit(baseline)}`} />}
+      <div className="absolute inset-y-0 left-0 rounded" style={{ width: `${r2(Math.max(1.5, (100 * value) / max))}%`, background: color }} />
+      {baseline !== null && <div className="absolute inset-y-[-3px] w-0.5 bg-ink" style={{ left: `${r2(Math.min(99, (100 * baseline) / max))}%` }} title={`Today, manually: ${cadUnit(baseline)}`} />}
     </div>
   );
 }
@@ -259,7 +262,7 @@ export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string
           const pad = ((r.high - r.low) || Math.abs(r.expected) || 1) * 0.06;
           const lo = r.low - pad, hi = r.high + pad;
           const span = hi - lo || 1;
-          const x = (v: number) => (100 * (v - lo)) / span;
+          const x = (v: number) => Math.round((10000 * (v - lo)) / span) / 100;
           const pos = (v: number) => Math.min(98, Math.max(2, x(v)));
           return (
             <div key={r.id} className="grid grid-cols-[minmax(100px,150px)_1fr] items-center gap-2 text-[12px]">
@@ -267,7 +270,7 @@ export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string
               <div>
                 <div className="relative h-5" title={`${r.label}: ${show(r, r.low)} to ${show(r, r.high)}, expected ${show(r, r.expected)}`}>
                   {x(0) > 0 && x(0) < 100 && <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${x(0)}%` }} />}
-                  <div className="absolute top-1.5 bottom-1.5 rounded bg-surface-2" style={{ left: `${x(r.low)}%`, width: `${Math.max(0.8, x(r.high) - x(r.low))}%`, background: "var(--accent)", opacity: 0.35 }} />
+                  <div className="absolute top-1.5 bottom-1.5 rounded bg-surface-2" style={{ left: `${x(r.low)}%`, width: `${r2(Math.max(0.8, x(r.high) - x(r.low)))}%`, background: "var(--accent)", opacity: 0.35 }} />
                   <div className="absolute inset-y-0.5 w-0.5 rounded bg-ink" style={{ left: `${pos(r.expected)}%` }} />
                 </div>
                 <div className="num flex justify-between text-[11px] text-muted"><span>{show(r, r.low)}</span><span className="font-semibold text-ink">{show(r, r.expected)}</span><span>{show(r, r.high)}</span></div>

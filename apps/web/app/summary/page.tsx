@@ -135,7 +135,7 @@ function MiniTornado({ s }: { s: ReturnType<typeof useSummary>["summary"] }) {
   const lo = Math.min(base, ...rows.map((r) => Math.min(r.low, r.high)), 0);
   const hi = Math.max(base, ...rows.map((r) => Math.max(r.low, r.high)), 0);
   const pad = (hi - lo || 1) * 0.17;
-  const x = (v: number) => ((v - (lo - pad)) / (hi - lo + 2 * pad || 1)) * 100;
+  const x = (v: number) => Math.round((10000 * (v - (lo - pad))) / (hi - lo + 2 * pad || 1)) / 100;
   return (
     <ViewToggle table={<TornadoTable rows={rows} />}>
       <div className="grid grid-cols-[minmax(120px,190px)_1fr] gap-x-3 gap-y-2 text-[12px]">
@@ -146,8 +146,8 @@ function MiniTornado({ s }: { s: ReturnType<typeof useSummary>["summary"] }) {
               <span className="truncate py-1 text-ink-2" title={r.label}>{r.label}</span>
               <div className="relative h-6" title={`${r.lowLabel}: ${cad(r.low)} · ${r.highLabel}: ${cad(r.high)}`}>
                 <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${x(0)}%` }} />
-                <div className="absolute top-1 bottom-1 rounded-l" style={{ left: `${x(down)}%`, width: `${Math.max(0.5, x(Math.min(base, up)) - x(down))}%`, background: "var(--risk)", opacity: 0.75 }} />
-                <div className="absolute top-1 bottom-1 rounded-r" style={{ left: `${x(Math.max(base, down))}%`, width: `${Math.max(0.5, x(up) - x(Math.max(base, down)))}%`, background: "var(--good)", opacity: 0.75 }} />
+                <div className="absolute top-1 bottom-1 rounded-l" style={{ left: `${x(down)}%`, width: `${Math.max(0.5, Math.round(100 * (x(Math.min(base, up)) - x(down))) / 100)}%`, background: "var(--risk)", opacity: 0.75 }} />
+                <div className="absolute top-1 bottom-1 rounded-r" style={{ left: `${x(Math.max(base, down))}%`, width: `${Math.max(0.5, Math.round(100 * (x(up) - x(Math.max(base, down)))) / 100)}%`, background: "var(--good)", opacity: 0.75 }} />
                 <div className="absolute inset-y-0 w-0.5 bg-ink" style={{ left: `${x(base)}%` }} />
               </div>
             </div>
