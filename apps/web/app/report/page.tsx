@@ -119,7 +119,7 @@ export default function Report() {
             <section className="break-inside-avoid">
               <h2 className="mb-1.5 text-[15px] font-bold">What to watch</h2>
               <RiskSummary alerts={s.alerts.slice(0, 3)} compact />
-              {s.alerts.length > 3 && <p className="mt-1 text-[11px] text-muted">{s.alerts.length - 3} more group{s.alerts.length - 3 === 1 ? "" : "s"} of notices are in the appendix.</p>}
+              {s.alerts.length > 3 && <p className="mt-1 text-xs text-muted">{s.alerts.length - 3} more group{s.alerts.length - 3 === 1 ? "" : "s"} of notices are in the appendix.</p>}
             </section>
           </div>
         </section>
@@ -260,7 +260,7 @@ export default function Report() {
             </section>
           </div>
 
-          <footer className="border-t border-line pt-3 text-[11.5px] text-muted">
+          <footer className="border-t border-line pt-3 text-xs text-muted">
             Prices in CAD from the Azure Retail Prices API, the Snowflake Credit Consumption Table and curated sources, as of {catalog.meta.asOf}.{fx && ` USD-only list prices converted at ${fx.usdToCad} CAD per USD (Azure rate, ${fx.asOf}).`} List prices, no discounts. Token volumes are estimates from documented heuristics; agent costs use the typical (P50) run.
           </footer>
         </section>

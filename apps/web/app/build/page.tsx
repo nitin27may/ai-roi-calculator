@@ -46,7 +46,7 @@ export default function Build() {
               edit((d) => { id = addWorkstreamFromTemplate(d, t, t === "empty" ? "New workstream" : WORKSTREAM_TEMPLATES.find((x) => x.id === t)!.label); });
               if (id) setSel(`ws:${id}`);
             }} />
-            {project.build.workstreams.length === 0 && <p className="mt-1.5 text-[11.5px] text-muted">A workstream is a feature (one or more agents). Allocate people to it to cost the build per feature and per developer.</p>}
+            {project.build.workstreams.length === 0 && <p className="mt-1.5 text-xs text-muted">A workstream is a feature (one or more agents). Allocate people to it to cost the build per feature and per developer.</p>}
           </div>
           <GroupHead>AI Dev Lab activities</GroupHead>
           {acts.map((a, i) => (
@@ -144,7 +144,7 @@ function PlanGrid() {
                   return (
                     <td key={m} className="n w-20" style={on ? undefined : { opacity: 0.4 }} title={on ? `${cad(cost(a.id, m))} in month ${m}` : "Outside the activity's window"}>
                       <NumberInput label={`${a.label}, month ${m}`} value={vals[m - 1]!} step={a.kind === "bakeoff" ? 1 : 0.1} onChange={(v) => update(a.id, (x) => setPlanValue(x, m, v, B))} />
-                      <small className="block text-[10.5px] text-muted">{cad(cost(a.id, m))}</small>
+                      <small className="block text-xs text-muted">{cad(cost(a.id, m))}</small>
                     </td>
                   );
                 })}
@@ -177,7 +177,7 @@ function ByWorkstream() {
           <tr className="total"><td>Total</td><td /><td className="n">{cad(rows.reduce((s, r) => s + r.labour, 0))}</td><td className="n">{cad(rows.reduce((s, r) => s + r.devlab, 0))}</td><td className="n">{cad(ledger.totals.build)}</td>{Array.from({ length: B }, (_, i) => <td key={i} className="n">{cad(rows.reduce((s, r) => s + r.byMonth[i]!, 0))}</td>)}</tr>
         </tbody>
       </table>
-      <p className="mt-2 text-[11.5px] text-muted">Capabilities that link a workstream (on Value &amp; ROI, or in the workstream panel) carry its build cost as direct cost; project-wide cost is shared.</p>
+      <p className="mt-2 text-xs text-muted">Capabilities that link a workstream (on Value &amp; ROI, or in the workstream panel) carry its build cost as direct cost; project-wide cost is shared.</p>
     </div>
   );
 }
@@ -193,7 +193,7 @@ function ByPerson() {
     <div className="flex flex-col gap-3 overflow-auto">
       <div className="flex flex-wrap items-end gap-3">
         <Field label="AI Dev Lab budget per person per month" help="devBudget"><NumberInput value={budget ?? 0} suffix="CAD" onChange={(v) => edit((d) => { d.build.devBudgetPerMonth = v > 0 ? v : undefined; })} /></Field>
-        <p className="max-w-md text-[11.5px] text-muted">Monthly columns are AI Dev Lab spend per person. Workstream activities are charged to the people on that workstream by their share; project-wide ones to everyone running experiments. 0 = no budget.</p>
+        <p className="max-w-md text-xs text-muted">Monthly columns are AI Dev Lab spend per person. Workstream activities are charged to the people on that workstream by their share; project-wide ones to everyone running experiments. 0 = no budget.</p>
       </div>
       <table className="data">
         <thead><tr><th>Person / line</th><th className="n">Labour</th><th className="n">AI Dev Lab</th>{Array.from({ length: B }, (_, i) => <th key={i} className="n">M{i + 1}</th>)}</tr></thead>
@@ -209,8 +209,8 @@ function ByPerson() {
           ))}
         </tbody>
       </table>
-      {unattributed > 0.5 && <p className="text-[11.5px] text-warn">{cad(unattributed)} of Dev Lab spend is on workstreams with nobody allocated in that month.</p>}
-      {budget && shown.some((r) => r.overBudget.length) ? <p className="text-[11.5px] text-crit">Red months are over the budget of {cad(budget)} per person.</p> : null}
+      {unattributed > 0.5 && <p className="text-xs text-warn">{cad(unattributed)} of Dev Lab spend is on workstreams with nobody allocated in that month.</p>}
+      {budget && shown.some((r) => r.overBudget.length) ? <p className="text-xs text-crit">Red months are over the budget of {cad(budget)} per person.</p> : null}
     </div>
   );
 }
@@ -280,7 +280,7 @@ function WorkstreamPanel({ id, onRemoved, onOpen }: { id: string; onRemoved: () 
                     {k === periods.length - 1 && total > 1.005 && <small className="block text-crit">Up to {Math.round(total * 100)}% allocated in some months, so shares are scaled down then</small>}
                     {k === periods.length - 1 && overlap && <small className="block text-crit">These periods overlap: the shares add up in the shared months</small>}
                     {k === periods.length - 1 && roomLeft && (
-                      <button type="button" className="mt-0.5 block text-[11.5px] text-accent underline" onClick={() => edit((d) => { addAllocationPeriod(d, seat, id); })}>Add another period (comes back later)</button>
+                      <button type="button" className="mt-0.5 block text-xs text-accent underline" onClick={() => edit((d) => { addAllocationPeriod(d, seat, id); })}>Add another period (comes back later)</button>
                     )}
                   </td>
                   <td className="n w-36"><NumberInput label={`${who} share, period ${k + 1}`} value={Math.round(a.share * 100)} max={100} suffix="%" onChange={(v) => edit((d) => { if (v > 0) updateAllocationPeriod(d, seat, a.index, { share: v / 100 }); else removeAllocationPeriod(d, seat, a.index); })} /></td>
@@ -292,7 +292,7 @@ function WorkstreamPanel({ id, onRemoved, onOpen }: { id: string; onRemoved: () 
             })}
           </tbody>
         </table>
-        <p className="mt-1.5 text-[11.5px] text-muted">Someone who leaves this workstream and returns later gets a second period. Months outside every period are spent elsewhere (another workstream or project-wide).</p>
+        <p className="mt-1.5 text-xs text-muted">Someone who leaves this workstream and returns later gets a second period. Months outside every period are spent elsewhere (another workstream or project-wide).</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
@@ -304,7 +304,7 @@ function WorkstreamPanel({ id, onRemoved, onOpen }: { id: string; onRemoved: () 
               {c.label}
             </label>
           ))}
-          <p className="mt-1 text-[11.5px] text-muted">Its build cost becomes direct cost of these capabilities (split evenly). Unlinked, it is shared across all.</p>
+          <p className="mt-1 text-xs text-muted">Its build cost becomes direct cost of these capabilities (split evenly). Unlinked, it is shared across all.</p>
         </div>
         <div>
           <h3 className="mb-1.5 text-sm font-semibold">Agents and evaluation</h3>
@@ -410,15 +410,15 @@ function AllocationMatrix() {
                 <td className="whitespace-nowrap">{t.name ?? `${t.people} × ${rates.get(t.roleId) ?? t.roleId}`}{t.phase ? <small className="text-muted"> · {t.phase}</small> : null}</td>
                 {ws.map((w) => (
                   <td key={w.id} className="n max-w-[104px]"><NumberInput label={`${t.name ?? t.roleId} on ${w.label}`} value={Math.round((t.allocations?.find((a) => a.workstreamId === w.id)?.share ?? 0) * 100)} max={100} suffix="%" onChange={(v) => edit((d) => setAllocation(d, seat, w.id, v / 100))} />
-                    {(() => { const ps = allocationPeriods(project, seat, w.id); return ps.length > 1 || (ps[0] && (ps[0].fromMonth > 1 || ps[0].toMonth < project.timeline.buildMonths)) ? <small className="block text-[10.5px] text-muted">{ps.map((x) => `M${x.fromMonth}–${x.toMonth}`).join(", ")}</small> : null; })()}</td>
+                    {(() => { const ps = allocationPeriods(project, seat, w.id); return ps.length > 1 || (ps[0] && (ps[0].fromMonth > 1 || ps[0].toMonth < project.timeline.buildMonths)) ? <small className="block text-xs text-muted">{ps.map((x) => `M${x.fromMonth}–${x.toMonth}`).join(", ")}</small> : null; })()}</td>
                 ))}
-                <td className="n" style={total > 1.005 ? { color: "var(--crit)", fontWeight: 600 } : undefined}>{total > 1.005 ? `${Math.round(total * 100)}%${varies ? " in some months" : ""} (scaled to 100%)` : varies ? `at least ${Math.round(Math.max(0, 1 - total) * 100)}%` : `${Math.round(Math.max(0, 1 - total) * 100)}%`}{varies ? <small className="block text-[10.5px] font-normal text-muted">varies by month</small> : null}</td>
+                <td className="n" style={total > 1.005 ? { color: "var(--crit)", fontWeight: 600 } : undefined}>{total > 1.005 ? `${Math.round(total * 100)}%${varies ? " in some months" : ""} (scaled to 100%)` : varies ? `at least ${Math.round(Math.max(0, 1 - total) * 100)}%` : `${Math.round(Math.max(0, 1 - total) * 100)}%`}{varies ? <small className="block text-xs font-normal text-muted">varies by month</small> : null}</td>
               </tr>
             );
           })}
         </tbody>
       </table>
-      <p className="mt-1.5 text-[11.5px] text-muted">Set the months someone spends on a workstream in its panel (e.g. moves from one feature to another in month 4). Labour follows these shares. Iterations and playground work in a workstream scale with the people on it; bake-offs, regression and red teaming in a workstream run once, however many people share it.</p>
+      <p className="mt-1.5 text-xs text-muted">Set the months someone spends on a workstream in its panel (e.g. moves from one feature to another in month 4). Labour follows these shares. Iterations and playground work in a workstream scale with the people on it; bake-offs, regression and red teaming in a workstream run once, however many people share it.</p>
     </div>
   );
 }
@@ -433,7 +433,7 @@ function DevEnvironment() {
       <div><h2 className="text-base font-bold">Dev environment</h2><div className="text-xs text-muted">Services the team runs while building, billed every build month: dev search index, API gateway, logging, sandboxes.</div></div>
       <div className="font-display text-[26px] font-bold">{cad(lines.reduce((s, l) => s + l.cost, 0))}<span className="ml-1.5 font-sans text-xs font-normal text-muted">over {B} months</span></div>
       <CostItems items={project.build.environment} locate={(d) => d.build.environment} idPrefix="env" firstMonthLabel="build month 1" />
-      <p className="text-[11.5px] text-muted">Catalogue items are before free allowances; the total above applies them. A free-text cost needs no catalogue price: enter C$ per month or once.</p>
+      <p className="text-xs text-muted">Catalogue items are before free allowances; the total above applies them. A free-text cost needs no catalogue price: enter C$ per month or once.</p>
       <Explain title="How this is calculated" lines={lines} months={B} />
     </>
   );

@@ -40,7 +40,7 @@ const PILL_ICON = { ok: CheckCircle2, warn: AlertTriangle, crit: OctagonAlert } 
 export function Pill({ tone = "n", children }: { tone?: "ok" | "warn" | "crit" | "n"; children: ReactNode }) {
   const t = { ok: "bg-good-soft text-good", warn: "bg-warn-soft text-warn", crit: "bg-crit-soft text-crit", n: "bg-surface-2 text-ink-2" }[tone];
   const Icon = tone === "n" ? null : PILL_ICON[tone];
-  return <span className={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-px text-[11px] font-medium", t)}>{Icon && <Icon size={11} aria-hidden />}{children}</span>;
+  return <span className={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-px text-xs font-medium", t)}>{Icon && <Icon size={11} aria-hidden />}{children}</span>;
 }
 
 interface FieldContextValue { id: string; help?: string }
@@ -54,7 +54,7 @@ export function Field({ label, help, children }: { label: string; help?: HelpId;
   const scoped = useContext(HelpScope);
   const helpId = help ?? scoped;
   return (
-    <div className="flex min-w-0 flex-col gap-0.5 text-[11.5px] text-muted">
+    <div className="flex min-w-0 flex-col gap-0.5 text-xs text-muted">
       <div className="flex items-center gap-0.5">
         <label htmlFor={id} className="min-w-0">{label}</label>
         {helpId && helpFor(helpId) && <HelpTip id={helpId} label={label} />}
@@ -103,7 +103,7 @@ export function NumberInput({ value, onChange, min = 0, max, step, suffix, label
           onBlur={() => { setDraft(null); setError(null); }} />
         {suffix && <span className="text-xs text-muted">{suffix}</span>}
       </span>
-      {error && <span id={errId} role="alert" className="flex items-start gap-1 text-[11.5px] leading-snug text-crit"><OctagonAlert size={12} className="mt-0.5 flex-none" aria-hidden />{error}</span>}
+      {error && <span id={errId} role="alert" className="flex items-start gap-1 text-xs leading-snug text-crit"><OctagonAlert size={12} className="mt-0.5 flex-none" aria-hidden />{error}</span>}
     </span>
   );
 }
@@ -150,7 +150,7 @@ export function ListRow({ selected, onClick, title, sub, aside, value }: { selec
         selected ? "border-l-accent bg-accent-soft" : "border-l-transparent hover:bg-surface-2")}>
       <span className="min-w-0">
         <span className="block truncate font-medium">{title}</span>
-        {sub && <span className="block truncate text-[11.5px] text-muted">{sub}</span>}
+        {sub && <span className="block truncate text-xs text-muted">{sub}</span>}
       </span>
       <span>{aside}</span>
       <span className="num whitespace-nowrap text-right text-[12.5px]">{value}</span>
@@ -159,7 +159,7 @@ export function ListRow({ selected, onClick, title, sub, aside, value }: { selec
 }
 
 export const GroupHead = ({ children }: { children: ReactNode }) => (
-  <div className="px-3.5 pb-1 pt-2.5 text-[10.5px] uppercase tracking-[0.08em] text-muted">{children}</div>
+  <div className="px-3.5 pb-1 pt-2.5 text-xs uppercase tracking-[0.08em] text-muted">{children}</div>
 );
 
 export function Bar({ ratio }: { ratio: number }) {

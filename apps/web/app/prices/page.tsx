@@ -91,17 +91,17 @@ export default function Prices() {
         </CardHead>
         <div className="min-h-0 flex-1 overflow-auto px-3.5 pb-3.5">
           <table className="data">
-            <caption className="caption-bottom pt-2 text-left text-[11.5px] text-muted">Model prices are CAD per 1M tokens: input / cached input / output.</caption>
+            <caption className="caption-bottom pt-2 text-left text-xs text-muted">Model prices are CAD per 1M tokens: input / cached input / output.</caption>
             <thead><tr><th>Item</th><th>Type</th><th>Global (CAD)</th><th>Canada Regional (CAD)</th><th>US Data Zone (CAD)</th><th>Source</th><th>Confidence</th></tr></thead>
             <tbody>
               {shown.map((r) => (
                 <tr key={`${r.kind}:${r.id}`}>
-                  <td>{r.label}<div className="num text-[11px] text-muted">{r.id}</div></td>
-                  <td>{r.kind}<div className="text-[11px] text-muted">{VENDOR_LABEL[r.vendor] ?? r.vendor} · {r.status}{r.via ? <> · {r.via}</> : null}</div></td>
+                  <td>{r.label}<div className="num text-xs text-muted">{r.id}</div></td>
+                  <td>{r.kind}<div className="text-xs text-muted">{VENDOR_LABEL[r.vendor] ?? r.vendor} · {r.status}{r.via ? <> · {r.via}</> : null}</div></td>
                   <td className="num">{r.global ?? <span className="text-muted">not offered</span>}</td>
                   <td className="num">{r.regional ?? <span className="text-muted">not offered</span>}</td>
                   <td className="num">{r.dataZone ?? <span className="text-muted">not offered</span>}</td>
-                  <td>{r.url ? <a className="underline decoration-line underline-offset-2" href={r.url} target="_blank" rel="noreferrer">{r.source}</a> : r.source}<div className="text-[11px] text-muted">{r.retrievedAt}</div></td>
+                  <td>{r.url ? <a className="underline decoration-line underline-offset-2" href={r.url} target="_blank" rel="noreferrer">{r.source}</a> : r.source}<div className="text-xs text-muted">{r.retrievedAt}</div></td>
                   <td><Pill tone={tone(r.confidence)}>{r.confidence}</Pill></td>
                 </tr>
               ))}
@@ -113,7 +113,7 @@ export default function Prices() {
         <Card>
           <CardHead title="Confidence" />
           <div className="flex flex-wrap gap-2 px-3.5 pb-3.5">{Object.entries(counts).map(([k, v]) => <Pill key={k} tone={tone(k)}>{v} {k}</Pill>)}</div>
-          <p className="px-3.5 pb-3.5 text-[11.5px] text-muted">Snowflake credits convert at {cad(sf.aiCreditGlobal, 2)} per AI credit (global routing) or {cad(sf.aiCreditRegional, 2)} (regional). Set your contract rate under Settings.</p>
+          <p className="px-3.5 pb-3.5 text-xs text-muted">Snowflake credits convert at {cad(sf.aiCreditGlobal, 2)} per AI credit (global routing) or {cad(sf.aiCreditRegional, 2)} (regional). Set your contract rate under Settings.</p>
         </Card>
         <Card className="min-h-0 flex-1">
           <CardHead title="Upcoming changes" />

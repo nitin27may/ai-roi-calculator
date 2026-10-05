@@ -53,8 +53,8 @@ export default function Capacity() {
               </tbody>
             </table>
           )}
-          {a.unsupported.length > 0 && <p className="mt-2 text-[11.5px] text-muted">No PTU table for: {a.unsupported.map((u) => u.label).join(", ")} (pay-as-you-go only in this view).</p>}
-          <p className="mt-3 text-[11.5px] text-muted">
+          {a.unsupported.length > 0 && <p className="mt-2 text-xs text-muted">No PTU table for: {a.unsupported.map((u) => u.label).join(", ")} (pay-as-you-go only in this view).</p>}
+          <p className="mt-3 text-xs text-muted">
             Sizing follows Microsoft's method: uncached input plus output × the model's output ratio, divided by input tokens per minute per PTU, rounded up to the increment (minimum 15 for Global and Data Zone). Cached input uses no PTU capacity.
             Rates per PTU: {cad(rate.hourly, 2)}/hour, {cad(rate.monthlyReservation)} per month on a 1-month reservation, {cad(rate.yearlyReservationPerMonth)} per month on a 1-year reservation. <Pill tone={catalog.ptu.confidence === "verified" ? "ok" : "warn"}>{catalog.ptu.confidence}</Pill>
           </p>

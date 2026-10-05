@@ -95,7 +95,7 @@ export default function Summary() {
                   <span className="num whitespace-nowrap font-semibold text-ink">{cadUnit(u.perUnit)} / {u.unit}</span>
                 </div>
                 <BulletBar value={u.perUnit} baseline={u.baselinePerUnit} />
-                {u.baselinePerUnit !== null && <div className="mt-1 text-[11px] text-muted">Today, manually: {cadUnit(u.baselinePerUnit)} / {u.unit}</div>}
+                {u.baselinePerUnit !== null && <div className="mt-1 text-xs text-muted">Today, manually: {cadUnit(u.baselinePerUnit)} / {u.unit}</div>}
               </div>
             ))}
           </div>
@@ -184,7 +184,7 @@ function ScenarioCompare({ results }: { results: ReturnType<typeof compareScenar
         <Dumbbell title="NPV" baseline={base.roi.npv} rows={rest.map((r) => ({ id: r.id, label: r.label, value: r.roi.npv }))} />
         <Dumbbell title="Run cost per month" baseline={run(base)} rows={rest.map((r) => ({ id: r.id, label: r.label, value: run(r) }))} higherIsBetter={false} />
       </div>
-      {rest.some((r) => r.error) && <p className="mt-2 text-[11.5px] text-warn">A scenario that could not be applied is shown at the baseline figure.</p>}
+      {rest.some((r) => r.error) && <p className="mt-2 text-xs text-warn">A scenario that could not be applied is shown at the baseline figure.</p>}
     </ViewToggle>
   );
 }

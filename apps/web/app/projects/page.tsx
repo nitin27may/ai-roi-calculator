@@ -52,15 +52,15 @@ export default function Projects() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="truncate font-display text-[15px] font-bold">{e.project.name}</div>
-                    <div className="text-[11.5px] text-muted">Updated {new Date(e.updatedAt).toLocaleDateString("en-CA")} · {e.project.workloads.length} workloads · {e.project.build.activities.length} Dev Lab activities</div>
+                    <div className="text-xs text-muted">Updated {new Date(e.updatedAt).toLocaleDateString("en-CA")} · {e.project.workloads.length} workloads · {e.project.build.activities.length} Dev Lab activities</div>
                   </div>
-                  {active && <span className="rounded-full bg-accent px-2 py-px text-[11px] font-medium text-accent-ink">Open</span>}
+                  {active && <span className="rounded-full bg-accent px-2 py-px text-xs font-medium text-accent-ink">Open</span>}
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <VerdictChip verdict={s.verdict} />
                 </div>
                 <MiniSplit parts={s.split} />
-                <dl className="grid grid-cols-3 gap-1 text-[11.5px]">
+                <dl className="grid grid-cols-3 gap-1 text-xs">
                   <div><dt className="text-muted">Build</dt><dd className="num font-semibold">{cad(s.L.totals.build)}</dd></div>
                   <div><dt className="text-muted">Run / month</dt><dd className="num font-semibold">{cad(s.L.totals.runRate)}</dd></div>
                   <div><dt className="text-muted">Payback</dt><dd className="num font-semibold">{s.r.paybackMonth ? `M${s.r.paybackMonth}` : "–"} · {fmt(s.r.roi * 100)}%</dd></div>
@@ -86,12 +86,12 @@ export default function Projects() {
         <CardHead title="New estimate" sub="Answer a few questions and the wizard builds the estimate, or start from a preset below" />
         <div className="px-3.5 pb-1">
           <Link href="/wizard" className="flex items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-ink"><Wand2 size={14} aria-hidden />New estimate with the wizard</Link>
-          <p className="mt-2 text-[11.5px] text-muted">Or start from a preset. Pick one; none is chosen for you.</p>
+          <p className="mt-2 text-xs text-muted">Or start from a preset. Pick one; none is chosen for you.</p>
         </div>
         <form className="flex flex-col gap-3 px-3.5 pb-3.5" onSubmit={(ev) => { ev.preventDefault(); const t = PROJECT_TEMPLATES.find((x) => x.id === template); if (!t) return; create(template, name.trim() || t.label); setName(""); router.push("/summary"); }}>
           <Field label="Project name" help="projectName"><TextInput value={name} placeholder="e.g. Claims assistant" onChange={setName} /></Field>
           <fieldset className="flex flex-col gap-1.5">
-            <legend className="mb-1 text-[11.5px] text-muted">Preset</legend>
+            <legend className="mb-1 text-xs text-muted">Preset</legend>
             {PROJECT_TEMPLATES.map((t) => (
               <label key={t.id} className={cn("grid cursor-pointer grid-cols-[auto_1fr] gap-2 rounded-md border px-2.5 py-2 text-[12.5px]", template === t.id ? "border-accent bg-accent-soft" : "border-line")}>
                 <input type="radio" name="template" checked={template === t.id} onChange={() => setTemplate(t.id)} />
@@ -128,8 +128,8 @@ function ProjectCompare({ ids, library, summaries, onClear }: { ids: string[]; l
               const best = bestIndex(vals, row.lowerIsBetter);
               return (
                 <tr key={row.id}>
-                  <td>{row.label}<span className="block text-[11px] text-muted">{row.lowerIsBetter ? "Lower is better" : "Higher is better"}</span></td>
-                  {vals.map((v, i) => <td key={projects[i]!.id} className="n">{row.table(v)}{best === i && <span className="ml-1.5 rounded bg-good-soft px-1 text-[10.5px] font-medium text-good">Best</span>}</td>)}
+                  <td>{row.label}<span className="block text-xs text-muted">{row.lowerIsBetter ? "Lower is better" : "Higher is better"}</span></td>
+                  {vals.map((v, i) => <td key={projects[i]!.id} className="n">{row.table(v)}{best === i && <span className="ml-1.5 rounded bg-good-soft px-1 text-xs font-medium text-good">Best</span>}</td>)}
                 </tr>
               );
             })}
@@ -139,7 +139,7 @@ function ProjectCompare({ ids, library, summaries, onClear }: { ids: string[]; l
       <div className="mt-3">
         <CompareBars names={names} metrics={COMPARE_ROWS.map((row) => ({ id: row.id, label: row.label, format: row.bar, values: projects.map((p) => row.value(p.f)) }))} />
       </div>
-      <p className="mt-2 text-[11.5px] text-muted">Each project uses its own plan length, discount rate and cost basis, so compare the figures with that in mind. IRR is capped in the bar labels; the table has the full figure.</p>
+      <p className="mt-2 text-xs text-muted">Each project uses its own plan length, discount rate and cost basis, so compare the figures with that in mind. IRR is capped in the bar labels; the table has the full figure.</p>
     </section>
   );
 }

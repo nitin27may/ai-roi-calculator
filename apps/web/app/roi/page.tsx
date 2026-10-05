@@ -72,7 +72,7 @@ function Assumptions() {
         <div className="flex flex-col gap-2.5">
           {slider("Reduce development cost", project.roi.devCutPct, (n) => edit((d) => { d.roi.devCutPct = n; }), "dev-cut")}
           {slider("Reduce maintenance cost", project.roi.maintCutPct, (n) => edit((d) => { d.roi.maintCutPct = n; }), "maint-cut")}
-          <p className="text-[11.5px] text-muted">Blunt what-ifs. The savings levers on the Overview and the Scenarios tab model concrete changes.</p>
+          <p className="text-xs text-muted">Blunt what-ifs. The savings levers on the Overview and the Scenarios tab model concrete changes.</p>
         </div>
 
         <CapabilityEditor />
@@ -109,8 +109,8 @@ function Assumptions() {
                     <Select value={a.capabilityId ?? ""} options={[{ value: "", label: "Whole project" }, ...project.benefits.capabilities.map((c) => ({ value: c.id, label: c.label }))]} onChange={(v) => upd((x) => { if (v) x.capabilityId = v; else delete x.capabilityId; })} />
                   </Field>
                 </div>
-                {headcount && <div className="text-[11.5px] text-muted"><span className="num font-semibold text-ink">{cad(avoidedMonthly(project, a))}/month</span>, rising with rate escalation. Count it only if the role is actually not hired, or is redeployed to funded work.</div>}
-                {overlap && <div role="note" className="rounded bg-warn-soft px-2 py-1.5 text-[11.5px] text-warn">A time-saving capability is valued at the same role. If those saved hours are what lets you avoid this headcount, you are counting the same benefit twice.</div>}
+                {headcount && <div className="text-xs text-muted"><span className="num font-semibold text-ink">{cad(avoidedMonthly(project, a))}/month</span>, rising with rate escalation. Count it only if the role is actually not hired, or is redeployed to funded work.</div>}
+                {overlap && <div role="note" className="rounded bg-warn-soft px-2 py-1.5 text-xs text-warn">A time-saving capability is valued at the same role. If those saved hours are what lets you avoid this headcount, you are counting the same benefit twice.</div>}
               </div>
             );
           })}
@@ -150,7 +150,7 @@ function Tornado() {
       </div>
       <div className="grid grid-cols-[minmax(150px,240px)_1fr] gap-x-3 gap-y-1.5 text-[12px]">
         <span />
-        <div className="relative h-4 text-[10.5px] text-muted">
+        <div className="relative h-4 text-xs text-muted">
           <span className="absolute -translate-x-1/2" style={{ left: `${x(base)}%` }}>base {cad(base)}</span>
           {lo < 0 && <span className="absolute -translate-x-1/2" style={{ left: `${x(0)}%`, top: 0 }}>{x(base) - x(0) > 12 ? "0" : ""}</span>}
         </div>
@@ -164,8 +164,8 @@ function Tornado() {
                 <div className="absolute top-1 bottom-1 rounded-l" style={{ left: `${x(down)}%`, width: `${Math.max(0.3, x(Math.min(base, up)) - x(down))}%`, background: "var(--crit)", opacity: 0.75 }} />
                 <div className="absolute top-1 bottom-1 rounded-r" style={{ left: `${x(Math.max(base, down))}%`, width: `${Math.max(0.3, x(up) - x(Math.max(base, down)))}%`, background: "var(--good)", opacity: 0.75 }} />
                 <div className="absolute inset-y-0 w-0.5 bg-ink" style={{ left: `${x(base)}%` }} />
-                <span className="num absolute top-1.5 -translate-x-full pr-1 text-[10.5px] text-ink-2" style={{ left: `${x(down)}%` }}>{r.low <= r.high ? r.lowLabel : r.highLabel}</span>
-                <span className="num absolute top-1.5 pl-1 text-[10.5px] text-ink-2" style={{ left: `${x(up)}%` }}>{r.low <= r.high ? r.highLabel : r.lowLabel}</span>
+                <span className="num absolute top-1.5 -translate-x-full pr-1 text-xs text-ink-2" style={{ left: `${x(down)}%` }}>{r.low <= r.high ? r.lowLabel : r.highLabel}</span>
+                <span className="num absolute top-1.5 pl-1 text-xs text-ink-2" style={{ left: `${x(up)}%` }}>{r.low <= r.high ? r.highLabel : r.lowLabel}</span>
               </div>
             </div>
           );
@@ -176,12 +176,12 @@ function Tornado() {
         <div className="rounded-md border border-line p-2.5"><div className="text-muted">Base case</div><div className="num text-lg font-bold">{cad(base)}</div></div>
         <div className="rounded-md border border-line p-2.5"><div className="text-muted">Everything at its high end</div><div className="num text-lg font-bold" style={{ color: "var(--good)" }}>{cad(combined.high)}</div></div>
       </div>
-      <p className="-mt-1 text-[11.5px] text-muted">The corners: all inputs moved together. Inputs compound (more users × more time saved × higher realisation), so these are wider than any single bar. Real outcomes rarely hit every extreme at once; treat them as bounds, not forecasts.</p>
+      <p className="-mt-1 text-xs text-muted">The corners: all inputs moved together. Inputs compound (more users × more time saved × higher realisation), so these are wider than any single bar. Real outcomes rarely hit every extreme at once; treat them as bounds, not forecasts.</p>
       <table className="data">
         <thead><tr><th>Input</th><th className="n">Low</th><th className="n">NPV</th><th className="n">High</th><th className="n">NPV</th><th className="n">Swing</th></tr></thead>
         <tbody>{rows.map((r) => <tr key={r.id}><td>{r.label}</td><td className="n">{r.lowLabel}</td><td className="n">{cad(r.low)}</td><td className="n">{r.highLabel}</td><td className="n">{cad(r.high)}</td><td className="n font-semibold">{cad(r.swing)}</td></tr>)}</tbody>
       </table>
-      <p className="text-[11.5px] text-muted">Red: NPV below the base; green: above. Benefit inputs use the benchmark library&apos;s conservative and optimistic values; others move by the amounts shown. AI run volume scales production usage with the benefit held, so it isolates token and service cost.</p>
+      <p className="text-xs text-muted">Red: NPV below the base; green: above. Benefit inputs use the benchmark library&apos;s conservative and optimistic values; others move by the amounts shown. AI run volume scales production usage with the benefit held, so it isolates token and service cost.</p>
     </div>
   );
 }
@@ -225,7 +225,7 @@ function BeforeAfterView() {
           <tr className="total"><td>Total per month</td><td /><td /><td /><td className="n">{cad(ba.before)}</td><td className="n">{cad(ba.after)}</td></tr>
         </tbody>
       </table>
-      <p className="text-[11.5px] text-muted">Today&apos;s hours come from each capability&apos;s baseline minutes across all its users or items (not only adopters). Capabilities entered as net hours have no baseline: their saving is shown as a single line. Growth and rate escalation are left out so the two sides compare like for like.</p>
+      <p className="text-xs text-muted">Today&apos;s hours come from each capability&apos;s baseline minutes across all its users or items (not only adopters). Capabilities entered as net hours have no baseline: their saving is shown as a single line. Growth and rate escalation are left out so the two sides compare like for like.</p>
     </div>
   );
 }
@@ -241,7 +241,7 @@ function BenefitAssumptions() {
     <div className="flex flex-col gap-2">
       <h3 className="text-sm font-semibold">Benefit evidence</h3>
       <Seg label="Benefit preset" value={project.roi.benefitPreset} onChange={(v) => edit((d) => { d.roi.benefitPreset = v; })} options={PRESETS.map((p) => ({ ...p }))} />
-      <p className="text-[11.5px] text-muted">Picks each benchmark&apos;s saving and the default adoption and realisation. {a.rationale} Capabilities entered as hours are not affected.</p>
+      <p className="text-xs text-muted">Picks each benchmark&apos;s saving and the default adoption and realisation. {a.rationale} Capabilities entered as hours are not affected.</p>
       <div className="grid grid-cols-2 gap-2">
         <Field label="Adoption (active users)" help="adoption"><NumberInput value={a.adoptionPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.roi.adoptionPct = v; })} /></Field>
         <Field label="Realisation (time that becomes value)" help="realisation"><NumberInput value={a.realisationPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.roi.realisationPct = v; })} /></Field>
@@ -302,7 +302,7 @@ function CapabilityCard({ c, i }: { c: Capability; i: number }) {
         <TrashButton label="Remove capability" onClick={() => edit((d) => { d.benefits.capabilities.splice(i, 1); })} />
       </div>
       {bench && (
-        <div className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-muted">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
           <Pill tone={CONFIDENCE_TONE[bench.confidence]}>{bench.confidence} confidence</Pill>
           {bench.vendorFunded && <Pill tone="warn">vendor-funded</Pill>}
           {bench.sourceUrl ? <a className="underline" href={bench.sourceUrl} target="_blank" rel="noreferrer">{bench.sourceLabel}</a> : <span>{bench.sourceLabel}</span>}
@@ -380,7 +380,7 @@ function CapabilityCard({ c, i }: { c: Capability; i: number }) {
           ))}
         </div>
       </details>
-      <div className="rounded bg-surface-2 px-2 py-1.5 text-[11.5px]">
+      <div className="rounded bg-surface-2 px-2 py-1.5 text-xs">
         <div className="num">{h.formula}</div>
         <div className="mt-0.5 font-semibold">{fmt(h.net)} h × {cad(rate)}/h = {cad(h.net * rate)} / month at full rollout</div>
       </div>
@@ -395,7 +395,7 @@ function MonthItems({ title, hint, items, onAdd, onChange, onRemove, amountLabel
   return (
     <section>
       <h3 className="text-sm font-semibold">{title}</h3>
-      <p className="mb-1.5 text-[11.5px] text-muted">{hint}</p>
+      <p className="mb-1.5 text-xs text-muted">{hint}</p>
       {items.map((it, i) => (
         <div key={it.id} className="mb-2 grid grid-cols-[1fr_auto] items-end gap-2 rounded-md border border-line p-2">
           <input className="col-span-2 min-w-0 rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]" value={it.label} aria-label={title} onChange={(e) => onChange(i, "label", e.target.value)} />
@@ -497,7 +497,7 @@ function Scenarios() {
     const dlt = v - b;
     if (Math.abs(dlt) < 0.5) return null;
     const good = invert ? dlt < 0 : dlt > 0;
-    return <div className={cn("text-[11px]", good ? "text-good" : "text-crit")}>{dlt > 0 ? "+" : "−"}{cad(Math.abs(dlt))}</div>;
+    return <div className={cn("text-xs", good ? "text-good" : "text-crit")}>{dlt > 0 ? "+" : "−"}{cad(Math.abs(dlt))}</div>;
   };
   return (
     <div className="flex flex-col gap-4">
@@ -507,7 +507,7 @@ function Scenarios() {
           <tbody>
             {results.map((r, i) => (
               <tr key={r.id} style={i === 0 ? { background: "var(--surface-2)" } : undefined}>
-                <td>{r.label}{r.error && <div className="text-[11px] text-crit">{r.error}</div>}</td>
+                <td>{r.label}{r.error && <div className="text-xs text-crit">{r.error}</div>}</td>
                 <td className="n">{cad(r.ledger.totals.build)}{i > 0 && delta(r.ledger.totals.build, base.ledger.totals.build, true)}</td>
                 <td className="n">{cad(r.ledger.totals.runRate)}{i > 0 && delta(r.ledger.totals.runRate, base.ledger.totals.runRate, true)}</td>
                 <td className="n">{r.roi.paybackMonth ? `M${r.roi.paybackMonth}` : "–"}</td>

@@ -96,7 +96,7 @@ function LifecycleCanvas() {
               <g key={n}>
                 <line x1={L} x2={W - R} y1={y0 + laneH} y2={y0 + laneH} stroke="var(--line)" />
                 <text x={4} y={y0 + laneH / 2 + 4} style={{ fill: "var(--ink-2)", fontSize: 12 }}>{n}</text>
-                <text x={W - 6} y={y0 + laneH / 2 + 4} textAnchor="end" className="num" style={{ fill: "var(--ink)", fontSize: 11.5 }}>{tot > 0 ? kcad(tot) : "–"}</text>
+                <text x={W - 6} y={y0 + laneH / 2 + 4} textAnchor="end" className="num" style={{ fill: "var(--ink)", fontSize: 12 }}>{tot > 0 ? kcad(tot) : "–"}</text>
                 {v.map((val, m) => val > 0 && (
                   <rect key={m} x={x(m) + 1} y={y0 + laneH - 3 - Math.max(2, ((laneH - 6) * val) / mx)} width={Math.max(1, bw - 2)} height={Math.max(2, ((laneH - 6) * val) / mx)} rx={1.5} fill={c} opacity={li === lanes.length - 1 ? 1 : 0.85}>
                     <title>{`${n} · month ${m + 1}: ${cad(val)}`}</title>
@@ -106,7 +106,7 @@ function LifecycleCanvas() {
             );
           })}
           <text x={4} y={cy0 + cH / 2} style={{ fill: "var(--ink-2)", fontSize: 12 }}>Cumulative net</text>
-          <text x={W - 6} y={cy0 + cH / 2} textAnchor="end" style={{ fill: "var(--ink)", fontSize: 11.5 }}>{kcad(vals.at(-1) ?? 0)}</text>
+          <text x={W - 6} y={cy0 + cH / 2} textAnchor="end" style={{ fill: "var(--ink)", fontSize: 12 }}>{kcad(vals.at(-1) ?? 0)}</text>
           <line x1={L} x2={W - R} y1={y(0)} y2={y(0)} stroke="var(--muted)" />
           <path d={vals.map((v, m) => `${m ? "L" : "M"}${x(m) + bw / 2},${y(v)}`).join("")} fill="none" stroke="var(--accent)" strokeWidth={2} />
           {roi.paybackMonth && (
@@ -135,12 +135,12 @@ function Levers() {
   if (!options.length) return <p className="text-sm text-muted">No savings levers apply to this project right now.</p>;
   return (
     <div>
-      <p className="mb-1 text-[11.5px] text-muted">Savings over {project.timeline.horizonMonths} months on the selected cost basis. Applying a lever changes the project; save to a file first if you want to compare.</p>
+      <p className="mb-1 text-xs text-muted">Savings over {project.timeline.horizonMonths} months on the selected cost basis. Applying a lever changes the project; save to a file first if you want to compare.</p>
       {options.map(({ lever, saving }) => (
         <div key={lever.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5 border-b border-line py-2.5 last:border-b-0">
           <div>
             <b className="font-semibold">{lever.label}</b>
-            <div className="text-[11.5px] text-muted">{lever.detail}</div>
+            <div className="text-xs text-muted">{lever.detail}</div>
             <div className="mt-1 flex items-center gap-2">
               <Pill>{lever.phase === "build" ? "Build" : "Production"}</Pill>
               <button type="button" className="rounded-md border border-line px-2 py-0.5 text-xs font-medium hover:bg-surface-2" onClick={() => replace(lever.apply(project, catalog))}>Apply</button>

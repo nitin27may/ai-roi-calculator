@@ -125,7 +125,7 @@ export function ViewToggle({ table, children }: { table: ReactNode; children: Re
   return (
     <div>
       <div className="flex justify-end">
-        <button type="button" className="rounded-md px-1.5 py-0.5 text-[11px] font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline" onClick={() => setAsTable((v) => !v)}>
+        <button type="button" className="rounded-md px-1.5 py-0.5 text-xs font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline" onClick={() => setAsTable((v) => !v)}>
           {asTable ? "View as chart" : "View as table"}
         </button>
       </div>
@@ -161,7 +161,7 @@ export function Waterfall({ steps, costIds, className }: { steps: WaterfallBar[]
   const labelCol = "minmax(100px,150px)";
   return (
     <div className={className ?? "flex flex-col gap-1.5"} role="img" aria-label="Waterfall from build cost to net">
-      <div className="grid items-center gap-2 text-[10.5px] text-muted" style={{ gridTemplateColumns: labelCol + " 1fr" }}>
+      <div className="grid items-center gap-2 text-xs text-muted" style={{ gridTemplateColumns: labelCol + " 1fr" }}>
         <span />
         <div className="relative h-4">
           <span className="num absolute -translate-x-1/2" style={{ left: `${zero}%` }}>C$0</span>
@@ -188,9 +188,9 @@ export function Waterfall({ steps, costIds, className }: { steps: WaterfallBar[]
               <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${zero}%` }} />
               <div className="absolute top-1 bottom-1 rounded" style={{ left: `${left}%`, width: `${width}%`, background: color }} />
               {fitsOutside ? (
-                <span className="num absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[11.5px] font-semibold text-ink" style={outsideStyle}>{amount}</span>
+                <span className="num absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-xs font-semibold text-ink" style={outsideStyle}>{amount}</span>
               ) : (
-                <span className="num absolute top-1/2 -translate-y-1/2 whitespace-nowrap rounded px-1 text-[11.5px] font-semibold" style={{ ...insideStyle, background: color, color: "var(--bg)" }}>{amount}</span>
+                <span className="num absolute top-1/2 -translate-y-1/2 whitespace-nowrap rounded px-1 text-xs font-semibold" style={{ ...insideStyle, background: color, color: "var(--bg)" }}>{amount}</span>
               )}
             </div>
           </div>
@@ -266,14 +266,14 @@ export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string
           const pos = (v: number) => Math.min(98, Math.max(2, x(v)));
           return (
             <div key={r.id} className="grid grid-cols-[minmax(100px,150px)_1fr] items-center gap-2 text-[12px]">
-              <span className="truncate text-ink-2" title={r.label}>{r.label}{r.wide && <span className="ml-1 rounded bg-warn-soft px-1 text-[10.5px] font-medium text-warn">Wide</span>}</span>
+              <span className="truncate text-ink-2" title={r.label}>{r.label}{r.wide && <span className="ml-1 rounded bg-warn-soft px-1 text-xs font-medium text-warn">Wide</span>}</span>
               <div>
                 <div className="relative h-5" title={`${r.label}: ${show(r, r.low)} to ${show(r, r.high)}, expected ${show(r, r.expected)}`}>
                   {x(0) > 0 && x(0) < 100 && <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${x(0)}%` }} />}
                   <div className="absolute top-1.5 bottom-1.5 rounded bg-surface-2" style={{ left: `${x(r.low)}%`, width: `${r2(Math.max(0.8, x(r.high) - x(r.low)))}%`, background: "var(--accent)", opacity: 0.35 }} />
                   <div className="absolute inset-y-0.5 w-0.5 rounded bg-ink" style={{ left: `${pos(r.expected)}%` }} />
                 </div>
-                <div className="num flex justify-between text-[11px] text-muted"><span>{show(r, r.low)}</span><span className="font-semibold text-ink">{show(r, r.expected)}</span><span>{show(r, r.high)}</span></div>
+                <div className="num flex justify-between text-xs text-muted"><span>{show(r, r.low)}</span><span className="font-semibold text-ink">{show(r, r.expected)}</span><span>{show(r, r.high)}</span></div>
               </div>
             </div>
           );
@@ -285,7 +285,7 @@ export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string
 
 export function Legend({ items }: { items: { label: string; color: string; line?: boolean }[] }) {
   return (
-    <div className="flex flex-wrap gap-2.5 text-[11.5px] text-ink-2">
+    <div className="flex flex-wrap gap-2.5 text-xs text-ink-2">
       {items.map((i) => (
         <span key={i.label} className="inline-flex items-center gap-1.5">
           <i className={i.line ? "inline-block h-0.5 w-3.5" : "inline-block h-2.5 w-2.5 rounded-sm"} style={{ background: i.color }} />

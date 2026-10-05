@@ -25,7 +25,7 @@ export function AddMenu<K extends string>({ label, items, onPick }: { label: str
           <button key={i.kind} type="button" role="menuitem" className="block w-full border-b border-line px-3 py-2 text-left last:border-b-0 hover:bg-surface-2 focus-visible:bg-surface-2"
             onClick={() => { onPick(i.kind); if (ref.current) { ref.current.open = false; ref.current.querySelector("summary")?.focus(); } }}>
             <span className="block text-[13px] font-medium">{i.label}</span>
-            <span className="block text-[11.5px] text-muted">{i.detail}</span>
+            <span className="block text-xs text-muted">{i.detail}</span>
           </button>
         ))}
       </div>

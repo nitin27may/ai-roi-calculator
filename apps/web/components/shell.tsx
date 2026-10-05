@@ -49,7 +49,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const nav = (href: string, label: ReactNode, small?: string) => (
     <Link key={href} href={href} aria-current={path === href ? "page" : undefined}
       className={cn("flex justify-between gap-2 rounded-md px-2 py-1.5 font-medium", path === href ? "bg-accent-soft text-ink" : "text-ink-2 hover:bg-surface-2")}>
-      {label}{small && <small className="num text-[11px] text-muted">{small}</small>}
+      {label}{small && <small className="num text-xs text-muted">{small}</small>}
     </Link>
   );
 
@@ -75,14 +75,14 @@ export function Shell({ children }: { children: ReactNode }) {
         </Group>
         <Group label="Data">{nav("/prices", "Prices & sources")}</Group>
         <ProjectFile />
-        <p className="mt-auto hidden border-t border-line pt-2.5 text-[11.5px] text-muted md:block">
+        <p className="mt-auto hidden border-t border-line pt-2.5 text-xs text-muted md:block">
           <b className="text-ink-2">Local mode.</b> Saved in this browser. Prices as of {catalog.meta.asOf}; refresh with <span className="num">pnpm prices</span>.
         </p>
       </nav>
       <main className="grid min-h-0 min-w-0 grid-rows-[auto_auto_minmax(0,1fr)] md:h-full md:overflow-hidden">
         <header className="flex flex-wrap items-center justify-between gap-2.5 px-5 pb-2.5 pt-3">
           <div>
-            <div className="text-[11.5px] text-muted">{isProject ? project.name : path === "/tokens" || path === "/wizard" ? "Quick tools" : path === "/projects" ? "Library" : path === "/glossary" ? "Help" : "Data"}</div>
+            <div className="text-xs text-muted">{isProject ? project.name : path === "/tokens" || path === "/wizard" ? "Quick tools" : path === "/projects" ? "Library" : path === "/glossary" ? "Help" : "Data"}</div>
             <h1 className="text-[21px] font-bold">{TITLES[path] ?? "Overview"}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -90,7 +90,7 @@ export function Shell({ children }: { children: ReactNode }) {
             <button type="button" aria-label="Redo" title="Redo (Ctrl/Cmd+Shift+Z)" disabled={!canRedo} onClick={() => useStudio.getState().redo()} className="rounded-md border border-line bg-surface p-1 text-ink-2 enabled:hover:bg-surface-2 disabled:opacity-40"><Redo2 size={15} /></button>
             <span className="mr-1"><HelpMenu path={path} /></span>
             {[["Currency", "CAD"], ["Azure", DEPLOYMENT_LABEL[project.settings.azureDeployment]], ["Snowflake", `${project.settings.snowflake.edition} · ${project.settings.snowflake.routing}`], ["Prices", catalog.meta.asOf]].map(([k, v]) => (
-              <span key={k} className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-[11.5px] text-ink-2">{k} <b className="font-semibold text-ink">{v}</b></span>
+              <span key={k} className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-xs text-ink-2">{k} <b className="font-semibold text-ink">{v}</b></span>
             ))}
           </div>
         </header>
@@ -107,7 +107,7 @@ export function Shell({ children }: { children: ReactNode }) {
 
 const Group = ({ label, children }: { label: string; children: ReactNode }) => (
   <div className="flex flex-col gap-px">
-    <div className="truncate px-2 pb-1 text-[10.5px] uppercase tracking-[0.08em] text-muted">{label}</div>
+    <div className="truncate px-2 pb-1 text-xs uppercase tracking-[0.08em] text-muted">{label}</div>
     {children}
   </div>
 );
@@ -127,14 +127,14 @@ function KpiBar() {
     <div className="mx-5 grid grid-cols-2 overflow-hidden rounded-lg border border-line bg-surface md:grid-cols-3 xl:grid-cols-[repeat(5,minmax(0,1fr))_auto]">
       {k.map(([l, v, d]) => (
         <div key={l} className="min-w-0 border-r border-line px-3.5 py-2">
-          <div className="truncate text-[11.5px] text-muted">{l}</div>
+          <div className="truncate text-xs text-muted">{l}</div>
           <div className="font-display text-xl font-bold tabular-nums leading-tight">{v}</div>
-          <div className="truncate text-[11.5px] text-ink-2">{d}</div>
+          <div className="truncate text-xs text-ink-2">{d}</div>
         </div>
       ))}
       <div className="hidden min-w-[190px] flex-col justify-center gap-1 px-3 py-2 xl:flex">
         <div className="grid h-2 gap-0.5 overflow-hidden rounded" style={{ gridTemplateColumns: `${B}fr ${H - B}fr` }}><i className="bg-[var(--s2)]" /><i className="bg-[var(--s3)]" /></div>
-        <span className="text-[11.5px] text-ink-2">Build M1–{B} · Production M{B + 1}–{H}</span>
+        <span className="text-xs text-ink-2">Build M1–{B} · Production M{B + 1}–{H}</span>
       </div>
     </div>
   );

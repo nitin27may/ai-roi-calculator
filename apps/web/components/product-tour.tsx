@@ -137,7 +137,7 @@ export function ProductTour() {
       <div ref={card} role="dialog" aria-modal="false" aria-labelledby={titleId} aria-describedby={bodyId} tabIndex={-1}
         className="fixed z-50 rounded-xl border border-line bg-surface p-4 shadow-xl outline-none"
         style={{ left: pos.left, top: pos.top, width: Math.min(CARD_W, view.w - MARGIN * 2), transition: move }}>
-        <div className="mb-1 text-[11.5px] font-medium text-muted">{index + 1} of {TOUR_STEPS.length}</div>
+        <div className="mb-1 text-xs font-medium text-muted">{index + 1} of {TOUR_STEPS.length}</div>
         <h2 id={titleId} className="font-display text-base font-bold">{step.title}</h2>
         <p id={bodyId} className="mt-1 text-[13px] text-ink-2">{step.body}</p>
         <div className="mt-3 flex items-center justify-between gap-2">
