@@ -97,7 +97,7 @@ describe("v4 to v5 migration keeps every total", () => {
       expect(a.totals).toEqual(b.totals);
       a.months.forEach((mo, i) => {
         expect(mo.lines.map((l) => [l.id, l.cost])).toEqual(b.months[i]!.lines.map((l) => [l.id, l.cost]));
-        expect(mo.total).toBe(b.months[i]!.total);
+        expect(mo.byStream).toEqual(b.months[i]!.byStream);
       });
       expect(computeAllocation(migrated, a, migrated.roi.basis)).toEqual(computeAllocation(current, b, current.roi.basis));
     });

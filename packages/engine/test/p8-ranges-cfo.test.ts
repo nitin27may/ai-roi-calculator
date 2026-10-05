@@ -121,7 +121,7 @@ describe("defaults leave existing results unchanged", () => {
     delete benefits.value;
     v3.benefits = benefits;
     const m = ProjectSchema.parse(migrateProject(v3));
-    expect(m.version).toBe(4);
+    expect(m.version).toBe(5);
     expect(m.benefits.value).toEqual([]);
     expect(roiOf(m).totalCost).toBeCloseTo(roiOf(sample()).totalCost, 6);
   });
