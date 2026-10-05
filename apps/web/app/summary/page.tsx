@@ -6,15 +6,16 @@ import { Card, CardHead, Pill } from "@/components/ui";
 import { BulletBar, CumulativeLine, RankedBars, ViewToggle, Waterfall } from "@/components/charts";
 import { Story } from "@/components/story";
 import { useSummary } from "@/lib/compute";
-import { cad, fmt } from "@/lib/format";
+import { cad, cadUnit, fmt } from "@/lib/format";
 
 const ALERT_TONE: Record<AlertGroup["id"], "ok" | "warn" | "crit" | "n"> = {
   notOffered: "crit", retiring: "crit", tierFallback: "warn", lowConfidence: "warn", other: "n",
 };
 
+const WATERFALL_COST_IDS = ["build", "year1Run", "laterRun"];
+
 export default function Summary() {
   const { ledger, roi, summary: s } = useSummary();
-  const waterfallCostIds = ["build", "year1Run", "laterRun"];
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3.5 overflow-auto">
@@ -36,7 +37,7 @@ export default function Summary() {
           <CardHead title="Build, run and benefit" sub="How the plan nets out, build to benefit." />
           <div className="px-3.5 pb-3.5">
             <ViewToggle table={<WaterfallTable s={s} />}>
-              <Waterfall steps={s.waterfall} costIds={waterfallCostIds} />
+              <Waterfall steps={s.waterfall} costIds={WATERFALL_COST_IDS} />
             </ViewToggle>
           </div>
         </Card>
@@ -59,10 +60,10 @@ export default function Summary() {
               <div key={u.id}>
                 <div className="mb-1 flex items-baseline justify-between gap-2 text-[12.5px]">
                   <span className="truncate text-ink-2">{u.label}</span>
-                  <span className="num whitespace-nowrap font-semibold text-ink">{cad(u.perUnit)} / {u.unit}</span>
+                  <span className="num whitespace-nowrap font-semibold text-ink">{cadUnit(u.perUnit)} / {u.unit}</span>
                 </div>
                 <BulletBar value={u.perUnit} baseline={u.baselinePerUnit} />
-                {u.baselinePerUnit !== null && <div className="mt-1 text-[11px] text-muted">Today, manually: {cad(u.baselinePerUnit)} / {u.unit}</div>}
+                {u.baselinePerUnit !== null && <div className="mt-1 text-[11px] text-muted">Today, manually: {cadUnit(u.baselinePerUnit)} / {u.unit}</div>}
               </div>
             ))}
           </div>
@@ -132,7 +133,10 @@ function WaterfallTable({ s }: { s: ReturnType<typeof useSummary>["summary"] }) 
   return (
     <table className="data">
       <thead><tr><th>Step</th><th className="n">Amount</th></tr></thead>
-      <tbody>{s.waterfall.map((w) => <tr key={w.id}><td>{w.label}</td><td className="n">{cad(w.value)}</td></tr>)}</tbody>
+      <tbody>{s.waterfall.map((w) => {
+        const signed = WATERFALL_COST_IDS.includes(w.id) ? -w.value : w.value;
+        return <tr key={w.id}><td>{w.label}</td><td className="n">{signed >= 0 ? "+" : ""}{cad(signed)}</td></tr>;
+      })}</tbody>
     </table>
   );
 }

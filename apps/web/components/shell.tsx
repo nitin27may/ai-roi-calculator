@@ -88,7 +88,7 @@ export function Shell({ children }: { children: ReactNode }) {
             ))}
           </div>
         </header>
-        {isProject ? <KpiBar /> : <div />}
+        {isProject && path !== "/summary" ? <KpiBar /> : <div />}
         {problem && <div role="alert" className="mx-5 mt-2 rounded-md bg-crit-soft px-3 py-2 text-sm text-crit">{problem}</div>}
         <div className="min-h-0 px-5 pb-4 pt-3.5">{children}</div>
       </main>

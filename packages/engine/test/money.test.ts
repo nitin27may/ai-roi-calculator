@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cad, compactCad, kcad } from "../src/index.js";
+import { cad, cadUnit, compactCad, kcad } from "../src/index.js";
 
 describe("cad", () => {
   it("formats a positive amount with the C$ prefix and thousands separators", () => {
@@ -19,6 +19,25 @@ describe("compactCad", () => {
   });
   it("keeps the sign for negative millions", () => {
     expect(compactCad(-2_000_000)).toBe("−C$2.0M");
+  });
+});
+
+describe("cadUnit", () => {
+  it("uses 2 decimals under C$10", () => {
+    expect(cadUnit(0.26)).toBe("C$0.26");
+  });
+  it("uses 4 decimals under C$0.01", () => {
+    expect(cadUnit(0.0021)).toBe("C$0.0021");
+  });
+  it("falls back to cad()'s whole-number formatting at C$10 and above", () => {
+    expect(cadUnit(185_333)).toBe(cad(185_333));
+    expect(cadUnit(10)).toBe(cad(10));
+  });
+  it("keeps the minus sign for small negative amounts", () => {
+    expect(cadUnit(-0.26)).toBe("−C$0.26");
+  });
+  it("shows exactly C$0 for zero", () => {
+    expect(cadUnit(0)).toBe("C$0");
   });
 });
 

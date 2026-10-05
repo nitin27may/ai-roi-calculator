@@ -1,4 +1,4 @@
-export { cad, kcad, compactCad } from "@studio/engine";
+export { cad, cadUnit, kcad, compactCad } from "@studio/engine";
 
 export const fmt = (v: number, d = 0) => v.toLocaleString("en-CA", { minimumFractionDigits: d, maximumFractionDigits: d });
 export const pct = (v: number) => `${fmt(v * 100)}%`;

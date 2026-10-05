@@ -4,7 +4,7 @@ import type { Ledger, Month } from "./ledger.js";
 import type { Project } from "./project.js";
 import type { RoiResult } from "./roi.js";
 import { basisCost } from "./roi.js";
-import { sum } from "./lines.js";
+import { sum, type Stream } from "./lines.js";
 import { beforeAfter, workloadVolume } from "./benefits.js";
 import { sensitivity, type SensitivityRow } from "./sensitivity.js";
 
@@ -20,7 +20,10 @@ export interface WaterfallStep {
   color: "build" | "run" | "benefit" | "ink";
 }
 
-export interface CostDriverRow { label: string; value: number }
+/** Colour key for a cost driver, mapped to the one-meaning-per-colour tokens in the UI. */
+export type DriverColor = "labour" | "devlab" | "run" | "platform" | "maint" | "other";
+
+export interface CostDriverRow { label: string; value: number; color: DriverColor }
 
 export interface UnitCostRow { id: string; label: string; unit: string; perUnit: number; baselinePerUnit: number | null }
 
@@ -80,20 +83,35 @@ export function alertSummary(ledger: Ledger): AlertGroup[] {
   return order.filter((id) => byGroup.has(id)).map((id) => ({ id, label: ALERT_LABEL[id], count: byGroup.get(id)!.length, items: byGroup.get(id)!.slice(0, 3) }));
 }
 
-/** Top 5 cost lines over the whole plan (by label, summed across months) plus an "Other" remainder. */
+const STREAM_WORD: Record<Stream, string> = { labour: "Building", devlab: "Building", devenv: "Building", run: "Running", platform: "Platform", maint: "Maintenance", transition: "Maintenance" };
+const STREAM_DRIVER_COLOR: Record<Stream, DriverColor> = { labour: "labour", devlab: "devlab", devenv: "devlab", run: "run", platform: "platform", maint: "maint", transition: "maint" };
+
+/**
+ * Top 5 cost lines over the whole plan (by stream and label, summed across months) plus an
+ * "Other" remainder. Each row is prefixed with its stream in plain words — the same line label
+ * can otherwise read as, say, production cost when it is really the maintenance team. Build
+ * labour lines already lead with their own delivery phase (e.g. "Build: Dev A (AI developer)"
+ * from `teamLines()` in devlab.ts); that phase is dropped so the stream prefix doesn't double up.
+ */
 export function costDrivers(ledger: Ledger): CostDriverRow[] {
-  const byLabel = new Map<string, number>();
-  for (const mo of ledger.months) for (const l of mo.lines) byLabel.set(l.label, (byLabel.get(l.label) ?? 0) + l.cost);
-  const sorted = [...byLabel.entries()].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
-  const top = sorted.slice(0, 5).map(([label, value]) => ({ label, value }));
-  const other = sorted.slice(5).reduce((s, [, v]) => s + v, 0);
-  return other > 0 ? [...top, { label: "Other", value: other }] : top;
+  const byKey = new Map<string, { label: string; value: number; color: DriverColor }>();
+  for (const mo of ledger.months) for (const l of mo.lines) {
+    const label = l.stream === "labour" ? l.label.replace(/^[^:]+:\s*/, "") : l.label;
+    const key = `${l.stream}:${label}`;
+    const row = byKey.get(key);
+    if (row) row.value += l.cost;
+    else byKey.set(key, { label: `${STREAM_WORD[l.stream]}: ${label}`, value: l.cost, color: STREAM_DRIVER_COLOR[l.stream] });
+  }
+  const sorted = [...byKey.values()].filter((r) => r.value > 0).sort((a, b) => b.value - a.value);
+  const top = sorted.slice(0, 5);
+  const other = sorted.slice(5).reduce((s, r) => s + r.value, 0);
+  return other > 0 ? [...top, { label: "Other", value: other, color: "other" }] : top;
 }
 
 const UNIT_LABEL: Record<string, string> = {
   users: "active user", tasksPerMonth: "task", callsPerMonth: "call", emailsPerMonth: "email",
   queriesPerMonth: "query", interactionsPerMonth: "interaction", pagesPerMonth: "page",
-  requestsPerMonth: "request", hoursPerMonth: "hour",
+  requestsPerMonth: "request", hoursPerMonth: "audio hour",
 };
 
 /**
@@ -115,10 +133,11 @@ export function unitCosts(p: Project, ledger: Ledger, cat: Catalog): UnitCostRow
     const baseRow = cap ? ba.rows.find((r) => r.id === cap.id) : undefined;
     if (v.users) {
       const baseline = baseRow?.baselineHours !== null && baseRow !== undefined ? baseRow.before / v.users : null;
-      perUser.push({ id: `${id}:user`, label: `${label} — per active user / month`, unit: UNIT_LABEL.users!, perUnit: cost / v.users, baselinePerUnit: baseline });
+      perUser.push({ id: `${id}:user`, label: `${label} — per active user per month`, unit: UNIT_LABEL.users!, perUnit: cost / v.users, baselinePerUnit: baseline });
     } else if (v.items && v.itemsKey) {
+      const unit = UNIT_LABEL[v.itemsKey] ?? "item";
       const baseline = baseRow?.baselineHours !== null && baseRow !== undefined ? baseRow.before / v.items : null;
-      perItem.push({ id: `${id}:item`, label: `${label} — per ${UNIT_LABEL[v.itemsKey] ?? "item"} / month`, unit: UNIT_LABEL[v.itemsKey] ?? "item", perUnit: cost / v.items, baselinePerUnit: baseline });
+      perItem.push({ id: `${id}:item`, label: `${label} — per ${unit}`, unit, perUnit: cost / v.items, baselinePerUnit: baseline });
     }
   }
   const byCostDesc = (a: UnitCostRow, b: UnitCostRow) => b.perUnit - a.perUnit;

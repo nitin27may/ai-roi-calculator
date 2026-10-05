@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { cad, kcad } from "@/lib/format";
+import { cad, cadUnit, kcad } from "@/lib/format";
 
 /** Measures a container so charts draw at real pixel size (crisp text, no stretching). */
 export function useSize<T extends HTMLElement>() {
@@ -154,26 +154,39 @@ export function Waterfall({ steps, costIds, className }: { steps: WaterfallBar[]
   const pad = (hi - lo || 1) * 0.08;
   const pct = (v: number) => (100 * (v - (lo - pad))) / (hi - lo + 2 * pad || 1);
   const zero = pct(0);
+  const labelCol = "minmax(100px,150px)";
   return (
-    <div className={className ?? "flex flex-col gap-2.5"} role="img" aria-label="Waterfall from build cost to net">
+    <div className={className ?? "flex flex-col gap-1.5"} role="img" aria-label="Waterfall from build cost to net">
+      <div className="grid items-center gap-2 text-[10.5px] text-muted" style={{ gridTemplateColumns: labelCol + " 1fr" }}>
+        <span />
+        <div className="relative h-4">
+          <span className="num absolute -translate-x-1/2" style={{ left: `${zero}%` }}>C$0</span>
+        </div>
+      </div>
       {bars.map((b) => {
         const color = b.color === "ink" && b.value < 0 ? "var(--risk)" : WATERFALL_COLOR[b.color];
         const left = Math.min(pct(b.start), pct(b.end)), width = Math.max(0.6, Math.abs(pct(b.end) - pct(b.start)));
         const labelOnRight = pct(b.end) >= pct(b.start);
-        // Keep the amount label outside the bar when there's room; otherwise set it inside, against the bar's own colour.
+        // Costs are entered as positive magnitudes internally; show them signed so direction reads without decoding bar position.
+        const signedValue = costIds.includes(b.id) ? -b.value : b.value;
+        const amount = `${signedValue >= 0 ? "+" : ""}${cad(signedValue)}`;
+        // Keep the amount label outside the bar when there's room; otherwise pin it against the
+        // bar's own inner edge with a matching background, so it stays readable even when it's
+        // wider than the bar and runs past it onto the empty track.
         const fitsOutside = labelOnRight ? left + width < 82 : left > 18;
-        const labelStyle = fitsOutside
-          ? (labelOnRight ? { left: `calc(${left + width}% + 6px)`, color: "var(--ink)" } : { right: `calc(${100 - left}% + 6px)`, color: "var(--ink)" })
-          : (labelOnRight ? { right: `calc(${100 - (left + width)}% + 8px)`, color: "var(--bg)" } : { left: `calc(${left}% + 8px)`, color: "var(--bg)" });
+        const outsideStyle = labelOnRight ? { left: `calc(${left + width}% + 6px)` } : { right: `calc(${100 - left}% + 6px)` };
+        const insideStyle = labelOnRight ? { right: `calc(${100 - (left + width)}% + 4px)` } : { left: `calc(${left}% + 4px)` };
         return (
-          <div key={b.id} className="grid grid-cols-[minmax(100px,150px)_1fr] items-center gap-2 text-[12px]">
+          <div key={b.id} className="grid items-center gap-2 text-[12px]" style={{ gridTemplateColumns: labelCol + " 1fr" }}>
             <span className="truncate text-ink-2" title={b.label}>{b.label}</span>
-            <div className="relative h-6" title={`${b.label}: ${cad(b.value)}`}>
+            <div className="relative h-6" title={`${b.label}: ${amount}`}>
               <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${zero}%` }} />
               <div className="absolute top-1 bottom-1 rounded" style={{ left: `${left}%`, width: `${width}%`, background: color }} />
-              <span className="num absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[11.5px] font-semibold" style={labelStyle}>
-                {cad(b.value)}
-              </span>
+              {fitsOutside ? (
+                <span className="num absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[11.5px] font-semibold text-ink" style={outsideStyle}>{amount}</span>
+              ) : (
+                <span className="num absolute top-1/2 -translate-y-1/2 whitespace-nowrap rounded px-1 text-[11.5px] font-semibold" style={{ ...insideStyle, background: color, color: "var(--bg)" }}>{amount}</span>
+              )}
             </div>
           </div>
         );
@@ -182,19 +195,25 @@ export function Waterfall({ steps, costIds, className }: { steps: WaterfallBar[]
   );
 }
 
-/** Ranked horizontal bars, longest first — used for cost drivers, never a pie. */
-export function RankedBars({ rows, colors, className }: { rows: { label: string; value: number }[]; colors?: string[]; className?: string }) {
+/** A cost driver's stream, for colouring its bar with the one-meaning-per-colour palette. */
+export type DriverColor = "labour" | "devlab" | "run" | "platform" | "maint" | "other";
+
+const DRIVER_COLOR: Record<DriverColor, string> = {
+  labour: "var(--build-2)", devlab: "var(--build)", run: "var(--run)", platform: "var(--platform)", maint: "var(--maint)", other: "var(--muted)",
+};
+
+/** Ranked horizontal bars, longest first, coloured by stream — used for cost drivers, never a pie. */
+export function RankedBars({ rows, className }: { rows: { label: string; value: number; color: DriverColor }[]; className?: string }) {
   const [ref, { w }] = useSize<HTMLDivElement>();
   const max = Math.max(...rows.map((r) => r.value), 1);
-  const palette = colors ?? ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)", "var(--s5)", "var(--s6)", "var(--s7)"];
   return (
     <div ref={ref} className={className ?? "flex flex-col gap-2"}>
-      {rows.map((r, i) => (
+      {rows.map((r) => (
         <div key={r.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 text-[12.5px]">
           <div className="min-w-0">
             <div className="truncate text-ink-2">{r.label}</div>
             <div className="h-[9px] overflow-hidden rounded bg-surface-2">
-              {w > 0 && <div className="h-full rounded" style={{ width: `${Math.max(1.5, (100 * r.value) / max)}%`, background: palette[i % palette.length] }} />}
+              {w > 0 && <div className="h-full rounded" style={{ width: `${Math.max(1.5, (100 * r.value) / max)}%`, background: DRIVER_COLOR[r.color] }} />}
             </div>
           </div>
           <span className="num whitespace-nowrap font-semibold text-ink">{cad(r.value)}</span>
@@ -210,7 +229,7 @@ export function BulletBar({ value, baseline, color = "var(--accent)" }: { value:
   return (
     <div className="relative h-[18px] rounded bg-surface-2">
       <div className="absolute inset-y-0 left-0 rounded" style={{ width: `${Math.max(1.5, (100 * value) / max)}%`, background: color }} />
-      {baseline !== null && <div className="absolute inset-y-[-3px] w-0.5 bg-ink" style={{ left: `${Math.min(99, (100 * baseline) / max)}%` }} title={`Today, manually: ${cad(baseline)}`} />}
+      {baseline !== null && <div className="absolute inset-y-[-3px] w-0.5 bg-ink" style={{ left: `${Math.min(99, (100 * baseline) / max)}%` }} title={`Today, manually: ${cadUnit(baseline)}`} />}
     </div>
   );
 }

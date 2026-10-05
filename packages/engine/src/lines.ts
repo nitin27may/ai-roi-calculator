@@ -43,6 +43,17 @@ const sign = (v: number) => (v < 0 ? "−" : "");
 /** CAD, always shown as C$ so a screenshot or printout can never be mistaken for USD. */
 export const cad = (v: number, d = 0) => `${sign(v)}C$${fmtNum(Math.abs(v), d)}`;
 
+/**
+ * CAD for small per-unit amounts, which `cad()`'s default 0 decimals would round to C$0: two
+ * decimals under C$10 (C$0.26), four decimals under C$0.01 (C$0.0021), otherwise `cad()` as usual.
+ */
+export const cadUnit = (v: number) => {
+  const a = Math.abs(v);
+  if (a > 0 && a < 0.01) return cad(v, 4);
+  if (a > 0 && a < 10) return cad(v, 2);
+  return cad(v);
+};
+
 /** CAD in millions, e.g. C$1.2M. */
 export const compactCad = (v: number) => `${sign(v)}C$${fmtNum(Math.abs(v) / 1_000_000, 1)}M`;
 
