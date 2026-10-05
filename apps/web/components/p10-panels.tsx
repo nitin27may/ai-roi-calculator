@@ -103,10 +103,10 @@ export function ToolFeesPanel({ w }: { w: Of<"chat"> | Of<"agent"> }) {
   const fees = w.toolFees ?? [];
   const per = w.kind === "chat" ? "per chat turn" : "per task";
   const options = [
-    ...FEE_CATALOGUE.map((id) => { const u = catalog.unitPrices.find((x) => x.id === id); return { value: id, label: u ? `${u.label} (${cad(u.price, 2)} per ${u.unit})` : id }; }),
+    ...FEE_CATALOGUE.map((id) => { const u = catalog.unitPrices.find((x) => x.id === id); return { value: id, label: u ? `${u.label} (${cad(u.price ?? 0, 2)} per ${u.unit})` : id }; }),
     { value: "own", label: "Your own price per 1,000 calls" },
   ];
-  const setFee = (i: number, fn: (f: NonNullable<Capable["toolFees"]>[number]) => void) => upd((x) => { const f = x.toolFees?.[i]; if (f) fn(f); });
+  const setFee = (i: number, fn: (f: NonNullable<(Of<"chat"> | Of<"agent">)["toolFees"]>[number]) => void) => upd((x) => { const f = x.toolFees?.[i]; if (f) fn(f); });
   return (
     <div>
       <h3 className="mb-1.5 text-sm font-semibold">Built-in tool fees</h3>
@@ -145,7 +145,7 @@ export function ImagesPanel({ w }: { w: Of<"chat"> | Of<"llm"> }) {
   const upd = useWorkloadEdit(w.id, w.kind);
   const img = w.images;
   const model = catalog.chatModels.find((m) => m.id === w.modelId);
-  const set = (fn: (i: NonNullable<Capable["images"]>) => void) => upd((x) => { x.images = x.images ?? { perCall: 0, widthPx: 1024, heightPx: 768, detail: "high" }; fn(x.images); });
+  const set = (fn: (i: NonNullable<(Of<"chat"> | Of<"llm">)["images"]>) => void) => upd((x) => { x.images = x.images ?? { perCall: 0, widthPx: 1024, heightPx: 768, detail: "high" }; fn(x.images); });
   const sizeId = IMAGE_SIZES.find((s) => s.widthPx === img?.widthPx && s.heightPx === img?.heightPx)?.id ?? "custom";
   const cost = model && img && img.perCall > 0 ? imageCost(model, img) : undefined;
   return (

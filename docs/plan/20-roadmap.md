@@ -14,7 +14,7 @@
 | P7 | Product tour | Help, glossary and tour spec in 10-target-product.md | U6 | Skip persists after reload; relaunch works |
 | P8 | Ranges and CFO depth | Per-workload ranges, Dev Lab percentiles, retries, wider sensitivity, IRR, discounted payback, risk weighting, capex/opex, new benefit types | E9, E10, E12, E14, F6, U2 | IRR checked against known cash flows |
 | P9 | Use-case wizard | Use-case wizard spec in 10-target-product.md, with all recipes; templates become presets | F2, F5, F8 | Each recipe's output validates against the schema |
-| P10 | Infra, tools, images, PTU | Hosting presets, tool fees by volume, image tokens, PTU in the ledger, editable hard-coded values | E7, E8, E13, E15 | Container Apps price fixed |
+| P10 | Infra, tools, images, PTU | Hosting presets, tool fees by volume, image tokens, PTU in the ledger, editable hard-coded values | E7, E8, E13, E15 | Container Apps price fixed. **Delivered (P10):** project version 5; all new settings optional; totals identical for the sample and every template except the Container Apps fix (sample +C$144.09 a month), pinned in `golden-migration.test.ts` |
 | P11 | Report v2 and comparison | Cover, exec page, appendix, ranges, Excel charts, scenario and project comparison, portfolio cards | U4, U5, U9 | Printed PDF reviewed |
 | P12 | Responsive and accessibility | Collapsible sidebar, contrast ≥ 4.5:1, text ≥ 12px, chart tables, dark-mode toggle | U10, U11, V5 | Tablet screenshots |
 
