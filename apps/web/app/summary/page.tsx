@@ -146,7 +146,7 @@ function HeadlineTiles({ s }: { s: ReturnType<typeof useSummary>["summary"] }) {
           <div className="truncate text-[11.5px] text-muted">{t.label}</div>
           <div className="num truncate font-display text-xl font-bold leading-tight">{t.value}</div>
           {t.sub && <div className="truncate text-[11px] text-ink-2">{t.sub}</div>}
-          {t.range && <div className="num truncate text-[11px] text-muted" title={`Range across the cautious, expected and optimistic cases: ${t.range}`}>{t.range}</div>}
+          {t.range && <div className="num text-[10.5px] leading-tight text-muted" title={`Range across the cautious, expected and optimistic cases: ${t.range}`}>{t.range}</div>}
         </div>
       ))}
     </div>

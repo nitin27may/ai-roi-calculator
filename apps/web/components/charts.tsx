@@ -253,7 +253,9 @@ export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string
     <ViewToggle table={table}>
       <div className="flex flex-col gap-2.5" role="img" aria-label={caption ?? "Low, expected and high for each figure"}>
         {rows.map((r) => {
-          const lo = Math.min(0, r.low), hi = Math.max(0, r.high);
+          // Scale to the span itself, with a little padding; zero only shows when the range reaches it.
+          const pad = ((r.high - r.low) || Math.abs(r.expected) || 1) * 0.06;
+          const lo = r.low - pad, hi = r.high + pad;
           const span = hi - lo || 1;
           const x = (v: number) => (100 * (v - lo)) / span;
           const pos = (v: number) => Math.min(98, Math.max(2, x(v)));
@@ -262,7 +264,7 @@ export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string
               <span className="truncate text-ink-2" title={r.label}>{r.label}</span>
               <div>
                 <div className="relative h-5" title={`${r.label}: ${show(r, r.low)} to ${show(r, r.high)}, expected ${show(r, r.expected)}`}>
-                  <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${x(0)}%` }} />
+                  {x(0) > 0 && x(0) < 100 && <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${x(0)}%` }} />}
                   <div className="absolute top-1.5 bottom-1.5 rounded bg-surface-2" style={{ left: `${x(r.low)}%`, width: `${Math.max(0.8, x(r.high) - x(r.low))}%`, background: "var(--accent)", opacity: 0.35 }} />
                   <div className="absolute inset-y-0.5 w-0.5 rounded bg-ink" style={{ left: `${pos(r.expected)}%` }} />
                 </div>

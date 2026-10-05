@@ -106,7 +106,7 @@ function Assumptions() {
                 <div className="grid grid-cols-2 gap-2">
                   <ConfidenceField value={a.confidencePct} onChange={(v) => upd((x) => { if (v === undefined) delete x.confidencePct; else x.confidencePct = v; })} />
                   <Field label="Count it under capability" help="valueCapability">
-                    <Select value={a.capabilityId ?? ""} options={[{ value: "", label: "The project as a whole" }, ...project.benefits.capabilities.map((c) => ({ value: c.id, label: c.label }))]} onChange={(v) => upd((x) => { if (v) x.capabilityId = v; else delete x.capabilityId; })} />
+                    <Select value={a.capabilityId ?? ""} options={[{ value: "", label: "Whole project" }, ...project.benefits.capabilities.map((c) => ({ value: c.id, label: c.label }))]} onChange={(v) => upd((x) => { if (v) x.capabilityId = v; else delete x.capabilityId; })} />
                   </Field>
                 </div>
                 {headcount && <div className="text-[11.5px] text-muted"><span className="num font-semibold text-ink">{cad(avoidedMonthly(project, a))}/month</span>, rising with rate escalation. Count it only if the role is actually not hired, or is redeployed to funded work.</div>}

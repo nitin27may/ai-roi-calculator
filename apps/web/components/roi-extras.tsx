@@ -86,7 +86,7 @@ export function ValueItems() {
               <Field label={`From month (go-live ${B + 1})`} help="capLiveFrom"><NumberInput value={v.startMonth ?? B + 1} min={1} max={H} onChange={(n) => setOpt("startMonth", Math.round(n))} /></Field>
               <ConfidenceField value={v.confidencePct} onChange={(n) => setOpt("confidencePct", n)} />
               <Field label="Count it under capability" help="valueCapability">
-                <Select value={v.capabilityId ?? ""} options={[{ value: "", label: "The project as a whole" }, ...project.benefits.capabilities.map((c) => ({ value: c.id, label: c.label }))]} onChange={(id) => setOpt("capabilityId", id || undefined)} />
+                <Select value={v.capabilityId ?? ""} options={[{ value: "", label: "Whole project" }, ...project.benefits.capabilities.map((c) => ({ value: c.id, label: c.label }))]} onChange={(id) => setOpt("capabilityId", id || undefined)} />
               </Field>
             </div>
             <div className="text-[11.5px] text-muted"><span className="num font-semibold text-ink">{cad(valueItemMonthly(project, v))} / month</span> at full rollout, before confidence{v.kind === "risk" ? "" : v.ramp === false ? "" : ", rising with the adoption ramp"}.</div>
