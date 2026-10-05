@@ -26,6 +26,15 @@ describe("voice agent", () => {
     expect(c.tts).toBeGreaterThan(0);
     expect(c.cost).toBeCloseTo(c.stt + c.llm + c.tts, 10);
   });
+
+  it("applies the LLM model's own tokenizer multiplier in the cascade leg (E5)", () => {
+    const v: Voice = { ...base, turnsPerCall: 1, cacheHit: 0 };
+    const c = cascadeCall(v, book, "2027-01-01", { sttId: "speech-batch", llmId: "claude-sonnet-5-5", ttsId: "tts-neural" });
+    const tk = 1.33 * book.tokenizerMultiplier("claude-sonnet-5-5");
+    const words = 2.5 * 140; // callerMin × wordsPerMinute, one turn
+    const expected = book.chatCost("claude-sonnet-5-5", { input: 1500 + words * tk, cachedInput: 0, output: words * tk }, "2027-01-01");
+    expect(c.llm).toBeCloseTo(expected, 8);
+  });
 });
 
 describe("harness management", () => {

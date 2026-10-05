@@ -109,6 +109,39 @@ describe("E4: production agent warms the harness prefix above the volume thresho
   });
 });
 
+describe("E6: chat bills late turns that cross the long-context threshold", () => {
+  it("splits turns into a standard line and a long-context line once later turns cross the model's threshold", () => {
+    // Average prompt stays under gpt-5.4's 272K threshold; the last turn (turn 10) is well over it.
+    const w: Workload = {
+      kind: "chat", id: "chat", label: "Long chat", users: 10, conversationsPerUser: 1, turns: 10, modelId: "gpt-5.4",
+      systemPromptTokens: 600, userTurnTokens: 20000, assistantTurnTokens: 30000, topK: 5, chunkTokens: 512, cacheHit: 0, reasoning: "none",
+    };
+    const freshBook = new PriceBook(cat, settings);
+    const lines = workloadLines(w, { ...ctx, book: freshBook });
+    expect(lines.map((l) => l.id)).toContain("chat:main-longctx");
+    const longCtxLine = lines.find((l) => l.id === "chat:main-longctx")!;
+    expect(longCtxLine.unitPrice).toBeGreaterThan(0);
+    expect([...freshBook.notes.values()].some((n) => n.kind === "long-context")).toBe(true);
+  });
+
+  it("stays a single line when no turn crosses the threshold", () => {
+    const w: Workload = {
+      kind: "chat", id: "chat", label: "Short chat", users: 10, conversationsPerUser: 1, turns: 4, modelId: "gpt-5.4",
+      systemPromptTokens: 600, userTurnTokens: 100, assistantTurnTokens: 400, topK: 5, chunkTokens: 512, cacheHit: 0, reasoning: "none",
+    };
+    const lines = workloadLines(w, ctx);
+    expect(lines.map((l) => l.id)).not.toContain("chat:main-longctx");
+  });
+});
+
+describe("E6: the documents direct route now has real output tokens", () => {
+  it("bills non-zero output tokens per page sent straight to a model", () => {
+    const w: Workload = { kind: "documents", id: "docs", label: "Docs", pagesPerMonth: 1000, pageType: "dense", route: { type: "direct", modelId: "gpt-5.4", outputTokens: 50 } };
+    const [l] = workloadLines(w, ctx);
+    expect(l!.tokens!.output).toBeGreaterThan(0);
+  });
+});
+
 describe("ledger: free allowances", () => {
   it("reduces a meter's billed quantity by its monthly free allowance (search-semantic, 1K queries free)", () => {
     const u = cat.unitPrices.find((x) => x.id === "search-semantic")!;
