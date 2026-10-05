@@ -8,19 +8,29 @@ export function blankProject(name: string, startDate = nextMonth()): Project {
     schema: "ai-cost-roi-studio/project", version: CURRENT_PROJECT_VERSION, name, startDate,
     settings: { azureDeployment: "dataZone", language: "en", snowflake: { routing: "global", edition: "enterprise" } },
     timeline: { buildMonths: 4, horizonMonths: 36, adoptionRampMonths: 6 },
+    features: [],
     rateCard: [
       { id: "dev", label: "AI developer", hourlyRate: 95 },
       { id: "architect", label: "Solution architect", hourlyRate: 120 },
       { id: "knowledgeWorker", label: "Knowledge worker", hourlyRate: 62.5 },
     ],
     harnesses: [],
-    build: { team: [{ roleId: "dev", people: 2, hoursPerMonth: 160, experiments: true }, { roleId: "architect", people: 0.5, hoursPerMonth: 160, experiments: false }], includeLabour: true, workstreams: [], contingencyPct: 10, activities: [], environment: [{ id: "logs", label: "App Insights (dev)", unitPriceId: "log-analytics-ingest", quantity: 5 }] },
+    build: { team: [{ roleId: "dev", people: 2, hoursPerMonth: 160, experiments: true }, { roleId: "architect", people: 0.5, hoursPerMonth: 160, experiments: false }], includeLabour: true, workstreams: [], contingencyPct: 10, contingencyScope: "labour", activities: [], environment: [{ id: "logs", label: "App Insights (dev)", unitPriceId: "log-analytics-ingest", quantity: 5 }] },
     workloads: [],
     maintenance: { mode: "pctOfBuild", pctPerYear: 20 },
     benefits: { capabilities: [], avoidedCosts: [], oneOff: [] },
     roi: { basis: "full", benefitPreset: "typical", devCutPct: 0, maintCutPct: 0, transitionCosts: [], growthPctPerYear: 0, rateEscalationPctPerYear: 2, discountRatePct: 8 },
     scenarios: [],
   };
+}
+
+/** Put everything a template built (except shared platform costs) in one named feature, so a new project starts with a feature to rename and split. */
+function oneFeature(p: Project, label: string): Project {
+  p.features = [{ id: "feature-1", label }];
+  for (const w of p.workloads) if (w.kind !== "fixed") w.featureId = "feature-1";
+  for (const a of p.build.activities) a.featureId = "feature-1";
+  for (const c of p.benefits.capabilities) c.featureId = "feature-1";
+  return p;
 }
 
 function nextMonth(): string {
@@ -45,8 +55,8 @@ function contractsRag(name: string): Project {
   p.workloads.push({ ...newWorkload(p, "chat"), id: "chat", label: "Contract Q&A", users: 250, conversationsPerUser: 15 } as Project["workloads"][number]);
   p.workloads.push({ ...newWorkload(p, "continuousEval"), id: "ceval", label: "Continuous evaluation", interactionsPerMonth: 15_000 } as Project["workloads"][number]);
   p.workloads.push(newWorkload(p, "fixed"));
-  p.benefits.capabilities.push({ id: "review", label: "Faster contract review", hoursSavedPerMonth: 400, roleId: "knowledgeWorker", componentIds: ["contracts", "embed", "index", "retrieval", "chat"] });
-  return p;
+  p.benefits.capabilities.push({ id: "review", label: "Faster contract review", hoursSavedPerMonth: 400, roleId: "knowledgeWorker", workloadIds: ["contracts", "embed", "index", "retrieval", "chat"], workstreamIds: [] });
+  return oneFeature(p, "Contract Q&A");
 }
 
 function emailTriage(name: string): Project {
@@ -58,8 +68,8 @@ function emailTriage(name: string): Project {
   p.workloads.push({ ...newWorkload(p, "agent"), id: "agent", label: "Triage agent", harnessId: "triage", tasksPerMonth: 30_000 } as Project["workloads"][number]);
   p.workloads.push({ ...newWorkload(p, "contentSafety"), id: "safety", label: "Prompt Shields", requestsPerMonth: 120_000 } as Project["workloads"][number]);
   p.workloads.push(newWorkload(p, "fixed"));
-  p.benefits.capabilities.push({ id: "triage", label: "Email triage and routing", hoursSavedPerMonth: 900, roleId: "knowledgeWorker", componentIds: ["mail", "classify", "agent"] });
-  return p;
+  p.benefits.capabilities.push({ id: "triage", label: "Email triage and routing", hoursSavedPerMonth: 900, roleId: "knowledgeWorker", workloadIds: ["mail", "classify", "agent"], workstreamIds: [] });
+  return oneFeature(p, "Email triage");
 }
 
 function callCentre(name: string): Project {
@@ -70,8 +80,8 @@ function callCentre(name: string): Project {
   p.workloads.push({ ...newWorkload(p, "transcription"), id: "qa", label: "Call transcripts for QA", hoursPerMonth: 2000, engineId: "speech-batch" } as Project["workloads"][number]);
   p.workloads.push({ ...newWorkload(p, "continuousEval"), id: "ceval", label: "Call quality evaluation", interactionsPerMonth: 20_000, sampleShare: 0.1 } as Project["workloads"][number]);
   p.workloads.push(newWorkload(p, "fixed"));
-  p.benefits.capabilities.push({ id: "deflect", label: "Calls handled without an agent", hoursSavedPerMonth: 1200, roleId: "knowledgeWorker", componentIds: ["voice", "qa"] });
-  return p;
+  p.benefits.capabilities.push({ id: "deflect", label: "Calls handled without an agent", hoursSavedPerMonth: 1200, roleId: "knowledgeWorker", workloadIds: ["voice", "qa"], workstreamIds: [] });
+  return oneFeature(p, "Voice agent");
 }
 
 export const PROJECT_TEMPLATES: { id: string; label: string; detail: string; make: (name: string) => Project }[] = [

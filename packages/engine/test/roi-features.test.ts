@@ -55,7 +55,7 @@ describe("cost allocation", () => {
   });
   it("leaves everything unallocated when no capability is linked", () => {
     const q = clone();
-    q.benefits.capabilities.forEach((c) => (c.componentIds = []));
+    q.benefits.capabilities.forEach((c) => { c.workloadIds = []; c.workstreamIds = []; });
     const a = computeAllocation(q, buildLedger(q, cat), "full");
     expect(a.unallocated.reason).toBe("noLinks");
     expect(a.capabilities.every((c) => c.cost === 0)).toBe(true);
@@ -106,6 +106,6 @@ describe("templates", () => {
   it("removing a workload unlinks it from capabilities", () => {
     const q = clone();
     removeWorkload(q, "chat");
-    expect(q.benefits.capabilities.some((c) => c.componentIds.includes("chat"))).toBe(false);
+    expect(q.benefits.capabilities.some((c) => c.workloadIds.includes("chat"))).toBe(false);
   });
 });

@@ -96,7 +96,7 @@ export function capabilityFromBenchmark(p: Project, benchmarkId: string, lib: Li
   let id = b.id, i = 2;
   while (taken.has(id)) id = `${b.id}-${i++}`;
   return {
-    id, label: b.label, roleId: b.roleId, componentIds: [], hoursSavedPerMonth: 0,
+    id, label: b.label, roleId: b.roleId, workloadIds: [], workstreamIds: [], hoursSavedPerMonth: 0,
     driver: b.driver, benchmarkId: b.id,
     ...(b.driver === "perVolume" ? { itemsPerMonth: 1000, handledPct: 50 } : { users }),
     ...(b.driver === "perTask" ? { tasksPerUserPerDay: 1 } : {}),

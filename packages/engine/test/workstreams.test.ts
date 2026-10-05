@@ -94,7 +94,7 @@ describe("workstreams", () => {
   it("carries linked workstreams' build cost into capability ROI as direct cost", () => {
     const al = computeAllocation(p, L, "full");
     const unlinked = structuredClone(p);
-    unlinked.benefits.capabilities.forEach((c) => (c.componentIds = c.componentIds.filter((id) => !id.startsWith("ws-"))));
+    unlinked.benefits.capabilities.forEach((c) => (c.workstreamIds = []));
     const al0 = computeAllocation(unlinked, build(unlinked), "full");
     const ask = al.capabilities.find((c) => c.id === "ask")!, ask0 = al0.capabilities.find((c) => c.id === "ask")!;
     expect(ask.direct).toBeGreaterThan(ask0.direct);
@@ -111,7 +111,7 @@ describe("workstream editing", () => {
     removeWorkstream(q, "ws-notes");
     expect(q.build.activities.some((a) => a.workstreamId === "ws-notes")).toBe(false);
     expect(q.build.team.some((t) => t.allocations?.some((a) => a.workstreamId === "ws-notes"))).toBe(false);
-    expect(q.benefits.capabilities.some((c) => c.componentIds.includes("ws-notes"))).toBe(false);
+    expect(q.benefits.capabilities.some((c) => c.workstreamIds.includes("ws-notes"))).toBe(false);
     expect(ProjectSchema.safeParse(q).success).toBe(true);
     setAllocation(q, 3, "ws-ask", 0.5);
     setAllocation(q, 3, "ws-ask", 0);

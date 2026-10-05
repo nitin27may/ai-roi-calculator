@@ -2,7 +2,9 @@ import type { Catalog } from "@studio/catalog";
 import { PriceBook, monthDate, type PriceNote } from "./pricing.js";
 import type { Project } from "./project.js";
 import type { Percentile } from "./harness.js";
-import { workloadLines } from "./workloads.js";
+import { cashLine, workloadLines } from "./workloads.js";
+import { oneTimeKey, workloadWindow } from "./features.js";
+import { isCashItem } from "./project.js";
 import { devLabLines, teamLines } from "./devlab.js";
 import { avoidedMonthly, capabilityHours } from "./benefits.js";
 import { line, sum, type Line, type Stream } from "./lines.js";
@@ -28,9 +30,14 @@ export interface Month {
 
 export interface Ledger {
   months: Month[];
+  /** 1-based month the run rate is read at: every workload that is still running has reached full volume. */
+  steadyMonth: number;
   notes: PriceNote[];
   totals: { build: number; buildLabour: number; devLab: number; runRate: number; maintRate: number; benefitRate: number };
 }
+
+/** The month run-rate figures are read at (see `Ledger.steadyMonth`). */
+export const steadyState = (ledger: Ledger): Month => ledger.months[ledger.steadyMonth - 1] ?? ledger.months.at(-1)!;
 
 export const STREAMS: Stream[] = ["labour", "devlab", "devenv", "run", "platform", "maint", "transition"];
 
@@ -55,6 +62,8 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
   const capFull = new Map(p.benefits.capabilities.map((c) => [c.id, capabilityHours(p, c, catalog.benchmarks).net * (rates.get(c.roleId) ?? 0)]));
 
   const contingency = 1 + p.build.contingencyPct / 100;
+  /** Contingency on non-labour build costs (labour carries it in its rate); 1 when it covers labour only. */
+  const nonLabourContingency = p.build.contingencyScope === "all" ? contingency : 1;
   let buildTotal = 0;
   const months: Month[] = [];
   for (let m = 1; m <= p.timeline.horizonMonths; m++) {
@@ -65,8 +74,12 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
     if (m <= B) {
       if (p.build.includeLabour) lines.push(...teamLines(p, p.build.team, "labour", "team", contingency, m));
       lines.push(...devLabLines(p, m, book, date));
-      lines.push(...p.build.environment.map((it) => line({ id: `devenv:${it.id}`, componentId: "devenv", label: it.label, stream: "devenv", behaviour: "fixed", meter: it.unitPriceId, quantity: it.quantity, unit: book.unit(it.unitPriceId).unit, unitPrice: book.unitPrice(it.unitPriceId), formula: `${it.quantity} × ${book.unit(it.unitPriceId).unit}` })));
-      lines = lines.map((l) => ({ ...l, unitPrice: l.unitPrice * devCut, cost: l.cost * devCut }));
+      for (const it of p.build.environment) {
+        if (isCashItem(it)) {
+          if (it.cadence === "monthly" || m === Math.min(B, it.month ?? 1)) lines.push({ ...cashLine(`devenv:${it.id}`, "devenv", it, "devenv"), once: it.cadence === "once" });
+        } else lines.push(line({ id: `devenv:${it.id}`, componentId: "devenv", label: it.label, stream: "devenv", behaviour: "fixed", meter: it.unitPriceId, quantity: it.quantity, unit: book.unit(it.unitPriceId).unit, unitPrice: book.unitPrice(it.unitPriceId), formula: `${it.quantity} × ${book.unit(it.unitPriceId).unit}` }));
+      }
+      lines = lines.map((l) => { const f = (l.stream === "labour" ? 1 : nonLabourContingency) * devCut; return { ...l, unitPrice: l.unitPrice * f, cost: l.cost * f }; });
       buildTotal += sum(lines.map((l) => l.cost));
     } else {
       const k = m - B; // production month, 1-based
@@ -74,10 +87,23 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
       adoption = r === 0 ? 1 : Math.min(1, k / r);
       const g = growth ** ((k - 1) / 12);
       const esc = escalation ** Math.floor((k - 1) / 12);
-      const usage = adoption * g;
       for (const w of p.workloads) {
+        // Each workload bills from its own start month to its end month and ramps on its own schedule (default: go-live and the project ramp).
+        const win = workloadWindow(p, w);
+        const active = m >= win.start && m <= win.end;
+        const usage = (win.ramp === 0 ? 1 : Math.min(1, (m - win.start + 1) / win.ramp)) * g;
         for (const l of workloadLines(w, { book, date, harnesses, percentile, language: p.settings.language })) {
+          if (l.once) { if (m === Math.max(B + 1, l.onceMonth ?? win.start)) lines.push(l); continue; }
+          if (!active) continue;
           lines.push(l.behaviour === "usage" ? { ...l, quantity: l.quantity * usage, cost: l.cost * usage } : l);
+        }
+        const key = oneTimeKey(w);
+        if (w.oneTime && key && m === Math.max(B + 1, w.oneTime.month ?? win.start)) {
+          const once = { ...w, [key]: w.oneTime.volume } as typeof w;
+          for (const l of workloadLines(once, { book, date, harnesses, percentile, language: p.settings.language })) {
+            if (l.behaviour !== "usage" || l.once) continue;
+            lines.push({ ...l, id: `${l.id}:once`, label: `${l.label} (one-time volume)`, behaviour: "fixed", once: true });
+          }
         }
       }
       const maint = p.maintenance.mode === "none" ? []
@@ -107,15 +133,25 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
   }
   const last = months[months.length - 1]!;
   const buildMonths = months.filter((x) => x.phase === "build");
-  const firstFull = months.find((x) => x.phase === "production" && x.adoption >= 1) ?? last;
+  const firstProjectFull = months.find((x) => x.phase === "production" && x.adoption >= 1) ?? last;
+  // Steady state: also wait for every workload that has not ended to reach full volume.
+  let steady = firstProjectFull.m;
+  for (const w of p.workloads) {
+    const win = workloadWindow(p, w);
+    const full = win.start + Math.max(0, win.ramp - 1);
+    if (full <= win.end) steady = Math.max(steady, Math.min(full, last.m));
+  }
+  const firstFull = months[steady - 1]!;
+  const onceCost = sum(firstFull.lines.filter((l) => l.once && (l.stream === "run" || l.stream === "platform")).map((l) => l.cost));
   return {
     months,
+    steadyMonth: steady,
     notes: [...book.notes.values()],
     totals: {
       build: sum(buildMonths.map((x) => x.byStream.labour + x.byStream.devlab + x.byStream.devenv)),
       buildLabour: sum(buildMonths.map((x) => x.byStream.labour)),
       devLab: sum(buildMonths.map((x) => x.byStream.devlab)),
-      runRate: firstFull.byStream.run + firstFull.byStream.platform,
+      runRate: firstFull.byStream.run + firstFull.byStream.platform - onceCost,
       maintRate: firstFull.byStream.maint,
       benefitRate: sum([...capFull.values()]) + sum(p.benefits.avoidedCosts.map((a) => avoidedMonthly(p, a))),
     },
