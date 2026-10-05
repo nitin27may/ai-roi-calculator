@@ -6,6 +6,7 @@ import { Download, Upload, RotateCcw, FileSpreadsheet, FileText, Printer, Undo2,
 import { exportCsv, exportXlsx } from "@/lib/export";
 import { DEPLOYMENT_LABEL, ProjectSchema, meetingIntelligence, migrateProject } from "@studio/engine";
 import { useStudio } from "@/lib/store";
+import { describeIssue } from "@/lib/validation";
 import { catalog, useLedger } from "@/lib/compute";
 import { cad, cn, fmt } from "@/lib/format";
 
@@ -167,7 +168,7 @@ function ProjectFile() {
       }
       const parsed = ProjectSchema.safeParse(migrated);
       if (parsed.success) add(parsed.data);
-      else useStudio.setState({ problem: `${f.name} is not a valid project (${parsed.error.issues[0]?.path.join(".")}: ${parsed.error.issues[0]?.message})` });
+      else useStudio.setState({ problem: `${f.name} is not a valid project file. ${describeIssue(parsed.error.issues[0])}` });
     } catch {
       useStudio.setState({ problem: `${f.name} is not a JSON project file` });
     }

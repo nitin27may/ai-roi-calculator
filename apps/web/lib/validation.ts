@@ -52,25 +52,27 @@ export function pathLabel(path: ReadonlyArray<string | number>): string {
   return PATH_LABELS[named] ?? words(named);
 }
 
-export interface SchemaIssue { path: ReadonlyArray<string | number>; message: string; code?: string; minimum?: number | bigint; maximum?: number | bigint; expected?: string; received?: string; options?: unknown[] }
+export interface SchemaIssue { path: ReadonlyArray<string | number>; message: string; code?: string; minimum?: number | bigint; maximum?: number | bigint; expected?: unknown; received?: unknown; options?: unknown }
 
-/** Turns the first schema issue into a sentence a person can act on. Never shows the raw path or the schema's own wording. */
-export function humanizeIssue(issue: SchemaIssue | undefined): string {
-  const prefix = "That change was not applied.";
-  if (!issue) return `${prefix} The project would no longer be valid.`;
+/** Describes a schema issue as a sentence a person can act on. Never shows the raw path or the schema's own wording. */
+export function describeIssue(issue: SchemaIssue | undefined): string {
+  if (!issue) return "The project would no longer be valid.";
   const label = pathLabel(issue.path);
   switch (issue.code) {
     case "too_small":
-      return `${prefix} ${label} must be at least ${issue.minimum ?? "the minimum"}.`;
+      return `${label} must be at least ${issue.minimum ?? "the minimum"}.`;
     case "too_big":
-      return `${prefix} ${label} must be at most ${issue.maximum ?? "the maximum"}.`;
+      return `${label} must be at most ${issue.maximum ?? "the maximum"}.`;
     case "invalid_type":
-      return issue.received === "undefined" ? `${prefix} ${label} needs a value.` : `${prefix} ${label} needs ${issue.expected === "number" ? "a number" : issue.expected === "string" ? "text" : "a different kind of value"}.`;
+      return issue.received === "undefined" ? `${label} needs a value.` : `${label} needs ${issue.expected === "number" ? "a number" : issue.expected === "string" ? "text" : "a different kind of value"}.`;
     case "invalid_enum_value":
     case "invalid_literal":
     case "invalid_union":
-      return `${prefix} ${label} is not one of the available choices.`;
+      return `${label} is not one of the available choices.`;
     default:
-      return `${prefix} ${label} is not valid. Check the value and try again.`;
+      return `${label} is not valid. Check the value and try again.`;
   }
 }
+
+/** The message shown when an edit is refused. */
+export const humanizeIssue = (issue: SchemaIssue | undefined): string => `That change was not applied. ${describeIssue(issue)}`;
