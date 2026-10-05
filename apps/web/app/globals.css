@@ -64,6 +64,13 @@ table.data td { border-bottom: 1px solid var(--line); padding: 6px 8px; vertical
 table.data .n { text-align: right; white-space: nowrap; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 table.data tr.total td { font-weight: 600; border-top: 2px solid var(--line); border-bottom: 0; }
 
+/* Sidebar collapsed to icons (desktop only; the drawer below 1024px always shows labels). Names stay available to screen readers. */
+@media (min-width: 1024px) {
+  nav[data-collapsed="true"] .nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  nav[data-collapsed="true"] .nav-rule { display: block; }
+  nav[data-collapsed="true"] a, nav[data-collapsed="true"] button { justify-content: center; }
+}
+
 /* Reduced motion: no animation or smooth scrolling anywhere. */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }

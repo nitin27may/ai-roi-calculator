@@ -84,8 +84,13 @@ function LifecycleCanvas() {
   const gx = x(B);
   return (
     <div ref={ref} className="relative min-h-[400px] flex-1 overflow-hidden px-1.5 pb-1.5">
+      <table className="sr-only">
+        <caption>Lifecycle cost by month: each lane, and the cumulative net position</caption>
+        <thead><tr><th scope="col">Month</th>{lanes.map(([n]) => <th key={n} scope="col">{n}</th>)}<th scope="col">Cumulative net</th></tr></thead>
+        <tbody>{months.map((_, m) => <tr key={m}><th scope="row">Month {m + 1}</th>{lanes.map(([n,, v]) => <td key={n}>{cad(v[m] ?? 0)}</td>)}<td>{cad(vals[m] ?? 0)}</td></tr>)}</tbody>
+      </table>
       {w > 0 && (
-        <svg className="chart absolute inset-0 h-full w-full" viewBox={`0 0 ${W} ${Ht}`} role="img" aria-label="Lifecycle cost lanes by month">
+        <svg className="chart absolute inset-0 h-full w-full" viewBox={`0 0 ${W} ${Ht}`} role="group" aria-label="Lifecycle cost lanes by month. The go-live month marker is a slider: use the left and right arrow keys. The same figures are in the table below the chart.">
           <rect x={L} y={0} width={B * bw} height={T + lanes.length * laneH} fill="var(--build)" opacity={0.06} />
           <text x={L + 4} y={14}>Build</text>
           <text x={gx + 42} y={14}>Production</text>

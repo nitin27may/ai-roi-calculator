@@ -2,6 +2,9 @@
 
 export const THEME_KEY = "studio.theme";
 export const SIDEBAR_KEY = "studio.sidebar";
+/** The product tour opens the sidebar drawer on narrow screens when a step points into it, and closes it again afterwards. */
+export const DRAWER_OPEN_EVENT = "studio:drawer-open";
+export const DRAWER_CLOSE_EVENT = "studio:drawer-close";
 export type ThemeChoice = "light" | "dark" | "system";
 export const THEME_CHOICES: readonly ThemeChoice[] = ["light", "dark", "system"];
 

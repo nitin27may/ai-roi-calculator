@@ -25,7 +25,7 @@ export default function Roi() {
   return (
     <div data-tour="roi-view" className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Assumptions />
-      <Card>
+      <Card className="order-first lg:order-none">
         <CardHead title={{ cash: "Cumulative cash position", years: "By year", capabilities: "ROI by capability", beforeAfter: "Today vs with AI", sensitivity: "What moves NPV most", scenarios: "Scenarios" }[tab]}
           sub={tab === "scenarios" ? "What-ifs compared with the baseline on the selected cost basis" : `Benefit minus ${BASES.find((b) => b.value === project.roi.basis)!.label.toLowerCase()} · NPV at ${project.roi.discountRatePct}%: ${cad(roi.npv)}`}>
           <Seg label="View" value={tab} onChange={setTab} options={[{ value: "cash", label: "Cash" }, { value: "years", label: "By year" }, { value: "capabilities", label: "By capability" }, { value: "beforeAfter", label: "Before / after" }, { value: "sensitivity", label: "Sensitivity" }, { value: "scenarios", label: "Scenarios" }]} />
@@ -40,6 +40,8 @@ export default function Roi() {
 function Assumptions() {
   const project = useStudio((s) => s.project);
   const edit = useStudio((s) => s.edit);
+  // Below 1024px the chart comes first and this long form folds away until asked for; on desktop it is always open.
+  const [open, setOpen] = useState(false);
   const H = project.timeline.horizonMonths, B = project.timeline.buildMonths;
   const slider = (label: string, value: number, set: (n: number) => void, id: string) => (
     <div className="flex flex-col gap-1">
@@ -51,8 +53,11 @@ function Assumptions() {
   const textIn = "min-w-0 rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]";
   return (
     <Card>
-      <CardHead title="Assumptions" />
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-3.5 pb-3.5">
+      <CardHead title="Assumptions">
+        <button type="button" aria-expanded={open} aria-controls="roi-assumptions" onClick={() => setOpen((v) => !v)}
+          className="rounded-md border border-line px-2.5 py-1 text-xs font-medium text-ink-2 hover:bg-surface-2 lg:hidden">{open ? "Hide assumptions" : "Show assumptions"}</button>
+      </CardHead>
+      <div id="roi-assumptions" className={cn("min-h-0 flex-1 flex-col gap-4 overflow-auto px-3.5 pb-3.5 lg:flex", open ? "flex" : "hidden")}>
         <fieldset className="flex flex-col gap-1.5">
           <legend className="mb-1.5 text-sm font-semibold">Measure ROI against</legend>
           {BASES.map((b) => (

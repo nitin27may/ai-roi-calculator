@@ -21,7 +21,7 @@ export function PageIntro({ path }: { path: string }) {
     try { localStorage.setItem(introKey(path), "dismissed"); } catch { /* storage unavailable: hidden for this visit only */ }
   };
   return (
-    <section aria-label="What this page answers" className="mx-5 mt-2 flex items-start gap-3 rounded-lg border border-line bg-surface px-3.5 py-2.5 text-[13px] text-ink-2">
+    <section aria-label="What this page answers" className="mx-3 mt-2 sm:mx-5 flex items-start gap-3 rounded-lg border border-line bg-surface px-3.5 py-2.5 text-[13px] text-ink-2">
       <p className="min-w-0 flex-1"><b className="text-ink">What this page answers. </b>{text}</p>
       <button type="button" aria-label="Dismiss this introduction" onClick={dismiss} className="-mr-1 grid h-6 w-6 flex-none place-items-center rounded-md text-muted hover:bg-surface-2 hover:text-ink"><X size={14} /></button>
     </section>
