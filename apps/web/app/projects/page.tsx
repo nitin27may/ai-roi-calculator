@@ -1,7 +1,8 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Copy, Trash2, Wand2 } from "lucide-react";
 import { PROJECT_TEMPLATES, buildLedger, computeRoi, roiOptions } from "@studio/engine";
 import { Card, CardHead, Field, TextInput } from "@/components/ui";
 import { catalog } from "@/lib/compute";
@@ -15,7 +16,7 @@ export default function Projects() {
   const { open, duplicate, remove, create } = useStudio.getState();
   const router = useRouter();
   const [name, setName] = useState("");
-  const [template, setTemplate] = useState(PROJECT_TEMPLATES[0]!.id);
+  const [template, setTemplate] = useState("");
   const [confirm, setConfirm] = useState<string | null>(null);
   const summaries = useMemo(() => new Map(library.map((e) => {
     const L = buildLedger(e.project, catalog);
@@ -63,11 +64,15 @@ export default function Projects() {
         </div>
       </Card>
       <Card>
-        <CardHead title="New project" sub="Start from a template; everything can be changed afterwards" />
-        <form className="flex flex-col gap-3 px-3.5 pb-3.5" onSubmit={(ev) => { ev.preventDefault(); create(template, name.trim() || PROJECT_TEMPLATES.find((t) => t.id === template)!.label); setName(""); router.push("/summary"); }}>
+        <CardHead title="New estimate" sub="Answer a few questions and the wizard builds the estimate, or start from a preset below" />
+        <div className="px-3.5 pb-1">
+          <Link href="/wizard" className="flex items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-ink"><Wand2 size={14} aria-hidden />New estimate with the wizard</Link>
+          <p className="mt-2 text-[11.5px] text-muted">Or start from a preset. Pick one; none is chosen for you.</p>
+        </div>
+        <form className="flex flex-col gap-3 px-3.5 pb-3.5" onSubmit={(ev) => { ev.preventDefault(); const t = PROJECT_TEMPLATES.find((x) => x.id === template); if (!t) return; create(template, name.trim() || t.label); setName(""); router.push("/summary"); }}>
           <Field label="Project name" help="projectName"><TextInput value={name} placeholder="e.g. Claims assistant" onChange={setName} /></Field>
           <fieldset className="flex flex-col gap-1.5">
-            <legend className="mb-1 text-[11.5px] text-muted">Template</legend>
+            <legend className="mb-1 text-[11.5px] text-muted">Preset</legend>
             {PROJECT_TEMPLATES.map((t) => (
               <label key={t.id} className={cn("grid cursor-pointer grid-cols-[auto_1fr] gap-2 rounded-md border px-2.5 py-2 text-[12.5px]", template === t.id ? "border-accent bg-accent-soft" : "border-line")}>
                 <input type="radio" name="template" checked={template === t.id} onChange={() => setTemplate(t.id)} />
@@ -75,7 +80,7 @@ export default function Projects() {
               </label>
             ))}
           </fieldset>
-          <button type="submit" className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-ink">Create project</button>
+          <button type="submit" disabled={!template} className="rounded-md border border-accent px-3 py-1.5 text-sm font-medium text-accent disabled:cursor-not-allowed disabled:opacity-40">{template ? "Create from preset" : "Pick a preset to create"}</button>
         </form>
       </Card>
     </div>

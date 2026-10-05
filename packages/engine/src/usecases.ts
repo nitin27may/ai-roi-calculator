@@ -215,6 +215,7 @@ function devActivities(out: Out, recipe: Recipe, modelId: string, harnessIds: st
     if (!allowed.has(kind)) continue;
     if ((kind === "bakeoff" || kind === "iterations" || kind === "regression") && !harnessIds.length) continue;
     if (kind === "tooling" && !a.dev.primary) continue;
+    if (kind !== "tooling" && !modelId) continue;
     const act = newActivity(scratch, kind);
     switch (act.kind) {
       case "bakeoff": act.harnessId = harnessIds[0]!; act.candidates = [{ modelId, fromMonth: 1 }]; put(act); break;
@@ -939,7 +940,7 @@ export function buildWizardProject(cat: Catalog, input: WizardInput): WizardResu
   ];
   const batch = input.batchAllowed && batchOfferedUnder(input.deployment);
   const light = recommendModel(cat, { id: "judge", label: "Judge", need: "light", reason: "judging is a short, repeated job" }, { deployment: input.deployment, quality: "balanced", batch });
-  const judge = input.judgeModelId ?? light?.modelId;
+  const judge = input.judgeModelId ?? light?.modelId ?? modelOptions(cat, { id: "judge", label: "Judge", need: "light", reason: "" }, input.deployment)[0]?.id;
   const taken = new Set<string>();
   const assumptions: Assumption[] = [];
   const features: WizardResult["features"] = [];
