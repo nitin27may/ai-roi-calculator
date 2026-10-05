@@ -2,10 +2,10 @@ import type { Catalog } from "@studio/catalog";
 import { ProjectSchema, type Project, type Scenario, type ScenarioEdit } from "./project.js";
 import { LEVERS } from "./levers.js";
 import { buildLedger, type Ledger } from "./ledger.js";
-import { computeRoi, type RoiResult } from "./roi.js";
+import { computeRoi, roiOptions, type RoiResult } from "./roi.js";
 
 /** Volume fields scaled by a `scaleUsage` edit. */
-const VOLUME_KEYS = ["hoursPerMonth", "pagesPerMonth", "emailsPerMonth", "tokensPerMonth", "queriesPerMonth", "users", "tasksPerMonth", "interactionsPerMonth", "requestsPerMonth", "callsPerMonth", "chunks"];
+const VOLUME_KEYS = ["hoursPerMonth", "pagesPerMonth", "emailsPerMonth", "tokensPerMonth", "queriesPerMonth", "users", "tasksPerMonth", "interactionsPerMonth", "requestsPerMonth", "callsPerMonth", "chunks", "rowsPerMonth", "rows"];
 
 /** Set a value at a path; array segments match an element's `id` (or a numeric index). */
 export function setPath(target: unknown, path: (string | number)[], value: unknown): void {
@@ -47,7 +47,7 @@ export interface ScenarioResult { id: string; label: string; ledger: Ledger; roi
 export function compareScenarios(p: Project, cat: Catalog): ScenarioResult[] {
   const run = (id: string, label: string, q: Project): ScenarioResult => {
     const ledger = buildLedger(q, cat);
-    return { id, label, ledger, roi: computeRoi(ledger, q.roi.basis, q.roi.discountRatePct) };
+    return { id, label, ledger, roi: computeRoi(ledger, q.roi.basis, q.roi.discountRatePct, roiOptions(q)) };
   };
   const out = [run("baseline", "Baseline", p)];
   for (const s of p.scenarios) {

@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, Trash2 } from "lucide-react";
-import { PROJECT_TEMPLATES, buildLedger, computeRoi } from "@studio/engine";
+import { PROJECT_TEMPLATES, buildLedger, computeRoi, roiOptions } from "@studio/engine";
 import { Card, CardHead, Field, TextInput } from "@/components/ui";
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
@@ -19,7 +19,7 @@ export default function Projects() {
   const [confirm, setConfirm] = useState<string | null>(null);
   const summaries = useMemo(() => new Map(library.map((e) => {
     const L = buildLedger(e.project, catalog);
-    const r = computeRoi(L, e.project.roi.basis, e.project.roi.discountRatePct);
+    const r = computeRoi(L, e.project.roi.basis, e.project.roi.discountRatePct, roiOptions(e.project));
     return [e.id, { L, r }];
   })), [library]);
 

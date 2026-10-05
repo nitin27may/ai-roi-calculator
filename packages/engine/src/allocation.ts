@@ -53,9 +53,10 @@ export function computeAllocation(p: Project, ledger: Ledger, basis: CostBasis):
   const linkCount = new Map<string, number>();
   for (const c of p.benefits.capabilities) for (const id of capabilityLinks(c)) linkCount.set(id, (linkCount.get(id) ?? 0) + 1);
 
+  const attributedOf = (id: string) => ledger.months.reduce((s, mo) => s + (mo.benefitBy.attributed[id] ?? 0), 0);
   const benefitOf = (id: string) => ledger.months.reduce((s, mo) => s + (mo.benefitBy.capabilities[id] ?? 0), 0);
   const caps = p.benefits.capabilities.map((c) => ({
-    id: c.id, label: c.label, benefit: benefitOf(c.id),
+    id: c.id, label: c.label, benefit: benefitOf(c.id) + attributedOf(c.id),
     direct: capabilityLinks(c).reduce((s, id) => s + (byComponent.get(id)?.cost ?? 0) / (linkCount.get(id) ?? 1), 0),
   }));
 
@@ -76,7 +77,7 @@ export function computeAllocation(p: Project, ledger: Ledger, basis: CostBasis):
   const items = [...unlinked, ...(unallocatedShared > 0 ? [{ componentId: "shared", label: "Shared build, platform and support cost", cost: unallocatedShared }] : [])];
   return {
     capabilities,
-    projectBenefit: ledger.months.reduce((s, mo) => s + mo.benefitBy.avoided + mo.benefitBy.oneOff, 0),
+    projectBenefit: ledger.months.reduce((s, mo) => s + mo.benefitBy.avoided + mo.benefitBy.oneOff + Object.values(mo.benefitBy.value).reduce((a, b) => a + b, 0) - Object.values(mo.benefitBy.attributed).reduce((a, b) => a + b, 0), 0),
     unallocated: { cost: items.reduce((s, i) => s + i.cost, 0), reason, items },
     sharedPool,
   };

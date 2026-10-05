@@ -83,7 +83,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     id: "irr",
     term: "IRR (internal rate of return)",
     plain: "The yearly return the project earns on the money put in. It is the discount rate at which the project exactly breaks even. Compare it with what else the money could earn.",
-    technical: "The rate that sets NPV to zero. The studio's current ROI and NPV figures use the discount rate you enter, and IRR is on the roadmap.",
+    technical: "The rate that sets NPV to zero, found on the monthly cash flows and shown as a yearly rate. It includes any terminal value you set. It is undefined when the flows never change sign, and with several sign changes the figure is the root nearest zero.",
   },
   {
     id: "realisation",

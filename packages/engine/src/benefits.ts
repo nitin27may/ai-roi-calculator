@@ -1,6 +1,6 @@
 import type { BenchmarkLibrary } from "@studio/catalog";
 import type { z } from "zod";
-import type { Capability, Project } from "./project.js";
+import type { Capability, Project, ValueItem } from "./project.js";
 
 type Library = z.infer<typeof BenchmarkLibrary>;
 const WEEKS_PER_MONTH = 52 / 12;
@@ -24,7 +24,7 @@ export interface CapabilityHours {
 const r1 = (x: number) => Math.round(x * 10) / 10;
 
 /** Monthly volume fields a capability can take its items from, in order of preference. */
-const ITEM_KEYS = ["tasksPerMonth", "callsPerMonth", "emailsPerMonth", "queriesPerMonth", "interactionsPerMonth", "requestsPerMonth", "pagesPerMonth", "hoursPerMonth"] as const;
+const ITEM_KEYS = ["tasksPerMonth", "callsPerMonth", "emailsPerMonth", "queriesPerMonth", "interactionsPerMonth", "requestsPerMonth", "pagesPerMonth", "hoursPerMonth", "rowsPerMonth", "rows", "tokensPerMonth", "chunks"] as const;
 
 /** What a workload offers as a capability's volume: its users, and its main monthly item count. */
 export function workloadVolume(w: Project["workloads"][number]): { users?: number; items?: number; itemsKey?: string } {
@@ -116,6 +116,27 @@ export function avoidedMonthly(p: Project, a: Project["benefits"]["avoidedCosts"
   if (a.fte === undefined || !a.roleId) return a.monthly;
   const rate = p.rateCard.find((r) => r.id === a.roleId)?.hourlyRate ?? 0;
   return a.fte * (a.hoursPerMonth ?? 160) * rate;
+}
+
+/** Confidence as a 0..1 weight; absent means the benefit counts in full. */
+export const confidenceWeight = (pct: number | undefined): number => (pct === undefined ? 1 : pct / 100);
+
+/** Volume a value item works on: the linked workload's items, rows, tokens or chunks, else the entered figure. */
+export function valueVolume(p: Project, v: ValueItem): number {
+  const w = v.volumeFrom ? p.workloads.find((x) => x.id === v.volumeFrom) : undefined;
+  return (w ? workloadVolume(w).items : undefined) ?? v.volumePerMonth ?? 0;
+}
+
+/**
+ * Monthly value of a revenue, quality or risk item at full rollout, before the ramp and growth, and before confidence.
+ * - revenue: monthly revenue x margin kept.
+ * - quality: volume x (error rate before - after) x cost per error.
+ * - risk: events per year x impact per event x share prevented / 12.
+ */
+export function valueItemMonthly(p: Project, v: ValueItem): number {
+  if (v.kind === "revenue") return (v.monthlyRevenue ?? 0) * ((v.marginPct ?? 100) / 100);
+  if (v.kind === "quality") return valueVolume(p, v) * (Math.max(0, (v.errorRateBeforePct ?? 0) - (v.errorRateAfterPct ?? 0)) / 100) * (v.costPerError ?? 0);
+  return ((v.eventsPerYear ?? 0) * (v.impactCad ?? 0) * ((v.reductionPct ?? 0) / 100)) / 12;
 }
 
 export interface BeforeAfterRow { id: string; label: string; baselineHours: number | null; savedHours: number; before: number; after: number }

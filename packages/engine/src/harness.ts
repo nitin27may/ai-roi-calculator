@@ -1,7 +1,8 @@
 import { heuristics } from "@studio/catalog";
 import type { PriceBook } from "./pricing.js";
+import { AGENT_P10 } from "./spread.js";
 
-export type Percentile = "p50" | "p90" | "worst";
+export type Percentile = "p10" | "p50" | "p90" | "worst";
 export type ReasoningEffort = "none" | "low" | "medium" | "high";
 
 /** One agent loop. Token sizes are in o200k tokens; the model's tokenizer multiplier is applied on top. */
@@ -74,9 +75,10 @@ export function simulateHarness(h: HarnessDef, book: PriceBook, o: RunOptions): 
   const tk = book.tokenizerMultiplier(o.modelId);
   const worst = o.percentile === "worst";
   const p90 = o.percentile === "p90";
+  const p10 = o.percentile === "p10";
 
-  const T = worst ? h.maxTurns : Math.min(h.maxTurns, Math.max(1, Math.ceil(h.steps * (p90 ? heuristics.agents.p90.steps : 1))));
-  const toolResult = h.toolResultTokens * (p90 || worst ? heuristics.agents.p90.toolResult : 1);
+  const T = worst ? h.maxTurns : Math.min(h.maxTurns, Math.max(1, Math.ceil(h.steps * (p90 ? heuristics.agents.p90.steps : p10 ? AGENT_P10.steps : 1))));
+  const toolResult = h.toolResultTokens * (p90 || worst ? heuristics.agents.p90.toolResult : p10 ? AGENT_P10.toolResult : 1);
   const overhead = h.tools > 0 ? model.toolUseOverheadTokens : 0;
   const staticPrefix = (h.systemPromptTokens + h.tools * h.tokensPerTool) * tk + overhead;
   // Below the provider's minimum cacheable prompt size, nothing is ever cached or written.

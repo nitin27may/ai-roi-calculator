@@ -3,6 +3,7 @@ import type { PriceBook } from "./pricing.js";
 import { isCashItem, type CashItem, type Harness, type Workload } from "./project.js";
 import { simulateHarness, reasoningTokens, type Percentile, type ReasoningEffort } from "./harness.js";
 import { fmtInt, line, type Line } from "./lines.js";
+import { tokenSpread } from "./spread.js";
 
 export interface WorkloadContext {
   book: PriceBook;
@@ -14,6 +15,7 @@ export interface WorkloadContext {
 }
 
 const H = heuristics;
+const SHIELDS = "safety-prompt-shields";
 const tokensForPages = (pages: number, type: keyof typeof H.pages.wordsPerPage) => pages * H.pages.wordsPerPage[type] * H.tokens.perWord;
 const LANG = H.tokens.language;
 
@@ -76,6 +78,13 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
     const per = book.unitPrice(unitPriceId);
     return line({ id: `${id}:${part}`, componentId: id, label, stream, behaviour, meter: unitPriceId, quantity: qty, unit: u.unit, unitPrice: per, formula: `${qty.toLocaleString("en-CA", { maximumFractionDigits: 2 })} × ${u.unit} at CAD ${per.toFixed(4)}` });
   };
+
+  /**
+   * Prompt Shields screening of each request, billed per 1K text records. Only added when the catalogue has the price, so a
+   * missing meter never invents a cost. Groundedness detection has no catalogue price and is not modelled.
+   */
+  const shieldLines = (requests: number, chars: number): Line[] =>
+    book.catalog.unitPrices.some((u) => u.id === SHIELDS) ? [unit("shields", `${w.label}: Prompt Shields`, SHIELDS, (requests * Math.ceil(chars / 1000)) / 1000)] : [];
 
   switch (w.kind) {
     case "transcription": {
@@ -140,7 +149,8 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       return out;
     }
     case "chat": {
-      const turnsMonth = w.users * w.conversationsPerUser * w.turns;
+      const resend = 1 + (w.resendShare ?? 0);
+      const turnsMonth = w.users * w.conversationsPerUser * w.turns * resend;
       const perTurn = w.userTurnTokens + w.assistantTurnTokens;
       // Average prompt over a conversation: history grows by one exchange per turn.
       const avgHistory = ((w.turns - 1) / 2) * perTurn;
@@ -150,7 +160,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       // The system prompt is written to cache once per conversation (the first turn); later turns read it back (above). Averaged per call since turns are blended into one line.
       const write = w.cacheHit > 0 ? w.systemPromptTokens / w.turns : 0;
       const split = w.router?.share ?? 0;
-      const lang = languageFactor(w, c);
+      const lang = languageFactor(w, c) * tokenSpread(c.percentile);
       const outTok = (w.assistantTurnTokens + reasoningOut(book, w.modelId, w.reasoning)) * lang;
       const mainCalls = turnsMonth * (1 - split);
       // Late turns can cross the model's long-context threshold even though the conversation's average prompt doesn't (E6): bill the share of turns at/after that point at the long-context rate.
@@ -168,6 +178,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
         out = llm("main", w.label, w.modelId, mainCalls, (prompt - cached - write) * lang, cached * lang, outTok, "usage", 0, write * lang);
       }
       if (w.router && split > 0) out.push(...llm("routed", `${w.label}: routed turns`, w.router.modelId, turnsMonth * split, (prompt - cached - write) * lang, cached * lang, outTok, "usage", 0, write * lang));
+      if (w.promptShields) out.push(...shieldLines(turnsMonth, (w.userTurnTokens + w.topK * w.chunkTokens) * 4));
       return out;
     }
     case "agent": {
@@ -191,9 +202,10 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       return w.unitPriceIds.map((u) => unit(u, `${w.label}: ${book.unit(u).label}`, u, records / 1000));
     }
     case "llm": {
-      const lang = languageFactor(w, c);
+      const lang = languageFactor(w, c) * tokenSpread(c.percentile);
       const outTok = (w.outputTokens + reasoningOut(book, w.modelId, w.reasoning)) * lang;
-      return llm("calls", w.label, w.modelId, w.callsPerMonth, w.inputTokens * lang, w.cachedInputTokens * lang, outTok, "usage", w.batchShare);
+      const calls = w.callsPerMonth * (1 + (w.resendShare ?? 0));
+      return [...llm("calls", w.label, w.modelId, calls, w.inputTokens * lang, w.cachedInputTokens * lang, outTok, "usage", w.batchShare), ...(w.promptShields ? shieldLines(calls, w.inputTokens * 4) : [])];
     }
     case "fixed":
       return w.items.map((it) => (isCashItem(it)

@@ -7,6 +7,7 @@ import { basisCost } from "./roi.js";
 import { sum, type Stream } from "./lines.js";
 import { beforeAfter, workloadVolume } from "./benefits.js";
 import { sensitivity, type SensitivityRow } from "./sensitivity.js";
+import { projectRange, type ProjectRange } from "./ranges.js";
 
 export type Row = Record<string, string | number>;
 
@@ -45,6 +46,15 @@ export interface Summary {
   roi: number;
   paybackMonth: number | null;
   paysBackWithinPlan: boolean;
+  /** Payback with each month discounted at the discount rate; null when not reached within the plan. */
+  discountedPaybackMonth: number | null;
+  /** Annual internal rate of return in percent; null when the cash flows never change sign. */
+  irrPct: number | null;
+  hurdleRatePct: number | null;
+  clearsHurdle: boolean | null;
+  terminalValue: number;
+  /** Low / expected / high across the pessimistic, expected and optimistic cases (see ranges.ts). */
+  range: ProjectRange;
   horizonMonths: number;
   waterfall: WaterfallStep[];
   costDrivers: CostDriverRow[];
@@ -180,6 +190,12 @@ export function summarize(p: Project, ledger: Ledger, roi: RoiResult, cat: Catal
     roi: roi.roi,
     paybackMonth: roi.paybackMonth,
     paysBackWithinPlan,
+    discountedPaybackMonth: roi.discountedPaybackMonth,
+    irrPct: roi.irrPct,
+    hurdleRatePct: roi.hurdleRatePct,
+    clearsHurdle: roi.clearsHurdle,
+    terminalValue: roi.terminalValue,
+    range: projectRange(p, cat, { expected: { ledger, roi } }),
     horizonMonths: p.timeline.horizonMonths,
     waterfall: [
       { id: "build", label: "Building & testing", value: buildCost, color: "build" },
@@ -243,6 +259,11 @@ export function summaryRows(p: Project, ledger: Ledger, roi: RoiResult, cat: Cat
     { Item: "ROI", Value: `${Math.round(s.roi * 100)}%` },
     { Item: `NPV at ${s.discountRatePct}%`, Value: r2(s.npv) },
     { Item: "Payback month", Value: s.paybackMonth ?? "Not within plan" },
+    { Item: "Payback month, discounted", Value: s.discountedPaybackMonth ?? "Not within plan" },
+    { Item: "IRR (annual)", Value: s.irrPct === null ? "Not defined" : `${s.irrPct.toFixed(1)}%` },
+    ...(s.hurdleRatePct !== null ? [{ Item: `Hurdle rate ${s.hurdleRatePct}%`, Value: s.clearsHurdle === null ? "n/a" : s.clearsHurdle ? "Cleared" : "Not cleared" }] : []),
+    { Item: "Total cost, low to high", Value: `${r2(s.range.totalCost.low)} to ${r2(s.range.totalCost.high)}` },
+    { Item: "NPV, low to high", Value: `${r2(s.range.npv.low)} to ${r2(s.range.npv.high)}` },
     { Item: "Verdict", Value: `${s.verdict.text} · NPV ${s.verdict.npvPositive ? "positive" : "negative"}` },
   ];
 }

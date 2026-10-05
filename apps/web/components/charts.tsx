@@ -234,6 +234,50 @@ export function BulletBar({ value, baseline, color = "var(--accent)" }: { value:
   );
 }
 
+export interface RangeRow { id: string; label: string; low: number; expected: number; high: number; format?: (v: number) => string }
+
+/**
+ * One bar per figure: the span from the lowest to the highest case, with the expected value marked. Rows share one
+ * scale per call, so pass figures of the same kind (money). The "View as table" toggle shows the same numbers as text.
+ */
+export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string }) {
+  const show = (r: RangeRow, v: number) => (r.format ?? cad)(v);
+  const table = (
+    <table className="data">
+      {caption && <caption className="sr-only">{caption}</caption>}
+      <thead><tr><th>Figure</th><th className="n">Low</th><th className="n">Expected</th><th className="n">High</th></tr></thead>
+      <tbody>{rows.map((r) => <tr key={r.id}><td>{r.label}</td><td className="n">{show(r, r.low)}</td><td className="n">{show(r, r.expected)}</td><td className="n">{show(r, r.high)}</td></tr>)}</tbody>
+    </table>
+  );
+  return (
+    <ViewToggle table={table}>
+      <div className="flex flex-col gap-2.5" role="img" aria-label={caption ?? "Low, expected and high for each figure"}>
+        {rows.map((r) => {
+          // Scale to the span itself, with a little padding; zero only shows when the range reaches it.
+          const pad = ((r.high - r.low) || Math.abs(r.expected) || 1) * 0.06;
+          const lo = r.low - pad, hi = r.high + pad;
+          const span = hi - lo || 1;
+          const x = (v: number) => (100 * (v - lo)) / span;
+          const pos = (v: number) => Math.min(98, Math.max(2, x(v)));
+          return (
+            <div key={r.id} className="grid grid-cols-[minmax(100px,150px)_1fr] items-center gap-2 text-[12px]">
+              <span className="truncate text-ink-2" title={r.label}>{r.label}</span>
+              <div>
+                <div className="relative h-5" title={`${r.label}: ${show(r, r.low)} to ${show(r, r.high)}, expected ${show(r, r.expected)}`}>
+                  {x(0) > 0 && x(0) < 100 && <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${x(0)}%` }} />}
+                  <div className="absolute top-1.5 bottom-1.5 rounded bg-surface-2" style={{ left: `${x(r.low)}%`, width: `${Math.max(0.8, x(r.high) - x(r.low))}%`, background: "var(--accent)", opacity: 0.35 }} />
+                  <div className="absolute inset-y-0.5 w-0.5 rounded bg-ink" style={{ left: `${pos(r.expected)}%` }} />
+                </div>
+                <div className="num flex justify-between text-[11px] text-muted"><span>{show(r, r.low)}</span><span className="font-semibold text-ink">{show(r, r.expected)}</span><span>{show(r, r.high)}</span></div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </ViewToggle>
+  );
+}
+
 export function Legend({ items }: { items: { label: string; color: string; line?: boolean }[] }) {
   return (
     <div className="flex flex-wrap gap-2.5 text-[11.5px] text-ink-2">

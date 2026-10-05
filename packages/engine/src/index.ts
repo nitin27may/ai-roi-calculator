@@ -21,3 +21,5 @@ export * from "./benefits.js";
 export * from "./sensitivity.js";
 
 export * from "./features.js";
+export * from "./spread.js";
+export * from "./ranges.js";

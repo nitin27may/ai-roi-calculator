@@ -128,6 +128,13 @@ const Common = {
   oneTime: z.object({ volume: n0, month: z.number().int().positive().optional() }).optional(),
 };
 
+/**
+ * Optional extras for chat and llm workloads. `resendShare` is the share of calls sent a second time after a 429 or a
+ * timeout (billed again in full); absent means 0. `promptShields` adds Azure Content Safety Prompt Shields per request
+ * when the catalogue has a price for it.
+ */
+const Resilience = { resendShare: share.optional(), promptShields: z.boolean().optional() };
+
 export const WorkloadSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("transcription"), id, label: z.string(), ...Common, deployment, tier, hoursPerMonth: n0, engineId: id, diarize: z.boolean(),
@@ -165,6 +172,7 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
     reasoning: ReasoningSetting, language: LanguageSetting,
     /** Share of turns routed to a cheaper model. */
     router: z.object({ modelId: id, share }).optional(),
+    ...Resilience,
   }),
   z.object({
     kind: z.literal("agent"), id, label: z.string(), ...Common, deployment, tier, harnessId: id, modelId: id, tasksPerMonth: n0, cacheHit: share,
@@ -179,6 +187,7 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
     kind: z.literal("llm"), id, label: z.string(), ...Common, deployment, tier, callsPerMonth: n0, modelId: id,
     inputTokens: n0, cachedInputTokens: n0, outputTokens: n0, batchShare: share,
     reasoning: ReasoningSetting, language: LanguageSetting,
+    ...Resilience,
   }),
   z.object({ kind: z.literal("fixed"), id, label: z.string(), ...Common, group: z.string(), items: z.array(FixedItemSchema) }),
   z.object({
@@ -235,8 +244,30 @@ export const CapabilitySchema = z.object({
   adoptionPct: pct.optional(), realisationPct: pct.optional(),
   /** Project month this capability goes live (defaults to go-live); its adoption ramp starts then. */
   liveFromMonth: z.number().int().positive().optional(),
+  /** How sure you are the benefit will arrive, in percent. The benefit counts at this share; absent means 100. */
+  confidencePct: pct.optional(),
 });
 export type Capability = z.infer<typeof CapabilitySchema>;
+
+/**
+ * A benefit that is not time saved, worked out in CAD per month at full rollout:
+ * - revenue: extra sales (`monthlyRevenue`) × the margin you keep (`marginPct`, default 100).
+ * - quality: errors avoided = volume × (error rate before − after) × cost per error. Volume is entered or taken from a workload.
+ * - risk: expected loss avoided = events per year × impact per event × share of them the solution prevents ÷ 12.
+ * Revenue and quality follow the adoption ramp and usage growth unless `ramp` is false; risk follows the ramp only.
+ * `capabilityId` attributes the value to a capability in the ROI by capability view.
+ */
+export const ValueItemSchema = z.object({
+  id, label: z.string(), kind: z.enum(["revenue", "quality", "risk"]),
+  capabilityId: id.optional(), featureId: id.optional(),
+  monthlyRevenue: n0.optional(), marginPct: pct.optional(),
+  volumePerMonth: n0.optional(), volumeFrom: id.optional(), errorRateBeforePct: pct.optional(), errorRateAfterPct: pct.optional(), costPerError: n0.optional(),
+  eventsPerYear: n0.optional(), impactCad: n0.optional(), reductionPct: pct.optional(),
+  startMonth: z.number().int().positive().optional(),
+  ramp: z.boolean().optional(),
+  confidencePct: pct.optional(),
+});
+export type ValueItem = z.infer<typeof ValueItemSchema>;
 
 export const RoleSchema = z.object({ id, label: z.string(), hourlyRate: n0 });
 /** `experiments`: these people run AI Dev Lab experiments (drives per-developer activity volumes). */
@@ -279,7 +310,7 @@ export type Scenario = z.infer<typeof ScenarioSchema>;
 export type ScenarioEdit = z.infer<typeof ScenarioEditSchema>;
 
 /** Bump when the project shape changes; add a step in migrate.ts for every bump. */
-export const CURRENT_PROJECT_VERSION = 3;
+export const CURRENT_PROJECT_VERSION = 4;
 
 /**
  * A feature: the unit an executive funds. It owns workloads (run), workstreams and Dev Lab activities (build)
@@ -300,6 +331,8 @@ const ProjectObject = z.object({
     processingTier: ProcessingTier.optional(),
     /** Default text language for token counts (heuristics.tokens.language); a workload can override it. */
     language: z.string().default("en"),
+    /** Which percentile the AI Dev Lab agent runs are priced at. Absent means P50. */
+    devLabPercentile: z.enum(["p50", "p90"]).optional(),
     snowflake: z.object({
       routing: z.enum(["global", "regional"]),
       edition: z.enum(["standard", "enterprise", "businessCritical", "vps"]),
@@ -342,7 +375,13 @@ const ProjectObject = z.object({
       id, label: z.string(), monthly: n0, startMonth: z.number().int().positive().optional(),
       /** Headcount mode: full-time equivalents not hired or redeployed, valued at the role's rate (escalates with it). */
       fte: n0.optional(), roleId: id.optional(), hoursPerMonth: n0.optional(),
+      /** The capability this avoided cost is attributed to in ROI by capability. */
+      capabilityId: id.optional(),
+      /** How sure you are the saving will arrive, in percent; absent means 100. */
+      confidencePct: pct.optional(),
     })),
+    /** Revenue, quality (errors avoided) and risk-reduction benefits. */
+    value: z.array(ValueItemSchema).default([]),
     /** One-time benefits such as a decommissioned system's resale or a grant. */
     oneOff: z.array(z.object({ id, label: z.string(), amount: n0, month: z.number().int().positive() })).default([]),
   }),
@@ -364,6 +403,14 @@ const ProjectObject = z.object({
     rateEscalationPctPerYear: z.number().min(0).max(50).default(0),
     /** Annual discount rate for NPV. */
     discountRatePct: z.number().min(0).max(50).default(0),
+    /** The return the business expects before it funds anything, in percent a year. Shown against IRR; absent means none set. */
+    hurdleRatePct: z.number().min(0).max(100).optional(),
+    /** Terminal value: this many years of the last 12 months' net cash flow, added at the end of the plan. Absent or 0 means none. */
+    terminalValueYears: z.number().min(0).max(20).optional(),
+    /** Share of build cost treated as capital spend (capex), in percent. It is spread over `amortiseMonths` from go-live in the accounting view; cash figures are unchanged. Absent means 0. */
+    capexPct: pct.optional(),
+    /** Months the capitalised build cost is written off over. Absent means 36. */
+    amortiseMonths: z.number().int().min(1).max(120).optional(),
   }),
   scenarios: z.array(ScenarioSchema).default([]),
 });
