@@ -129,9 +129,9 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
             <tbody>
               {project.maintenance.team.map((t, i) => (
                 <tr key={i}>
-                  <td><Select value={t.roleId} options={project.rateCard.map((r) => ({ value: r.id, label: r.label }))} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.roleId = v; })} /></td>
-                  <td className="n w-24"><NumberInput value={t.people} step={0.1} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.people = v; })} /></td>
-                  <td className="n w-28"><NumberInput value={t.hoursPerMonth} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.hoursPerMonth = v; })} /></td>
+                  <td><Select label={`Role, maintenance row ${i + 1}`} value={t.roleId} options={project.rateCard.map((r) => ({ value: r.id, label: r.label }))} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.roleId = v; })} /></td>
+                  <td className="n w-24"><NumberInput label={`People, maintenance row ${i + 1}`} value={t.people} step={0.1} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.people = v; })} /></td>
+                  <td className="n w-28"><NumberInput label={`Hours per month, maintenance row ${i + 1}`} value={t.hoursPerMonth} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.hoursPerMonth = v; })} /></td>
                   <td><TrashButton label="Remove line" onClick={() => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team.splice(i, 1); })} /></td>
                 </tr>
               ))}

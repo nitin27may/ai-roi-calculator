@@ -84,9 +84,9 @@ export default function Prices() {
             <input aria-label="Search prices" placeholder="Search" className="rounded-md border border-line bg-surface-2 px-2 py-1 text-[13px]" value={q} onChange={(e) => setQ(e.target.value)} />
             <Seg label="Offered in" value={offered} onChange={setOffered} options={[{ value: "all", label: "Any deployment" }, { value: "global", label: "Global" }, { value: "regional", label: "Canada Regional" }, { value: "dataZone", label: "US Data Zone" }]} />
             <Seg label="Platform" value={platform} onChange={setPlatform} options={[{ value: "all", label: "All" }, { value: "azure", label: "Azure" }, { value: "snowflake", label: "Snowflake" }]} />
-            <div className="w-36" aria-label="Type"><Select value={kind} onChange={(v) => { setKind(v); setVendor("all"); }} options={[{ value: "all", label: "Any type" }, ...KINDS.map((k) => ({ value: k, label: k }))]} /></div>
-            <div className="w-40" aria-label="Vendor"><Select value={vendor} onChange={setVendor} options={[{ value: "all", label: "Any vendor" }, ...vendors.map((v) => ({ value: v, label: VENDOR_LABEL[v] ?? v }))]} /></div>
-            <div className="w-32" aria-label="Status"><Select value={status} onChange={setStatus} options={[{ value: "all", label: "Any status" }, ...["ga", "preview", "legacy", "deprecated"].map((v) => ({ value: v, label: v === "ga" ? "GA" : v[0]!.toUpperCase() + v.slice(1) }))]} /></div>
+            <div className="w-36" aria-label="Type"><Select label="Type" value={kind} onChange={(v) => { setKind(v); setVendor("all"); }} options={[{ value: "all", label: "Any type" }, ...KINDS.map((k) => ({ value: k, label: k }))]} /></div>
+            <div className="w-40" aria-label="Vendor"><Select label="Vendor" value={vendor} onChange={setVendor} options={[{ value: "all", label: "Any vendor" }, ...vendors.map((v) => ({ value: v, label: VENDOR_LABEL[v] ?? v }))]} /></div>
+            <div className="w-32" aria-label="Status"><Select label="Status" value={status} onChange={setStatus} options={[{ value: "all", label: "Any status" }, ...["ga", "preview", "legacy", "deprecated"].map((v) => ({ value: v, label: v === "ga" ? "GA" : v[0]!.toUpperCase() + v.slice(1) }))]} /></div>
           </div>
         </CardHead>
         <div className="min-h-0 flex-1 overflow-auto px-3.5 pb-3.5">

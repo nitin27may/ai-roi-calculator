@@ -7,6 +7,8 @@ import { exportCsv, exportXlsx } from "@/lib/export";
 import { DEPLOYMENT_LABEL, ProjectSchema, meetingIntelligence, migrateProject } from "@studio/engine";
 import { useStudio } from "@/lib/store";
 import { describeIssue } from "@/lib/validation";
+import { HelpMenu } from "@/components/help-menu";
+import { PageIntro } from "@/components/page-intro";
 import { catalog, useLedger } from "@/lib/compute";
 import { cad, cn, fmt } from "@/lib/format";
 
@@ -20,7 +22,7 @@ const PROJECT_VIEWS = [
   { href: "/report", label: "Report" },
   { href: "/settings", label: "Settings" },
 ];
-const TITLES: Record<string, string> = { "/summary": "Summary", "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report", "/capacity": "Capacity (PTU)", "/projects": "Projects" };
+const TITLES: Record<string, string> = { "/summary": "Summary", "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report", "/capacity": "Capacity (PTU)", "/projects": "Projects", "/glossary": "Glossary" };
 
 export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
@@ -78,19 +80,23 @@ export function Shell({ children }: { children: ReactNode }) {
       <main className="grid min-h-0 min-w-0 grid-rows-[auto_auto_minmax(0,1fr)] md:h-full md:overflow-hidden">
         <header className="flex flex-wrap items-center justify-between gap-2.5 px-5 pb-2.5 pt-3">
           <div>
-            <div className="text-[11.5px] text-muted">{isProject ? project.name : path === "/tokens" ? "Quick tools" : path === "/projects" ? "Library" : "Data"}</div>
+            <div className="text-[11.5px] text-muted">{isProject ? project.name : path === "/tokens" ? "Quick tools" : path === "/projects" ? "Library" : path === "/glossary" ? "Help" : "Data"}</div>
             <h1 className="text-[21px] font-bold">{TITLES[path] ?? "Overview"}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <button type="button" aria-label="Undo" title="Undo (Ctrl/Cmd+Z)" disabled={!canUndo} onClick={() => useStudio.getState().undo()} className="rounded-md border border-line bg-surface p-1 text-ink-2 enabled:hover:bg-surface-2 disabled:opacity-40"><Undo2 size={15} /></button>
-            <button type="button" aria-label="Redo" title="Redo (Ctrl/Cmd+Shift+Z)" disabled={!canRedo} onClick={() => useStudio.getState().redo()} className="mr-1 rounded-md border border-line bg-surface p-1 text-ink-2 enabled:hover:bg-surface-2 disabled:opacity-40"><Redo2 size={15} /></button>
+            <button type="button" aria-label="Redo" title="Redo (Ctrl/Cmd+Shift+Z)" disabled={!canRedo} onClick={() => useStudio.getState().redo()} className="rounded-md border border-line bg-surface p-1 text-ink-2 enabled:hover:bg-surface-2 disabled:opacity-40"><Redo2 size={15} /></button>
+            <span className="mr-1"><HelpMenu path={path} /></span>
             {[["Currency", "CAD"], ["Azure", DEPLOYMENT_LABEL[project.settings.azureDeployment]], ["Snowflake", `${project.settings.snowflake.edition} · ${project.settings.snowflake.routing}`], ["Prices", catalog.meta.asOf]].map(([k, v]) => (
               <span key={k} className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-[11.5px] text-ink-2">{k} <b className="font-semibold text-ink">{v}</b></span>
             ))}
           </div>
         </header>
-        {isProject && path !== "/summary" ? <KpiBar /> : <div />}
-        {problem && <div role="alert" className="mx-5 mt-2 rounded-md bg-crit-soft px-3 py-2 text-sm text-crit">{problem}</div>}
+        <div>
+          {isProject && path !== "/summary" && <KpiBar />}
+          {problem && <div role="alert" className="mx-5 mt-2 rounded-md bg-crit-soft px-3 py-2 text-sm text-crit">{problem}</div>}
+          {isProject && <PageIntro path={path} />}
+        </div>
         <div className="min-h-0 px-5 pb-4 pt-3.5">{children}</div>
       </main>
     </div>
