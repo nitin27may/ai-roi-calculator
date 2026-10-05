@@ -1,5 +1,5 @@
 "use client";
-import { Field, NumberInput, Select } from "@/components/ui";
+import { BlurInput, Field, HelpScope, NumberInput, Select } from "@/components/ui";
 import { DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, type AzureDeployment } from "@studio/engine";
 import { catalog, deploymentOptions, modelOptions } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
@@ -52,7 +52,10 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
   };
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-3 gap-y-2.5">
-      {specs.map((s) => {
+      {specs.map((s) => <HelpScope.Provider key={s.key} value={s.key}>{renderSpec(s)}</HelpScope.Provider>)}
+    </div>
+  );
+  function renderSpec(s: Spec) {
         const v = value[s.key];
         switch (s.type) {
           case "number":
@@ -92,16 +95,14 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
             return (
               // Keyed by value so edits made elsewhere (e.g. the plan grid) show up here.
               <Field key={`${s.key}:${(v as number[]).join(",")}`} label={`${s.label} (${s.hint})`}>
-                <input className="num min-w-0 rounded-md border border-line bg-surface-2 px-2 py-1.5 text-[13px] font-medium" defaultValue={(v as number[]).join(", ")}
-                  onBlur={(e) => { const xs = e.target.value.split(/[,\s]+/).filter(Boolean).map(Number); if (xs.length && xs.every((x) => Number.isFinite(x) && x >= 0)) set(s.key, xs); }} />
+                <BlurInput defaultValue={(v as number[]).join(", ")}
+                  onCommit={(text) => { const xs = text.split(/[,\s]+/).filter(Boolean).map(Number); if (xs.length && xs.every((x) => Number.isFinite(x) && x >= 0)) set(s.key, xs); }} />
               </Field>
             );
           default:
             return <Field key={s.key} label={s.label}><Select value={String(v)} options={optionsFor(s.type)} onChange={(x) => set(s.key, x)} /></Field>;
         }
-      })}
-    </div>
-  );
+  }
 }
 
 export const ACTIVITY_SPECS: Record<string, Spec[]> = {

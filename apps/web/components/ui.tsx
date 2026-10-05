@@ -1,6 +1,10 @@
 "use client";
-import type { ReactNode } from "react";
+import { createContext, useContext, useId, useState, type KeyboardEvent, type ReactNode } from "react";
+import { AlertTriangle, CheckCircle2, OctagonAlert, Trash2 } from "lucide-react";
 import { cn } from "@/lib/format";
+import { helpFor, type HelpId } from "@/lib/help";
+import { rangeMessage } from "@/lib/validation";
+import { HelpTip } from "@/components/help-tip";
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={cn("flex min-h-0 min-w-0 flex-col rounded-lg border border-line bg-surface", className)}>{children}</div>;
@@ -31,41 +35,108 @@ export function Seg<T extends string>({ value, options, onChange, label }: { val
   );
 }
 
+const PILL_ICON = { ok: CheckCircle2, warn: AlertTriangle, crit: OctagonAlert } as const;
+/** Status is carried by an icon as well as colour, so it reads in greyscale and for colour-blind users. */
 export function Pill({ tone = "n", children }: { tone?: "ok" | "warn" | "crit" | "n"; children: ReactNode }) {
   const t = { ok: "bg-good-soft text-good", warn: "bg-warn-soft text-warn", crit: "bg-crit-soft text-crit", n: "bg-surface-2 text-ink-2" }[tone];
-  return <span className={cn("inline-flex items-center whitespace-nowrap rounded-full px-2 py-px text-[11px] font-medium", t)}>{children}</span>;
+  const Icon = tone === "n" ? null : PILL_ICON[tone];
+  return <span className={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-px text-[11px] font-medium", t)}>{Icon && <Icon size={11} aria-hidden />}{children}</span>;
 }
 
-export function Field({ label, children }: { label: string; children: ReactNode }) {
+interface FieldContextValue { id: string; help?: string }
+const FieldContext = createContext<FieldContextValue | null>(null);
+/** Supplies a help id to the Field rendered inside it, for callers (like `Fields`) that build many fields from a spec list. */
+export const HelpScope = createContext<string | undefined>(undefined);
+
+/** A labelled input with a help hint. `help` is a key of `lib/help.ts`; the label is tied to the control through `id`. */
+export function Field({ label, help, children }: { label: string; help?: HelpId; children: ReactNode }) {
+  const id = useId();
+  const scoped = useContext(HelpScope);
+  const helpId = help ?? scoped;
   return (
-    <label className="flex min-w-0 flex-col gap-0.5 text-[11.5px] text-muted">
-      {label}
-      {children}
-    </label>
+    <div className="flex min-w-0 flex-col gap-0.5 text-[11.5px] text-muted">
+      <div className="flex items-center gap-0.5">
+        <label htmlFor={id} className="min-w-0">{label}</label>
+        {helpId && helpFor(helpId) && <HelpTip id={helpId} label={label} />}
+      </div>
+      <FieldContext.Provider value={{ id, help: helpId }}>{children}</FieldContext.Provider>
+    </div>
   );
 }
 
-const inputCls = "num min-w-0 rounded-md border border-line bg-surface-2 px-2 py-1.5 text-[13px] font-medium text-ink";
+export const inputCls = "num min-w-0 rounded-md border border-line bg-surface-2 px-2 py-1.5 text-[13px] font-medium text-ink";
 
-export function NumberInput({ value, onChange, min = 0, max, step, suffix }: { value: number; onChange: (v: number) => void; min?: number; max?: number; step?: number; suffix?: string }) {
+export function TextInput({ value, onChange, type = "text", placeholder, label }: { value: string; onChange: (v: string) => void; type?: "text" | "month"; placeholder?: string; label?: string }) {
+  const ctx = useContext(FieldContext);
+  return <input id={ctx?.id} aria-label={ctx ? undefined : label} className={cn(inputCls, type === "text" && "font-sans")} type={type} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />;
+}
+
+/** Free-form text input that commits on blur (used for comma-separated lists). */
+export function BlurInput({ defaultValue, onCommit }: { defaultValue: string; onCommit: (text: string) => void }) {
+  const ctx = useContext(FieldContext);
+  return <input id={ctx?.id} className={inputCls} defaultValue={defaultValue} onBlur={(e) => onCommit(e.target.value)} />;
+}
+
+/** A number input that explains a refused value instead of silently clamping it. Inside a `Field` it is labelled by the field;
+ * in a table cell pass `label` so it still has an accessible name.
+ */
+export function NumberInput({ value, onChange, min = 0, max, step, suffix, label }: { value: number; onChange: (v: number) => void; min?: number; max?: number; step?: number; suffix?: string; label?: string }) {
+  const ctx = useContext(FieldContext);
+  const errId = useId();
+  // The draft is only held while the typed text is empty or refused; otherwise the committed value is shown.
+  const [draft, setDraft] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const limit = ctx?.help ? helpFor(ctx.help)?.limit : undefined;
   return (
-    <span className="flex items-center gap-1">
-      <input className={cn(inputCls, "w-full")} type="number" value={Number.isFinite(value) ? value : 0} min={min} max={max} step={step ?? "any"}
-        onChange={(e) => {
-          const v = e.target.valueAsNumber;
-          if (Number.isFinite(v)) onChange(Math.max(min, max !== undefined ? Math.min(max, v) : v));
-        }} />
-      {suffix && <span className="text-xs text-muted">{suffix}</span>}
+    <span className="flex min-w-0 flex-col gap-0.5">
+      <span className="flex items-center gap-1">
+        <input id={ctx?.id} aria-label={ctx ? undefined : label} aria-invalid={error ? true : undefined} aria-describedby={error ? errId : undefined}
+          className={cn(inputCls, "w-full", error && "border-crit")} type="number" value={draft ?? (Number.isFinite(value) ? value : 0)} min={min} max={max} step={step ?? "any"}
+          onChange={(e) => {
+            const v = e.target.valueAsNumber;
+            if (!Number.isFinite(v)) { setDraft(e.target.value); setError(null); return; }
+            const problem = rangeMessage(v, { min, max, suffix }, limit);
+            setError(problem);
+            if (problem) setDraft(e.target.value);
+            else { setDraft(null); onChange(v); }
+          }}
+          onBlur={() => { setDraft(null); setError(null); }} />
+        {suffix && <span className="text-xs text-muted">{suffix}</span>}
+      </span>
+      {error && <span id={errId} role="alert" className="flex items-start gap-1 text-[11.5px] leading-snug text-crit"><OctagonAlert size={12} className="mt-0.5 flex-none" aria-hidden />{error}</span>}
     </span>
   );
 }
 
-export function Select({ value, options, onChange }: { value: string; options: { value: string; label: string }[]; onChange: (v: string) => void }) {
+export function Select({ value, options, onChange, label }: { value: string; options: { value: string; label: string }[]; onChange: (v: string) => void; label?: string }) {
+  const ctx = useContext(FieldContext);
   return (
-    <select className={cn(inputCls, "w-full")} value={value} onChange={(e) => onChange(e.target.value)}>
+    <select id={ctx?.id} aria-label={ctx ? undefined : label} className={cn(inputCls, "w-full")} value={value} onChange={(e) => onChange(e.target.value)}>
       {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
   );
+}
+
+/** A remove button with a 24px minimum hit target. */
+export function TrashButton({ label, onClick, className }: { label: string; onClick: () => void; className?: string }) {
+  return (
+    <button type="button" aria-label={label} title={label} onClick={onClick}
+      className={cn("inline-flex h-6 min-h-6 w-6 min-w-6 items-center justify-center rounded text-ink-2 hover:bg-crit-soft hover:text-crit", className)}>
+      <Trash2 size={14} aria-hidden />
+    </button>
+  );
+}
+
+/** Arrow, Home and End keys move between the options of a listbox. Attach to the element with role="listbox". */
+export function listboxKeys(e: KeyboardEvent<HTMLElement>) {
+  const keys = ["ArrowDown", "ArrowUp", "Home", "End"];
+  if (!keys.includes(e.key)) return;
+  const items = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="option"]')];
+  if (!items.length) return;
+  const i = items.indexOf(document.activeElement as HTMLElement);
+  const next = e.key === "Home" ? 0 : e.key === "End" ? items.length - 1 : e.key === "ArrowDown" ? Math.min(items.length - 1, i + 1) : Math.max(0, i < 0 ? 0 : i - 1);
+  e.preventDefault();
+  items[next]?.focus();
 }
 
 export function Formula({ children }: { children: ReactNode }) {

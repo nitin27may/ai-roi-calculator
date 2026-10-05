@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, Trash2 } from "lucide-react";
 import { PROJECT_TEMPLATES, buildLedger, computeRoi } from "@studio/engine";
-import { Card, CardHead, Field } from "@/components/ui";
+import { Card, CardHead, Field, TextInput } from "@/components/ui";
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad, cn, fmt } from "@/lib/format";
@@ -65,7 +65,7 @@ export default function Projects() {
       <Card>
         <CardHead title="New project" sub="Start from a template; everything can be changed afterwards" />
         <form className="flex flex-col gap-3 px-3.5 pb-3.5" onSubmit={(ev) => { ev.preventDefault(); create(template, name.trim() || PROJECT_TEMPLATES.find((t) => t.id === template)!.label); setName(""); router.push("/summary"); }}>
-          <Field label="Project name"><input className="rounded-md border border-line bg-surface-2 px-2 py-1.5 text-[13px]" value={name} placeholder="e.g. Claims assistant" onChange={(e) => setName(e.target.value)} /></Field>
+          <Field label="Project name" help="projectName"><TextInput value={name} placeholder="e.g. Claims assistant" onChange={setName} /></Field>
           <fieldset className="flex flex-col gap-1.5">
             <legend className="mb-1 text-[11.5px] text-muted">Template</legend>
             {PROJECT_TEMPLATES.map((t) => (

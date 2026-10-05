@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { ACTIVITY_KINDS, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, addAllocationPeriod, allocationPeriods, overlappingPeriods, peakAllocation, removeAllocationPeriod, removeWorkstream, setAllocation, updateAllocationPeriod, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@studio/engine";
-import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select } from "@/components/ui";
+import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
 import { Explain } from "@/components/explain";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
 import { Legend, Spark, StackedBars } from "@/components/charts";
@@ -31,7 +31,7 @@ export default function Build() {
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Card>
         <CardHead title={`Build, months 1–${B}`} sub="Labour, AI Dev Lab and dev environment"><span className="num text-sm">{cad(ledger.totals.build)}</span></CardHead>
-        <div role="listbox" aria-label="Build cost items" className="min-h-0 flex-1 overflow-auto">
+        <div role="listbox" aria-label="Build cost items" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
           <ListRow selected={sel === "all"} onClick={() => setSel("all")} title="AI Dev Lab, all activities" sub="tokens and AI services while building" aside={<Spark values={allDev} color="var(--s2)" />} value={cad(devTotal)} />
           <GroupHead>Labour</GroupHead>
           <ListRow selected={sel === "team"} onClick={() => setSel("team")} title="Team & rate card" sub={project.build.includeLabour ? project.build.team.map((t) => t.name ?? `${t.people} ${project.rateCard.find((r) => r.id === t.roleId)?.label ?? t.roleId}`).join(" · ") : "Labour not costed: the team only drives Dev Lab volumes"} value={cad(labTotal)} />
@@ -191,7 +191,7 @@ function ByPerson() {
   return (
     <div className="flex flex-col gap-3 overflow-auto">
       <div className="flex flex-wrap items-end gap-3">
-        <Field label="AI Dev Lab budget per person per month"><NumberInput value={budget ?? 0} suffix="CAD" onChange={(v) => edit((d) => { d.build.devBudgetPerMonth = v > 0 ? v : undefined; })} /></Field>
+        <Field label="AI Dev Lab budget per person per month" help="devBudget"><NumberInput value={budget ?? 0} suffix="CAD" onChange={(v) => edit((d) => { d.build.devBudgetPerMonth = v > 0 ? v : undefined; })} /></Field>
         <p className="max-w-md text-[11.5px] text-muted">Monthly columns are AI Dev Lab spend per person. Workstream activities are charged to the people on that workstream by their share; project-wide ones to everyone running experiments. 0 = no budget.</p>
       </div>
       <table className="data">
@@ -284,7 +284,7 @@ function WorkstreamPanel({ id, onRemoved, onOpen }: { id: string; onRemoved: () 
                   <td className="n w-36"><NumberInput value={Math.round(a.share * 100)} max={100} suffix="%" onChange={(v) => edit((d) => { if (v > 0) updateAllocationPeriod(d, seat, a.index, { share: v / 100 }); else removeAllocationPeriod(d, seat, a.index); })} /></td>
                   <td className="n w-24"><NumberInput value={a.fromMonth} min={1} max={B} onChange={(v) => edit((d) => updateAllocationPeriod(d, seat, a.index, { fromMonth: Math.round(v) }))} /></td>
                   <td className="n w-24"><NumberInput value={a.toMonth} min={1} max={B} onChange={(v) => edit((d) => updateAllocationPeriod(d, seat, a.index, { toMonth: Math.round(v) }))} /></td>
-                  <td>{periods.length > 1 && <button type="button" aria-label="Remove period" onClick={() => edit((d) => removeAllocationPeriod(d, seat, a.index))}><Trash2 size={14} /></button>}</td>
+                  <td>{periods.length > 1 && <TrashButton label="Remove period" onClick={() => edit((d) => removeAllocationPeriod(d, seat, a.index))} />}</td>
                 </tr>
               ));
             })}
@@ -365,7 +365,7 @@ function Team() {
               <td className="n min-w-[72px]"><NumberInput value={t.fromMonth ?? 1} min={1} max={B} onChange={(v) => edit((d) => { d.build.team[i]!.fromMonth = Math.round(v); })} /></td>
               <td className="n min-w-[72px]"><NumberInput value={Math.min(t.toMonth ?? B, B)} min={1} max={B} onChange={(v) => edit((d) => { d.build.team[i]!.toMonth = Math.round(v); })} /></td>
               <td><input type="checkbox" checked={t.experiments} onChange={(e) => edit((d) => { d.build.team[i]!.experiments = e.target.checked; })} aria-label="Runs experiments" /></td>
-              <td><button type="button" aria-label="Remove line" onClick={() => edit((d) => { d.build.team.splice(i, 1); })}><Trash2 size={14} /></button></td>
+              <td><TrashButton label="Remove line" onClick={() => edit((d) => { d.build.team.splice(i, 1); })} /></td>
             </tr>
           ))}
         </tbody>
@@ -375,9 +375,9 @@ function Team() {
       <button type="button" className="flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2" onClick={() => edit((d) => { d.build.team.push({ roleId: d.rateCard[0]!.id, people: 1, hoursPerMonth: 160, experiments: false }); })}><Plus size={14} />Add team line</button>
       <h3 className="text-sm font-semibold">Rate card (CAD per hour)</h3>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2.5">
-        {project.rateCard.map((r, i) => <Field key={r.id} label={r.label}><NumberInput value={r.hourlyRate} onChange={(v) => edit((d) => { d.rateCard[i]!.hourlyRate = v; })} /></Field>)}
+        {project.rateCard.map((r, i) => <Field key={r.id} label={r.label} help="hourlyRate"><NumberInput value={r.hourlyRate} onChange={(v) => edit((d) => { d.rateCard[i]!.hourlyRate = v; })} /></Field>)}
       </div>
-      <Field label="Contingency"><NumberInput value={project.build.contingencyPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.build.contingencyPct = v; })} /></Field>
+      <Field label="Contingency" help="contingency"><NumberInput value={project.build.contingencyPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.build.contingencyPct = v; })} /></Field>
     </>
   );
 }
@@ -439,7 +439,7 @@ function DevEnvironment() {
                   <td className="min-w-[220px]"><Select value={it.unitPriceId} options={options} onChange={(v) => edit((d) => { d.build.environment[i]!.unitPriceId = v; })} /></td>
                   <td className="n min-w-[120px]"><NumberInput value={it.quantity} suffix={u?.unit} onChange={(v) => edit((d) => { d.build.environment[i]!.quantity = v; })} /></td>
                   <td className="n">{cad(it.quantity * (u?.price ?? 0))}</td>
-                  <td><button type="button" aria-label="Remove item" onClick={() => edit((d) => { d.build.environment.splice(i, 1); })}><Trash2 size={14} /></button></td>
+                  <td><TrashButton label="Remove item" onClick={() => edit((d) => { d.build.environment.splice(i, 1); })} /></td>
                 </tr>
               );
             })}
@@ -482,7 +482,7 @@ function Activity({ id, onRemoved }: { id: string; onRemoved: () => void }) {
         onRemove={() => { edit((d) => { d.build.activities = d.build.activities.filter((y) => y.id !== id); }); onRemoved(); }} />
       <div className="font-display text-[26px] font-bold">{cad(rows.reduce((s, r) => s + r.v, 0))}<span className="ml-1.5 font-sans text-xs font-normal text-muted">over {B} months</span></div>
       {(project.build.workstreams.length > 0 || a.workstreamId) && (
-        <Field label="Workstream">
+        <Field label="Workstream" help="workstream">
           <Select value={a.workstreamId ?? ""} options={[{ value: "", label: "Project-wide" }, ...project.build.workstreams.map((w) => ({ value: w.id, label: w.label }))]}
             onChange={(v) => edit((d) => { const x = d.build.activities.find((y) => y.id === id); if (!x) return; if (v) x.workstreamId = v; else delete x.workstreamId; })} />
         </Field>
@@ -502,7 +502,7 @@ function Activity({ id, onRemoved }: { id: string; onRemoved: () => void }) {
                   <td><Select value={c.modelId} options={modelOptions()} onChange={(v) => edit((d) => { const x = d.build.activities[i]; if (x?.kind === "bakeoff") x.candidates[ci]!.modelId = v; })} /></td>
                   <td className="n w-24"><NumberInput value={c.fromMonth} min={1} max={B} onChange={(v) => edit((d) => { const x = d.build.activities[i]; if (x?.kind === "bakeoff") x.candidates[ci]!.fromMonth = v; })} /></td>
                   <td className="n w-24"><NumberInput value={c.toMonth ?? B} min={1} max={B} onChange={(v) => edit((d) => { const x = d.build.activities[i]; if (x?.kind === "bakeoff") x.candidates[ci]!.toMonth = v; })} /></td>
-                  <td><button type="button" aria-label="Remove candidate" onClick={() => edit((d) => { const x = d.build.activities[i]; if (x?.kind === "bakeoff") x.candidates.splice(ci, 1); })}><Trash2 size={14} /></button></td>
+                  <td><TrashButton label="Remove candidate" onClick={() => edit((d) => { const x = d.build.activities[i]; if (x?.kind === "bakeoff") x.candidates.splice(ci, 1); })} /></td>
                 </tr>
               ))}
             </tbody>
