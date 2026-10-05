@@ -74,7 +74,7 @@ export default function Wizard() {
                   onClick={() => go(i)}
                   className={cn("flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors motion-reduce:transition-none",
                     current ? "border-accent bg-accent text-accent-ink" : done ? "border-accent bg-accent-soft text-ink" : "border-line text-muted", open && !current && "hover:bg-surface-2")}>
-                  <span className={cn("num flex h-4 w-4 items-center justify-center rounded-full text-[10.5px]", current ? "bg-accent-ink text-accent" : "bg-surface-2 text-ink-2")}>{done ? <Check size={10} aria-hidden /> : i + 1}</span>
+                  <span className={cn("num flex h-4 w-4 items-center justify-center rounded-full text-xs", current ? "bg-accent-ink text-accent" : "bg-surface-2 text-ink-2")}>{done ? <Check size={10} aria-hidden /> : i + 1}</span>
                   <span className="hidden sm:inline">{s.short}</span>
                 </button>
               </li>
@@ -129,7 +129,7 @@ function WhatStep({ state, update }: StepProps) {
                 <span aria-hidden className={cn("flex h-4 w-4 flex-none items-center justify-center rounded border", on ? "border-accent bg-accent text-accent-ink" : "border-line")}>{on && <Check size={11} />}</span>
               </span>
               <span className="text-[12px] leading-snug text-muted">{r.description}</span>
-              {r.needsHarness && <span className="text-[11.5px] text-ink-2">Adds an agent harness.</span>}
+              {r.needsHarness && <span className="text-xs text-ink-2">Adds an agent harness.</span>}
             </button>
           );
         })}
@@ -167,7 +167,7 @@ function VolumeStep({ state, update }: StepProps) {
 }
 
 function SegField({ label, help, children }: { label: string; help: string; children: ReactNode }) {
-  return <div className="flex flex-col gap-1 text-[11.5px] text-muted"><span className="flex items-center gap-0.5">{label}<HelpTip id={help} label={label} /></span>{children}</div>;
+  return <div className="flex flex-col gap-1 text-xs text-muted"><span className="flex items-center gap-0.5">{label}<HelpTip id={help} label={label} /></span>{children}</div>;
 }
 
 function RunStep({ state, update }: StepProps) {
@@ -183,7 +183,7 @@ function RunStep({ state, update }: StepProps) {
           <SegField label="Quality or cost" help="wizQuality">
             <Seg<Quality> label="Quality or cost" value={state.quality} options={[{ value: "cost", label: "Lower cost" }, { value: "balanced", label: "Balanced" }, { value: "quality", label: "Higher quality" }]} onChange={(v) => update((s) => setQuality(s, v))} />
           </SegField>
-          <div className="flex flex-col gap-1 text-[11.5px] text-muted">
+          <div className="flex flex-col gap-1 text-xs text-muted">
             <span className="flex items-center gap-0.5">Batch for work that can wait<HelpTip id="wizBatch" label="Batch for work that can wait" /></span>
             <label className="flex items-center gap-2 text-[13px] text-ink">
               <input type="checkbox" checked={state.batchAllowed} disabled={!batchOk} onChange={(e) => update((s) => setBatchAllowed(s, e.target.checked))} aria-label="Allow the Batch tier for work that can wait" />
@@ -235,7 +235,7 @@ function RoleRow({ recipe, role, deployment, state, update }: { recipe: Recipe; 
             onChange={(v) => update((s) => setModel(s, recipe.id, role.id, v))} />
         </Field>
         {chosenOpt && (
-          <div className="flex flex-wrap gap-1.5 text-[11.5px]">
+          <div className="flex flex-wrap gap-1.5 text-xs">
             {state.batchAllowed && recipe.batchable && <Pill tone={chosenOpt.batchOk ? "ok" : "n"}>{chosenOpt.batchOk ? "Batch available" : "No Batch for this model"}</Pill>}
             {chosenOpt.note && <span className="text-muted">{chosenOpt.note}</span>}
           </div>
@@ -353,7 +353,7 @@ function ReviewStep({ state, update, built }: StepProps & { built: ReturnType<ty
         <CardHead title="Project" sub="Totals use the same engine as the Summary page." />
         <div className="grid gap-3 px-3.5 pb-3.5 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Project name" help="projectName"><TextInput value={state.name} placeholder={state.picks.length === 1 ? recipeById(state.picks[0]!)!.label : "New estimate"} onChange={(v) => update((s) => ({ ...s, name: v }))} /></Field>
-          <dl className="grid grid-cols-3 gap-2 text-[11.5px] sm:col-span-1 lg:col-span-3">
+          <dl className="grid grid-cols-3 gap-2 text-xs sm:col-span-1 lg:col-span-3">
             <div><dt className="text-muted">Build</dt><dd className="num text-[15px] font-semibold">{cad(totals.L.totals.build)}</dd></div>
             <div><dt className="text-muted">Run per month</dt><dd className="num text-[15px] font-semibold">{cad(totals.L.totals.runRate)}</dd></div>
             <div><dt className="text-muted">Payback</dt><dd className="num text-[15px] font-semibold">{totals.r.paybackMonth ? `Month ${totals.r.paybackMonth}` : "Not within the horizon"}</dd></div>

@@ -56,8 +56,8 @@ export function HostingPanel({ w }: { w: Of<"hosting"> }) {
           <div className="min-w-64"><Field label="Preset" help="hostingPreset"><Select value={presetId} onChange={setPresetId} options={HOSTING_PRESETS.map((p) => ({ value: p.id, label: p.label }))} /></Field></div>
           <button type="button" className={btn} onClick={addPreset}><Plus size={14} />Add its items</button>
         </div>
-        <p className="mt-1.5 text-[11.5px] text-muted">{preset.summary}</p>
-        <ul className="mt-1 list-disc pl-5 text-[11.5px] text-muted">{preset.assumptions.map((a) => <li key={a}>{a}</li>)}</ul>
+        <p className="mt-1.5 text-xs text-muted">{preset.summary}</p>
+        <ul className="mt-1 list-disc pl-5 text-xs text-muted">{preset.assumptions.map((a) => <li key={a}>{a}</li>)}</ul>
       </div>
       <div>
         <h3 className="mb-1.5 text-sm font-semibold">Items</h3>
@@ -73,13 +73,13 @@ export function HostingPanel({ w }: { w: Of<"hosting"> }) {
                       <TextInput label={`Name, hosting item ${i + 1}`} value={it.label} onChange={(v) => setItem(i, (x) => { x.label = v; })} />
                       {it.basis !== "cash" && <Select label={`Catalogue price, ${it.label}`} value={it.unitPriceId} options={priceOptions} onChange={(v) => setItem(i, (x) => { if (x.basis !== "cash") x.unitPriceId = v; })} />}
                     </td>
-                    <td className="whitespace-nowrap text-[11.5px]">{it.basis === "fixed" ? `${catalog.unitPrices.find((u) => u.id === it.unitPriceId)?.unit ?? "unit"}, fixed` : it.basis === "perRequests" ? "per 1,000 requests" : "CAD a month"}</td>
+                    <td className="whitespace-nowrap text-xs">{it.basis === "fixed" ? `${catalog.unitPrices.find((u) => u.id === it.unitPriceId)?.unit ?? "unit"}, fixed` : it.basis === "perRequests" ? "per 1,000 requests" : "CAD a month"}</td>
                     <td className="n w-28">
                       {it.basis === "fixed" && <NumberInput label={`Quantity, ${it.label}`} value={it.quantity} onChange={(v) => setItem(i, (x) => { if (x.basis === "fixed") x.quantity = v; })} />}
                       {it.basis === "perRequests" && <NumberInput label={`Units per 1,000 requests, ${it.label}`} value={it.unitsPer1KRequests} step={0.001} onChange={(v) => setItem(i, (x) => { if (x.basis === "perRequests") x.unitsPer1KRequests = v; })} />}
                       {it.basis === "cash" && <NumberInput label={`CAD a month, ${it.label}`} value={it.amountCad} onChange={(v) => setItem(i, (x) => { if (x.basis === "cash") x.amountCad = v; })} />}
                     </td>
-                    <td className="text-[11.5px]">{m.source} <Pill tone={CONFIDENCE_TONE[m.confidence]}>{CONFIDENCE_LABEL[m.confidence]}</Pill>{it.basis === "cash" && it.note && <div className="mt-0.5 max-w-64 whitespace-normal text-muted">{it.note}</div>}</td>
+                    <td className="text-xs">{m.source} <Pill tone={CONFIDENCE_TONE[m.confidence]}>{CONFIDENCE_LABEL[m.confidence]}</Pill>{it.basis === "cash" && it.note && <div className="mt-0.5 max-w-64 whitespace-normal text-muted">{it.note}</div>}</td>
                     <td className="n">{cad(costOf(it.id))}</td>
                     <td><TrashButton label={`Remove ${it.label}`} onClick={() => upd((x) => { x.items.splice(i, 1); })} /></td>
                   </tr>
@@ -89,7 +89,7 @@ export function HostingPanel({ w }: { w: Of<"hosting"> }) {
           </table>
         )}
         <button type="button" className={`${btn} mt-2`} onClick={() => upd((x) => { x.items.push({ basis: "cash", id: `own-${x.items.length + 1}-${Math.random().toString(36).slice(2, 6)}`, label: "Your own item", amountCad: 0 }); })}><Plus size={14} />Add an amount of your own</button>
-        <p className="mt-1.5 text-[11.5px] text-muted">Prices come from the Azure Retail Prices API for Canada Central, as of the catalogue date. Where there is no verified price (AKS node virtual machines, private endpoints) the item is an amount you enter, and it starts at C$0.</p>
+        <p className="mt-1.5 text-xs text-muted">Prices come from the Azure Retail Prices API for Canada Central, as of the catalogue date. Where there is no verified price (AKS node virtual machines, private endpoints) the item is an amount you enter, and it starts at C$0.</p>
       </div>
     </div>
   );
@@ -125,7 +125,7 @@ export function ToolFeesPanel({ w }: { w: Of<"chat"> | Of<"agent"> }) {
                 <td className="n w-32">
                   {f.unitPriceId === undefined
                     ? <NumberInput label={`CAD per 1,000 calls, fee ${i + 1}`} value={f.cadPer1KCalls ?? 0} step={0.01} onChange={(v) => setFee(i, (x) => { x.cadPer1KCalls = v; })} />
-                    : <span className="text-[11.5px] text-muted">catalogue price</span>}
+                    : <span className="text-xs text-muted">catalogue price</span>}
                 </td>
                 <td><TrashButton label={`Remove tool fee ${i + 1}`} onClick={() => upd((x) => { x.toolFees?.splice(i, 1); })} /></td>
               </tr>
@@ -134,8 +134,8 @@ export function ToolFeesPanel({ w }: { w: Of<"chat"> | Of<"agent"> }) {
         </table>
       )}
       <button type="button" className={`${btn} mt-2`} onClick={() => upd((x) => { x.toolFees = [...(x.toolFees ?? []), { unitPriceId: "mai-web-grounding", perTask: 1 }]; })}><Plus size={14} />Add a tool fee</button>
-      <p className="mt-1.5 text-[11.5px] text-muted">Catalogue prices cover Grounding with Bing, web grounding in the MAI models and the Agent Service code interpreter. OpenAI web search, file search calls and computer use have no verified price in the catalogue, so pick &quot;Your own price&quot; and enter the figure from your agreement. Nothing is assumed.</p>
-      {fees.length > 0 && <p className="mt-1 text-[11.5px] text-muted">Fees are per tool call and scale with usage. Counts are {per}.</p>}
+      <p className="mt-1.5 text-xs text-muted">Catalogue prices cover Grounding with Bing, web grounding in the MAI models and the Agent Service code interpreter. OpenAI web search, file search calls and computer use have no verified price in the catalogue, so pick &quot;Your own price&quot; and enter the figure from your agreement. Nothing is assumed.</p>
+      {fees.length > 0 && <p className="mt-1 text-xs text-muted">Fees are per tool call and scale with usage. Counts are {per}.</p>}
     </div>
   );
 }
@@ -161,8 +161,8 @@ export function ImagesPanel({ w }: { w: Of<"chat"> | Of<"llm"> }) {
         <Field label="Height in pixels" help="imageHeight"><NumberInput value={img?.heightPx ?? 768} min={1} onChange={(v) => set((i) => { i.heightPx = Math.max(1, Math.round(v)); })} /></Field>
         <Field label="Detail" help="imageDetail"><Select value={img?.detail ?? "high"} options={[{ value: "high", label: "High" }, { value: "low", label: "Low" }]} onChange={(v) => set((i) => { i.detail = v === "low" ? "low" : "high"; })} /></Field>
       </div>
-      {cost && <p className="mt-1.5 text-[11.5px] text-muted">{cost.supported ? <>{cost.formula}. That adds {fmt(cost.perCall)} input tokens to every {w.kind === "chat" ? "turn" : "call"}.</> : <>{cost.formula}.</>}</p>}
-      <p className="mt-1 text-[11.5px] text-muted">Formulas follow the OpenAI and Anthropic vision guides: tiles for GPT-4o, 4.1 and 5, 32-pixel patches for the mini, nano and newer models, width times height over 750 for Claude. Other models, including MAI image models, have no verified price or formula here and add nothing.</p>
+      {cost && <p className="mt-1.5 text-xs text-muted">{cost.supported ? <>{cost.formula}. That adds {fmt(cost.perCall)} input tokens to every {w.kind === "chat" ? "turn" : "call"}.</> : <>{cost.formula}.</>}</p>}
+      <p className="mt-1 text-xs text-muted">Formulas follow the OpenAI and Anthropic vision guides: tiles for GPT-4o, 4.1 and 5, 32-pixel patches for the mini, nano and newer models, width times height over 750 for Claude. Other models, including MAI image models, have no verified price or formula here and add nothing.</p>
     </div>
   );
 }
@@ -196,8 +196,8 @@ export function CapacityPanel({ w }: { w: Capable }) {
         )}
         <Field label="TPM quota (0 = no check)" help="tpmQuota"><NumberInput value={w.tpmQuota ?? 0} onChange={(v) => upd((x) => { if (v > 0) x.tpmQuota = v; else delete x.tpmQuota; })} /></Field>
       </div>
-      {ptu && <p className="mt-1.5 text-[11.5px] text-muted">Priced at this workload&apos;s own deployment ({DEPLOYMENT_LABEL[dep]}), not Global. {onPtuTable ? "The reserved capacity is a fixed monthly line; the share of load beyond it stays pay-as-you-go." : "This model is not offered on provisioned throughput, so it stays pay-as-you-go and an alert says so."}</p>}
-      <p className="mt-1 text-[11.5px] text-muted">The quota check compares the peak tokens a minute (average load times the peak factor in Settings) with the quota you enter and raises an alert on the Overview page. It never changes a cost.</p>
+      {ptu && <p className="mt-1.5 text-xs text-muted">Priced at this workload&apos;s own deployment ({DEPLOYMENT_LABEL[dep]}), not Global. {onPtuTable ? "The reserved capacity is a fixed monthly line; the share of load beyond it stays pay-as-you-go." : "This model is not offered on provisioned throughput, so it stays pay-as-you-go and an alert says so."}</p>}
+      <p className="mt-1 text-xs text-muted">The quota check compares the peak tokens a minute (average load times the peak factor in Settings) with the quota you enter and raises an alert on the Overview page. It never changes a cost.</p>
     </div>
   );
 }

@@ -20,7 +20,7 @@ function P3Notice() {
   return (
     <div className="flex items-center gap-3 rounded-lg border border-line bg-surface-2 px-3.5 py-2 text-[13px] text-ink-2">
       <span className="flex-1">Estimates updated: cache writes and reasoning tokens are now priced.</span>
-      <button type="button" aria-label="Dismiss" onClick={dismiss} className="rounded-md p-1 text-ink-3 hover:bg-surface hover:text-ink"><X size={14} /></button>
+      <button type="button" aria-label="Dismiss" onClick={dismiss} className="rounded-md p-1.5 text-ink-3 hover:bg-surface hover:text-ink"><X size={14} /></button>
     </div>
   );
 }
@@ -43,7 +43,7 @@ export default function Overview() {
           <div className="px-3.5 pb-2 pt-3">
             <Seg label="Side panel" value={side} onChange={setSide} options={[{ value: "levers", label: "Savings levers" }, { value: "alerts", label: <>Alerts <span className="ml-1 rounded-full bg-crit-soft px-1.5 text-crit">{ledger.notes.length}</span></> }]} />
           </div>
-          <div className="min-h-0 flex-1 overflow-auto px-3.5 pb-3.5">{side === "levers" ? <Levers /> : <Alerts />}</div>
+          <div className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">{side === "levers" ? <Levers /> : <Alerts />}</div>
         </Card>
       </div>
     </div>
@@ -84,8 +84,13 @@ function LifecycleCanvas() {
   const gx = x(B);
   return (
     <div ref={ref} className="relative min-h-[400px] flex-1 overflow-hidden px-1.5 pb-1.5">
+      <table className="sr-only">
+        <caption>Lifecycle cost by month: each lane, and the cumulative net position</caption>
+        <thead><tr><th scope="col">Month</th>{lanes.map(([n]) => <th key={n} scope="col">{n}</th>)}<th scope="col">Cumulative net</th></tr></thead>
+        <tbody>{months.map((_, m) => <tr key={m}><th scope="row">Month {m + 1}</th>{lanes.map(([n,, v]) => <td key={n}>{cad(v[m] ?? 0)}</td>)}<td>{cad(vals[m] ?? 0)}</td></tr>)}</tbody>
+      </table>
       {w > 0 && (
-        <svg className="chart absolute inset-0 h-full w-full" viewBox={`0 0 ${W} ${Ht}`} role="img" aria-label="Lifecycle cost lanes by month">
+        <svg className="chart absolute inset-0 h-full w-full" viewBox={`0 0 ${W} ${Ht}`} role="group" aria-label="Lifecycle cost lanes by month. The go-live month marker is a slider: use the left and right arrow keys. The same figures are in the table below the chart.">
           <rect x={L} y={0} width={B * bw} height={T + lanes.length * laneH} fill="var(--build)" opacity={0.06} />
           <text x={L + 4} y={14}>Build</text>
           <text x={gx + 42} y={14}>Production</text>
@@ -96,7 +101,7 @@ function LifecycleCanvas() {
               <g key={n}>
                 <line x1={L} x2={W - R} y1={y0 + laneH} y2={y0 + laneH} stroke="var(--line)" />
                 <text x={4} y={y0 + laneH / 2 + 4} style={{ fill: "var(--ink-2)", fontSize: 12 }}>{n}</text>
-                <text x={W - 6} y={y0 + laneH / 2 + 4} textAnchor="end" className="num" style={{ fill: "var(--ink)", fontSize: 11.5 }}>{tot > 0 ? kcad(tot) : "–"}</text>
+                <text x={W - 6} y={y0 + laneH / 2 + 4} textAnchor="end" className="num" style={{ fill: "var(--ink)", fontSize: 12 }}>{tot > 0 ? kcad(tot) : "–"}</text>
                 {v.map((val, m) => val > 0 && (
                   <rect key={m} x={x(m) + 1} y={y0 + laneH - 3 - Math.max(2, ((laneH - 6) * val) / mx)} width={Math.max(1, bw - 2)} height={Math.max(2, ((laneH - 6) * val) / mx)} rx={1.5} fill={c} opacity={li === lanes.length - 1 ? 1 : 0.85}>
                     <title>{`${n} · month ${m + 1}: ${cad(val)}`}</title>
@@ -106,7 +111,7 @@ function LifecycleCanvas() {
             );
           })}
           <text x={4} y={cy0 + cH / 2} style={{ fill: "var(--ink-2)", fontSize: 12 }}>Cumulative net</text>
-          <text x={W - 6} y={cy0 + cH / 2} textAnchor="end" style={{ fill: "var(--ink)", fontSize: 11.5 }}>{kcad(vals.at(-1) ?? 0)}</text>
+          <text x={W - 6} y={cy0 + cH / 2} textAnchor="end" style={{ fill: "var(--ink)", fontSize: 12 }}>{kcad(vals.at(-1) ?? 0)}</text>
           <line x1={L} x2={W - R} y1={y(0)} y2={y(0)} stroke="var(--muted)" />
           <path d={vals.map((v, m) => `${m ? "L" : "M"}${x(m) + bw / 2},${y(v)}`).join("")} fill="none" stroke="var(--accent)" strokeWidth={2} />
           {roi.paybackMonth && (
@@ -135,15 +140,15 @@ function Levers() {
   if (!options.length) return <p className="text-sm text-muted">No savings levers apply to this project right now.</p>;
   return (
     <div>
-      <p className="mb-1 text-[11.5px] text-muted">Savings over {project.timeline.horizonMonths} months on the selected cost basis. Applying a lever changes the project; save to a file first if you want to compare.</p>
+      <p className="mb-1 text-xs text-muted">Savings over {project.timeline.horizonMonths} months on the selected cost basis. Applying a lever changes the project; save to a file first if you want to compare.</p>
       {options.map(({ lever, saving }) => (
         <div key={lever.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5 border-b border-line py-2.5 last:border-b-0">
           <div>
             <b className="font-semibold">{lever.label}</b>
-            <div className="text-[11.5px] text-muted">{lever.detail}</div>
+            <div className="text-xs text-muted">{lever.detail}</div>
             <div className="mt-1 flex items-center gap-2">
               <Pill>{lever.phase === "build" ? "Build" : "Production"}</Pill>
-              <button type="button" className="rounded-md border border-line px-2 py-0.5 text-xs font-medium hover:bg-surface-2" onClick={() => replace(lever.apply(project, catalog))}>Apply</button>
+              <button type="button" className="rounded-md border border-line min-h-6 px-2 py-0.5 text-xs font-medium hover:bg-surface-2" onClick={() => replace(lever.apply(project, catalog))}>Apply</button>
             </div>
           </div>
           <span className="num whitespace-nowrap text-[12.5px] font-semibold text-good">{saving > 0 ? `−${cad(saving)}` : cad(0)}</span>

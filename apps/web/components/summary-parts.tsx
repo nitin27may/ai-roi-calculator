@@ -57,10 +57,10 @@ export function HeadlineTiles({ s, linkWide = true }: { s: Summary; linkWide?: b
     <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 xl:grid-cols-6 print:grid-cols-3">
       {tiles.map((t) => (
         <div key={t.label} className="min-w-0 rounded-lg border border-line bg-surface px-3.5 py-2.5">
-          <div className="truncate text-[11.5px] text-muted">{t.label}</div>
+          <div className="truncate text-xs text-muted">{t.label}</div>
           <div className="num truncate font-display text-xl font-bold leading-tight">{t.value}</div>
-          {t.sub && <div className="truncate text-[11px] text-ink-2">{t.sub}</div>}
-          {t.range && <div className="num text-[10.5px] leading-tight text-muted">{t.range}</div>}
+          {t.sub && <div className="truncate text-xs text-ink-2">{t.sub}</div>}
+          {t.range && <div className="num text-xs leading-tight text-muted">{t.range}</div>}
         </div>
       ))}
     </div>
@@ -85,7 +85,7 @@ export function FinanceMeasures({ s, className = "px-3.5 pb-3.5" }: { s: Summary
     <dl className={`grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-[12.5px] ${className}`}>
       {rows.map(([k, v, note]) => (
         <div key={k} className="contents">
-          <dt className="text-ink-2">{k}{note && <span className="block text-[11px] text-muted">{note}</span>}</dt>
+          <dt className="text-ink-2">{k}{note && <span className="block text-xs text-muted">{note}</span>}</dt>
           <dd className="num self-center text-right font-semibold text-ink" title={k.startsWith("Internal") && s.irrPct !== null ? `Full figure: ${fmt(s.irrPct, 1)}% a year` : undefined}>{v}</dd>
         </div>
       ))}
@@ -133,7 +133,7 @@ export function RiskSummary({ alerts, compact = false }: { alerts: AlertGroup[];
             <span className="text-[12.5px] font-medium text-ink">{g.label}</span>
             <Pill tone={ALERT_TONE[g.id]}>{g.count}</Pill>
           </div>
-          <ul className="mt-1 list-disc pl-4 text-[11.5px] text-ink-2">
+          <ul className="mt-1 list-disc pl-4 text-xs text-ink-2">
             {g.items.slice(0, compact ? 2 : 3).map((m) => <li key={m} className={compact ? "" : "truncate"}>{m}</li>)}
           </ul>
         </div>

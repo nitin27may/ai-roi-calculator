@@ -55,7 +55,7 @@ export function WorkloadTiming({ w }: { w: Workload }) {
           </>
         )}
       </div>
-      <p className="mt-1.5 text-[11.5px] text-muted">
+      <p className="mt-1.5 text-xs text-muted">
         Before its start month the workload costs nothing; after its end month it stops. The one-time volume is billed in a single month and is not part of the run rate.
       </p>
     </div>

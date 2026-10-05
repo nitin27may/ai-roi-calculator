@@ -21,7 +21,7 @@ export function FinanceInputs() {
         <Field label="Build cost treated as capital" help="capexPct"><NumberInput value={r.capexPct ?? 0} max={100} suffix="%" onChange={(v) => edit((d) => { if (v > 0) d.roi.capexPct = v; else delete d.roi.capexPct; })} /></Field>
         <Field label="Write capital off over (months)" help="amortiseMonths"><NumberInput value={r.amortiseMonths ?? 36} min={1} max={120} onChange={(v) => edit((d) => { d.roi.amortiseMonths = Math.round(v); })} /></Field>
       </div>
-      <p className="mt-1 text-[11.5px] text-muted">The capital split and write-off change how cost is reported, not the cash flows, NPV or IRR. Value after the plan ends adds that many years of the last year&apos;s net benefit to the final month, so it does move NPV and IRR.</p>
+      <p className="mt-1 text-xs text-muted">The capital split and write-off change how cost is reported, not the cash flows, NPV or IRR. Value after the plan ends adds that many years of the last year&apos;s net benefit to the final month, so it does move NPV and IRR.</p>
     </section>
   );
 }
@@ -45,7 +45,7 @@ export function ValueItems() {
   return (
     <section>
       <h3 className="text-sm font-semibold">Revenue, quality and risk</h3>
-      <p className="mb-1.5 text-[11.5px] text-muted">Benefits that are not time saved: extra margin, errors avoided, expected losses prevented.</p>
+      <p className="mb-1.5 text-xs text-muted">Benefits that are not time saved: extra margin, errors avoided, expected losses prevented.</p>
       {project.benefits.value.map((v, i) => {
         const upd = (fn: (x: ValueItem) => void) => edit((d) => { const x = d.benefits.value[i]; if (x) fn(x); });
         const setOpt = <K extends keyof ValueItem>(k: K, val: ValueItem[K] | undefined) => upd((x) => { if (val === undefined) delete x[k]; else x[k] = val; });
@@ -69,7 +69,7 @@ export function ValueItems() {
                   <Field label="Items checked per month" help="valueVolumeFrom">
                     <Select value={v.volumeFrom ?? ""} options={[{ value: "", label: "Entered here" }, ...volumeSources.map((w) => ({ value: w.id, label: `${w.label} (${workloadVolume(w).itemsKey})` }))]} onChange={(id) => setOpt("volumeFrom", id || undefined)} />
                   </Field>
-                  {from ? <div className="self-end pb-1.5 text-[11.5px] text-muted">{workloadVolume(from).items?.toLocaleString("en-CA")} a month, from {from.label}</div>
+                  {from ? <div className="self-end pb-1.5 text-xs text-muted">{workloadVolume(from).items?.toLocaleString("en-CA")} a month, from {from.label}</div>
                     : <Field label="Items per month" help="valueVolume"><NumberInput value={v.volumePerMonth ?? 0} onChange={(n) => setOpt("volumePerMonth", n)} /></Field>}
                   <Field label="Error rate today" help="valueErrBefore"><NumberInput value={v.errorRateBeforePct ?? 0} max={100} step={0.1} suffix="%" onChange={(n) => setOpt("errorRateBeforePct", n)} /></Field>
                   <Field label="Error rate with AI" help="valueErrAfter"><NumberInput value={v.errorRateAfterPct ?? 0} max={100} step={0.1} suffix="%" onChange={(n) => setOpt("errorRateAfterPct", n)} /></Field>
@@ -89,7 +89,7 @@ export function ValueItems() {
                 <Select value={v.capabilityId ?? ""} options={[{ value: "", label: "Whole project" }, ...project.benefits.capabilities.map((c) => ({ value: c.id, label: c.label }))]} onChange={(id) => setOpt("capabilityId", id || undefined)} />
               </Field>
             </div>
-            <div className="text-[11.5px] text-muted"><span className="num font-semibold text-ink">{cad(valueItemMonthly(project, v))} / month</span> at full rollout, before confidence{v.kind === "risk" ? "" : v.ramp === false ? "" : ", rising with the adoption ramp"}.</div>
+            <div className="text-xs text-muted"><span className="num font-semibold text-ink">{cad(valueItemMonthly(project, v))} / month</span> at full rollout, before confidence{v.kind === "risk" ? "" : v.ramp === false ? "" : ", rising with the adoption ramp"}.</div>
           </div>
         );
       })}

@@ -78,7 +78,7 @@ export default function Run() {
         </div>
       </Card>
       <Card>
-        <div data-tour="run-inspector" className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto p-3.5">
+        <div data-tour="run-inspector" className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto scroll-hint p-3.5">
           <Inspector sel={sel} onRemoved={() => setSel("maintenance")} />
         </div>
       </Card>
@@ -130,7 +130,7 @@ function AddWorkload({ onAdded, featureId }: { onAdded: (id: string) => void; fe
         setNotice(agent ? "An agent workload needs a harness, so a default one was added under Agent harnesses. Review its steps and tools." : "");
         if (id) onAdded(id);
       }} />
-      {notice && <div role="note" className="w-full rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">{notice} <button type="button" className="underline" onClick={() => setNotice("")}>Dismiss</button></div>}
+      {notice && <div role="note" className="w-full rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">{notice} <button type="button" className="inline-flex min-h-6 items-center underline" onClick={() => setNotice("")}>Dismiss</button></div>}
     </>
   );
 }
@@ -178,7 +178,7 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
             </tbody>
           </table>
         )}
-        <p className="text-[11.5px] text-muted">Maintenance, transition costs, avoided costs and shared labour belong to the project and are not split across features. Set a workload&apos;s feature in its panel, a workstream&apos;s on the Build page and a capability&apos;s on Value &amp; ROI.</p>
+        <p className="text-xs text-muted">Maintenance, transition costs, avoided costs and shared labour belong to the project and are not split across features. Set a workload&apos;s feature in its panel, a workstream&apos;s on the Build page and a capability&apos;s on Value &amp; ROI.</p>
       </>
     );
   }
@@ -251,7 +251,7 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
         <div>
           <h3 className="mb-1.5 text-sm font-semibold">Snowflake warehouse</h3>
           <Fields specs={WAREHOUSE_SPECS} value={w.warehouse as unknown as Record<string, unknown>} locate={(d) => (d.workloads.find((x) => x.id === w.id) as { warehouse?: Record<string, unknown> }).warehouse} />
-          <p className="mt-1.5 text-[11.5px] text-muted">Snowflake recommends MEDIUM or smaller for AI functions; a larger warehouse does not speed them up. Hours are billed per second with a 60-second minimum per resume, in platform credits.</p>
+          <p className="mt-1.5 text-xs text-muted">Snowflake recommends MEDIUM or smaller for AI functions; a larger warehouse does not speed them up. Hours are billed per second with a 60-second minimum per resume, in platform credits.</p>
         </div>
       )}
       {w.kind === "transcription" && <SpeechCompare hours={w.hoursPerMonth} current={w.engineId} id={w.id} diarize={w.diarize} deployment={w.deployment} />}
@@ -269,12 +269,12 @@ function WorkloadRange({ w }: { w: Workload }) {
   const { project } = useLedger();
   const percentile = useStudio((s) => s.percentile);
   const r = useMemo(() => workloadRange(project, catalog, w, percentile), [project, w, percentile]);
-  if (!r.spread) return <p className="text-[11.5px] text-muted">This workload is priced per page, hour or request, so its cost has no spread.</p>;
+  if (!r.spread) return <p className="text-xs text-muted">This workload is priced per page, hour or request, so its cost has no spread.</p>;
   return (
     <div className="max-w-md">
       <h3 className="mb-1 text-sm font-semibold">Range per month</h3>
       <RangeBar caption={`Low, expected and high monthly cost of ${w.label}`} rows={[{ id: w.id, label: "Monthly cost", low: r.low, expected: r.expected, high: r.high }]} />
-      <p className="mt-1 text-[11.5px] text-muted">{w.kind === "agent" ? "P10 and P90 come from the agent harness: fewer or more steps and tool results." : "P10 and P90 scale the token counts by 0.7 and 1.4, a documented spread rather than a measurement."}</p>
+      <p className="mt-1 text-xs text-muted">{w.kind === "agent" ? "P10 and P90 come from the agent harness: fewer or more steps and tool results." : "P10 and P90 scale the token counts by 0.7 and 1.4, a documented spread rather than a measurement."}</p>
     </div>
   );
 }
@@ -305,12 +305,12 @@ function VoiceCompare({ id }: { id: string }) {
           {rows.map((r) => (
             <tr key={r.key} style={r.current ? { background: "var(--accent-soft)" } : undefined}>
               <td>{r.label}</td><td className="n">{cad(r.perCall, 3)}</td><td className="n">{cad(r.perCall / w.minutesPerCall, 3)}</td><td className="n">{cad(r.perCall * w.callsPerMonth)}</td>
-              <td>{r.use && !r.current && <button type="button" className="rounded border border-line px-1.5 text-xs hover:bg-surface-2" onClick={r.use}>Use</button>}</td>
+              <td>{r.use && !r.current && <button type="button" className="min-h-6 rounded border border-line px-2 text-xs hover:bg-surface-2" onClick={r.use}>Use</button>}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <p className="mt-1.5 text-[11.5px] text-muted">Speech-to-speech re-reads the call's audio every turn (mostly cached), so long calls with many turns cost more per minute. A cascade bills audio once but adds latency between speech recognition, the model and the synthesized voice. Telephony is not included in this comparison.</p>
+      <p className="mt-1.5 text-xs text-muted">Speech-to-speech re-reads the call's audio every turn (mostly cached), so long calls with many turns cost more per minute. A cascade bills audio once but adds latency between speech recognition, the model and the synthesized voice. Telephony is not included in this comparison.</p>
     </div>
   );
 }
@@ -357,7 +357,7 @@ function SpeechCompare({ hours, current, id, diarize, deployment }: { hours: num
   return (
     <div>
       <h3 className="mb-1.5 text-sm font-semibold">Every engine for the same {fmt(hours)} hours, priced at month {ledger.months.length} (end of plan)</h3>
-      <p className="mb-1.5 text-[11.5px] text-muted">This workload uses {DEPLOYMENT_LABEL[d]}. Engines it does not offer show where they are offered; &quot;Use&quot; switches the engine and, if needed, the workload&apos;s deployment.</p>
+      <p className="mb-1.5 text-xs text-muted">This workload uses {DEPLOYMENT_LABEL[d]}. Engines it does not offer show where they are offered; &quot;Use&quot; switches the engine and, if needed, the workload&apos;s deployment.</p>
       <table className="data">
         <thead><tr><th>Engine</th><th>Via</th><th className="n">CAD / hour</th><th className="n">CAD / month</th><th /></tr></thead>
         <tbody>
@@ -369,7 +369,7 @@ function SpeechCompare({ hours, current, id, diarize, deployment }: { hours: num
               <td className="n">{cad(rate * hours)}</td>
               <td className="whitespace-nowrap">
                 {e.lifecycle.retiresOn && <Pill tone="crit">retires {e.lifecycle.retiresOn}</Pill>} {e.promo && <Pill tone="warn">promo to {e.promo.until}</Pill>} {e.confidence === "unverified" && <Pill>unverified</Pill>}
-                {e.id !== current && <button type="button" className="ml-1 rounded border border-line px-1.5 text-xs hover:bg-surface-2" onClick={() => edit((p) => { const w = p.workloads.find((x) => x.id === id); if (w?.kind !== "transcription") return; w.engineId = e.id; if (!availableIn(e, d)) w.deployment = DEPLOYMENTS.find((x) => availableIn(e, x)); })}>{availableIn(e, d) || !offeredIn(e) ? "Use" : `Use on ${SHORT[DEPLOYMENTS.find((x) => availableIn(e, x))!]}`}</button>}
+                {e.id !== current && <button type="button" className="ml-1 min-h-6 rounded border border-line px-2 text-xs hover:bg-surface-2" onClick={() => edit((p) => { const w = p.workloads.find((x) => x.id === id); if (w?.kind !== "transcription") return; w.engineId = e.id; if (!availableIn(e, d)) w.deployment = DEPLOYMENTS.find((x) => availableIn(e, x)); })}>{availableIn(e, d) || !offeredIn(e) ? "Use" : `Use on ${SHORT[DEPLOYMENTS.find((x) => availableIn(e, x))!]}`}</button>}
               </td>
             </tr>
           ))}
@@ -398,7 +398,7 @@ function HarnessTable({ harnessId, modelId, cacheHit, tasks }: { harnessId: stri
           ))}
         </tbody>
       </table>
-      <p className="mt-1.5 text-[11.5px] text-muted">Each step re-sends the prompt plus growing history, so input grows faster than the number of steps. The worst case assumes every task hits the turn cap with no cache hits.</p>
+      <p className="mt-1.5 text-xs text-muted">Each step re-sends the prompt plus growing history, so input grows faster than the number of steps. The worst case assumes every task hits the turn cap with no cache hits.</p>
     </div>
   );
 }
@@ -419,7 +419,7 @@ function SearchSizing({ w }: { w: Extract<Workload, { kind: "aiSearch" }> }) {
           <tr><td>Replicas</td><td className="n">{s.replicas}</td><td className="n">max {t.maxReplicas}</td><td /></tr>
         </tbody>
       </table>
-      <p className="mt-1.5 text-[11.5px] text-muted">The cheapest tier that holds the vectors and storage is chosen automatically. Quantizing vectors to int8 cuts the vector index by 4×.</p>
+      <p className="mt-1.5 text-xs text-muted">The cheapest tier that holds the vectors and storage is chosen automatically. Quantizing vectors to int8 cuts the vector index by 4×.</p>
     </div>
   );
 }

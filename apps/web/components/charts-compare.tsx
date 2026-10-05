@@ -19,7 +19,7 @@ export function Dumbbell({ title, baseline, rows, format = cad, higherIsBetter =
   const lo = lo0 - pad, span = hi0 + pad - lo || 1;
   const x = (v: number) => r2((100 * (v - lo)) / span);
   return (
-    <div role="img" aria-label={`${title}: baseline against each scenario`}>
+    <div role="group" aria-label={`${title}: baseline against each scenario`}>
       <div className="mb-1 text-[12px] font-semibold text-ink">{title}</div>
       <div className="flex flex-col gap-1.5">
         {rows.map((r) => {
@@ -32,18 +32,18 @@ export function Dumbbell({ title, baseline, rows, format = cad, higherIsBetter =
             <div key={r.id} className="grid grid-cols-[minmax(90px,150px)_1fr] items-center gap-2 text-[12px]">
               <span className="truncate text-ink-2" title={r.label}>{r.label}</span>
               <div>
-                <div className="relative h-5" title={`${r.label}: ${format(r.value)} (${words})`}>
+                <div aria-hidden className="relative h-5" title={`${r.label}: ${format(r.value)} (${words})`}>
                   <div className="absolute top-1/2 h-0.5 -translate-y-1/2 rounded" style={{ left: `${Math.min(x(baseline), x(r.value))}%`, width: `${r2(Math.abs(x(r.value) - x(baseline)))}%`, background: color }} />
                   <div className="absolute inset-y-0.5 w-0.5 bg-ink" style={{ left: `${x(baseline)}%` }} />
                   <div className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface" style={{ left: `${x(r.value)}%`, background: color }} />
                 </div>
-                <div className="num text-[11px] text-muted"><span className="font-semibold text-ink">{format(r.value)}</span> · {words}</div>
+                <div className="num text-xs text-muted"><span className="font-semibold text-ink">{format(r.value)}</span> · {words}</div>
               </div>
             </div>
           );
         })}
       </div>
-      <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted"><i className="inline-block h-3 w-0.5 bg-ink" />Baseline {format(baseline)}</div>
+      <div className="mt-1 flex items-center gap-1.5 text-xs text-muted"><i className="inline-block h-3 w-0.5 bg-ink" />Baseline {format(baseline)}</div>
     </div>
   );
 }
@@ -59,7 +59,7 @@ export const COMPARE_COLORS = ["var(--s1)", "var(--s6)", "var(--s7)"];
  */
 export function CompareBars({ names, metrics }: { names: string[]; metrics: CompareMetric[] }) {
   return (
-    <div className="grid gap-x-6 gap-y-3 md:grid-cols-2" role="img" aria-label="Projects compared on each figure">
+    <div className="grid gap-x-6 gap-y-3 md:grid-cols-2" role="group" aria-label="Projects compared on each figure">
       {metrics.map((m) => {
         const nums = m.values.filter((v): v is number => v !== null);
         const maxAbs = Math.max(...nums.map(Math.abs), 1);
@@ -75,11 +75,11 @@ export function CompareBars({ names, metrics }: { names: string[]; metrics: Comp
                 const left = v !== null && v < 0 ? r2(zero - w) : zero;
                 return (
                   <div key={`${names[i]}-${i}`} className="grid grid-cols-[1fr_auto] items-center gap-2">
-                    <div className="relative h-3.5 rounded bg-surface-2" title={`${names[i]}: ${m.format(v)}`}>
+                    <div aria-hidden className="relative h-3.5 rounded bg-surface-2" title={`${names[i]}: ${m.format(v)}`}>
                       {hasNeg && <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${zero}%` }} />}
                       {v !== null && <div className="absolute inset-y-0 rounded" style={{ left: `${left}%`, width: `${Math.max(1, w)}%`, background: COMPARE_COLORS[i % COMPARE_COLORS.length] }} />}
                     </div>
-                    <span className="num whitespace-nowrap text-[11.5px] font-semibold text-ink">{m.format(v)}</span>
+                    <span className="num whitespace-nowrap text-xs font-semibold text-ink"><span className="sr-only">{names[i]}: </span>{m.format(v)}</span>
                   </div>
                 );
               })}
@@ -102,7 +102,7 @@ export function MiniSplit({ parts }: { parts: { key: string; label: string; shar
       <div className="flex h-2 overflow-hidden rounded bg-surface-2">
         {shown.map((p) => <div key={p.key} style={{ width: `${r2(p.share * 100)}%`, background: SPLIT_COLOR[p.key] ?? "var(--muted)" }} />)}
       </div>
-      <div className="mt-1 flex flex-wrap gap-x-2 text-[10.5px] text-muted">
+      <div className="mt-1 flex flex-wrap gap-x-2 text-xs text-muted">
         {parts.filter((p) => p.share >= 0.01).map((p) => <span key={p.key} className="inline-flex items-center gap-1"><i className="inline-block h-1.5 w-1.5 rounded-sm" style={{ background: SPLIT_COLOR[p.key] }} />{p.label} {Math.round(p.share * 100)}%</span>)}
       </div>
     </div>

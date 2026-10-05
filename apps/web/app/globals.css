@@ -2,18 +2,18 @@
 
 /* Estimator's workbench: spruce-biased neutrals, one accent, categorical series from the validated dataviz palette. */
 :root {
-  --bg: #f4f6f4; --surface: #ffffff; --surface-2: #eef2ef; --ink: #13201b; --ink-2: #4b5853; --muted: #6c7873; --line: #dbe1dd;
+  --bg: #f4f6f4; --surface: #ffffff; --surface-2: #eef2ef; --ink: #13201b; --ink-2: #4b5853; --muted: #566259; --line: #dbe1dd;
   --accent: #0d6b57; --accent-ink: #ffffff; --accent-soft: #dcefe8;
   --good: #1b7a3a; --warn: #a15c00; --crit: #b42318; --good-soft: #e0f2e6; --warn-soft: #fdf1dc; --crit-soft: #fbe4e1;
   /* One meaning per colour everywhere: build/devlab orange, run green, platform slate, maintenance amber-brown, benefit teal, risk red. */
-  --build: #eb6834; --build-2: #b84b1a; --run: #1baf7a; --platform: #51707a; --maint: #8a6a3a; --benefit: var(--accent); --risk: var(--crit);
+  --build: #eb6834; --build-2: #b84b1a; --run: #13966a; --platform: #51707a; --maint: #8a6a3a; --benefit: var(--accent); --risk: var(--crit);
   /* Generic categorical series for charts that distinguish many items rather than a cost category (no purple, no yellow). */
   --s1: #2a78d6; --s2: var(--build); --s3: var(--run); --s4: var(--platform); --s5: var(--maint); --s6: #8a7a1e; --s7: #a24a3a;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1513; --surface: #161e1b; --surface-2: #1d2723; --ink: #eef3f0; --ink-2: #b9c4bf; --muted: #8e9b95; --line: #2a3631;
+    --bg: #0f1513; --surface: #161e1b; --surface-2: #1d2723; --ink: #eef3f0; --ink-2: #b9c4bf; --muted: #9aa7a1; --line: #2a3631;
     --accent: #3fbf9c; --accent-ink: #06231b; --accent-soft: #163a31;
     --good: #5cc97f; --warn: #e9a443; --crit: #f07a6e; --good-soft: #15301f; --warn-soft: #3a2b12; --crit-soft: #3d1c19;
     --build: #d95926; --build-2: #e2834a; --run: #199e70; --platform: #7c97a0; --maint: #c08a4e; --benefit: var(--accent); --risk: var(--crit);
@@ -22,7 +22,7 @@
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f1513; --surface: #161e1b; --surface-2: #1d2723; --ink: #eef3f0; --ink-2: #b9c4bf; --muted: #8e9b95; --line: #2a3631;
+  --bg: #0f1513; --surface: #161e1b; --surface-2: #1d2723; --ink: #eef3f0; --ink-2: #b9c4bf; --muted: #9aa7a1; --line: #2a3631;
   --accent: #3fbf9c; --accent-ink: #06231b; --accent-soft: #163a31;
   --good: #5cc97f; --warn: #e9a443; --crit: #f07a6e; --good-soft: #15301f; --warn-soft: #3a2b12; --crit-soft: #3d1c19;
   --build: #d95926; --build-2: #e2834a; --run: #199e70; --platform: #7c97a0; --maint: #c08a4e; --benefit: var(--accent); --risk: var(--crit);
@@ -57,12 +57,32 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
 h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; letter-spacing: -0.01em; }
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.chart text { fill: var(--muted); font: 11px var(--font-sans); }
+.chart text { fill: var(--muted); font: 12px var(--font-sans); }
 table.data { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-table.data th { font-weight: 500; color: var(--muted); text-align: left; font-size: 11.5px; border-bottom: 1px solid var(--line); padding: 5px 8px; white-space: nowrap; }
+/* Edge shadows that appear only on a side that has more content to scroll to, so a clipped table is visibly scrollable. */
+.scroll-hint {
+  background:
+    linear-gradient(to right, var(--surface) 30%, transparent) left center / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--surface) 30%, transparent) right center / 28px 100% no-repeat local,
+    linear-gradient(to right, color-mix(in srgb, var(--ink) 22%, transparent), transparent) left center / 12px 100% no-repeat scroll,
+    linear-gradient(to left, color-mix(in srgb, var(--ink) 22%, transparent), transparent) right center / 12px 100% no-repeat scroll;
+}
+table.data th { font-weight: 500; color: var(--muted); text-align: left; font-size: 12px; border-bottom: 1px solid var(--line); padding: 5px 8px; white-space: nowrap; }
 table.data td { border-bottom: 1px solid var(--line); padding: 6px 8px; vertical-align: top; }
 table.data .n { text-align: right; white-space: nowrap; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 table.data tr.total td { font-weight: 600; border-top: 2px solid var(--line); border-bottom: 0; }
+
+/* Sidebar collapsed to icons (desktop only; the drawer below 1024px always shows labels). Names stay available to screen readers. */
+@media (min-width: 1024px) {
+  nav[data-collapsed="true"] .nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  nav[data-collapsed="true"] .nav-rule { display: block; }
+  nav[data-collapsed="true"] a, nav[data-collapsed="true"] button { justify-content: center; }
+}
+
+/* Reduced motion: no animation or smooth scrolling anywhere. */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
 
 /* Wizard step panels slide in; reduced-motion users get no movement. */
 @keyframes wiz-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
@@ -84,5 +104,5 @@ table.data tr.total td { font-weight: 600; border-top: 2px solid var(--line); bo
   .report .break-inside-avoid { break-inside: avoid; }
   .report table.data tr { break-inside: avoid; }
   .report h2, .report h3 { break-after: avoid; }
-  @page { @bottom-center { content: "Page " counter(page); font: 9pt sans-serif; color: #6c7873; } }
+  @page { @bottom-center { content: "Page " counter(page); font: 9pt sans-serif; color: #566259; } }
 }

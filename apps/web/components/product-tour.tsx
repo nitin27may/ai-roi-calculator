@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { DRAWER_CLOSE_EVENT, DRAWER_OPEN_EVENT } from "@/lib/prefs";
 import { TOUR_START_EVENT, TOUR_STEPS, clampStep, shouldAutoShowTour, writeTourState, type TourState } from "@/lib/tour";
 
 /** Starts the tour from step 1. Used by the Help menu. */
@@ -75,9 +76,11 @@ export function ProductTour() {
     if (!open) return;
     setBox(null);
     if (!step.target) return;
-    let raf = 0, scrolled = false;
+    let raf = 0, scrolled = false, openedDrawer = false;
     const tick = () => {
       const el = document.querySelector<HTMLElement>(`[data-tour="${step.target}"]`);
+      // A step that points into the sidebar opens it first when the sidebar is a drawer.
+      if (el && !openedDrawer && innerWidth < 1024 && el.closest("nav[aria-label=Main]")) { openedDrawer = true; dispatchEvent(new Event(DRAWER_OPEN_EVENT)); }
       const r = el?.getBoundingClientRect();
       let next: Box | null = null;
       if (el && r && r.width > 0 && r.height > 0) {
@@ -94,8 +97,17 @@ export function ProductTour() {
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => { cancelAnimationFrame(raf); if (openedDrawer) dispatchEvent(new Event(DRAWER_CLOSE_EVENT)); };
   }, [open, step]);
+
+  // Steps without a target never run the tracking loop above, so keep the viewport size current here too.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const sync = () => setView((v) => (v.w === innerWidth && v.h === innerHeight ? v : { w: innerWidth, h: innerHeight }));
+    sync();
+    addEventListener("resize", sync);
+    return () => removeEventListener("resize", sync);
+  }, [open]);
 
   useLayoutEffect(() => {
     const el = card.current;
@@ -137,7 +149,7 @@ export function ProductTour() {
       <div ref={card} role="dialog" aria-modal="false" aria-labelledby={titleId} aria-describedby={bodyId} tabIndex={-1}
         className="fixed z-50 rounded-xl border border-line bg-surface p-4 shadow-xl outline-none"
         style={{ left: pos.left, top: pos.top, width: Math.min(CARD_W, view.w - MARGIN * 2), transition: move }}>
-        <div className="mb-1 text-[11.5px] font-medium text-muted">{index + 1} of {TOUR_STEPS.length}</div>
+        <div className="mb-1 text-xs font-medium text-muted">{index + 1} of {TOUR_STEPS.length}</div>
         <h2 id={titleId} className="font-display text-base font-bold">{step.title}</h2>
         <p id={bodyId} className="mt-1 text-[13px] text-ink-2">{step.body}</p>
         <div className="mt-3 flex items-center justify-between gap-2">

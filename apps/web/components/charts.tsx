@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { cad, cadUnit, kcad } from "@/lib/format";
 
 /** Measures a container so charts draw at real pixel size (crisp text, no stretching). */
@@ -38,6 +38,33 @@ function Tooltip({ tip }: { tip: Tip | null }) {
 }
 const TipRow = ({ k, v }: { k: string; v: string }) => <div className="flex justify-between gap-3"><span>{k}</span><span className="num">{v}</span></div>;
 
+/**
+ * Keyboard reading of a chart with one data point per column: Left/Right/Home/End step through the points, Esc leaves.
+ * The chart container takes one tab stop (not one per point) and announces the active point through a live region.
+ */
+function useColumnKeys(count: number) {
+  const [active, setActive] = useState<number | null>(null);
+  const keys = (e: KeyboardEvent<HTMLElement>) => {
+    if (count <= 0) return;
+    const cur = active ?? 0;
+    const next = e.key === "ArrowRight" ? Math.min(count - 1, cur + 1) : e.key === "ArrowLeft" ? Math.max(0, cur - 1) : e.key === "Home" ? 0 : e.key === "End" ? count - 1 : null;
+    if (next !== null) { e.preventDefault(); setActive(next); }
+    else if (e.key === "Escape" && active !== null) { e.preventDefault(); setActive(null); }
+  };
+  return { active, setActive, props: { tabIndex: 0, onKeyDown: keys, onFocus: () => setActive((a) => a ?? 0), onBlur: () => setActive(null) } };
+}
+
+/** The same numbers as the chart, in a table that only assistive technology sees. */
+function SrTable({ caption, head, rows }: { caption: string; head: string[]; rows: string[][] }) {
+  return (
+    <table className="sr-only">
+      <caption>{caption}</caption>
+      <thead><tr>{head.map((h) => <th key={h} scope="col">{h}</th>)}</tr></thead>
+      <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => (j === 0 ? <th key={j} scope="row">{c}</th> : <td key={j}>{c}</td>))}</tr>)}</tbody>
+    </table>
+  );
+}
+
 export interface Series { key: string; label: string; color: string }
 
 /** Stacked monthly bars with an optional dashed line (same CAD axis). */
@@ -49,10 +76,22 @@ export function StackedBars({ rows, series, line, xLabel, className }: { rows: R
   const max = niceMax(Math.max(...tot, ...(line ? rows.map((r) => r[line.key] ?? 0) : [0])));
   const bw = (W - L - R) / Math.max(1, rows.length), y = (v: number) => T + (H - T - B) * (1 - v / max);
   const every = Math.ceil(rows.length / Math.max(1, W / 52));
+  const { active, props: keyProps } = useColumnKeys(rows.length);
+  const bodyFor = (i: number) => { const r = rows[i]!; return <><b>{xLabel(i)}</b>{series.map((s) => (r[s.key] ?? 0) > 0 && <TipRow key={s.key} k={s.label} v={cad(r[s.key]!)} />)}<TipRow k="Total" v={cad(tot[i]!)} />{line && <TipRow k={line.label} v={cad(r[line.key] ?? 0)} />}</>; };
+  const spoken = (i: number) => { const r = rows[i]!; return `${xLabel(i)}: ${series.filter((s) => (r[s.key] ?? 0) > 0).map((s) => `${s.label} ${cad(r[s.key]!)}`).join(", ")}; total ${cad(tot[i]!)}${line ? `; ${line.label} ${cad(r[line.key] ?? 0)}` : ""}`; };
+  useEffect(() => {
+    if (active === null || !ref.current || w === 0) { if (active === null) setTip(null); return; }
+    const box = ref.current.getBoundingClientRect();
+    setTip({ x: box.left + L + active * bw + bw / 2, y: box.top + T, body: bodyFor(active) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, w, h]);
   return (
-    <div ref={ref} className={className ?? "relative min-h-[200px] flex-1"}>
+    <div ref={ref} className={className ?? "relative min-h-[200px] flex-1"} role="group" aria-roledescription="chart" aria-label="Monthly cost by stream. Use the left and right arrow keys to read each month." {...keyProps}>
+      <SrTable caption="Monthly cost by stream" head={["Month", ...series.map((s) => s.label), "Total", ...(line ? [line.label] : [])]} rows={rows.map((r, i) => [xLabel(i), ...series.map((s) => cad(r[s.key] ?? 0)), cad(tot[i]!), ...(line ? [cad(r[line.key] ?? 0)] : [])])} />
+      <div className="sr-only" aria-live="polite">{active !== null && spoken(active)}</div>
       {w > 0 && (
-        <svg className="chart absolute inset-0 h-full w-full" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Monthly cost by stream">
+        <svg className="chart absolute inset-0 h-full w-full" viewBox={`0 0 ${W} ${H}`} aria-hidden>
+          {active !== null && <rect x={L + active * bw} y={T} width={bw} height={H - T - B} fill="none" stroke="var(--ink)" strokeWidth={1.5} rx={2} pointerEvents="none" />}
           {[0, 1, 2, 3, 4].map((i) => <g key={i}><line x1={L} x2={W - R} y1={y((max * i) / 4)} y2={y((max * i) / 4)} stroke="var(--line)" /><text x={L - 6} y={y((max * i) / 4) + 4} textAnchor="end">{kcad((max * i) / 4)}</text></g>)}
           {rows.map((r, i) => {
             let acc = 0;
@@ -69,7 +108,7 @@ export function StackedBars({ rows, series, line, xLabel, className }: { rows: R
                 })}
                 {i % every === 0 && <text x={x + bwInner / 2} y={H - 6} textAnchor="middle">{xLabel(i)}</text>}
                 <rect x={L + i * bw} y={T} width={bw} height={H - T - B} fill="transparent"
-                  onMouseMove={(e) => setTip({ x: e.clientX, y: e.clientY, body: <><b>{xLabel(i)}</b>{series.map((s) => (r[s.key] ?? 0) > 0 && <TipRow key={s.key} k={s.label} v={cad(r[s.key]!)} />)}<TipRow k="Total" v={cad(tot[i]!)} />{line && <TipRow k={line.label} v={cad(r[line.key] ?? 0)} />}</> })}
+                  onMouseMove={(e) => setTip({ x: e.clientX, y: e.clientY, body: bodyFor(i) })}
                   onMouseLeave={() => setTip(null)} />
               </g>
             );
@@ -93,10 +132,20 @@ export function CumulativeLine({ values, payback, className }: { values: number[
   const path = values.map((v, i) => `${i ? "L" : "M"}${x(i)},${y(v)}`).join("");
   const ticks = [...new Set([lo, lo / 2, 0, hi / 2, hi])];
   const step = (W - L - R) / Math.max(1, values.length - 1);
+  const { active, props: keyProps } = useColumnKeys(values.length);
+  useEffect(() => {
+    if (active === null || !ref.current || w === 0) { if (active === null) setTip(null); return; }
+    const box = ref.current.getBoundingClientRect();
+    setTip({ x: box.left + x(active), y: box.top + y(values[active]!), body: <><b>Month {active + 1}</b><TipRow k="Cumulative net" v={cad(values[active]!)} /></> });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, w, h]);
   return (
-    <div ref={ref} className={className ?? "relative min-h-[200px] flex-1"}>
+    <div ref={ref} className={className ?? "relative min-h-[200px] flex-1"} role="group" aria-roledescription="chart" aria-label={`Cumulative net position by month${payback ? `, payback in month ${payback}` : ""}. Use the left and right arrow keys to read each month.`} {...keyProps}>
+      <SrTable caption="Cumulative net position by month" head={["Month", "Cumulative net"]} rows={values.map((v, i) => [`Month ${i + 1}`, cad(v)])} />
+      <div className="sr-only" aria-live="polite">{active !== null && `Month ${active + 1}: cumulative net ${cad(values[active]!)}`}</div>
       {w > 0 && (
-        <svg className="chart absolute inset-0 h-full w-full" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Cumulative net position by month">
+        <svg className="chart absolute inset-0 h-full w-full" viewBox={`0 0 ${W} ${H}`} aria-hidden>
+          {active !== null && <circle cx={x(active)} cy={y(values[active]!)} r={6} fill="none" stroke="var(--ink)" strokeWidth={2} pointerEvents="none" />}
           {ticks.map((v) => <g key={v}><line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke={v === 0 ? "var(--muted)" : "var(--line)"} /><text x={L - 6} y={y(v) + 4} textAnchor="end">{kcad(v)}</text></g>)}
           <path d={`${path}L${x(values.length - 1)},${y(0)}L${x(0)},${y(0)}Z`} fill="var(--accent)" opacity={0.12} />
           <path d={path} fill="none" stroke="var(--accent)" strokeWidth={2} />
@@ -125,7 +174,7 @@ export function ViewToggle({ table, children }: { table: ReactNode; children: Re
   return (
     <div>
       <div className="flex justify-end">
-        <button type="button" className="rounded-md px-1.5 py-0.5 text-[11px] font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline" onClick={() => setAsTable((v) => !v)}>
+        <button type="button" className="min-h-6 rounded-md px-2 py-0.5 text-xs font-medium text-ink-2 underline underline-offset-2 hover:text-ink" onClick={() => setAsTable((v) => !v)}>
           {asTable ? "View as chart" : "View as table"}
         </button>
       </div>
@@ -160,10 +209,10 @@ export function Waterfall({ steps, costIds, className }: { steps: WaterfallBar[]
   const zero = pct(0);
   const labelCol = "minmax(100px,150px)";
   return (
-    <div className={className ?? "flex flex-col gap-1.5"} role="img" aria-label="Waterfall from build cost to net">
-      <div className="grid items-center gap-2 text-[10.5px] text-muted" style={{ gridTemplateColumns: labelCol + " 1fr" }}>
+    <div className={className ?? "flex flex-col gap-1.5"} role="group" aria-label="Waterfall from build cost to net, with each step amount">
+      <div className="grid items-center gap-2 text-xs text-muted" style={{ gridTemplateColumns: labelCol + " 1fr" }}>
         <span />
-        <div className="relative h-4">
+        <div aria-hidden className="relative h-4">
           <span className="num absolute -translate-x-1/2" style={{ left: `${zero}%` }}>C$0</span>
         </div>
       </div>
@@ -185,12 +234,13 @@ export function Waterfall({ steps, costIds, className }: { steps: WaterfallBar[]
           <div key={b.id} className="grid items-center gap-2 text-[12px]" style={{ gridTemplateColumns: labelCol + " 1fr" }}>
             <span className="truncate text-ink-2" title={b.label}>{b.label}</span>
             <div className="relative h-6" title={`${b.label}: ${amount}`}>
+              <span className="sr-only">{amount}</span>
               <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${zero}%` }} />
               <div className="absolute top-1 bottom-1 rounded" style={{ left: `${left}%`, width: `${width}%`, background: color }} />
               {fitsOutside ? (
-                <span className="num absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[11.5px] font-semibold text-ink" style={outsideStyle}>{amount}</span>
+                <span aria-hidden className="num absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-xs font-semibold text-ink" style={outsideStyle}>{amount}</span>
               ) : (
-                <span className="num absolute top-1/2 -translate-y-1/2 whitespace-nowrap rounded px-1 text-[11.5px] font-semibold" style={{ ...insideStyle, background: color, color: "var(--bg)" }}>{amount}</span>
+                <span aria-hidden className="num absolute top-1/2 -translate-y-1/2 whitespace-nowrap rounded border px-1 text-xs font-semibold text-ink" style={{ ...insideStyle, background: "var(--surface)", borderColor: color }}>{amount}</span>
               )}
             </div>
           </div>
@@ -212,12 +262,12 @@ export function RankedBars({ rows, className }: { rows: { label: string; value: 
   const [ref, { w }] = useSize<HTMLDivElement>();
   const max = Math.max(...rows.map((r) => r.value), 1);
   return (
-    <div ref={ref} className={className ?? "flex flex-col gap-2"}>
+    <div ref={ref} role="group" aria-label="Cost drivers, largest first" className={className ?? "flex flex-col gap-2"}>
       {rows.map((r) => (
         <div key={r.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 text-[12.5px]">
           <div className="min-w-0">
             <div className="truncate text-ink-2">{r.label}</div>
-            <div className="h-[9px] overflow-hidden rounded bg-surface-2">
+            <div aria-hidden className="h-[9px] overflow-hidden rounded bg-surface-2">
               {w > 0 && <div className="h-full rounded" style={{ width: `${r2(Math.max(1.5, (100 * r.value) / max))}%`, background: DRIVER_COLOR[r.color] }} />}
             </div>
           </div>
@@ -232,7 +282,7 @@ export function RankedBars({ rows, className }: { rows: { label: string; value: 
 export function BulletBar({ value, baseline, color = "var(--accent)" }: { value: number; baseline: number | null; color?: string }) {
   const max = Math.max(value, baseline ?? 0, 0.01) * 1.15;
   return (
-    <div className="relative h-[18px] rounded bg-surface-2">
+    <div role="img" aria-label={`${cadUnit(value)} per unit${baseline !== null ? `; today, manually, ${cadUnit(baseline)}` : ""}`} className="relative h-[18px] rounded bg-surface-2">
       <div className="absolute inset-y-0 left-0 rounded" style={{ width: `${r2(Math.max(1.5, (100 * value) / max))}%`, background: color }} />
       {baseline !== null && <div className="absolute inset-y-[-3px] w-0.5 bg-ink" style={{ left: `${r2(Math.min(99, (100 * baseline) / max))}%` }} title={`Today, manually: ${cadUnit(baseline)}`} />}
     </div>
@@ -256,7 +306,7 @@ export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string
   );
   return (
     <ViewToggle table={table}>
-      <div className="flex flex-col gap-2.5" role="img" aria-label={caption ?? "Low, expected and high for each figure"}>
+      <div className="flex flex-col gap-2.5" role="group" aria-label={caption ?? "Low, expected and high for each figure"}>
         {rows.map((r) => {
           // Scale to the span itself, with a little padding; zero only shows when the range reaches it.
           const pad = ((r.high - r.low) || Math.abs(r.expected) || 1) * 0.06;
@@ -266,14 +316,14 @@ export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string
           const pos = (v: number) => Math.min(98, Math.max(2, x(v)));
           return (
             <div key={r.id} className="grid grid-cols-[minmax(100px,150px)_1fr] items-center gap-2 text-[12px]">
-              <span className="truncate text-ink-2" title={r.label}>{r.label}{r.wide && <span className="ml-1 rounded bg-warn-soft px-1 text-[10.5px] font-medium text-warn">Wide</span>}</span>
+              <span className="truncate text-ink-2" title={r.label}>{r.label}{r.wide && <span className="ml-1 rounded bg-warn-soft px-1 text-xs font-medium text-warn">Wide</span>}</span>
               <div>
-                <div className="relative h-5" title={`${r.label}: ${show(r, r.low)} to ${show(r, r.high)}, expected ${show(r, r.expected)}`}>
+                <div role="img" aria-label={`${r.label}: ${show(r, r.low)} to ${show(r, r.high)}, expected ${show(r, r.expected)}`} className="relative h-5" title={`${r.label}: ${show(r, r.low)} to ${show(r, r.high)}, expected ${show(r, r.expected)}`}>
                   {x(0) > 0 && x(0) < 100 && <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${x(0)}%` }} />}
                   <div className="absolute top-1.5 bottom-1.5 rounded bg-surface-2" style={{ left: `${x(r.low)}%`, width: `${r2(Math.max(0.8, x(r.high) - x(r.low)))}%`, background: "var(--accent)", opacity: 0.35 }} />
                   <div className="absolute inset-y-0.5 w-0.5 rounded bg-ink" style={{ left: `${pos(r.expected)}%` }} />
                 </div>
-                <div className="num flex justify-between text-[11px] text-muted"><span>{show(r, r.low)}</span><span className="font-semibold text-ink">{show(r, r.expected)}</span><span>{show(r, r.high)}</span></div>
+                <div className="num flex justify-between text-xs text-muted"><span>{show(r, r.low)}</span><span className="font-semibold text-ink">{show(r, r.expected)}</span><span>{show(r, r.high)}</span></div>
               </div>
             </div>
           );
@@ -285,7 +335,7 @@ export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string
 
 export function Legend({ items }: { items: { label: string; color: string; line?: boolean }[] }) {
   return (
-    <div className="flex flex-wrap gap-2.5 text-[11.5px] text-ink-2">
+    <div className="flex flex-wrap gap-2.5 text-xs text-ink-2">
       {items.map((i) => (
         <span key={i.label} className="inline-flex items-center gap-1.5">
           <i className={i.line ? "inline-block h-0.5 w-3.5" : "inline-block h-2.5 w-2.5 rounded-sm"} style={{ background: i.color }} />

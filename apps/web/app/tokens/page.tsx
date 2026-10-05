@@ -32,7 +32,7 @@ function useAddToProject() {
 }
 
 function AddButton({ onClick }: { onClick: () => void }) {
-  return <button type="button" className="whitespace-nowrap rounded border border-line px-1.5 text-xs hover:bg-surface-2" onClick={onClick}>Add</button>;
+  return <button type="button" className="whitespace-nowrap min-h-6 rounded border border-line px-2 text-xs hover:bg-surface-2" onClick={onClick}>Add</button>;
 }
 
 /** Inputs on the left (with the mode switch), results on the right. */
@@ -45,12 +45,12 @@ function Split({ top, inputs, children }: { top: ReactNode; inputs: ReactNode; c
         <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto px-3.5 pb-3.5">
           {top}
           <div className="flex flex-col gap-2.5">{inputs}</div>
-          <p className="text-[11.5px] text-muted"><b className="text-ink-2">Add</b> on any result puts it in <b className="text-ink-2">{projectName}</b> as a monthly workload; adjust the volume on the Run page.</p>
-          <p className="mt-auto text-[11.5px] text-muted">Every route uses Azure (Foundry, Speech, Document Intelligence, Content Understanding) or Snowflake Cortex, priced in CAD from the local catalogue.</p>
+          <p className="text-xs text-muted"><b className="text-ink-2">Add</b> on any result puts it in <b className="text-ink-2">{projectName}</b> as a monthly workload; adjust the volume on the Run page.</p>
+          <p className="mt-auto text-xs text-muted">Every route uses Azure (Foundry, Speech, Document Intelligence, Content Understanding) or Snowflake Cortex, priced in CAD from the local catalogue.</p>
         </div>
       </Card>
       <Card>
-        <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto p-3.5">{children}</div>
+        <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto scroll-hint p-3.5">{children}</div>
       </Card>
     </div>
   );
@@ -72,7 +72,7 @@ function TextCount({ top }: { top: ReactNode }) {
   return (
     <Split top={top} inputs={<textarea aria-label="Text to count" className="min-h-[220px] w-full rounded-md border border-line bg-surface-2 p-2 text-[13px]" value={text} onChange={(e) => setText(e.target.value)} />}>
       <h2 className="text-base font-bold">Count tokens</h2>
-      <div className="text-[11.5px] text-muted">{fmt(text.length)} characters · o200k count is {count ? "exact (in-browser tokenizer)" : "estimated while the tokenizer loads"}; other families apply a multiplier.</div>
+      <div className="text-xs text-muted">{fmt(text.length)} characters · o200k count is {count ? "exact (in-browser tokenizer)" : "estimated while the tokenizer loads"}; other families apply a multiplier.</div>
       <table className="data">
         <thead><tr><th>Model</th><th>Tokenizer</th><th className="n">Tokens</th><th className="n">CAD per 1,000 calls (input)</th><th /></tr></thead>
         <tbody>
@@ -122,7 +122,7 @@ function Docs({ top }: { top: ReactNode }) {
         <thead><tr><th>Route</th><th>Via</th><th className="n">CAD</th><th className="w-[28%]" /><th /></tr></thead>
         <tbody>{routes.map((r) => <tr key={r.route}><td>{r.route} {r.tag === "unverified" && <Pill>unverified</Pill>}{r.tag === "plus warehouse time" && <Pill>+ warehouse</Pill>}</td><td>{r.via}</td><td className="n">{cad(r.cost, 2)}</td><td><div className="pt-1.5"><Bar ratio={r.cost / max} /></div></td><td><AddButton onClick={() => { const { id: _id, ...w } = r.make(); add(w as NewWorkload); }} /></td></tr>)}</tbody>
       </table>
-      <p className="text-[11.5px] text-muted">Cheapest here: <b className="text-ink-2">{cheapest.route}</b>. Sending a PDF straight to a model bills extracted text plus an image of every page, and Claude 4.7+ counts about 35% more tokens for the same text. Extracting first costs more per page on small models but keeps the text reusable for search and for repeated questions.</p>
+      <p className="text-xs text-muted">Cheapest here: <b className="text-ink-2">{cheapest.route}</b>. Sending a PDF straight to a model bills extracted text plus an image of every page, and Claude 4.7+ counts about 35% more tokens for the same text. Extracting first costs more per page on small models but keeps the text reusable for search and for repeated questions.</p>
     </Split>
   );
 }
@@ -180,7 +180,7 @@ function AgentRun({ top }: { top: ReactNode }) {
             <span className="num text-right">{fmt(t.promptTokens)} tok</span>
           </div>
         ))}
-        <div className="flex gap-3 text-[11.5px] text-ink-2"><span><i className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-[var(--s1)]" />cached</span><span><i className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-[var(--s2)]" />new input</span></div>
+        <div className="flex gap-3 text-xs text-ink-2"><span><i className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-[var(--s1)]" />cached</span><span><i className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-[var(--s2)]" />new input</span></div>
       </div>
     </Split>
   );
