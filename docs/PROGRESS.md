@@ -21,6 +21,6 @@ Updated in every PR and posted after every merge. Plan: [docs/plan](plan/README.
 | 15 | Flexibility | Use-case wizard | Done | #19 | P9 |
 | 16 | Coverage | Infra, tools, images, PTU in ledger | Done (#21) | #21 | P10 |
 | 17 | Exec | Report v2, comparison | Done (#20) | #20 | P11 |
-| 18 | Quality | Responsive, accessibility | Pending | | P12 |
+| 18 | Quality | Responsive, accessibility | In review | #22 | P12 |
 
 Status values: Pending, In progress, In review, Done, Deferred.
