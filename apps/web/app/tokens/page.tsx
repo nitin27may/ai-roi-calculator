@@ -80,7 +80,7 @@ function TextCount({ top }: { top: ReactNode }) {
             const m = book.chatModel(id), t = Math.round(base * book.tokenizerMultiplier(id));
             return <tr key={id}><td>{m.label}</td><td>{m.tokenizer} ×{book.tokenizerMultiplier(id).toFixed(2)}</td><td className="n">{fmt(t)}</td><td className="n">{cad(book.chatCost(id, { input: t * 1000, output: 0 }, catalog.meta.asOf), 2)}</td><td><AddButton onClick={() => add(m.platform === "snowflake"
               ? { kind: "snowflakeComplete", label: `AI_COMPLETE on ${m.label}`, modelId: id, rowsPerMonth: 10000, inputTokens: base, outputTokens: 300, warehouse: { size: "m", hoursPerMonth: 10 } }
-              : { kind: "llm", label: `LLM calls on ${m.label}`, callsPerMonth: 10000, modelId: id, inputTokens: base, cachedInputTokens: 0, outputTokens: 300, batchShare: 0 })} /></td></tr>;
+              : { kind: "llm", label: `LLM calls on ${m.label}`, callsPerMonth: 10000, modelId: id, inputTokens: base, cachedInputTokens: 0, outputTokens: 300, batchShare: 0, reasoning: "none" })} /></td></tr>;
           })}
         </tbody>
       </table>
@@ -98,9 +98,9 @@ function Docs({ top }: { top: ReactNode }) {
   const routes = useMemo(() => {
     const harnesses = new Map();
     const run = (w: Workload) => workloadLines(w, { book, date, harnesses, percentile: "p50" }).reduce((s, l) => s + l.cost, 0);
-    const enrich = (modelId: string) => ({ modelId, pagesPerDoc: pages, outputTokensPerDoc: out });
+    const enrich = (modelId: string) => ({ modelId, pagesPerDoc: pages, outputTokensPerDoc: out, reasoning: "none" as const });
     const extract = (extractorId: string, modelId: string): Workload => ({ kind: "documents", id: "q", label: "q", pagesPerMonth: pages, pageType, route: { type: "extract", extractorId, addOnIds: [] }, enrich: enrich(modelId) });
-    const direct = (modelId: string): Workload => ({ kind: "documents", id: "q", label: "q", pagesPerMonth: pages, pageType, route: { type: "direct", modelId } });
+    const direct = (modelId: string): Workload => ({ kind: "documents", id: "q", label: "q", pagesPerMonth: pages, pageType, route: { type: "direct", modelId, outputTokens: 50 } });
     const rows = [
       ...["di-read", "di-layout", "cu-doc-basic", "cu-doc-standard"].map((x) => ({ route: `${book.unit(x).label} → ${book.chatModel(summaryModel).label}`, via: "Azure", cost: run(extract(x, summaryModel)), tag: book.unit(x).confidence, make: () => ({ ...extract(x, summaryModel), label: `Documents: ${book.unit(x).label}` }) })),
       ...["gpt-5.4", "gpt-5.4-mini", "claude-sonnet-5-5", "claude-opus-5-5"].map((m) => ({ route: `PDF straight to ${book.chatModel(m).label}`, via: "Azure", cost: run(direct(m)) + book.chatCost(m, { input: 0, output: out * book.tokenizerMultiplier(m) }, date), tag: "", make: () => ({ ...direct(m), label: `Documents: straight to ${book.chatModel(m).label}` }) })),
