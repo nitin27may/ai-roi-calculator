@@ -8,6 +8,7 @@ import { CumulativeLine, Legend } from "@/components/charts";
 import { catalog, deploymentOptions, modelOptions, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { AddMenu } from "@/components/add-menu";
+import { ConfidenceField, FinanceInputs, ValueItems } from "@/components/roi-extras";
 import { cad, cn, fmt } from "@/lib/format";
 
 const BASES = [
@@ -67,6 +68,7 @@ function Assumptions() {
           <Field label="Rate escalation" help="escalation"><NumberInput value={project.roi.rateEscalationPctPerYear} max={50} suffix="%" onChange={(v) => edit((d) => { d.roi.rateEscalationPctPerYear = v; })} /></Field>
           <Field label="Discount rate" help="discount"><NumberInput value={project.roi.discountRatePct} max={50} suffix="%" onChange={(v) => edit((d) => { d.roi.discountRatePct = v; })} /></Field>
         </div>
+        <FinanceInputs />
         <div className="flex flex-col gap-2.5">
           {slider("Reduce development cost", project.roi.devCutPct, (n) => edit((d) => { d.roi.devCutPct = n; }), "dev-cut")}
           {slider("Reduce maintenance cost", project.roi.maintCutPct, (n) => edit((d) => { d.roi.maintCutPct = n; }), "maint-cut")}
@@ -101,6 +103,12 @@ function Assumptions() {
                   )}
                   <Field label={`From month (go-live ${B + 1})`} help="capLiveFrom"><NumberInput value={a.startMonth ?? B + 1} min={1} max={H} onChange={(v) => upd((x) => { x.startMonth = Math.round(v); })} /></Field>
                 </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <ConfidenceField value={a.confidencePct} onChange={(v) => upd((x) => { if (v === undefined) delete x.confidencePct; else x.confidencePct = v; })} />
+                  <Field label="Count it under capability" help="valueCapability">
+                    <Select value={a.capabilityId ?? ""} options={[{ value: "", label: "The project as a whole" }, ...project.benefits.capabilities.map((c) => ({ value: c.id, label: c.label }))]} onChange={(v) => upd((x) => { if (v) x.capabilityId = v; else delete x.capabilityId; })} />
+                  </Field>
+                </div>
                 {headcount && <div className="text-[11.5px] text-muted"><span className="num font-semibold text-ink">{cad(avoidedMonthly(project, a))}/month</span>, rising with rate escalation. Count it only if the role is actually not hired, or is redeployed to funded work.</div>}
                 {overlap && <div role="note" className="rounded bg-warn-soft px-2 py-1.5 text-[11.5px] text-warn">A time-saving capability is valued at the same role. If those saved hours are what lets you avoid this headcount, you are counting the same benefit twice.</div>}
               </div>
@@ -108,6 +116,8 @@ function Assumptions() {
           })}
           <button type="button" className={addBtn} onClick={() => edit((d) => { d.benefits.avoidedCosts.push({ id: `av-${Date.now()}`, label: "Licence or service retired", monthly: 1000 }); })}><Plus size={14} />Add avoided cost</button>
         </section>
+
+        <ValueItems />
 
         <MonthItems title="One-off benefits" hint="e.g. a decommissioned system's resale or a grant" items={project.benefits.oneOff.map((o) => ({ id: o.id, label: o.label, amount: o.amount, from: o.month }))}
           onAdd={() => edit((d) => { d.benefits.oneOff.push({ id: `one-${Date.now()}`, label: "One-off benefit", amount: 10000, month: B + 6 }); })}
@@ -346,6 +356,7 @@ function CapabilityCard({ c, i }: { c: Capability; i: number }) {
         </details>
       )}
       {driver === "hours" && <Field label={`Live from month (go-live ${B + 1})`} help="capLiveFrom"><NumberInput value={c.liveFromMonth ?? B + 1} min={B + 1} max={H} onChange={(v) => upd((x) => { x.liveFromMonth = Math.round(v) > B + 1 ? Math.round(v) : undefined; })} /></Field>}
+      <div className="max-w-[200px]"><ConfidenceField value={c.confidencePct} onChange={(v) => upd((x) => { if (v === undefined) delete x.confidencePct; else x.confidencePct = v; })} /></div>
       {project.features.length > 0 && (
         <Field label="Feature" help="featureId">
           <Select value={c.featureId ?? ""} options={[{ value: "", label: "Shared by the project" }, ...project.features.map((f) => ({ value: f.id, label: f.label }))]}

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import type { AlertGroup } from "@studio/engine";
 import { Card, CardHead, Pill } from "@/components/ui";
-import { BulletBar, CumulativeLine, RankedBars, ViewToggle, Waterfall } from "@/components/charts";
+import { BulletBar, CumulativeLine, RangeBar, RankedBars, ViewToggle, Waterfall } from "@/components/charts";
 import { Story } from "@/components/story";
 import { useSummary } from "@/lib/compute";
 import { cad, cadUnit, fmt } from "@/lib/format";
@@ -33,6 +33,25 @@ export default function Summary() {
       </div>
 
       <div className="grid shrink-0 gap-3.5 lg:grid-cols-2" data-tour="summary-charts">
+        <Card>
+          <CardHead title="How sure are we?" sub="Cautious, expected and optimistic cases side by side. Cautious means heavier usage and the conservative benefit column; optimistic means lighter usage and the optimistic column." />
+          <div className="px-3.5 pb-3.5">
+            <RangeBar caption="Low, expected and high for cost, build, run, benefit and NPV" rows={[
+              { id: "cost", label: "Total cost", ...s.range.totalCost },
+              { id: "build", label: "Build", ...s.range.build },
+              { id: "run", label: "Annual run", ...s.range.annualRun },
+              { id: "benefit", label: "Total benefit", ...s.range.totalBenefit },
+              { id: "npv", label: "NPV", ...s.range.npv },
+            ]} />
+          </div>
+        </Card>
+        <Card>
+          <CardHead title="Finance measures" sub="Return measures a CFO asks for. Set the hurdle rate and terminal value on the ROI page." />
+          <FinanceMeasures s={s} />
+        </Card>
+      </div>
+
+      <div className="grid shrink-0 gap-3.5 lg:grid-cols-2">
         <Card>
           <CardHead title="Build, run and benefit" sub="How the plan nets out, build to benefit." />
           <div className="px-3.5 pb-3.5">
@@ -107,14 +126,18 @@ function VerdictChip({ verdict }: { verdict: { text: string; npvPositive: boolea
   );
 }
 
+const span = (r: { low: number; high: number }) => `${cad(r.low)} to ${cad(r.high)}`;
+const paybackSpan = (r: { best: number | null; worst: number | null }, horizon: number) =>
+  r.best === null ? `Not within ${horizon} months` : `Month ${r.best} to ${r.worst === null ? `after ${horizon}` : r.worst}`;
+
 function HeadlineTiles({ s }: { s: ReturnType<typeof useSummary>["summary"] }) {
-  const tiles: { label: string; value: string; sub?: string }[] = [
-    { label: "Total cost over plan", value: cad(s.totalCost), sub: `${s.horizonMonths} months` },
-    { label: "Build", value: cad(s.build), sub: `${fmt(s.devLabShare * 100)}% AI Dev Lab` },
-    { label: "Annual run (steady state)", value: cad(s.steadyStateAnnualRun), sub: "run + platform + maintenance" },
+  const tiles: { label: string; value: string; sub?: string; range?: string }[] = [
+    { label: "Total cost over plan", value: cad(s.totalCost), sub: `${s.horizonMonths} months`, range: span(s.range.totalCost) },
+    { label: "Build", value: cad(s.build), sub: `${fmt(s.devLabShare * 100)}% AI Dev Lab`, range: span(s.range.build) },
+    { label: "Annual run (steady state)", value: cad(s.steadyStateAnnualRun), sub: "run + platform + maintenance", range: span(s.range.annualRun) },
     { label: "Benefit per year", value: cad(s.benefitPerYear), sub: "at full adoption" },
-    { label: "NPV", value: cad(s.npv), sub: `at ${s.discountRatePct}%` },
-    { label: "Payback", value: s.paybackMonth ? `Month ${s.paybackMonth}` : `> ${s.horizonMonths} months`, sub: `ROI ${fmt(s.roi * 100)}%` },
+    { label: "NPV", value: cad(s.npv), sub: `at ${s.discountRatePct}%`, range: span(s.range.npv) },
+    { label: "Payback", value: s.paybackMonth ? `Month ${s.paybackMonth}` : `> ${s.horizonMonths} months`, sub: `ROI ${fmt(s.roi * 100)}%`, range: paybackSpan(s.range.payback, s.horizonMonths) },
   ];
   return (
     <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 xl:grid-cols-6">
@@ -123,9 +146,31 @@ function HeadlineTiles({ s }: { s: ReturnType<typeof useSummary>["summary"] }) {
           <div className="truncate text-[11.5px] text-muted">{t.label}</div>
           <div className="num truncate font-display text-xl font-bold leading-tight">{t.value}</div>
           {t.sub && <div className="truncate text-[11px] text-ink-2">{t.sub}</div>}
+          {t.range && <div className="num truncate text-[11px] text-muted" title={`Range across the cautious, expected and optimistic cases: ${t.range}`}>{t.range}</div>}
         </div>
       ))}
     </div>
+  );
+}
+
+function FinanceMeasures({ s }: { s: ReturnType<typeof useSummary>["summary"] }) {
+  const rows: [string, string, string?][] = [
+    ["Internal rate of return (IRR)", s.irrPct === null ? "Not defined" : `${fmt(s.irrPct)}% a year`, s.range.irrPct ? `${fmt(s.range.irrPct.low)}% to ${fmt(s.range.irrPct.high)}%` : undefined],
+    ["Hurdle rate", s.hurdleRatePct === null ? "Not set" : `${fmt(s.hurdleRatePct)}% a year`, s.clearsHurdle === null ? undefined : s.clearsHurdle ? "IRR clears the hurdle" : "IRR is below the hurdle"],
+    ["Payback", s.paybackMonth ? `Month ${s.paybackMonth}` : `Not within ${s.horizonMonths} months`],
+    ["Payback after discounting", s.discountedPaybackMonth ? `Month ${s.discountedPaybackMonth}` : `Not within ${s.horizonMonths} months`, s.discountRatePct === 0 ? "Same as payback at a 0% rate" : undefined],
+    ["NPV", cad(s.npv), `at ${s.discountRatePct}%`],
+    ...(s.terminalValue > 0 ? [["Terminal value (in NPV and IRR)", cad(s.terminalValue)] as [string, string]] : []),
+  ];
+  return (
+    <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 px-3.5 pb-3.5 text-[12.5px]">
+      {rows.map(([k, v, note]) => (
+        <div key={k} className="contents">
+          <dt className="text-ink-2">{k}{note && <span className="block text-[11px] text-muted">{note}</span>}</dt>
+          <dd className="num self-center text-right font-semibold text-ink">{v}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 

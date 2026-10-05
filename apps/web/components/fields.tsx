@@ -61,7 +61,7 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
           case "number":
             return <Field key={s.key} label={s.label}><NumberInput value={Number(v)} min={s.min ?? 0} max={s.max} step={s.step} suffix={s.suffix} onChange={(n) => set(s.key, n)} /></Field>;
           case "percent":
-            return <Field key={s.key} label={s.label}><NumberInput value={Math.round(Number(v) * 1000) / 10} min={0} max={100} suffix="%" onChange={(n) => set(s.key, n / 100)} /></Field>;
+            return <Field key={s.key} label={s.label}><NumberInput value={Math.round(Number(v ?? 0) * 1000) / 10} min={0} max={100} suffix="%" onChange={(n) => set(s.key, n / 100)} /></Field>;
           case "select":
             return <Field key={s.key} label={s.label}><Select value={String(v)} options={s.options} onChange={(x) => set(s.key, s.numeric ? Number(x) : x)} /></Field>;
           case "toggle":
@@ -243,6 +243,8 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
     { key: "topK", label: "Chunks retrieved", type: "number" },
     { key: "chunkTokens", label: "Tokens per chunk", type: "number" },
     { key: "cacheHit", label: "Cache hit", type: "percent" },
+    { key: "resendShare", label: "Sent again after errors", type: "percent" },
+    { key: "promptShields", label: "Check prompts for attacks", type: "toggle" },
     REASONING_SPEC, LANGUAGE_SPEC,
   ],
   agent: [
@@ -274,6 +276,8 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
     { key: "cachedInputTokens", label: "Cached input tokens", type: "number" },
     { key: "outputTokens", label: "Output tokens", type: "number" },
     { key: "batchShare", label: "Sent through Batch", type: "percent" },
+    { key: "resendShare", label: "Sent again after errors", type: "percent" },
+    { key: "promptShields", label: "Check prompts for attacks", type: "toggle" },
     REASONING_SPEC, LANGUAGE_SPEC,
   ],
 };

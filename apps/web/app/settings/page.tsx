@@ -32,6 +32,13 @@ export default function Settings() {
         </div>
       </Card>
       <Card>
+        <CardHead title="Estimates" sub="How cautious the one-off build figures are" />
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3 px-3.5 pb-3.5">
+          <Field label="AI Dev Lab run cost" help="devLabPercentile"><Select value={project.settings.devLabPercentile ?? "p50"} options={[{ value: "p50", label: "Typical run (P50)" }, { value: "p90", label: "Heavy run (P90)" }]} onChange={(v) => edit((d) => { d.settings.devLabPercentile = v as "p50" | "p90"; })} /></Field>
+        </div>
+        <p className="px-3.5 pb-3.5 text-[11.5px] text-muted">The Dev Lab prices each agent run at this percentile. The cautious case on the Summary page always uses P90, whatever you pick here.</p>
+      </Card>
+      <Card>
         <CardHead title="Azure" sub="Foundry deployment type for all models" />
         <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3 px-3.5 pb-3.5">
           <Field label="Default deployment" help="settingsDeployment"><Select value={project.settings.azureDeployment} options={DEPLOYMENTS.map((d) => ({ value: d, label: DEPLOYMENT_LABEL[d] }))} onChange={(v) => edit((d) => { d.settings.azureDeployment = v as AzureDeployment; })} /></Field>

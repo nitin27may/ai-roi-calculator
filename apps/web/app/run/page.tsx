@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, availableIn, type AzureDeployment, cascadeCall, agentAddedFor, featureBreakdown, harnessUsage, newFeature, newHarness, newWorkload, removeFeature, removeWorkload, simulateHarness, sizeSearch, steadyState, voiceCall, type Workload } from "@studio/engine";
+import { DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, availableIn, type AzureDeployment, cascadeCall, agentAddedFor, featureBreakdown, harnessUsage, newFeature, newHarness, newWorkload, removeFeature, removeWorkload, simulateHarness, sizeSearch, steadyState, voiceCall, workloadRange, type Workload } from "@studio/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Pill, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
 import { Plus } from "lucide-react";
+import { RangeBar } from "@/components/charts";
 import { Explain } from "@/components/explain";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
 import { Fields, HARNESS_SPECS, WAREHOUSE_SPECS, WORKLOAD_SPECS } from "@/components/fields";
@@ -46,7 +47,7 @@ export default function Run() {
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Card>
         <CardHead title="Production, per month" sub="At full adoption">
-          <Seg label="Agent estimate" value={percentile} onChange={setPercentile} options={[{ value: "p50", label: "P50" }, { value: "p90", label: "P90" }, { value: "worst", label: "Worst" }]} />
+          <Seg label="Usage estimate" value={percentile} onChange={setPercentile} options={[{ value: "p10", label: "P10" }, { value: "p50", label: "P50" }, { value: "p90", label: "P90" }, { value: "worst", label: "Worst" }]} />
         </CardHead>
         <div data-tour="run-workloads" role="listbox" aria-label="Production workloads" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
           {sections.filter((sec) => !hasFeatures || sec.id !== "" || sec.ws.length > 0).map((sec) => (
@@ -234,7 +235,8 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
       <ItemHeader label={w.label} sub={summary(w)} removeLabel="Remove workload"
         onRename={(v) => edit((d) => { const x = d.workloads.find((y) => y.id === w.id); if (x) x.label = v; })}
         onRemove={() => { edit((d) => removeWorkload(d, w.id)); onRemoved(); }} />
-      <div className="font-display text-[26px] font-bold">{cad(total)}<span className="ml-1.5 font-sans text-xs font-normal text-muted">per month at full adoption{w.kind === "agent" ? ` · ${percentile.toUpperCase()}` : ""}</span></div>
+      <div className="font-display text-[26px] font-bold">{cad(total)}<span className="ml-1.5 font-sans text-xs font-normal text-muted">per month at full adoption{(w.kind === "agent" || w.kind === "chat" || w.kind === "llm") ? ` · ${percentile.toUpperCase()}` : ""}</span></div>
+      <WorkloadRange w={w} />
       <div className="max-w-xs"><FeatureSelect value={w.featureId} onChange={(v) => edit((d) => { const x = d.workloads.find((y) => y.id === w.id); if (x) { if (v) x.featureId = v; else delete x.featureId; } })} /></div>
       {WORKLOAD_SPECS[w.kind] && <Fields specs={WORKLOAD_SPECS[w.kind]!} value={w as unknown as Record<string, unknown>} locate={locate} />}
       {w.kind === "documents" && <DocumentRoute id={w.id} />}
@@ -253,6 +255,21 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
       <WorkloadTiming w={w} />
       <Explain title="How this is calculated" lines={lines} months={1} />
     </>
+  );
+}
+
+/** Low, expected and high monthly cost of one workload, when its token counts or steps have a spread. */
+function WorkloadRange({ w }: { w: Workload }) {
+  const { project } = useLedger();
+  const percentile = useStudio((s) => s.percentile);
+  const r = useMemo(() => workloadRange(project, catalog, w, percentile), [project, w, percentile]);
+  if (!r.spread) return <p className="text-[11.5px] text-muted">This workload is priced per page, hour or request, so its cost has no spread.</p>;
+  return (
+    <div className="max-w-md">
+      <h3 className="mb-1 text-sm font-semibold">Range per month</h3>
+      <RangeBar caption={`Low, expected and high monthly cost of ${w.label}`} rows={[{ id: w.id, label: "Monthly cost", low: r.low, expected: r.expected, high: r.high }]} />
+      <p className="mt-1 text-[11.5px] text-muted">{w.kind === "agent" ? "P10 and P90 come from the agent harness: fewer or more steps and tool results." : "P10 and P90 scale the token counts by 0.7 and 1.4, a documented spread rather than a measurement."}</p>
+    </div>
   );
 }
 
