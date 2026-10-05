@@ -33,11 +33,11 @@ export default function Projects() {
           </div>
         )}
         <div className="grid min-h-0 flex-1 auto-rows-min grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 overflow-auto px-3.5 pb-3.5">
-          {library.map((e) => {
+          {library.map((e, i) => {
             const s = summaries.get(e.id)!;
             const active = e.id === activeId;
             return (
-              <div key={e.id} className={cn("flex flex-col gap-2 rounded-lg border p-3", active ? "border-accent bg-accent-soft" : "border-line")}>
+              <div key={e.id} data-tour={i === 0 ? "projects-list" : undefined} className={cn("flex flex-col gap-2 rounded-lg border p-3", active ? "border-accent bg-accent-soft" : "border-line")}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="truncate font-display text-[15px] font-bold">{e.project.name}</div>

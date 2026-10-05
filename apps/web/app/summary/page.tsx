@@ -28,11 +28,11 @@ export default function Summary() {
         </div>
       </Card>
 
-      <div className="shrink-0">
+      <div className="shrink-0" data-tour="summary-tiles">
         <HeadlineTiles s={s} />
       </div>
 
-      <div className="grid shrink-0 gap-3.5 lg:grid-cols-2">
+      <div className="grid shrink-0 gap-3.5 lg:grid-cols-2" data-tour="summary-charts">
         <Card>
           <CardHead title="Build, run and benefit" sub="How the plan nets out, build to benefit." />
           <div className="px-3.5 pb-3.5">

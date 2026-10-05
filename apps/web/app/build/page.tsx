@@ -32,7 +32,7 @@ export default function Build() {
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Card>
         <CardHead title={`Build, months 1–${B}`} sub="Labour, AI Dev Lab and dev environment"><span className="num text-sm">{cad(ledger.totals.build)}</span></CardHead>
-        <div role="listbox" aria-label="Build cost items" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
+        <div data-tour="build-list" role="listbox" aria-label="Build cost items" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
           <ListRow selected={sel === "all"} onClick={() => setSel("all")} title="AI Dev Lab, all activities" sub="tokens and AI services while building" aside={<Spark values={allDev} color="var(--s2)" />} value={cad(devTotal)} />
           <GroupHead>Labour</GroupHead>
           <ListRow selected={sel === "team"} onClick={() => setSel("team")} title="Team & rate card" sub={project.build.includeLabour ? project.build.team.map((t) => t.name ?? `${t.people} ${project.rateCard.find((r) => r.id === t.roleId)?.label ?? t.roleId}`).join(" · ") : "Labour not costed: the team only drives Dev Lab volumes"} value={cad(labTotal)} />

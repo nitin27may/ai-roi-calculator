@@ -12,7 +12,7 @@ export function Explain({ title, lines, months }: { title: string; lines: Line[]
     byId.set(l.id, e);
   }
   return (
-    <div>
+    <div data-tour="how-calculated">
       <h3 className="mb-1.5 text-sm font-semibold">{title}</h3>
       <div className="flex flex-col gap-1.5">
         {[...byId.values()].map((e) => (
