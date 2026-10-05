@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { projectIssues, recommendModel, recipeById } from "@studio/engine";
+import { defaultConfidence, projectIssues, recommendModel, recipeById } from "@studio/engine";
 import { loadCatalog } from "@studio/catalog";
 import {
-  STEPS, blocker, buildFromState, initialState, missingFor, recipeDeployment, setBuild, setDeployment, setEdit, setModel, setValue, toggleDevKind, togglePick,
+  STEPS, blocker, buildFromState, initialState, missingFor, recipeDeployment, setBenefit, setBuild, setDeployment, setEdit, setModel, setValue, toggleDevKind, togglePick,
 } from "../lib/wizard";
 
 const catalog = loadCatalog();
@@ -82,6 +82,29 @@ describe("wizard state", () => {
     expect(edited.project.workloads.find((w) => w.id === a.target!.id)).toMatchObject({ callsPerMonth: 777 });
     s = setValue(s, "batch", "monthly", 5);
     expect(s.edits).toEqual({});
+  });
+
+  it("maps wizard benefits to the P8 types: revenue as a value item, time saved as a capability, each with a confidence", () => {
+    let s = withModels(togglePick(togglePick(start(), "batch"), "email"));
+    s = setBenefit(s, "batch", { type: "revenue", monthlyRevenue: 12000, marginPct: 35 });
+    const b = buildFromState(catalog, s)!;
+    expect(projectIssues(b.project)).toEqual([]);
+    const rev = b.project.benefits.value.find((v) => v.featureId === "batch")!;
+    expect(rev).toMatchObject({ kind: "revenue", monthlyRevenue: 12000, marginPct: 35, confidencePct: defaultConfidence({ type: "revenue" }) });
+    expect(b.project.benefits.capabilities.some((c) => c.id === rev.capabilityId && c.featureId === "batch")).toBe(true);
+    const email = b.project.benefits.capabilities.find((c) => c.featureId === "email")!;
+    expect(email.confidencePct).toBe(70);
+    expect(b.project.benefits.avoidedCosts).toHaveLength(0);
+    const edit = b.assumptions.find((a) => a.id === "batch-benefit-confidence")!;
+    const edited = buildFromState(catalog, setEdit(s, edit.id, 20))!;
+    expect(edited.project.benefits.value.find((v) => v.featureId === "batch")!.confidencePct).toBe(20);
+    expect(b.assumptions.every((a) => a.source.length > 0)).toBe(true);
+  });
+
+  it("nothing is preselected for a benefit: an untouched feature uses the recipe's time-saved default only", () => {
+    const s = withModels(togglePick(start(), "batch"));
+    expect(s.benefits).toEqual({});
+    expect(buildFromState(catalog, s)!.project.benefits.value).toHaveLength(0);
   });
 
   it("moves voice to the global deployment when the project deployment offers no real-time model", () => {
