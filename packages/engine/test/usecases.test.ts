@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { loadCatalog } from "@studio/catalog";
 import {
   MissingChoice, RECIPES, applyAssumption, applicableDevKinds, buildLedger, buildWizardProject, defaultDevKinds, missingModels, modelOptions,
-  projectIssues, recipeById, recommendModel, withDefaults, type AzureDeployment, type Quality, type WizardSelection,
+  defaultConfidence, projectIssues, recipeById, recommendModel, valueItemMonthly, withDefaults, type AzureDeployment, type Quality, type WizardSelection,
 } from "../src/index.js";
 
 const cat = loadCatalog();
@@ -95,14 +95,79 @@ describe("recipes", () => {
     expect((off.project.workloads[0] as { batchShare: number }).batchShare).toBe(0);
   });
 
-  it("benefits of every type land in the project and reviewed edits apply", () => {
-    for (const type of ["timeSaved", "costAvoided", "revenue", "quality", "risk"] as const) {
-      const sel = { ...picked("batch"), benefit: { type, basis: "perItem" as const, amountCad: 500, cadence: "monthly" as const } };
-      const res = buildWizardProject(cat, { ...base, selections: [sel] });
+  const BENEFITS = {
+    timeSaved: { type: "timeSaved", basis: "perItem", baselineMinutes: 5, savedPct: 50 },
+    costAvoided: { type: "costAvoided", amountCad: 500, cadence: "monthly" },
+    revenue: { type: "revenue", monthlyRevenue: 20000, marginPct: 30 },
+    quality: { type: "quality", errorRateBeforePct: 5, errorRateAfterPct: 2, costPerError: 40 },
+    risk: { type: "risk", eventsPerYear: 2, impactCad: 50000, reductionPct: 40 },
+  } as const;
+
+  it("each benefit type maps to its P8 structure, attributed to a capability, with a confidence", () => {
+    for (const [type, benefit] of Object.entries(BENEFITS)) {
+      const res = buildWizardProject(cat, { ...base, selections: [{ ...picked("batch"), benefit }] });
       const b = res.project.benefits;
-      expect(b.capabilities.length + b.avoidedCosts.length + b.oneOff.length).toBeGreaterThan(0);
-      expect(projectIssues(res.project)).toEqual([]);
+      expect(projectIssues(res.project), type).toEqual([]);
+      const cap = b.capabilities[0]!;
+      expect(cap.featureId, type).toBe("batch");
+      if (type === "timeSaved") {
+        expect(b.value).toHaveLength(0);
+        expect(cap.driver).toBe("perVolume");
+        expect(cap.confidencePct).toBe(70);
+        continue;
+      }
+      if (type === "costAvoided") {
+        expect(b.avoidedCosts[0]).toMatchObject({ monthly: 500, capabilityId: cap.id, confidencePct: 90 });
+        expect(b.value).toHaveLength(0);
+      } else {
+        expect(b.avoidedCosts).toHaveLength(0);
+        expect(b.value).toHaveLength(1);
+        expect(b.value[0]).toMatchObject({ kind: type, capabilityId: cap.id, featureId: "batch", confidencePct: { revenue: 50, quality: 60, risk: 50 }[type] });
+        expect(valueItemMonthly(res.project, b.value[0]!)).toBeGreaterThan(0);
+      }
+      expect(b.oneOff).toHaveLength(0);
+      const L = buildLedger(res.project, cat);
+      expect(L.months.reduce((t, m) => t + Object.values(m.benefitBy.attributed).reduce((x, y) => x + y, 0), 0), type).toBeGreaterThan(0);
     }
+  });
+
+  it("every recipe validates with every benefit type and the ledger stays finite", () => {
+    for (const r of RECIPES) for (const [type, benefit] of Object.entries(BENEFITS)) {
+      const res = buildWizardProject(cat, { ...base, selections: [{ ...picked(r.id), benefit }] });
+      expect(projectIssues(res.project), `${r.id} ${type}`).toEqual([]);
+      expect(Number.isFinite(buildLedger(res.project, cat).totals.runRate), `${r.id} ${type}`).toBe(true);
+    }
+  });
+
+  it("quality takes its volume from the feature's main workload", () => {
+    const res = buildWizardProject(cat, { ...base, selections: [{ ...picked("batch"), benefit: BENEFITS.quality }] });
+    expect(res.project.benefits.value[0]!.volumeFrom).toBe(res.project.workloads.find((w) => w.kind === "llm")!.id);
+  });
+
+  it("a confidence you set is used and applies through the review step; benchmarks start from their evidence grade", () => {
+    const res = buildWizardProject(cat, { ...base, selections: [{ ...picked("batch"), benefit: { ...BENEFITS.revenue, confidencePct: 80 } }] });
+    expect(res.project.benefits.value[0]!.confidencePct).toBe(80);
+    const a = res.assumptions.find((x) => x.id === "batch-benefit-confidence")!;
+    expect(a.target).toMatchObject({ collection: "value", field: ["confidencePct"] });
+    expect(applyAssumption(res.project, a, 35)).toBe(true);
+    expect(res.project.benefits.value[0]!.confidencePct).toBe(35);
+    const bm = cat.benchmarks.capabilities.find((c) => c.driver === "perUserWeek") ?? cat.benchmarks.capabilities[0]!;
+    const sel = { ...picked("rag"), benefit: { type: "timeSaved" as const, basis: "benchmark" as const, benchmarkId: bm.id, users: 50 } };
+    const r2 = buildWizardProject(cat, { ...base, selections: [sel] });
+    expect(r2.project.benefits.capabilities[0]!.confidencePct).toBe(defaultConfidence(sel.benefit, cat.benchmarks));
+    expect(r2.assumptions.find((x) => x.id === "rag-benefit-confidence")!.source).toContain(bm.sourceLabel);
+  });
+
+  it("an empty amount adds no benefit, and one-off cost avoided stays a one-off", () => {
+    for (const benefit of [{ type: "revenue" }, { type: "quality" }, { type: "risk" }, { type: "costAvoided", amountCad: 0 }] as const) {
+      const b = buildWizardProject(cat, { ...base, selections: [{ ...picked("batch"), benefit }] }).project.benefits;
+      expect(b.value.length + b.avoidedCosts.length + b.capabilities.length).toBe(0);
+    }
+    const once = buildWizardProject(cat, { ...base, selections: [{ ...picked("batch"), benefit: { type: "costAvoided", amountCad: 9000, cadence: "once" } }] }).project.benefits;
+    expect(once.oneOff[0]!.amount).toBe(9000);
+  });
+
+  it("reviewed edits apply", () => {
     const res = buildWizardProject(cat, { ...base, selections: [picked("batch")] });
     const a = res.assumptions.find((x) => x.target && x.label.includes("items a month"))!;
     expect(applyAssumption(res.project, a, 1234)).toBe(true);

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import {
-  DEPLOYMENT_LABEL, TIER_LABEL, applicableDevKinds, batchOfferedUnder, buildLedger, computeRoi, modelOptions, recipeById, recommendModel,
+  DEPLOYMENT_LABEL, TIER_LABEL, applicableDevKinds, batchOfferedUnder, buildLedger, computeRoi, defaultConfidence, modelOptions, recipeById, recommendModel,
   type Assumption, type AzureDeployment, type BenefitInput, type BenefitType, type ModelRole, type Question, type Quality, type Recipe,
 } from "@studio/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Select, Seg, TextInput } from "@/components/ui";
@@ -24,10 +24,10 @@ const BENEFIT_TYPES: { value: BenefitType; label: string }[] = [
 ];
 const BENEFIT_DETAIL: Record<BenefitType, string> = {
   timeSaved: "Hours people no longer spend. Scaled by adoption on the Value page.",
-  costAvoided: "A cost that goes away, such as a licence or contractor.",
-  revenue: "Extra income the feature brings in. Entered as a monthly or one-off amount.",
-  quality: "Rework or errors avoided, valued as money. Entered as an amount.",
-  risk: "Expected loss avoided, such as a fine or an outage. Entered as an amount.",
+  costAvoided: "A cost that goes away, such as a licence or contractor. Counted in full from go-live, not scaled by adoption.",
+  revenue: "Extra sales the feature brings in. Only the margin you keep counts, and it follows the adoption ramp.",
+  quality: "Errors avoided: items checked, times the drop in error rate, times what one error costs.",
+  risk: "Expected loss avoided: events a year, times the cost of one, times the share the feature prevents.",
   none: "Count the cost only; add benefits later on the Value page.",
 };
 
@@ -230,7 +230,7 @@ function RoleRow({ recipe, role, deployment, state, update }: { recipe: Recipe; 
           : <p role="note" className="text-[12.5px] text-warn">No model for this job is offered as {DEPLOYMENT_LABEL[deployment]}. Switch the deployment above to see more.</p>}
       </div>
       <div className="flex min-w-0 flex-col gap-1.5">
-        <Field label={`${role.label}: model`} help="wizModel">
+        <Field label="Model" help="wizModel">
           <Select value={chosen} options={[{ value: "", label: "Choose a model" }, ...options.map((o) => ({ value: o.id, label: `${o.label}${o.inputPer1M > 0 ? ` · C$${o.inputPer1M.toFixed(2)} in / C$${o.outputPer1M.toFixed(2)} out per 1M` : ""}` }))]}
             onChange={(v) => update((s) => setModel(s, recipe.id, role.id, v))} />
         </Field>
@@ -278,7 +278,7 @@ function BuildStep({ state, update }: StepProps) {
 function WorthStep({ state, update }: StepProps) {
   return (
     <>
-      <p className="max-w-3xl text-[13px] text-ink-2">What is each feature worth? Time saved uses a published benchmark or your own minutes. The other types take an amount you enter. Skip a feature if you only want its cost.</p>
+      <p className="max-w-3xl text-[13px] text-ink-2">What is each feature worth? Time saved uses a published benchmark or your own minutes. The other types take figures you enter, and each carries a confidence. Skip a feature if you only want its cost.</p>
       {picked(state).map((r) => <BenefitCard key={r.id} recipe={r} state={state} update={update} />)}
     </>
   );
@@ -295,8 +295,17 @@ function BenefitCard({ recipe, state, update }: { recipe: Recipe; state: WizardS
     if (type === "timeSaved") {
       const d = recipe.benefit(values);
       set(d.type === "timeSaved" ? d : { type, basis: "perItem", baselineMinutes: 10, savedPct: 50 });
-    } else set({ type, amountCad: b.amountCad ?? 0, cadence: b.cadence ?? "monthly" });
+    } else if (type === "costAvoided") set({ type, amountCad: b.amountCad ?? 0, cadence: b.cadence ?? "monthly", label: b.label });
+    else if (type === "revenue") set({ type, monthlyRevenue: 0, marginPct: 40 });
+    else if (type === "quality") set({ type, errorRateBeforePct: 0, errorRateAfterPct: 0, costPerError: 0 });
+    else if (type === "risk") set({ type, eventsPerYear: 0, impactCad: 0, reductionPct: 0 });
+    else set({ type });
   };
+  const confidence = b.confidencePct ?? defaultConfidence(b, catalog.benchmarks);
+  const confidenceWhy = b.type === "timeSaved" && b.basis === "benchmark" && bench
+    ? <>Starts from the benchmark's evidence grade ({bench.confidence}{bench.vendorFunded ? ", vendor funded" : ""}). Source: {bench.sourceUrl ? <a className="underline decoration-line underline-offset-2" href={bench.sourceUrl} target="_blank" rel="noreferrer">{bench.sourceLabel}</a> : bench.sourceLabel}.</>
+    : "A placeholder for this type of benefit. Replace it with how sure you really are.";
+  const setPct = (k: "marginPct" | "errorRateBeforePct" | "errorRateAfterPct" | "reductionPct", n: number) => set({ ...b, [k]: n });
   return (
     <Card>
       <CardHead title={recipe.label} sub={recipe.benefitHint} />
@@ -323,11 +332,39 @@ function BenefitCard({ recipe, state, update }: { recipe: Recipe; state: WizardS
             {b.basis === "benchmark" && bench && <p className="text-[12px] text-muted sm:col-span-2">Typical saving: {bench.savings.typical} {bench.unit === "pct" ? "%" : "minutes"}. Source: {bench.sourceLabel}.</p>}
           </div>
         )}
-        {b.type !== "timeSaved" && b.type !== "none" && (
+        {b.type === "costAvoided" && (
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label="Amount" help="wizBenefitAmount"><NumberInput value={b.amountCad ?? 0} min={0} max={1_000_000_000} step={100} suffix="C$" onChange={(n) => set({ ...b, amountCad: n })} /></Field>
             <Field label="How often" help="wizBenefitCadence"><Select value={b.cadence ?? "monthly"} options={[{ value: "monthly", label: "Every month" }, { value: "once", label: "Once, at go-live" }]} onChange={(v) => set({ ...b, cadence: v as "monthly" | "once" })} /></Field>
             <Field label="Name in the reports" help="wizBenefitLabel"><TextInput value={b.label ?? ""} placeholder="Optional" onChange={(v) => set({ ...b, label: v })} /></Field>
+          </div>
+        )}
+        {b.type === "revenue" && (
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Field label="Extra revenue per month" help="valueRevenue"><NumberInput value={b.monthlyRevenue ?? 0} min={0} max={1_000_000_000} step={1000} suffix="C$" onChange={(n) => set({ ...b, monthlyRevenue: n })} /></Field>
+            <Field label="Margin kept" help="valueMargin"><NumberInput value={b.marginPct ?? 40} min={0} max={100} step={1} suffix="%" onChange={(n) => setPct("marginPct", n)} /></Field>
+            <Field label="Name in the reports" help="wizBenefitLabel"><TextInput value={b.label ?? ""} placeholder="Optional" onChange={(v) => set({ ...b, label: v })} /></Field>
+          </div>
+        )}
+        {b.type === "quality" && (
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Field label="Error rate today" help="valueErrBefore"><NumberInput value={b.errorRateBeforePct ?? 0} min={0} max={100} step={0.1} suffix="%" onChange={(n) => setPct("errorRateBeforePct", n)} /></Field>
+            <Field label="Error rate with AI" help="valueErrAfter"><NumberInput value={b.errorRateAfterPct ?? 0} min={0} max={100} step={0.1} suffix="%" onChange={(n) => setPct("errorRateAfterPct", n)} /></Field>
+            <Field label="Cost of one error" help="valueCostPerError"><NumberInput value={b.costPerError ?? 0} min={0} max={1_000_000_000} step={5} suffix="C$" onChange={(n) => set({ ...b, costPerError: n })} /></Field>
+            <p className="text-[12px] text-muted sm:col-span-3">Items checked per month come from this feature's volume on How much, so the two stay in step.</p>
+          </div>
+        )}
+        {b.type === "risk" && (
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Field label="Events per year" help="valueEvents"><NumberInput value={b.eventsPerYear ?? 0} min={0} max={100000} step={0.1} onChange={(n) => set({ ...b, eventsPerYear: n })} /></Field>
+            <Field label="Cost of one event" help="valueImpact"><NumberInput value={b.impactCad ?? 0} min={0} max={1_000_000_000} step={1000} suffix="C$" onChange={(n) => set({ ...b, impactCad: n })} /></Field>
+            <Field label="Share prevented" help="valueReduction"><NumberInput value={b.reductionPct ?? 0} min={0} max={100} step={1} suffix="%" onChange={(n) => setPct("reductionPct", n)} /></Field>
+          </div>
+        )}
+        {b.type !== "none" && (
+          <div className="grid gap-3 border-t border-line pt-3 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)]">
+            <Field label="Confidence" help="wizBenefitConfidence"><NumberInput value={confidence} min={0} max={100} step={5} suffix="%" onChange={(n) => set({ ...b, confidencePct: Math.min(100, Math.max(0, n)) })} /></Field>
+            <p className="text-[12px] text-muted sm:self-end">{confidenceWhy} The benefit counts at this share of its value.{b.type !== "timeSaved" && " It is counted under this feature's capability in ROI by capability."}</p>
           </div>
         )}
       </div>
