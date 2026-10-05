@@ -31,7 +31,7 @@ export default function Roi() {
           <Seg label="View" value={tab} onChange={setTab} options={[{ value: "cash", label: "Cash" }, { value: "years", label: "By year" }, { value: "capabilities", label: "By capability" }, { value: "beforeAfter", label: "Before / after" }, { value: "sensitivity", label: "Sensitivity" }, { value: "scenarios", label: "Scenarios" }]} />
         </CardHead>
         {tab === "cash" ? <div className="flex min-h-0 flex-1 px-1.5 pb-1.5"><CumulativeLine values={roi.cumulative} payback={roi.paybackMonth} /></div>
-          : <div className="min-h-0 flex-1 overflow-auto px-3.5 pb-3.5">{tab === "years" ? <Years /> : tab === "capabilities" ? <Capabilities /> : tab === "beforeAfter" ? <BeforeAfterView /> : tab === "sensitivity" ? <Tornado /> : <Scenarios />}</div>}
+          : <div className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">{tab === "years" ? <Years /> : tab === "capabilities" ? <Capabilities /> : tab === "beforeAfter" ? <BeforeAfterView /> : tab === "sensitivity" ? <Tornado /> : <Scenarios />}</div>}
       </Card>
     </div>
   );
@@ -46,13 +46,13 @@ function Assumptions() {
   const slider = (label: string, value: number, set: (n: number) => void, id: string) => (
     <div className="flex flex-col gap-1">
       <label htmlFor={id} className="flex justify-between text-[12.5px] text-ink-2">{label}<span className="num">{value}%</span></label>
-      <input id={id} type="range" min={0} max={60} value={value} onChange={(e) => set(+e.target.value)} className="w-full accent-[var(--accent)]" />
+      <input id={id} type="range" min={0} max={60} value={value} onChange={(e) => set(+e.target.value)} className="h-6 w-full accent-[var(--accent)]" />
     </div>
   );
   const addBtn = "flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2";
   const textIn = "min-w-0 rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]";
   return (
-    <Card>
+    <Card className="self-start lg:self-auto">
       <CardHead title="Assumptions">
         <button type="button" aria-expanded={open} aria-controls="roi-assumptions" onClick={() => setOpen((v) => !v)}
           className="rounded-md border border-line px-2.5 py-1 text-xs font-medium text-ink-2 hover:bg-surface-2 lg:hidden">{open ? "Hide assumptions" : "Show assumptions"}</button>

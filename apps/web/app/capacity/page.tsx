@@ -26,7 +26,7 @@ export default function Capacity() {
             <Field label="Peak ÷ average load" help="peakFactor"><NumberInput value={peak} min={1} max={20} step={0.5} onChange={setPeak} /></Field>
           </div>
         </CardHead>
-        <div className="min-h-0 flex-1 overflow-auto px-3.5 pb-3.5">
+        <div className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">
           <div className="mb-3 rounded-r-md border-l-[3px] border-accent bg-accent-soft px-3 py-2 text-[12.5px]">
             {anyPtuWins
               ? <>At this load, <b>PTU is cheaper for {a.rows.filter((r) => r.cheapest !== "payg").map((r) => r.label).join(", ")}</b>. Check the utilization: PTU only pays when the deployment stays busy.</>

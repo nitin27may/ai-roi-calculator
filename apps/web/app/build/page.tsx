@@ -58,7 +58,7 @@ export default function Build() {
         </div>
       </Card>
       <Card>
-        <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto p-3.5">
+        <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto scroll-hint p-3.5">
           {sel === "all" ? <AllActivities /> : sel === "team" ? <Team /> : sel === "env" ? <DevEnvironment /> : sel.startsWith("ws:") ? <WorkstreamPanel id={sel.slice(3)} onRemoved={() => setSel("all")} onOpen={setSel} /> : <Activity id={sel} onRemoved={() => setSel("all")} />}
         </div>
       </Card>

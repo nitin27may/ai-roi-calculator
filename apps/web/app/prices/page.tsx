@@ -89,7 +89,7 @@ export default function Prices() {
             <div className="w-32" aria-label="Status"><Select label="Status" value={status} onChange={setStatus} options={[{ value: "all", label: "Any status" }, ...["ga", "preview", "legacy", "deprecated"].map((v) => ({ value: v, label: v === "ga" ? "GA" : v[0]!.toUpperCase() + v.slice(1) }))]} /></div>
           </div>
         </CardHead>
-        <div className="min-h-0 flex-1 overflow-auto px-3.5 pb-3.5">
+        <div className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">
           <table className="data">
             <caption className="caption-bottom pt-2 text-left text-xs text-muted">Model prices are CAD per 1M tokens: input / cached input / output.</caption>
             <thead><tr><th>Item</th><th>Type</th><th>Global (CAD)</th><th>Canada Regional (CAD)</th><th>US Data Zone (CAD)</th><th>Source</th><th>Confidence</th></tr></thead>
@@ -117,7 +117,7 @@ export default function Prices() {
         </Card>
         <Card className="min-h-0 flex-1">
           <CardHead title="Upcoming changes" />
-          <div className="min-h-0 flex-1 overflow-auto px-3.5 pb-3.5">
+          <div className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">
             <table className="data"><tbody>{changes.map((c) => <tr key={`${c.item}${c.date}`}><td className="num whitespace-nowrap">{c.date}</td><td>{c.item}</td><td><Pill tone={c.tone}>{c.change}</Pill></td></tr>)}</tbody></table>
           </div>
         </Card>

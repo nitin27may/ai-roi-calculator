@@ -63,7 +63,7 @@ export default function Report() {
   const cap = s.hurdleRatePct;
 
   return (
-    <div className="h-full overflow-auto print:overflow-visible">
+    <div className="h-full overflow-auto scroll-hint print:overflow-visible">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3 print:hidden">
         <div className="flex flex-wrap items-end gap-4">
           <p className="max-w-[46ch] text-sm text-ink-2">A report for this project: cover, one-page summary, assumptions and a detailed appendix. Choose <b>Print</b>, then <b>Save as PDF</b>.</p>
@@ -71,16 +71,16 @@ export default function Report() {
         </div>
         <button type="button" className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-ink" onClick={() => window.print()}>Print or save as PDF</button>
       </div>
-      <article className="report mx-auto flex max-w-[960px] flex-col gap-6 print:max-w-none print:gap-0">
+      <article className="report mx-auto min-w-0 flex max-w-[960px] flex-col gap-6 print:max-w-none print:gap-0">
         {/* 1. Cover */}
-        <section className="report-page report-cover flex min-h-[560px] flex-col justify-between rounded-lg border border-line bg-surface p-10 print:min-h-[250mm] print:rounded-none print:border-0 print:p-0">
+        <section className="report-page report-cover flex min-h-[560px] flex-col justify-between rounded-lg border border-line bg-surface p-5 sm:p-10 print:min-h-[250mm] print:rounded-none print:border-0 print:p-0">
           <div>
             <div className="text-xs uppercase tracking-[0.1em] text-muted">AI cost and ROI estimate</div>
             <div className="mt-24 h-1.5 w-20 rounded bg-accent print:mt-40" />
-            <h1 className="mt-5 max-w-[18ch] text-5xl font-bold leading-[1.08]">{p.name}</h1>
+            <h1 className="mt-5 max-w-[18ch] text-3xl sm:text-5xl font-bold leading-[1.08]">{p.name}</h1>
             <p className="mt-4 max-w-[52ch] text-[15px] text-ink-2">A {p.timeline.horizonMonths}-month view of what it costs to build and run, what it returns, and how sure we are.</p>
           </div>
-          <dl className="grid max-w-[560px] grid-cols-[150px_1fr] gap-x-4 gap-y-2 border-t border-line pt-5 text-[13.5px]">
+          <dl className="grid max-w-[560px] grid-cols-1 sm:grid-cols-[150px_1fr] gap-x-4 gap-y-2 border-t border-line pt-5 text-[13.5px]">
             <dt className="text-muted">Report date</dt><dd className="text-ink">{today || " "}</dd>
             <dt className="text-muted">Prepared by</dt><dd className="text-ink">{author.trim() || "Not stated"}</dd>
             <dt className="text-muted">Currency</dt><dd className="text-ink">Canadian dollars (C$)</dd>
@@ -91,7 +91,7 @@ export default function Report() {
         </section>
 
         {/* 2. Executive page */}
-        <section className="report-page report-exec flex flex-col gap-3.5 rounded-lg border border-line bg-surface p-8 print:rounded-none print:border-0 print:p-0">
+        <section className="report-page report-exec flex flex-col gap-3.5 rounded-lg border border-line bg-surface p-4 sm:p-8 print:rounded-none print:border-0 print:p-0">
           <header>
             <div className="text-xs uppercase tracking-[0.08em] text-muted">Executive summary · {p.name}</div>
             <div className="mt-2"><VerdictChip verdict={s.verdict} /></div>
@@ -101,7 +101,7 @@ export default function Report() {
             </p>
           </header>
           <HeadlineTiles s={s} linkWide={false} />
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <section className="break-inside-avoid">
               <h2 className="mb-1.5 text-[15px] font-bold">Build, run and benefit</h2>
               <Waterfall steps={s.waterfall} costIds={WATERFALL_COST_IDS} className="flex flex-col gap-1" />
@@ -111,7 +111,7 @@ export default function Report() {
               <RankedBars rows={s.costDrivers} className="flex flex-col gap-1.5" />
             </section>
           </div>
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <section className="break-inside-avoid">
               <h2 className="mb-1.5 text-[15px] font-bold">Finance measures</h2>
               <FinanceMeasures s={s} className="" />

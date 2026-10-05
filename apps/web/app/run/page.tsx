@@ -78,7 +78,7 @@ export default function Run() {
         </div>
       </Card>
       <Card>
-        <div data-tour="run-inspector" className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto p-3.5">
+        <div data-tour="run-inspector" className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto scroll-hint p-3.5">
           <Inspector sel={sel} onRemoved={() => setSel("maintenance")} />
         </div>
       </Card>
@@ -130,7 +130,7 @@ function AddWorkload({ onAdded, featureId }: { onAdded: (id: string) => void; fe
         setNotice(agent ? "An agent workload needs a harness, so a default one was added under Agent harnesses. Review its steps and tools." : "");
         if (id) onAdded(id);
       }} />
-      {notice && <div role="note" className="w-full rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">{notice} <button type="button" className="underline" onClick={() => setNotice("")}>Dismiss</button></div>}
+      {notice && <div role="note" className="w-full rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">{notice} <button type="button" className="inline-flex min-h-6 items-center underline" onClick={() => setNotice("")}>Dismiss</button></div>}
     </>
   );
 }
@@ -305,7 +305,7 @@ function VoiceCompare({ id }: { id: string }) {
           {rows.map((r) => (
             <tr key={r.key} style={r.current ? { background: "var(--accent-soft)" } : undefined}>
               <td>{r.label}</td><td className="n">{cad(r.perCall, 3)}</td><td className="n">{cad(r.perCall / w.minutesPerCall, 3)}</td><td className="n">{cad(r.perCall * w.callsPerMonth)}</td>
-              <td>{r.use && !r.current && <button type="button" className="rounded border border-line px-1.5 text-xs hover:bg-surface-2" onClick={r.use}>Use</button>}</td>
+              <td>{r.use && !r.current && <button type="button" className="min-h-6 rounded border border-line px-2 text-xs hover:bg-surface-2" onClick={r.use}>Use</button>}</td>
             </tr>
           ))}
         </tbody>
@@ -369,7 +369,7 @@ function SpeechCompare({ hours, current, id, diarize, deployment }: { hours: num
               <td className="n">{cad(rate * hours)}</td>
               <td className="whitespace-nowrap">
                 {e.lifecycle.retiresOn && <Pill tone="crit">retires {e.lifecycle.retiresOn}</Pill>} {e.promo && <Pill tone="warn">promo to {e.promo.until}</Pill>} {e.confidence === "unverified" && <Pill>unverified</Pill>}
-                {e.id !== current && <button type="button" className="ml-1 rounded border border-line px-1.5 text-xs hover:bg-surface-2" onClick={() => edit((p) => { const w = p.workloads.find((x) => x.id === id); if (w?.kind !== "transcription") return; w.engineId = e.id; if (!availableIn(e, d)) w.deployment = DEPLOYMENTS.find((x) => availableIn(e, x)); })}>{availableIn(e, d) || !offeredIn(e) ? "Use" : `Use on ${SHORT[DEPLOYMENTS.find((x) => availableIn(e, x))!]}`}</button>}
+                {e.id !== current && <button type="button" className="ml-1 min-h-6 rounded border border-line px-2 text-xs hover:bg-surface-2" onClick={() => edit((p) => { const w = p.workloads.find((x) => x.id === id); if (w?.kind !== "transcription") return; w.engineId = e.id; if (!availableIn(e, d)) w.deployment = DEPLOYMENTS.find((x) => availableIn(e, x)); })}>{availableIn(e, d) || !offeredIn(e) ? "Use" : `Use on ${SHORT[DEPLOYMENTS.find((x) => availableIn(e, x))!]}`}</button>}
               </td>
             </tr>
           ))}

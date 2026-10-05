@@ -32,7 +32,7 @@ function useAddToProject() {
 }
 
 function AddButton({ onClick }: { onClick: () => void }) {
-  return <button type="button" className="whitespace-nowrap rounded border border-line px-1.5 text-xs hover:bg-surface-2" onClick={onClick}>Add</button>;
+  return <button type="button" className="whitespace-nowrap min-h-6 rounded border border-line px-2 text-xs hover:bg-surface-2" onClick={onClick}>Add</button>;
 }
 
 /** Inputs on the left (with the mode switch), results on the right. */
@@ -50,7 +50,7 @@ function Split({ top, inputs, children }: { top: ReactNode; inputs: ReactNode; c
         </div>
       </Card>
       <Card>
-        <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto p-3.5">{children}</div>
+        <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto scroll-hint p-3.5">{children}</div>
       </Card>
     </div>
   );

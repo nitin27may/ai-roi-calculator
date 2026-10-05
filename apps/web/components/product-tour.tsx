@@ -100,6 +100,15 @@ export function ProductTour() {
     return () => { cancelAnimationFrame(raf); if (openedDrawer) dispatchEvent(new Event(DRAWER_CLOSE_EVENT)); };
   }, [open, step]);
 
+  // Steps without a target never run the tracking loop above, so keep the viewport size current here too.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const sync = () => setView((v) => (v.w === innerWidth && v.h === innerHeight ? v : { w: innerWidth, h: innerHeight }));
+    sync();
+    addEventListener("resize", sync);
+    return () => removeEventListener("resize", sync);
+  }, [open]);
+
   useLayoutEffect(() => {
     const el = card.current;
     if (open && el) setCardSize((s) => (s.w === el.offsetWidth && s.h === el.offsetHeight ? s : { w: el.offsetWidth, h: el.offsetHeight }));

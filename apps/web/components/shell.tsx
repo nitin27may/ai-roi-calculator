@@ -155,7 +155,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <b className="text-ink-2">Local mode.</b> Saved in this browser. Prices as of {catalog.meta.asOf}; refresh with <span className="num">pnpm prices</span>.
         </p>
       </nav>
-      <main id="main-content" tabIndex={-1} className="grid min-h-0 min-w-0 grid-rows-[auto_auto_minmax(0,1fr)] lg:h-full lg:overflow-hidden">
+      <main id="main-content" tabIndex={-1} className="grid min-h-0 min-w-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_auto_minmax(0,1fr)] lg:h-full lg:overflow-hidden">
         <header className="flex flex-wrap items-center justify-between gap-2.5 px-3 pb-2.5 pt-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-2.5">
             <button ref={menuButton} type="button" aria-label="Open menu" aria-expanded={drawerOpen} aria-controls="main-nav" onClick={() => (drawerOpen ? closeDrawer(false) : openDrawer())}
