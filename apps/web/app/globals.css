@@ -77,4 +77,12 @@ table.data tr.total td { font-weight: 600; border-top: 2px solid var(--line); bo
   main { display: block !important; height: auto !important; overflow: visible !important; }
   main > div { padding: 0 !important; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* Report: cover, executive page and assumptions each get their own sheet; the appendix flows after them. */
+  .report-page { break-after: page; break-inside: auto; }
+  .report-cover, .report-exec { break-inside: avoid; }
+  .report-page:last-child { break-after: auto; }
+  .report .break-inside-avoid { break-inside: avoid; }
+  .report table.data tr { break-inside: avoid; }
+  .report h2, .report h3 { break-after: avoid; }
+  @page { @bottom-center { content: "Page " counter(page); font: 9pt sans-serif; color: #6c7873; } }
 }

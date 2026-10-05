@@ -152,6 +152,7 @@ export const HELP = {
   retryRate: share("The share of steps that fail and have to run again.", "5% means one step in twenty is repeated.", HEUR),
 
   // Settings page
+  reportAuthor: e("The name printed on the report cover as its author or owner. It is kept in this browser only and is not part of the saved estimate.", "Text", "Priya Nair, Finance Business Partner.", "You choose it. Empty means the cover shows no author."),
   projectName: e("The name of this estimate, shown in the sidebar, reports and exports.", "Text", "Claims assistant, phase 1.", "You choose it."),
   startMonth: e("The calendar month in which the build starts. It labels the months on every chart and export.", "Month and year", "January 2027.", "Starts from the sample project. It does not change any cost."),
   buildMonths: e("How many months the build phase lasts. Dev Lab spend and team cost run during this time. Production starts after it.", "Months", "6 means build runs in months 1 to 6 and go-live is month 7.", SAMPLE, { limit: "the studio models builds of 1 to 24 months" }),

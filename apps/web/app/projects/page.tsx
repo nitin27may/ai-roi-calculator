@@ -3,8 +3,11 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Copy, Trash2, Wand2 } from "lucide-react";
-import { PROJECT_TEMPLATES, buildLedger, computeRoi, roiOptions } from "@studio/engine";
+import { PROJECT_TEMPLATES, buildLedger, compareFigures, computeRoi, costSplit, roiOptions, verdictFor } from "@studio/engine";
 import { Card, CardHead, Field, TextInput } from "@/components/ui";
+import { CompareBars, COMPARE_COLORS, MiniSplit } from "@/components/charts-compare";
+import { VerdictChip } from "@/components/summary-parts";
+import { COMPARE_ROWS, bestIndex } from "@/lib/compare";
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad, cn, fmt } from "@/lib/format";
@@ -18,11 +21,15 @@ export default function Projects() {
   const [name, setName] = useState("");
   const [template, setTemplate] = useState("");
   const [confirm, setConfirm] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string[]>([]);
   const summaries = useMemo(() => new Map(library.map((e) => {
     const L = buildLedger(e.project, catalog);
     const r = computeRoi(L, e.project.roi.basis, e.project.roi.discountRatePct, roiOptions(e.project));
-    return [e.id, { L, r }];
+    return [e.id, { L, r, split: costSplit(L), verdict: verdictFor(r), figures: compareFigures(e.project.name, L, r) }];
   })), [library]);
+
+  const toggle = (id: string) => setPicked((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : cur.length >= 3 ? cur : [...cur, id]));
+  const chosen = picked.filter((id) => summaries.has(id));
 
   return (
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -33,7 +40,10 @@ export default function Projects() {
             {unreadableCount} saved project{unreadableCount === 1 ? "" : "s"} could not be opened and {unreadableCount === 1 ? "was" : "were"} left out of this list.
           </div>
         )}
-        <div className="grid min-h-0 flex-1 auto-rows-min grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 overflow-auto px-3.5 pb-3.5">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto px-3.5 pb-3.5">
+        {chosen.length >= 2 && <ProjectCompare ids={chosen} library={library} summaries={summaries} onClear={() => setPicked([])} />}
+        {chosen.length === 1 && <p className="rounded-md bg-surface-2 px-3 py-2 text-[12.5px] text-ink-2">Pick one or two more projects to compare them side by side. You can compare up to three.</p>}
+        <div className="grid auto-rows-min grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
           {library.map((e, i) => {
             const s = summaries.get(e.id)!;
             const active = e.id === activeId;
@@ -46,11 +56,19 @@ export default function Projects() {
                   </div>
                   {active && <span className="rounded-full bg-accent px-2 py-px text-[11px] font-medium text-accent-ink">Open</span>}
                 </div>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <VerdictChip verdict={s.verdict} />
+                </div>
+                <MiniSplit parts={s.split} />
                 <dl className="grid grid-cols-3 gap-1 text-[11.5px]">
                   <div><dt className="text-muted">Build</dt><dd className="num font-semibold">{cad(s.L.totals.build)}</dd></div>
                   <div><dt className="text-muted">Run / month</dt><dd className="num font-semibold">{cad(s.L.totals.runRate)}</dd></div>
                   <div><dt className="text-muted">Payback</dt><dd className="num font-semibold">{s.r.paybackMonth ? `M${s.r.paybackMonth}` : "–"} · {fmt(s.r.roi * 100)}%</dd></div>
                 </dl>
+                <label className="flex items-center gap-1.5 text-[12px] text-ink-2">
+                  <input type="checkbox" checked={picked.includes(e.id)} disabled={!picked.includes(e.id) && picked.length >= 3} onChange={() => toggle(e.id)} />
+                  Compare{!picked.includes(e.id) && picked.length >= 3 ? " (three at most)" : ""}
+                </label>
                 <div className="mt-auto flex flex-wrap gap-1.5">
                   <button type="button" className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-ink" onClick={() => { open(e.id); router.push("/summary"); }}>Open</button>
                   <button type="button" className="flex items-center gap-1 rounded-md border border-line px-2.5 py-1 text-xs hover:bg-surface-2" onClick={() => duplicate(e.id)}><Copy size={12} />Duplicate</button>
@@ -61,6 +79,7 @@ export default function Projects() {
               </div>
             );
           })}
+        </div>
         </div>
       </Card>
       <Card>
@@ -84,5 +103,43 @@ export default function Projects() {
         </form>
       </Card>
     </div>
+  );
+}
+
+type Summaries = Map<string, { figures: ReturnType<typeof compareFigures> }>;
+
+function ProjectCompare({ ids, library, summaries, onClear }: { ids: string[]; library: { id: string; project: { name: string } }[]; summaries: Summaries; onClear: () => void }) {
+  const projects = ids.map((id) => ({ id, name: library.find((e) => e.id === id)?.project.name ?? id, f: summaries.get(id)!.figures }));
+  const names = projects.map((p) => p.name);
+  return (
+    <section className="rounded-lg border border-accent bg-surface p-3" aria-label="Project comparison">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h3 className="text-[15px] font-bold">Comparing {projects.length} projects</h3>
+        <button type="button" className="rounded-md border border-line px-2.5 py-1 text-xs hover:bg-surface-2" onClick={onClear}>Clear comparison</button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="data">
+          <thead>
+            <tr><th>Figure</th>{projects.map((p, i) => <th key={p.id} className="n"><span className="inline-flex items-center gap-1.5"><i className="inline-block h-2 w-2 rounded-sm" style={{ background: COMPARE_COLORS[i] }} />{p.name}</span></th>)}</tr>
+          </thead>
+          <tbody>
+            {COMPARE_ROWS.map((row) => {
+              const vals = projects.map((p) => row.value(p.f));
+              const best = bestIndex(vals, row.lowerIsBetter);
+              return (
+                <tr key={row.id}>
+                  <td>{row.label}<span className="block text-[11px] text-muted">{row.lowerIsBetter ? "Lower is better" : "Higher is better"}</span></td>
+                  {vals.map((v, i) => <td key={projects[i]!.id} className="n">{row.table(v)}{best === i && <span className="ml-1.5 rounded bg-good-soft px-1 text-[10.5px] font-medium text-good">Best</span>}</td>)}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-3">
+        <CompareBars names={names} metrics={COMPARE_ROWS.map((row) => ({ id: row.id, label: row.label, format: row.bar, values: projects.map((p) => row.value(p.f)) }))} />
+      </div>
+      <p className="mt-2 text-[11.5px] text-muted">Each project uses its own plan length, discount rate and cost basis, so compare the figures with that in mind. IRR is capped in the bar labels; the table has the full figure.</p>
+    </section>
   );
 }
