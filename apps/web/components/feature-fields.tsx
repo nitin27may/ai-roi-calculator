@@ -32,7 +32,7 @@ export function WorkloadTiming({ w }: { w: Workload }) {
   return (
     <div>
       <h3 className="mb-1.5 text-sm font-semibold">Timing</h3>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-2.5">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] items-end gap-2.5">
         <Field label={`Starts in month (go-live ${B + 1})`} help="startMonth">
           <NumberInput value={win.start} min={B + 1} max={H} onChange={(v) => upd((x) => { const m = Math.round(v); if (m > B + 1) x.startMonth = m; else delete x.startMonth; })} />
         </Field>
