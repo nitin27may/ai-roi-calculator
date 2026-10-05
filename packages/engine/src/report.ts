@@ -8,6 +8,7 @@ import { sum, type Stream } from "./lines.js";
 import { beforeAfter, workloadVolume } from "./benefits.js";
 import { sensitivity, type SensitivityRow } from "./sensitivity.js";
 import { projectRange, type ProjectRange } from "./ranges.js";
+import { verdictFor } from "./present.js";
 
 export type Row = Record<string, string | number>;
 
@@ -170,12 +171,7 @@ export function summarize(p: Project, ledger: Ledger, roi: RoiResult, cat: Catal
   const laterRun = roi.totalCost - buildCost - year1Run;
   const net = roi.totalBenefit - roi.totalCost;
   const paysBackWithinPlan = roi.paybackMonth !== null;
-  const npvPositive = roi.npv >= 0;
-  const tone: Verdict["tone"] = paysBackWithinPlan && npvPositive ? "ok" : paysBackWithinPlan || npvPositive ? "warn" : "crit";
-  const verdict: Verdict = {
-    text: paysBackWithinPlan ? `Pays back in month ${roi.paybackMonth}` : "Does not pay back within the plan",
-    npvPositive, paysBack: paysBackWithinPlan, tone,
-  };
+  const verdict = verdictFor(roi);
   return {
     basis: roi.basis,
     totalCost: roi.totalCost,
