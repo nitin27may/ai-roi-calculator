@@ -135,6 +135,48 @@ const Common = {
  */
 const Resilience = { resendShare: share.optional(), promptShields: z.boolean().optional() };
 
+/**
+ * A fee for a built-in tool a model calls (web search, file search, code interpreter, computer use). Either a catalogue
+ * price (`unitPriceId`) or your own price per 1,000 calls (`cadPer1KCalls`) when the catalogue has no verified one.
+ * `perTask` is calls per agent task, or per chat turn.
+ */
+export const ToolFeeSchema = z.object({
+  unitPriceId: id.optional(), label: z.string().optional(), cadPer1KCalls: n0.optional(), perTask: n0,
+}).refine((f) => f.unitPriceId !== undefined || f.cadPer1KCalls !== undefined, { message: "A tool fee needs a catalogue price or your own price per 1,000 calls" });
+export type ToolFee = z.infer<typeof ToolFeeSchema>;
+
+/** Image input for a vision-capable model: images attached to each call (or chat turn), at a size and detail level. Tokens come from the model's documented formula (see images.ts). */
+export const ImageInputSchema = z.object({
+  perCall: n0, widthPx: z.number().int().positive(), heightPx: z.number().int().positive(), detail: z.enum(["low", "high"]).default("high"),
+});
+export type ImageInput = z.infer<typeof ImageInputSchema>;
+
+/**
+ * Provisioned throughput (PTU) for a workload's main model: a reserved base plus pay-as-you-go spillover. `ptus` absent
+ * means sized for the peak (average x peak-to-average factor). `spilloverShare` absent means the share of average load
+ * above the reserved capacity. The price is the workload's own deployment (Global, Data Zone or Regional).
+ */
+export const PtuSettingSchema = z.object({
+  ptus: z.number().int().positive().optional(),
+  term: z.enum(["hourly", "monthly", "yearly"]).default("monthly"),
+  spilloverShare: share.optional(),
+});
+export type PtuSetting = z.infer<typeof PtuSettingSchema>;
+
+/** Capacity options for chat, llm and agent workloads. All absent = pay-as-you-go with no quota check. */
+const Capacity = { ptu: PtuSettingSchema.optional(), tpmQuota: n0.optional() };
+
+/**
+ * One line of a hosting stack. `fixed`: a catalogue quantity a month. `perRequests`: catalogue units per 1,000 requests
+ * (monitoring, egress, gateway calls), so it follows volume. `cash`: your own CAD a month where the catalogue has no verified price.
+ */
+export const HostingItemSchema = z.discriminatedUnion("basis", [
+  z.object({ basis: z.literal("fixed"), id, label: z.string(), unitPriceId: id, quantity: n0 }),
+  z.object({ basis: z.literal("perRequests"), id, label: z.string(), unitPriceId: id, unitsPer1KRequests: n0 }),
+  z.object({ basis: z.literal("cash"), id, label: z.string(), amountCad: n0, note: z.string().optional() }),
+]);
+export type HostingItem = z.infer<typeof HostingItemSchema>;
+
 export const WorkloadSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("transcription"), id, label: z.string(), ...Common, deployment, tier, hoursPerMonth: n0, engineId: id, diarize: z.boolean(),
@@ -173,10 +215,14 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
     /** Share of turns routed to a cheaper model. */
     router: z.object({ modelId: id, share }).optional(),
     ...Resilience,
+    /** Tool calls per turn, and images attached per turn. */
+    toolFees: z.array(ToolFeeSchema).optional(), images: ImageInputSchema.optional(),
+    ...Capacity,
   }),
   z.object({
     kind: z.literal("agent"), id, label: z.string(), ...Common, deployment, tier, harnessId: id, modelId: id, tasksPerMonth: n0, cacheHit: share,
-    toolFees: z.array(z.object({ unitPriceId: id, perTask: n0 })).default([]),
+    toolFees: z.array(ToolFeeSchema).default([]),
+    ...Capacity,
   }),
   z.object({
     kind: z.literal("continuousEval"), id, label: z.string(), ...Common, deployment, tier, interactionsPerMonth: n0, sampleShare: share, judgeModelId: id,
@@ -188,8 +234,16 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
     inputTokens: n0, cachedInputTokens: n0, outputTokens: n0, batchShare: share,
     reasoning: ReasoningSetting, language: LanguageSetting,
     ...Resilience,
+    images: ImageInputSchema.optional(),
+    ...Capacity,
   }),
   z.object({ kind: z.literal("fixed"), id, label: z.string(), ...Common, group: z.string(), items: z.array(FixedItemSchema) }),
+  z.object({
+    /** Hosting and platform stack (Cosmos DB, App Service, AKS, Container Apps, APIM, monitoring, egress, Defender) with volume-driven items. */
+    kind: z.literal("hosting"), id, label: z.string(), ...Common,
+    /** Requests a month that per-request items scale with; `volumeFrom` takes it from another workload instead. */
+    requestsPerMonth: n0, volumeFrom: id.optional(), items: z.array(HostingItemSchema),
+  }),
   z.object({
     kind: z.literal("voiceAgent"), id, label: z.string(), ...Common, deployment, tier, modelId: id, callsPerMonth: n0, minutesPerCall: z.number().positive(),
     turnsPerCall: z.number().int().positive(), agentTalkShare: share, systemPromptTokens: n0, cacheHit: share,
@@ -310,7 +364,7 @@ export type Scenario = z.infer<typeof ScenarioSchema>;
 export type ScenarioEdit = z.infer<typeof ScenarioEditSchema>;
 
 /** Bump when the project shape changes; add a step in migrate.ts for every bump. */
-export const CURRENT_PROJECT_VERSION = 4;
+export const CURRENT_PROJECT_VERSION = 5;
 
 /**
  * A feature: the unit an executive funds. It owns workloads (run), workstreams and Dev Lab activities (build)
@@ -333,6 +387,13 @@ const ProjectObject = z.object({
     language: z.string().default("en"),
     /** Which percentile the AI Dev Lab agent runs are priced at. Absent means P50. */
     devLabPercentile: z.enum(["p50", "p90"]).optional(),
+    /** Numbers the model used to fix in code. Each is optional; absent means the original value (see assumptions.ts). */
+    assumptions: z.object({
+      plannerInputTokens: n0.optional(), plannerOutputTokens: n0.optional(),
+      redTeamScoringOutputTokens: n0.optional(),
+      voiceFunctionCallInputTokens: n0.optional(), voiceFunctionCallOutputTokens: n0.optional(),
+      peakToAverage: z.number().min(1).max(50).optional(),
+    }).optional(),
     snowflake: z.object({
       routing: z.enum(["global", "regional"]),
       edition: z.enum(["standard", "enterprise", "businessCritical", "vps"]),
@@ -423,6 +484,7 @@ export function projectIssues(p: z.infer<typeof ProjectObject>): { path: (string
   const workstreams = new Set(p.build.workstreams.map((w) => w.id));
   const feat = (path: (string | number)[], fid: string | undefined) => { if (fid !== undefined && !features.has(fid)) out.push({ path, message: `Unknown feature "${fid}"` }); };
   p.workloads.forEach((w, i) => feat(["workloads", i, "featureId"], w.featureId));
+  p.workloads.forEach((w, i) => { if (w.kind === "hosting" && w.volumeFrom !== undefined && !workloads.has(w.volumeFrom)) out.push({ path: ["workloads", i, "volumeFrom"], message: `Unknown workload "${w.volumeFrom}"` }); });
   p.build.workstreams.forEach((w, i) => feat(["build", "workstreams", i, "featureId"], w.featureId));
   p.build.activities.forEach((a, i) => feat(["build", "activities", i, "featureId"], a.featureId));
   p.benefits.capabilities.forEach((c, i) => {

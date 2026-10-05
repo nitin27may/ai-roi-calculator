@@ -1,4 +1,6 @@
 import type { Catalog } from "@studio/catalog";
+import { resolveAssumptions } from "./assumptions.js";
+import { requestVolumes } from "./hosting.js";
 import { PriceBook, monthDate, type PriceNote } from "./pricing.js";
 import type { Project } from "./project.js";
 import type { Percentile } from "./harness.js";
@@ -58,6 +60,8 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
   const book = new PriceBook(catalog, p.settings);
   const B = p.timeline.buildMonths;
   const harnesses = new Map(p.harnesses.map((h) => [h.id, h]));
+  const assumptions = resolveAssumptions(p);
+  const volumes = requestVolumes(p.workloads);
   const devCut = 1 - p.roi.devCutPct / 100;
   const maintCut = 1 - p.roi.maintCutPct / 100;
   const rates = new Map(p.rateCard.map((r) => [r.id, r.hourlyRate]));
@@ -96,7 +100,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
         const win = workloadWindow(p, w);
         const active = m >= win.start && m <= win.end;
         const usage = (win.ramp === 0 ? 1 : Math.min(1, (m - win.start + 1) / win.ramp)) * g;
-        for (const l of workloadLines(w, { book, date, harnesses, percentile, language: p.settings.language })) {
+        for (const l of workloadLines(w, { book, date, harnesses, percentile, language: p.settings.language, assumptions, volumes })) {
           if (l.once) { if (m === Math.max(B + 1, l.onceMonth ?? win.start)) lines.push(l); continue; }
           if (!active) continue;
           lines.push(l.behaviour === "usage" ? { ...l, quantity: l.quantity * usage, cost: l.cost * usage } : l);
@@ -104,7 +108,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
         const key = oneTimeKey(w);
         if (w.oneTime && key && m === Math.max(B + 1, w.oneTime.month ?? win.start)) {
           const once = { ...w, [key]: w.oneTime.volume } as typeof w;
-          for (const l of workloadLines(once, { book, date, harnesses, percentile, language: p.settings.language })) {
+          for (const l of workloadLines(once, { book, date, harnesses, percentile, language: p.settings.language, assumptions, volumes })) {
             if (l.behaviour !== "usage" || l.once) continue;
             lines.push({ ...l, id: `${l.id}:once`, label: `${l.label} (one-time volume)`, behaviour: "fixed", once: true });
           }

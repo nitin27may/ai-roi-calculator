@@ -114,7 +114,7 @@ describe("defaults leave existing results unchanged", () => {
     }
   });
   it("the project is at the current version and v3 projects migrate with an empty value list", () => {
-    expect(CURRENT_PROJECT_VERSION).toBe(4);
+    expect(CURRENT_PROJECT_VERSION).toBe(5);
     const v3 = structuredClone(meetingIntelligence) as unknown as Record<string, unknown>;
     v3.version = 3;
     const benefits = { ...(v3.benefits as Record<string, unknown>) };

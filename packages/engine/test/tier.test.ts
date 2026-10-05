@@ -108,7 +108,7 @@ describe("PTU grouping keeps tiers apart", () => {
 
 describe("golden totals (P3 updates these on purpose; see the PR description for the before/after table)", () => {
   const GOLDEN: Record<string, { build: number; buildLabour: number; devLab: number; runRate: number; maintRate: number; benefitRate: number }> = {
-    meeting: { build: 408406.7811147148, buildLabour: 340800, devLab: 66454.51411471477, runRate: 8023.217055634784, maintRate: 6080, benefitRate: 36550 },
+    meeting: { build: 408406.7811147148, buildLabour: 340800, devLab: 66454.51411471477, runRate: 8167.303855634784, maintRate: 6080, benefitRate: 36550 },
     rag: { build: 185230.87201448006, buildLabour: 176000.00000000003, devLab: 9230.872014479999, runRate: 1501.70148475, maintRate: 3088.484433574667, benefitRate: 25000 },
     email: { build: 195272.98575291323, buildLabour: 176000.00000000003, devLab: 19272.985752913202, runRate: 5290.245381000001, maintRate: 3255.8529958818863, benefitRate: 56250 },
     voice: { build: 238197.24190726003, buildLabour: 220000.00000000003, devLab: 18197.24190726, runRate: 7796.544353720001, maintRate: 3971.583073454333, benefitRate: 75000 },
