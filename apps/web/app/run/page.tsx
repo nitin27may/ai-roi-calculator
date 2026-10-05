@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, availableIn, type AzureDeployment, cascadeCall, agentAddedFor, featureBreakdown, harnessUsage, newFeature, newHarness, newWorkload, removeFeature, removeWorkload, simulateHarness, sizeSearch, steadyState, voiceCall, workloadRange, type Workload } from "@studio/engine";
+import { DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, availableIn, resolveAssumptions, type AzureDeployment, cascadeCall, agentAddedFor, featureBreakdown, harnessUsage, newFeature, newHarness, newWorkload, removeFeature, removeWorkload, simulateHarness, sizeSearch, steadyState, voiceCall, workloadRange, type Workload } from "@studio/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Pill, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
 import { Plus } from "lucide-react";
 import { RangeBar } from "@/components/charts";
@@ -11,11 +11,12 @@ import { catalog, modelOptions, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad, fmt } from "@/lib/format";
 import { CostItems, FeatureSelect, WorkloadTiming } from "@/components/feature-fields";
+import { CapacityPanel, HostingPanel, ImagesPanel, ToolFeesPanel } from "@/components/p10-panels";
 
 const GROUP: Record<Workload["kind"], string> = {
   transcription: "Ingestion", documents: "Ingestion", email: "Ingestion", embeddings: "Retrieval", aiSearch: "Retrieval", retrieval: "Retrieval",
   chat: "Conversation", agent: "Agents", continuousEval: "Quality & safety", contentSafety: "Quality & safety", llm: "Other AI usage", fixed: "Platform",
-  voiceAgent: "Voice", snowflakeComplete: "Snowflake", snowflakeFunction: "Snowflake", cortexSearch: "Snowflake",
+  voiceAgent: "Voice", snowflakeComplete: "Snowflake", snowflakeFunction: "Snowflake", cortexSearch: "Snowflake", hosting: "Platform",
 };
 const ORDER = ["Ingestion", "Retrieval", "Conversation", "Voice", "Agents", "Quality & safety", "Snowflake", "Other AI usage", "Platform"];
 
@@ -99,6 +100,7 @@ function summary(w: Workload): string {
     case "contentSafety": return `${fmt(w.requestsPerMonth)} requests`;
     case "llm": return `${fmt(w.callsPerMonth)} calls · ${w.modelId}`;
     case "fixed": return w.items.map((i) => i.label).join(" · ");
+    case "hosting": return `${w.items.length} item${w.items.length === 1 ? "" : "s"} · ${fmt(w.requestsPerMonth)} requests`;
     case "voiceAgent": return `${fmt(w.callsPerMonth)} calls × ${w.minutesPerCall} min · ${w.modelId}`;
     case "snowflakeComplete": return `${fmt(w.rowsPerMonth)} rows · ${w.modelId.replace(/^sf:/, "")}`;
     case "snowflakeFunction": return `${fmt(w.rowsPerMonth)} rows · ${catalog.unitPrices.find((u) => u.id === w.functionId)?.label}`;
@@ -240,6 +242,10 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
       <div className="max-w-xs"><FeatureSelect value={w.featureId} onChange={(v) => edit((d) => { const x = d.workloads.find((y) => y.id === w.id); if (x) { if (v) x.featureId = v; else delete x.featureId; } })} /></div>
       {WORKLOAD_SPECS[w.kind] && <Fields specs={WORKLOAD_SPECS[w.kind]!} value={w as unknown as Record<string, unknown>} locate={locate} />}
       {w.kind === "documents" && <DocumentRoute id={w.id} />}
+      {w.kind === "hosting" && <HostingPanel w={w} />}
+      {(w.kind === "chat" || w.kind === "agent") && <ToolFeesPanel w={w} />}
+      {(w.kind === "chat" || w.kind === "llm") && <ImagesPanel w={w} />}
+      {(w.kind === "chat" || w.kind === "llm" || w.kind === "agent") && <CapacityPanel w={w} />}
       {w.kind === "fixed" && <CostItems items={w.items} locate={(d) => { const x = d.workloads.find((y) => y.id === w.id); return x?.kind === "fixed" ? x.items : undefined; }} idPrefix="item" firstMonthLabel="go-live" />}
       {"warehouse" in w && w.warehouse && (
         <div>
@@ -280,12 +286,14 @@ function VoiceCompare({ id }: { id: string }) {
   const book = useBook(w && "deployment" in w ? w.deployment : undefined);
   if (w?.kind !== "voiceAgent") return null;
   const date = (ledger.months.find((m) => m.phase === "production") ?? ledger.months.at(-1)!).date;
+  const A = resolveAssumptions(project);
+  const fnCall = { input: A.voiceFunctionCallInputTokens, output: A.voiceFunctionCallOutputTokens };
   const rows = [
-    ...catalog.realtimeModels.map((m) => ({ key: m.id, label: `${m.label} (speech to speech)`, perCall: voiceCall({ ...w, modelId: m.id }, book).cost, current: m.id === w.modelId, use: () => edit((d) => { const x = d.workloads.find((y) => y.id === id); if (x?.kind === "voiceAgent") x.modelId = m.id; }) })),
+    ...catalog.realtimeModels.map((m) => ({ key: m.id, label: `${m.label} (speech to speech)`, perCall: voiceCall({ ...w, modelId: m.id }, book, fnCall).cost, current: m.id === w.modelId, use: () => edit((d) => { const x = d.workloads.find((y) => y.id === id); if (x?.kind === "voiceAgent") x.modelId = m.id; }) })),
     ...[["speech-realtime", "Speech real-time"], ["mai-transcribe-2-streaming", "MAI-Transcribe-2 Streaming"]].flatMap(([stt, sttL]) =>
       [["gpt-5.4-mini", "GPT-5.4-mini"], ["gpt-5.4", "GPT-5.4"]].flatMap(([llm, llmL]) =>
         [["tts-neural", "Neural TTS"], ["tts-mai-voice-2-flash", "MAI-Voice-2.1-Flash"]].map(([tts, ttsL]) => ({
-          key: `${stt}-${llm}-${tts}`, label: `${sttL} → ${llmL} → ${ttsL}`, perCall: cascadeCall(w, book, date, { sttId: stt!, llmId: llm!, ttsId: tts! }).cost, current: false, use: null as null | (() => void),
+          key: `${stt}-${llm}-${tts}`, label: `${sttL} → ${llmL} → ${ttsL}`, perCall: cascadeCall(w, book, date, { sttId: stt!, llmId: llm!, ttsId: tts! }, fnCall).cost, current: false, use: null as null | (() => void),
         })))),
   ].sort((a, b) => a.perCall - b.perCall);
   return (
