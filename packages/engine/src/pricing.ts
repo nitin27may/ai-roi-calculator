@@ -214,6 +214,11 @@ export class PriceBook {
     return heuristics.tokens.tokenizerMultiplier[this.chatModel(id).tokenizer];
   }
 
+  /** Whether `id` is a reasoning model (bills reasoning tokens as output); false for models the catalogue doesn't mark. */
+  isReasoningModel(id: string): boolean {
+    return this.chatModel(id).reasoning === true;
+  }
+
   embeddingPer1M(id: string): number {
     const e = this.catalog.embeddingModels.find((x) => x.id === id);
     if (!e) throw new Error(`Unknown embedding model "${id}"`);

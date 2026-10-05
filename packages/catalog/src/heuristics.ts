@@ -42,6 +42,14 @@ export const heuristics = {
     /** P90 multipliers on steps and tool-result size (published runs vary ~30×; P90 ≈ 1.8× steps). */
     p90: { steps: 1.8, toolResult: 1.5 },
     retryRate: 0.05,
+    /** Below this many tokens, providers don't cache a prompt at all (Anthropic/OpenAI both document ~1,024). */
+    minCacheableTokens: 1024,
+    /**
+     * Production agent volume above which tasks run close enough together (within the provider's
+     * cache TTL, typically 5–10 minutes) that the static prefix stays warm across tasks, and the
+     * share of it that is warm as a result.
+     */
+    warmPrefix: { tasksPerMonthThreshold: 1000, share: 0.9 },
   },
   search: { hnswOverhead: 0.01, deletedDocs: 0.1, diskToVectorRatio: 3, bytesPerTextToken: 4 },
   evaluation: {

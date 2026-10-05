@@ -74,6 +74,8 @@ export const ChatModel = z.object({
   platform: z.enum(["azure", "snowflake"]),
   vendor: z.enum(["openai", "anthropic", "microsoft", "meta", "mistral", "deepseek", "xai", "cohere", "snowflake", "other"]),
   tokenizer: TokenizerFamily,
+  /** True for reasoning models (o-series, GPT-5.x/6.x, Claude 4.5+ extended thinking, MAI-Thinking, DeepSeek R1-class): bills reasoning tokens as output. */
+  reasoning: z.boolean().optional(),
   contextWindow: z.number().int().positive(),
   maxOutput: z.number().int().positive(),
   /**

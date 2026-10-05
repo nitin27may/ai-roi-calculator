@@ -43,6 +43,7 @@ export interface StepTrace {
   step: number;
   promptTokens: number;
   cachedTokens: number;
+  cacheWriteTokens: number;
   outputTokens: number;
   cost: number;
   compacted: boolean;
@@ -52,13 +53,16 @@ export interface RunResult {
   steps: number;
   inputTokens: number;
   cachedTokens: number;
+  /** Tokens written to cache for later reuse (billed at the model's cacheWrite rate, or input if it has none). */
+  cacheWriteTokens: number;
   outputTokens: number;
   /** CAD per task, including expected retries for P50/P90. */
   cost: number;
   trace: StepTrace[];
 }
 
-const reasoningTokens = (r: ReasoningEffort | number) => (typeof r === "number" ? r : heuristics.agents.reasoningPerStep[r]);
+/** Reasoning tokens for an effort level (or an explicit count); shared by the agent harness and the chat/llm workloads. */
+export const reasoningTokens = (r: ReasoningEffort | number) => (typeof r === "number" ? r : heuristics.agents.reasoningPerStep[r]);
 
 /**
  * Step-by-step simulation of an agent loop: every call re-sends the prefix plus the growing
@@ -73,10 +77,12 @@ export function simulateHarness(h: HarnessDef, book: PriceBook, o: RunOptions): 
 
   const T = worst ? h.maxTurns : Math.min(h.maxTurns, Math.max(1, Math.ceil(h.steps * (p90 ? heuristics.agents.p90.steps : 1))));
   const toolResult = h.toolResultTokens * (p90 || worst ? heuristics.agents.p90.toolResult : 1);
-  const eta = worst ? 0 : o.cacheHit;
-  const warm = worst ? 0 : (o.warmPrefix ?? 0);
   const overhead = h.tools > 0 ? model.toolUseOverheadTokens : 0;
   const staticPrefix = (h.systemPromptTokens + h.tools * h.tokensPerTool) * tk + overhead;
+  // Below the provider's minimum cacheable prompt size, nothing is ever cached or written.
+  const cacheable = staticPrefix >= heuristics.agents.minCacheableTokens;
+  const eta = worst || !cacheable ? 0 : o.cacheHit;
+  const warm = worst || !cacheable ? 0 : (o.warmPrefix ?? 0);
   const P = staticPrefix + h.userInputTokens * tk;
   const reason = reasoningTokens(h.reasoning);
   const cap = Math.min(h.compactAtTokens > 0 ? h.compactAtTokens : Infinity, model.contextWindow - h.maxTokensPerCall);
@@ -85,7 +91,7 @@ export function simulateHarness(h: HarnessDef, book: PriceBook, o: RunOptions): 
   let prevPrompt = 0;
   let cacheBroken = false;
   const trace: StepTrace[] = [];
-  let inT = 0, cachedT = 0, outT = 0, cost = 0;
+  let inT = 0, cachedT = 0, cacheWriteT = 0, outT = 0, cost = 0;
 
   for (let k = 1; k <= T; k++) {
     let compacted = false;
@@ -104,19 +110,22 @@ export function simulateHarness(h: HarnessDef, book: PriceBook, o: RunOptions): 
       } else prompt = cap;
     }
     const cached = k === 1 ? warm * staticPrefix : cacheBroken ? 0 : eta * Math.min(prevPrompt, prompt);
+    // The static prefix is written once per cache lifetime: on the first call, for the share that isn't already warm.
+    const write = k === 1 && (eta > 0 || warm > 0) ? (1 - warm) * staticPrefix : 0;
     cacheBroken = false;
     const last = k === T;
     const visible = (last ? h.finalOutputTokens : h.outputPerStep) * tk;
     const out = Math.min(h.maxTokensPerCall, visible + reason);
-    const stepCost = book.chatCost(o.modelId, { input: prompt - cached, cachedInput: cached, output: out }, o.date, prompt);
-    trace.push({ step: k, promptTokens: prompt, cachedTokens: cached, outputTokens: out, cost: stepCost, compacted });
-    inT += prompt - cached;
+    const stepCost = book.chatCost(o.modelId, { input: prompt - cached - write, cachedInput: cached, output: out, cacheWrite: write }, o.date, prompt);
+    trace.push({ step: k, promptTokens: prompt, cachedTokens: cached, cacheWriteTokens: write, outputTokens: out, cost: stepCost, compacted });
+    inT += prompt - cached - write;
     cachedT += cached;
+    cacheWriteT += write;
     outT += out;
     cost += stepCost;
     prevPrompt = prompt;
     hist += h.outputPerStep * tk + (h.keepReasoning ? reason : 0) + (last ? 0 : h.toolCallsPerStep * toolResult * tk);
   }
   const retry = worst ? 1 : 1 + h.retryRate;
-  return { steps: T, inputTokens: inT, cachedTokens: cachedT, outputTokens: outT, cost: cost * retry, trace };
+  return { steps: T, inputTokens: inT, cachedTokens: cachedT, cacheWriteTokens: cacheWriteT, outputTokens: outT, cost: cost * retry, trace };
 }
