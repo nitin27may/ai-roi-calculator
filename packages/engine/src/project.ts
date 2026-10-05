@@ -7,6 +7,11 @@ const id = z.string().min(1);
 const n0 = z.number().nonnegative();
 const share = z.number().min(0).max(1);
 
+/** Same shape as the harness's reasoning effort; billed as output tokens, only for models the catalogue marks as reasoning models. Defaults to "none" so existing saved projects don't silently change cost. */
+const ReasoningSetting = z.union([z.enum(["none", "low", "medium", "high"]), n0]).default("none");
+/** ISO 639-1 code into `heuristics.tokens.language`; absent means the project's (or English's) default. */
+const LanguageSetting = z.string().optional();
+
 export const HarnessSchema = z.object({
   id, label: z.string(),
   systemPromptTokens: n0, tools: z.number().int().nonnegative(), tokensPerTool: n0, userInputTokens: n0,
@@ -56,7 +61,7 @@ export const DevActivitySchema = z.discriminatedUnion("kind", [
   }),
   z.object({
     kind: z.literal("playground"), id, label: z.string(), ...Scope, modelId: id,
-    callsPerDevPerDay: n0, inputTokens: n0, outputTokens: n0, workingDays: n0,
+    callsPerDevPerDay: n0, inputTokens: n0, outputTokens: n0, workingDays: n0, reasoning: ReasoningSetting,
     /** Intensity per month (1 = full); last value repeats. */
     monthFactors: z.array(n0).default([1]),
   }),
@@ -64,7 +69,7 @@ export const DevActivitySchema = z.discriminatedUnion("kind", [
     /** Synthetic test or training data: generate, then keep what a judge model accepts. */
     kind: z.literal("synthetic"), id, label: z.string(), ...Scope,
     generatorModelId: id, acceptedPerMonth: n0, passRate: z.number().min(0.01).max(1),
-    genInputTokens: n0, genOutputTokens: n0,
+    genInputTokens: n0, genOutputTokens: n0, reasoning: ReasoningSetting,
     /** Optional judge pass that filters the generated examples. */
     judgeModelId: id.optional(), judgeInputTokens: n0, judgeOutputTokens: n0,
     batchShare: share,
@@ -104,23 +109,24 @@ const tier = ProcessingTier.optional();
 export const WorkloadSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("transcription"), id, label: z.string(), deployment, tier, hoursPerMonth: n0, engineId: id, diarize: z.boolean(),
-    summary: z.object({ modelId: id, outputTokens: n0 }).optional(),
+    summary: z.object({ modelId: id, outputTokens: n0, reasoning: ReasoningSetting }).optional(),
   }),
   z.object({
     kind: z.literal("documents"), id, label: z.string(), deployment, tier, pagesPerMonth: n0,
     pageType: z.enum(["plain", "dense", "slide", "spreadsheet"]),
     route: z.discriminatedUnion("type", [
       z.object({ type: z.literal("extract"), extractorId: id, addOnIds: z.array(id).default([]) }),
-      z.object({ type: z.literal("direct"), modelId: id }),
+      /** `outputTokens`: per-page output (extracted fields/summary); 0 kept the old (undercounted) behaviour. */
+      z.object({ type: z.literal("direct"), modelId: id, outputTokens: n0.default(50) }),
     ]),
-    enrich: z.object({ modelId: id, pagesPerDoc: z.number().positive(), outputTokensPerDoc: n0 }).optional(),
+    enrich: z.object({ modelId: id, pagesPerDoc: z.number().positive(), outputTokensPerDoc: n0, reasoning: ReasoningSetting }).optional(),
     /** Snowflake virtual warehouse that runs AI_PARSE_DOCUMENT (platform credits). */
     warehouse: Warehouse.optional(),
   }),
   z.object({
     kind: z.literal("email"), id, label: z.string(), deployment, tier, emailsPerMonth: n0, bodyExtractorId: id, attachmentExtractorId: id,
     attachmentShare: share, attachmentsPerEmail: n0, pagesPerAttachment: n0, dedupe: share,
-    triage: z.object({ modelId: id, outputTokens: n0 }).optional(),
+    triage: z.object({ modelId: id, outputTokens: n0, reasoning: ReasoningSetting }).optional(),
   }),
   z.object({ kind: z.literal("embeddings"), id, label: z.string(), deployment, tier, tokensPerMonth: n0, modelId: id }),
   z.object({
@@ -129,11 +135,12 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
   }),
   z.object({
     kind: z.literal("retrieval"), id, label: z.string(), deployment, tier, queriesPerMonth: n0, semanticShare: share,
-    rerankerId: id.optional(), agentic: z.object({ subqueries: n0, chunksPerSubquery: n0, tokensPerChunk: n0, plannerModelId: id }).optional(),
+    rerankerId: id.optional(), agentic: z.object({ subqueries: n0, chunksPerSubquery: n0, tokensPerChunk: n0, plannerModelId: id, reasoning: ReasoningSetting }).optional(),
   }),
   z.object({
     kind: z.literal("chat"), id, label: z.string(), deployment, tier, users: n0, conversationsPerUser: n0, turns: z.number().positive(), modelId: id,
     systemPromptTokens: n0, userTurnTokens: n0, assistantTurnTokens: n0, topK: n0, chunkTokens: n0, cacheHit: share,
+    reasoning: ReasoningSetting, language: LanguageSetting,
     /** Share of turns routed to a cheaper model. */
     router: z.object({ modelId: id, share }).optional(),
   }),
@@ -149,6 +156,7 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("llm"), id, label: z.string(), deployment, tier, callsPerMonth: n0, modelId: id,
     inputTokens: n0, cachedInputTokens: n0, outputTokens: n0, batchShare: share,
+    reasoning: ReasoningSetting, language: LanguageSetting,
   }),
   z.object({ kind: z.literal("fixed"), id, label: z.string(), group: z.string(), items: z.array(FixedItemSchema) }),
   z.object({
@@ -257,6 +265,8 @@ export const ProjectSchema = z.object({
     azureDeployment: z.enum(["global", "regional", "dataZone"]),
     /** Default processing tier for every Azure chat workload; each workload can choose its own. Absent = Standard. */
     processingTier: ProcessingTier.optional(),
+    /** Default text language for token counts (heuristics.tokens.language); a workload can override it. */
+    language: z.string().default("en"),
     snowflake: z.object({
       routing: z.enum(["global", "regional"]),
       edition: z.enum(["standard", "enterprise", "businessCritical", "vps"]),
