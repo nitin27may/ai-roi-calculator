@@ -5,6 +5,13 @@ import { useStudio } from "@/lib/store";
 import { cad } from "@/lib/format";
 import { DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, type AzureDeployment, type ProcessingTier } from "@studio/engine";
 
+/** heuristics.tokens.language keys, with display names. */
+const LANGUAGE_OPTIONS = [
+  { value: "en", label: "English" }, { value: "fr", label: "French" }, { value: "es", label: "Spanish" },
+  { value: "de", label: "German" }, { value: "zh", label: "Chinese" }, { value: "ja", label: "Japanese" },
+  { value: "hi", label: "Hindi" }, { value: "ar", label: "Arabic" },
+];
+
 export default function Settings() {
   const project = useStudio((s) => s.project);
   const edit = useStudio((s) => s.edit);
@@ -21,6 +28,7 @@ export default function Settings() {
           <Field label="Build months"><NumberInput value={project.timeline.buildMonths} min={1} max={24} onChange={(v) => edit((d) => { d.timeline.buildMonths = Math.round(v); })} /></Field>
           <Field label="Plan length (months)"><NumberInput value={project.timeline.horizonMonths} min={12} max={120} onChange={(v) => edit((d) => { d.timeline.horizonMonths = Math.round(v); })} /></Field>
           <Field label="Adoption ramp (months)"><NumberInput value={project.timeline.adoptionRampMonths} min={0} max={24} onChange={(v) => edit((d) => { d.timeline.adoptionRampMonths = Math.round(v); })} /></Field>
+          <Field label="Default language"><Select value={project.settings.language ?? "en"} options={LANGUAGE_OPTIONS} onChange={(v) => edit((d) => { d.settings.language = v; })} /></Field>
         </div>
       </Card>
       <Card>

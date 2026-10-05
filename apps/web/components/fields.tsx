@@ -4,6 +4,15 @@ import { DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, type AzureDeployment 
 import { catalog, deploymentOptions, modelOptions } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 
+/** heuristics.tokens.language keys, with display names for the Settings/workload Language picker. */
+const LANGUAGE_OPTIONS = [
+  { value: "en", label: "English" }, { value: "fr", label: "French" }, { value: "es", label: "Spanish" },
+  { value: "de", label: "German" }, { value: "zh", label: "Chinese" }, { value: "ja", label: "Japanese" },
+  { value: "hi", label: "Hindi" }, { value: "ar", label: "Arabic" },
+];
+const REASONING_SPEC: Spec = { key: "reasoning", label: "Reasoning effort", type: "select", options: ["none", "low", "medium", "high"].map((v) => ({ value: v, label: v })) };
+const LANGUAGE_SPEC: Spec = { key: "language", label: "Language", type: "language" };
+
 export type Spec =
   | { key: string; label: string; type: "number"; min?: number; max?: number; step?: number; suffix?: string }
   | { key: string; label: string; type: "percent" }
@@ -11,6 +20,7 @@ export type Spec =
   | { key: string; label: string; type: "optionalModel" }
   | { key: string; label: string; type: "deployment" }
   | { key: string; label: string; type: "tier" }
+  | { key: string; label: string; type: "language" }
   | { key: string; label: string; type: "select"; options: { value: string; label: string }[]; numeric?: boolean }
   | { key: string; label: string; type: "toggle" }
   | { key: string; label: string; type: "list"; hint: string };
@@ -24,6 +34,7 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
   const set = (key: string, v: unknown) => edit((d) => { const o = locate(d); if (o) o[key] = v; });
   const projectDeployment = useStudio((s) => s.project.settings.azureDeployment);
   const projectTier = useStudio((s) => s.project.settings.processingTier) ?? "standard";
+  const projectLanguage = useStudio((s) => s.project.settings.language) ?? "en";
   // Pickers filter by the workload's own deployment when it has one.
   const deployment = (value.deployment as AzureDeployment | undefined) ?? projectDeployment;
   const optionsFor = (t: string) => {
@@ -68,6 +79,15 @@ export function Fields({ specs, value, locate }: { specs: Spec[]; value: Obj; lo
                   options={[{ value: "", label: `Project default (${TIER_LABEL[projectTier]})` }, ...TIERS.map((t) => ({ value: t, label: TIER_LABEL[t] }))]} />
               </Field>
             );
+          case "language": {
+            const projectLabel = LANGUAGE_OPTIONS.find((o) => o.value === projectLanguage)?.label ?? projectLanguage;
+            return (
+              <Field key={s.key} label={s.label}>
+                <Select value={v ? String(v) : ""} onChange={(x) => set(s.key, x || undefined)}
+                  options={[{ value: "", label: `Project default (${projectLabel})` }, ...LANGUAGE_OPTIONS]} />
+              </Field>
+            );
+          }
           case "list":
             return (
               // Keyed by value so edits made elsewhere (e.g. the plan grid) show up here.
@@ -134,6 +154,7 @@ export const ACTIVITY_SPECS: Record<string, Spec[]> = {
     { key: "inputTokens", label: "Input tokens / call", type: "number" },
     { key: "outputTokens", label: "Output tokens / call", type: "number" },
     { key: "workingDays", label: "Working days / month", type: "number", max: 31 },
+    REASONING_SPEC,
     { key: "monthFactors", label: "Intensity by month", type: "list", hint: "1 = full" },
   ],
   synthetic: [
@@ -142,6 +163,7 @@ export const ACTIVITY_SPECS: Record<string, Spec[]> = {
     { key: "passRate", label: "Pass rate", type: "percent" },
     { key: "genInputTokens", label: "Generation input tokens", type: "number" },
     { key: "genOutputTokens", label: "Generation output tokens", type: "number" },
+    REASONING_SPEC,
     { key: "judgeModelId", label: "Judge model", type: "optionalModel" },
     { key: "judgeInputTokens", label: "Judge input tokens", type: "number" },
     { key: "judgeOutputTokens", label: "Judge output tokens", type: "number" },
@@ -220,6 +242,7 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
     { key: "topK", label: "Chunks retrieved", type: "number" },
     { key: "chunkTokens", label: "Tokens per chunk", type: "number" },
     { key: "cacheHit", label: "Cache hit", type: "percent" },
+    REASONING_SPEC, LANGUAGE_SPEC,
   ],
   agent: [
     { key: "deployment", label: "Deployment", type: "deployment" },
@@ -250,6 +273,7 @@ export const WORKLOAD_SPECS: Record<string, Spec[]> = {
     { key: "cachedInputTokens", label: "Cached input tokens", type: "number" },
     { key: "outputTokens", label: "Output tokens", type: "number" },
     { key: "batchShare", label: "Sent through Batch", type: "percent" },
+    REASONING_SPEC, LANGUAGE_SPEC,
   ],
 };
 

@@ -68,8 +68,8 @@ export function newActivity(p: Project, kind: DevActivity["kind"]): DevActivity 
     case "regression": return { kind, id, label, harnessId: ensureHarness(p), modelIds: [DEFAULT_MODEL], runsPerMonth: 30, cases: 200, cacheHit: 0.5, batchShare: 1, fromMonth: Math.min(3, B), monthFactors: [1] };
     case "evaluation": return { kind, id, label, judgeModelId: JUDGE_MODEL, evaluators: ["groundedness", "relevance", "coherence", "taskAdherence"], queryTokens: 150, contextTokens: 2500, responseTokens: 600, scoredShare: { bakeoff: 1, iterations: 0.3, regression: 1 }, safetyEvaluators: 4 };
     case "redteam": return { kind, id, label, targetModelId: DEFAULT_MODEL, scansPerMonth: 4, categories: 4, objectivesPerCategory: 10, strategies: 5, multiTurnShare: 0.2, fromMonth: Math.max(1, B - 1), monthFactors: [1] };
-    case "playground": return { kind, id, label, modelId: DEFAULT_MODEL, callsPerDevPerDay: 40, inputTokens: 3000, outputTokens: 600, workingDays: 21, monthFactors: [1] };
-    case "synthetic": return { kind, id, label, generatorModelId: DEFAULT_MODEL, acceptedPerMonth: 2000, passRate: 0.6, genInputTokens: 1500, genOutputTokens: 700, judgeModelId: JUDGE_MODEL, judgeInputTokens: 1200, judgeOutputTokens: 150, batchShare: 1, monthFactors: [1, 0.5, 0] };
+    case "playground": return { kind, id, label, modelId: DEFAULT_MODEL, callsPerDevPerDay: 40, inputTokens: 3000, outputTokens: 600, workingDays: 21, reasoning: "none", monthFactors: [1] };
+    case "synthetic": return { kind, id, label, generatorModelId: DEFAULT_MODEL, acceptedPerMonth: 2000, passRate: 0.6, genInputTokens: 1500, genOutputTokens: 700, reasoning: "none", judgeModelId: JUDGE_MODEL, judgeInputTokens: 1200, judgeOutputTokens: 150, batchShare: 1, monthFactors: [1, 0.5, 0] };
     case "finetune": return { kind, id, label, trainingPriceId: "ft-train-gpt-4.1-mini", runsPerMonth: 3, examples: 5000, tokensPerExample: 1500, epochs: 3, hoursPerRun: 0, deployments: 1, hostingHoursPerMonth: 160, monthFactors: [0, 1] };
     case "tooling": return { kind, id, label, copilotSeatsPerDev: 1, copilotPlan: "copilot-business", codingModelId: "claude-sonnet-5-5", codingTokensPerDevPerDay: { input: 400000, cachedInput: 2400000, output: 60000 }, workingDays: 21, monthFactors: [1] };
   }
@@ -79,17 +79,17 @@ export function newWorkload(p: Project, kind: Workload["kind"]): Workload {
   const label = WORKLOAD_KINDS.find((k) => k.kind === kind)!.label;
   const id = uniqueId(p, kind);
   switch (kind) {
-    case "transcription": return { kind, id, label, hoursPerMonth: 500, engineId: "speech-batch", diarize: true, summary: { modelId: JUDGE_MODEL, outputTokens: 800 } };
+    case "transcription": return { kind, id, label, hoursPerMonth: 500, engineId: "speech-batch", diarize: true, summary: { modelId: JUDGE_MODEL, outputTokens: 800, reasoning: "none" } };
     case "documents": return { kind, id, label, pagesPerMonth: 10000, pageType: "dense", route: { type: "extract", extractorId: "di-layout", addOnIds: [] } };
     case "email": return { kind, id, label, emailsPerMonth: 50000, bodyExtractorId: "cu-doc-minimal", attachmentExtractorId: "di-read", attachmentShare: 0.25, attachmentsPerEmail: 1.5, pagesPerAttachment: 5, dedupe: 0.7 };
     case "embeddings": return { kind, id, label, tokensPerMonth: 20_000_000, modelId: "text-embedding-3-small" };
     case "aiSearch": return { kind, id, label, chunks: 200_000, embeddingModelId: "text-embedding-3-small", bytesPerDim: 4, chunkTokens: 512, replicas: 2 };
     case "retrieval": return { kind, id, label, queriesPerMonth: 50_000, semanticShare: 1 };
-    case "chat": return { kind, id, label, users: 500, conversationsPerUser: 20, turns: 4, modelId: DEFAULT_MODEL, systemPromptTokens: 600, userTurnTokens: 100, assistantTurnTokens: 400, topK: 5, chunkTokens: 512, cacheHit: 0.4 };
+    case "chat": return { kind, id, label, users: 500, conversationsPerUser: 20, turns: 4, modelId: DEFAULT_MODEL, systemPromptTokens: 600, userTurnTokens: 100, assistantTurnTokens: 400, topK: 5, chunkTokens: 512, cacheHit: 0.4, reasoning: "low" };
     case "agent": return { kind, id, label, harnessId: ensureHarness(p), modelId: DEFAULT_MODEL, tasksPerMonth: 2000, cacheHit: 0.8, toolFees: [] };
     case "continuousEval": return { kind, id, label, interactionsPerMonth: 50_000, sampleShare: 0.05, judgeModelId: JUDGE_MODEL, evaluators: ["groundedness", "relevance", "coherence"], contextTokens: 2500, responseTokens: 400, safetyEvaluators: 0 };
     case "contentSafety": return { kind, id, label, requestsPerMonth: 50_000, charsPerRequest: 3000, unitPriceIds: ["safety-text", "safety-prompt-shields"] };
-    case "llm": return { kind, id, label, callsPerMonth: 10_000, modelId: DEFAULT_MODEL, inputTokens: 2000, cachedInputTokens: 0, outputTokens: 500, batchShare: 0 };
+    case "llm": return { kind, id, label, callsPerMonth: 10_000, modelId: DEFAULT_MODEL, inputTokens: 2000, cachedInputTokens: 0, outputTokens: 500, batchShare: 0, reasoning: "none" };
     case "voiceAgent": return { kind, id, label, modelId: "gpt-realtime-2.1-mini", callsPerMonth: 5000, minutesPerCall: 5, turnsPerCall: 12, agentTalkShare: 0.5, systemPromptTokens: 1500, cacheHit: 0.8, telephonyPerMinute: 0 };
     case "snowflakeComplete": return { kind, id, label, modelId: "sf:openai-gpt-5", rowsPerMonth: 50_000, inputTokens: 800, outputTokens: 200, warehouse: { size: "m", hoursPerMonth: 20 } };
     case "snowflakeFunction": return { kind, id, label, functionId: "sf-ai-classify", rowsPerMonth: 100_000, tokensPerRow: 300, hiddenPromptTokens: 150, outputTokensPerRow: 10, warehouse: { size: "m", hoursPerMonth: 10 } };

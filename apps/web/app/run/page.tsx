@@ -231,10 +231,13 @@ function DocumentRoute({ id }: { id: string }) {
   const route = w.route;
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-2.5">
-      <Field label="Route"><Select value={route.type} options={[{ value: "extract", label: "Extract text first" }, { value: "direct", label: "PDF straight to a model" }]} onChange={(v) => set((x) => { x.route = v === "direct" ? { type: "direct", modelId: "gpt-5.4-mini" } : { type: "extract", extractorId: "di-layout", addOnIds: [] }; })} /></Field>
+      <Field label="Route"><Select value={route.type} options={[{ value: "extract", label: "Extract text first" }, { value: "direct", label: "PDF straight to a model" }]} onChange={(v) => set((x) => { x.route = v === "direct" ? { type: "direct", modelId: "gpt-5.4-mini", outputTokens: 50 } : { type: "extract", extractorId: "di-layout", addOnIds: [] }; })} /></Field>
       {route.type === "extract"
         ? <Field label="Extraction service"><Select value={route.extractorId} options={extractors} onChange={(v) => set((x) => { if (x.route.type === "extract") x.route.extractorId = v; if (v.startsWith("sf-") && !x.warehouse) x.warehouse = { size: "m", hoursPerMonth: 10 }; if (!v.startsWith("sf-")) delete x.warehouse; })} /></Field>
-        : <Field label="Model"><Select value={route.modelId} options={models} onChange={(v) => set((x) => { if (x.route.type === "direct") x.route.modelId = v; })} /></Field>}
+        : <>
+            <Field label="Model"><Select value={route.modelId} options={models} onChange={(v) => set((x) => { if (x.route.type === "direct") x.route.modelId = v; })} /></Field>
+            <Field label="Output tokens / page"><NumberInput value={route.outputTokens} min={0} onChange={(n) => set((x) => { if (x.route.type === "direct") x.route.outputTokens = n; })} /></Field>
+          </>}
     </div>
   );
 }

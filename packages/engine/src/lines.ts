@@ -27,7 +27,7 @@ export interface Line {
   /** Index of the build team line a labour line comes from. */
   seat?: number;
   /** For LLM lines: tokens per unit of quantity (per call, task or run). */
-  tokens?: { input: number; cachedInput: number; output: number };
+  tokens?: { input: number; cachedInput: number; output: number; cacheWrite?: number };
   /** Processing tier this line billed at (Standard when absent); keeps PTU and other per-meter grouping from merging tiers. */
   tier?: ProcessingTier;
 }

@@ -22,10 +22,32 @@ describe("agent harness simulation", () => {
     expect(r.cost).toBeCloseTo((103000 * gpt5.input + 10400 * gpt5.output) / 1e6, 6);
   });
 
-  it("reproduces the cached example (82.25K cached, 20.75K new)", () => {
+  it("reproduces the cached example (82.25K cached, 20.75K new, 4.3K written on step 1)", () => {
     const r = simulateHarness(h, book, { modelId: "gpt-5", cacheHit: 1, warmPrefix: 0, percentile: "p50", date: "2026-11-01" });
     expect(r.cachedTokens).toBeCloseTo(82250, 0);
-    expect(r.inputTokens).toBeCloseTo(20750, 0);
+    // The static prefix (1,500 + 10×280 = 4,300 tokens) moves from "input" to "cacheWrite" on step 1.
+    expect(r.cacheWriteTokens).toBeCloseTo(4300, 0);
+    expect(r.inputTokens).toBeCloseTo(16450, 0);
+  });
+
+  it("bills cache writes at the model's cacheWrite rate for Claude, and as plain input for a model with none (E1)", () => {
+    const claude = simulateHarness(h, book, { modelId: "claude-sonnet-5-5", cacheHit: 1, warmPrefix: 0, percentile: "p50", date: "2026-11-01" });
+    const claudePrices = cat.chatModels.find((m) => m.id === "claude-sonnet-5-5")!.prices!.dataZone!;
+    expect(claudePrices.cacheWrite).toBeDefined();
+    const writeCost = claude.trace[0]!.cacheWriteTokens * claudePrices.cacheWrite!;
+    expect(claude.trace[0]!.cost).toBeCloseTo((claude.trace[0]!.promptTokens - claude.trace[0]!.cacheWriteTokens) * claudePrices.input / 1e6 + writeCost / 1e6 + claude.trace[0]!.outputTokens * claudePrices.output / 1e6, 6);
+    // A model with no cacheWrite rate bills the written tokens at its input rate (no surcharge, no double count).
+    const gpt5 = simulateHarness(h, book, { modelId: "gpt-5", cacheHit: 0.8, warmPrefix: 0, percentile: "p50", date: "2026-11-01" });
+    const uncached = simulateHarness(h, book, { modelId: "gpt-5", cacheHit: 0, percentile: "p50", date: "2026-11-01" });
+    expect(gpt5.cacheWriteTokens).toBeGreaterThan(0);
+    expect(gpt5.trace[0]!.cost).toBeCloseTo(uncached.trace[0]!.cost, 6);
+  });
+
+  it("never caches or writes below the minimum cacheable prompt size (E4)", () => {
+    const tiny: HarnessDef = { ...h, systemPromptTokens: 100, tools: 0, tokensPerTool: 0, userInputTokens: 50 };
+    const r = simulateHarness(tiny, book, { modelId: "gpt-5", cacheHit: 1, warmPrefix: 1, percentile: "p50", date: "2026-11-01" });
+    expect(r.cachedTokens).toBe(0);
+    expect(r.cacheWriteTokens).toBe(0);
   });
 
   it("orders P50 < P90 < worst and respects the turn cap", () => {

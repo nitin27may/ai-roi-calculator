@@ -5,6 +5,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 1050000,
     "maxOutput": 128000,
     "prices": {
@@ -63,6 +64,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 1050000,
     "maxOutput": 128000,
     "prices": {
@@ -112,6 +114,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 1050000,
     "maxOutput": 128000,
     "prices": {
@@ -161,6 +164,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 1050000,
     "maxOutput": 128000,
     "prices": {
@@ -207,6 +211,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 1050000,
     "maxOutput": 128000,
     "prices": {
@@ -253,6 +258,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 1050000,
     "maxOutput": 128000,
     "prices": {
@@ -298,6 +304,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 400000,
     "maxOutput": 128000,
     "prices": {
@@ -336,6 +343,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 400000,
     "maxOutput": 128000,
     "prices": {
@@ -374,6 +382,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 400000,
     "maxOutput": 128000,
     "prices": {
@@ -412,6 +421,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 400000,
     "maxOutput": 128000,
     "prices": {
@@ -450,6 +460,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 400000,
     "maxOutput": 128000,
     "prices": {
@@ -487,6 +498,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 400000,
     "maxOutput": 128000,
     "prices": {
@@ -525,6 +537,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 400000,
     "maxOutput": 128000,
     "prices": {
@@ -562,6 +575,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 400000,
     "maxOutput": 128000,
     "prices": {
@@ -599,6 +613,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 400000,
     "maxOutput": 128000,
     "prices": {
@@ -636,6 +651,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 400000,
     "maxOutput": 128000,
     "prices": {
@@ -674,6 +690,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 400000,
     "maxOutput": 128000,
     "prices": {
@@ -712,6 +729,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 400000,
     "maxOutput": 128000,
     "prices": {
@@ -952,6 +970,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 200000,
     "maxOutput": 100000,
     "prices": {
@@ -990,6 +1009,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 200000,
     "maxOutput": 100000,
     "prices": {
@@ -1028,6 +1048,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 200000,
     "maxOutput": 100000,
     "prices": {
@@ -1066,6 +1087,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 1050000,
     "maxOutput": 128000,
     "prices": {
@@ -1115,6 +1137,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 1050000,
     "maxOutput": 128000,
     "prices": {
@@ -1164,6 +1187,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 1050000,
     "maxOutput": 128000,
     "prices": {
@@ -1213,6 +1237,7 @@
     "platform": "azure",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 1050000,
     "maxOutput": 128000,
     "prices": {
@@ -1262,6 +1287,7 @@
     "platform": "azure",
     "vendor": "anthropic",
     "tokenizer": "claude-47",
+    "reasoning": true,
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "prices": {
@@ -1302,6 +1328,7 @@
     "platform": "azure",
     "vendor": "anthropic",
     "tokenizer": "claude-47",
+    "reasoning": true,
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "prices": {
@@ -1342,6 +1369,7 @@
     "platform": "azure",
     "vendor": "anthropic",
     "tokenizer": "claude-47",
+    "reasoning": true,
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "prices": {
@@ -1375,6 +1403,7 @@
     "platform": "azure",
     "vendor": "anthropic",
     "tokenizer": "claude-47",
+    "reasoning": true,
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "prices": {
@@ -1408,6 +1437,7 @@
     "platform": "azure",
     "vendor": "anthropic",
     "tokenizer": "claude-47",
+    "reasoning": true,
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "prices": {
@@ -1448,6 +1478,7 @@
     "platform": "azure",
     "vendor": "anthropic",
     "tokenizer": "claude-47",
+    "reasoning": true,
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "prices": {
@@ -1488,6 +1519,7 @@
     "platform": "azure",
     "vendor": "anthropic",
     "tokenizer": "claude-47",
+    "reasoning": true,
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "prices": {
@@ -1528,6 +1560,7 @@
     "platform": "azure",
     "vendor": "anthropic",
     "tokenizer": "claude-47",
+    "reasoning": true,
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "prices": {
@@ -1561,6 +1594,7 @@
     "platform": "azure",
     "vendor": "anthropic",
     "tokenizer": "claude-legacy",
+    "reasoning": true,
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "prices": {
@@ -1594,6 +1628,7 @@
     "platform": "azure",
     "vendor": "anthropic",
     "tokenizer": "claude-legacy",
+    "reasoning": true,
     "contextWindow": 200000,
     "maxOutput": 64000,
     "prices": {
@@ -1627,6 +1662,7 @@
     "platform": "azure",
     "vendor": "anthropic",
     "tokenizer": "claude-legacy",
+    "reasoning": true,
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "prices": {
@@ -1660,6 +1696,7 @@
     "platform": "azure",
     "vendor": "anthropic",
     "tokenizer": "claude-legacy",
+    "reasoning": true,
     "contextWindow": 200000,
     "maxOutput": 64000,
     "prices": {
@@ -1693,6 +1730,7 @@
     "platform": "azure",
     "vendor": "anthropic",
     "tokenizer": "claude-legacy",
+    "reasoning": true,
     "contextWindow": 200000,
     "maxOutput": 64000,
     "prices": {
@@ -1726,6 +1764,7 @@
     "platform": "azure",
     "vendor": "deepseek",
     "tokenizer": "other",
+    "reasoning": true,
     "contextWindow": 1000000,
     "maxOutput": 64000,
     "prices": {
@@ -1877,6 +1916,7 @@
     "platform": "azure",
     "vendor": "microsoft",
     "tokenizer": "other",
+    "reasoning": true,
     "contextWindow": 256000,
     "maxOutput": 64000,
     "prices": {
@@ -1973,6 +2013,7 @@
     "platform": "azure",
     "vendor": "microsoft",
     "tokenizer": "other",
+    "reasoning": true,
     "contextWindow": 128000,
     "maxOutput": 32768,
     "prices": {
@@ -2008,6 +2049,7 @@
     "platform": "snowflake",
     "vendor": "anthropic",
     "tokenizer": "claude-47",
+    "reasoning": true,
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "credits": {
@@ -2034,6 +2076,7 @@
     "platform": "snowflake",
     "vendor": "anthropic",
     "tokenizer": "claude-47",
+    "reasoning": true,
     "contextWindow": 1000000,
     "maxOutput": 128000,
     "credits": {
@@ -2060,6 +2103,7 @@
     "platform": "snowflake",
     "vendor": "anthropic",
     "tokenizer": "claude-legacy",
+    "reasoning": true,
     "contextWindow": 200000,
     "maxOutput": 64000,
     "credits": {
@@ -2086,6 +2130,7 @@
     "platform": "snowflake",
     "vendor": "anthropic",
     "tokenizer": "claude-legacy",
+    "reasoning": true,
     "contextWindow": 200000,
     "maxOutput": 64000,
     "credits": {
@@ -2112,6 +2157,7 @@
     "platform": "snowflake",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 400000,
     "maxOutput": 128000,
     "credits": {
@@ -2138,6 +2184,7 @@
     "platform": "snowflake",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 272000,
     "maxOutput": 8192,
     "credits": {
@@ -2164,6 +2211,7 @@
     "platform": "snowflake",
     "vendor": "openai",
     "tokenizer": "o200k",
+    "reasoning": true,
     "contextWindow": 272000,
     "maxOutput": 8192,
     "credits": {

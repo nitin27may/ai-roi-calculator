@@ -106,16 +106,16 @@ describe("PTU grouping keeps tiers apart", () => {
   });
 });
 
-describe("golden totals (P2 must not change existing numbers)", () => {
+describe("golden totals (P3 updates these on purpose; see the PR description for the before/after table)", () => {
   const GOLDEN: Record<string, { build: number; buildLabour: number; devLab: number; runRate: number; maintRate: number; benefitRate: number }> = {
-    meeting: { build: 407719.3153684257, buildLabour: 340800, devLab: 65767.04836842576, runRate: 6939.627102257464, maintRate: 6080, benefitRate: 36550 },
-    rag: { build: 185058.62764568, buildLabour: 176000.00000000003, devLab: 9058.62764568, runRate: 1326.4032347500001, maintRate: 3085.6136940946667, benefitRate: 25000 },
-    email: { build: 195083.71536900924, buildLabour: 176000.00000000003, devLab: 19083.715369009202, runRate: 5588.422176000001, maintRate: 3252.698489483487, benefitRate: 56250 },
-    voice: { build: 237981.93644626008, buildLabour: 220000.00000000003, devLab: 17981.93644626, runRate: 7796.544353720001, maintRate: 3967.9946491043324, benefitRate: 75000 },
+    meeting: { build: 408406.7811147148, buildLabour: 340800, devLab: 66454.51411471477, runRate: 8023.217055634784, maintRate: 6080, benefitRate: 36550 },
+    rag: { build: 185230.87201448006, buildLabour: 176000.00000000003, devLab: 9230.872014479999, runRate: 1501.70148475, maintRate: 3088.484433574667, benefitRate: 25000 },
+    email: { build: 195272.98575291323, buildLabour: 176000.00000000003, devLab: 19272.985752913202, runRate: 5290.245381000001, maintRate: 3255.8529958818863, benefitRate: 56250 },
+    voice: { build: 238197.24190726003, buildLabour: 220000.00000000003, devLab: 18197.24190726, runRate: 7796.544353720001, maintRate: 3971.583073454333, benefitRate: 75000 },
     blank: { build: 176000.00000000003, buildLabour: 176000.00000000003, devLab: 0, runRate: 0, maintRate: 2934.636566666667, benefitRate: 0 },
   };
 
-  it("meeting-intelligence sample totals are unchanged", () => {
+  it("meeting-intelligence sample totals match the pinned golden numbers", () => {
     const L = buildLedger(meetingIntelligence, cat);
     const g = GOLDEN.meeting!;
     expect(L.totals.build).toBeCloseTo(g.build, 6);
@@ -126,7 +126,7 @@ describe("golden totals (P2 must not change existing numbers)", () => {
   });
 
   for (const t of PROJECT_TEMPLATES) {
-    it(`${t.label} template totals are unchanged`, () => {
+    it(`${t.label} template totals match the pinned golden numbers`, () => {
       const g = GOLDEN[t.id];
       if (!g) return;
       const p = ProjectSchema.parse(t.make(`Test ${t.label}`));

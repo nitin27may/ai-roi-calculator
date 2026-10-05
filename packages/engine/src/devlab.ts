@@ -1,9 +1,12 @@
 import { heuristics } from "@studio/catalog";
 import type { PriceBook } from "./pricing.js";
 import type { DevActivity, Harness, Project } from "./project.js";
-import { simulateHarness } from "./harness.js";
+import { simulateHarness, reasoningTokens, type ReasoningEffort } from "./harness.js";
 import { evaluationLines } from "./workloads.js";
 import { fmtInt, line, sum, type Line } from "./lines.js";
+
+/** Reasoning tokens for a Dev Lab call, billed as output, only for models the catalogue marks as reasoning models (E2). */
+const reasoningOut = (book: PriceBook, modelId: string, r: ReasoningEffort | number) => (book.isReasoningModel(modelId) ? reasoningTokens(r) : 0);
 
 /**
  * AI Dev Lab: tokens and AI services the team consumes while building. Lines are per build
@@ -78,7 +81,8 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
         const n = devs * a.callsPerDevPerDay * a.workingDays * f;
         if (n === 0) break;
         const tk = book.tokenizerMultiplier(a.modelId);
-        const per = book.chatCost(a.modelId, { input: a.inputTokens * tk, output: a.outputTokens * tk }, date);
+        const outTok = a.outputTokens + reasoningOut(book, a.modelId, a.reasoning);
+        const per = book.chatCost(a.modelId, { input: a.inputTokens * tk, output: outTok * tk }, date);
         out.push(line({ id: a.id, componentId: a.id, label: a.label, stream: "devlab", behaviour: "usage", meter: a.modelId, quantity: n, unit: "call", unitPrice: per, formula: `${devs} devs × ${a.callsPerDevPerDay} calls/day × ${a.workingDays} days${f !== 1 ? ` × ${f}` : ""}` }));
         break;
       }
@@ -89,7 +93,8 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
         const seats = devs * a.copilotSeatsPerDev;
         if (seats > 0) out.push(line({ id: `${a.id}:copilot`, componentId: a.id, label: book.unit(a.copilotPlan).label, stream: "devlab", behaviour: "fixed", meter: a.copilotPlan, quantity: seats, unit: "seat-month", unitPrice: book.unitPrice(a.copilotPlan), formula: `${seats} seats` }));
         const t = a.codingTokensPerDevPerDay;
-        const per = book.chatCost(a.codingModelId, { input: t.input, cachedInput: t.cachedInput, output: t.output }, date);
+        const tk = book.tokenizerMultiplier(a.codingModelId);
+        const per = book.chatCost(a.codingModelId, { input: t.input * tk, cachedInput: t.cachedInput * tk, output: t.output * tk }, date);
         out.push(line({ id: `${a.id}:coding`, componentId: a.id, label: `Coding agent tokens (${book.chatModel(a.codingModelId).label})`, stream: "devlab", behaviour: "usage", meter: a.codingModelId, quantity: devs * a.workingDays * f, unit: "developer-day", unitPrice: per,
           formula: `${devs} devs × ${a.workingDays} days${f !== 1 ? ` × ${f}` : ""} × (${fmtInt(t.input)} in + ${fmtInt(t.cachedInput)} cached + ${fmtInt(t.output)} out)` }));
         break;
@@ -101,7 +106,8 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
         if (probes === 0) break;
         const turns = 1 + a.multiTurnShare * (heuristics.redTeam.multiTurnFactor - 1);
         const rt = heuristics.redTeam;
-        const target = book.chatCost(a.targetModelId, { input: rt.probeInputTokens * turns, output: rt.probeOutputTokens * turns }, date);
+        const tk = book.tokenizerMultiplier(a.targetModelId);
+        const target = book.chatCost(a.targetModelId, { input: rt.probeInputTokens * turns * tk, output: rt.probeOutputTokens * turns * tk }, date);
         const scoring = ((rt.probeInputTokens + rt.probeOutputTokens) * turns * book.unitPrice("eval-safety-input") + 200 * book.unitPrice("eval-safety-output")) / 1e6;
         out.push(line({ id: a.id, componentId: a.id, label: a.label, stream: "devlab", behaviour: "usage", meter: "eval-safety-input", quantity: probes, unit: "probe", unitPrice: target + scoring,
           formula: `${a.scansPerMonth} scans × ${a.categories} categories × ${a.objectivesPerCategory} objectives × (1 + ${a.strategies} strategies)${f !== 1 ? ` × ${f}` : ""} = ${fmtInt(probes)} probes` }));
@@ -116,7 +122,8 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
           return book.chatCost(modelId, { input: input * tk, output: output * tk }, date) * (1 - a.batchShare * (1 - book.batchFactor(modelId)));
         };
         const batch = a.batchShare ? ` · ${Math.round(a.batchShare * 100)}% Batch` : "";
-        out.push(line({ id: `${a.id}:generate`, componentId: a.id, label: `${a.label}: generation (${book.chatModel(a.generatorModelId).label})`, stream: "devlab", behaviour: "usage", meter: a.generatorModelId, quantity: generated, unit: "example", unitPrice: call(a.generatorModelId, a.genInputTokens, a.genOutputTokens),
+        const genOut = a.genOutputTokens + reasoningOut(book, a.generatorModelId, a.reasoning);
+        out.push(line({ id: `${a.id}:generate`, componentId: a.id, label: `${a.label}: generation (${book.chatModel(a.generatorModelId).label})`, stream: "devlab", behaviour: "usage", meter: a.generatorModelId, quantity: generated, unit: "example", unitPrice: call(a.generatorModelId, a.genInputTokens, genOut),
           formula: `${fmtInt(a.acceptedPerMonth)} kept${f !== 1 ? ` × ${f}` : ""} ÷ ${Math.round(a.passRate * 100)}% pass rate = ${fmtInt(generated)} generated${batch}` }));
         if (a.judgeModelId) out.push(line({ id: `${a.id}:judge`, componentId: a.id, label: `${a.label}: judge filter (${book.chatModel(a.judgeModelId).label})`, stream: "devlab", behaviour: "usage", meter: a.judgeModelId, quantity: generated, unit: "example", unitPrice: call(a.judgeModelId, a.judgeInputTokens, a.judgeOutputTokens),
           formula: `${fmtInt(generated)} judged × (${fmtInt(a.judgeInputTokens)} in + ${fmtInt(a.judgeOutputTokens)} out)${batch}` }));

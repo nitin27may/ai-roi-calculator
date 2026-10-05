@@ -76,7 +76,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
       const esc = escalation ** Math.floor((k - 1) / 12);
       const usage = adoption * g;
       for (const w of p.workloads) {
-        for (const l of workloadLines(w, { book, date, harnesses, percentile })) {
+        for (const l of workloadLines(w, { book, date, harnesses, percentile, language: p.settings.language })) {
           lines.push(l.behaviour === "usage" ? { ...l, quantity: l.quantity * usage, cost: l.cost * usage } : l);
         }
       }

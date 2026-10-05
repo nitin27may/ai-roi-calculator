@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 import type { Month } from "@studio/engine";
 import { Card, CardHead, Pill, Seg } from "@/components/ui";
 import { Legend, useSize } from "@/components/charts";
@@ -7,11 +8,28 @@ import { catalog, useLedger, useLevers } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad, kcad } from "@/lib/format";
 
+const P3_NOTICE_KEY = "studio.notice.p3";
+
+/** One-time notice for the P3 token-accuracy fixes; dismissal persists in localStorage so it shows once per browser. */
+function P3Notice() {
+  const [dismissed, setDismissed] = useState(true);
+  useEffect(() => { setDismissed(localStorage.getItem(P3_NOTICE_KEY) === "1"); }, []);
+  if (dismissed) return null;
+  const dismiss = () => { localStorage.setItem(P3_NOTICE_KEY, "1"); setDismissed(true); };
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-line bg-surface-2 px-3.5 py-2 text-[13px] text-ink-2">
+      <span className="flex-1">Estimates updated: cache writes and reasoning tokens are now priced.</span>
+      <button type="button" aria-label="Dismiss" onClick={dismiss} className="rounded-md p-1 text-ink-3 hover:bg-surface hover:text-ink"><X size={14} /></button>
+    </div>
+  );
+}
+
 export default function Overview() {
   const [side, setSide] = useState<"levers" | "alerts">("levers");
   const { ledger } = useLedger();
   return (
-    <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-3.5">
+    <div className="grid h-full min-h-0 grid-rows-[auto_auto_minmax(0,1fr)] gap-3.5">
+      <P3Notice />
       <Story />
       <div className="grid min-h-0 gap-3.5 lg:grid-cols-[minmax(0,1fr)_330px]">
         <Card>

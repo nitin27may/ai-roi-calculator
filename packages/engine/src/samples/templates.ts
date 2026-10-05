@@ -6,7 +6,7 @@ import { DEFAULT_HARNESS, newActivity, newWorkload } from "../templates.js";
 export function blankProject(name: string, startDate = nextMonth()): Project {
   return {
     schema: "ai-cost-roi-studio/project", version: CURRENT_PROJECT_VERSION, name, startDate,
-    settings: { azureDeployment: "dataZone", snowflake: { routing: "global", edition: "enterprise" } },
+    settings: { azureDeployment: "dataZone", language: "en", snowflake: { routing: "global", edition: "enterprise" } },
     timeline: { buildMonths: 4, horizonMonths: 36, adoptionRampMonths: 6 },
     rateCard: [
       { id: "dev", label: "AI developer", hourlyRate: 95 },
