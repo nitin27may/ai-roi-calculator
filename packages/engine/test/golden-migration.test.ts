@@ -17,7 +17,7 @@ type Entry = { project: Record<string, unknown>; golden: {
 } };
 
 describe("v2 to v3 migration keeps every total", () => {
-  for (const [name, entry] of Object.entries(golden as Record<string, Entry>)) {
+  for (const [name, entry] of Object.entries(golden as unknown as Record<string, Entry>)) {
     it(`${name}: ledger, ROI and allocation are identical after migration`, () => {
       expect(entry.project.version).toBe(2);
       const migrated = ProjectSchema.parse(migrateProject(structuredClone(entry.project)));
@@ -46,7 +46,7 @@ describe("v2 to v3 migration keeps every total", () => {
 
   for (const t of PROJECT_TEMPLATES) {
     it(`${t.id}: a project started from the template today costs what it did before P5`, () => {
-      const g = (golden as Record<string, Entry>)[t.id]!;
+      const g = (golden as unknown as Record<string, Entry>)[t.id]!;
       const p = ProjectSchema.parse(t.make("Golden check"));
       const ledger = buildLedger(p, cat);
       for (const [k, v] of Object.entries(g.golden.totals)) close((ledger.totals as Record<string, number>)[k]!, v);
@@ -57,7 +57,7 @@ describe("v2 to v3 migration keeps every total", () => {
   }
 
   it("a v2 project with capability componentIds splits them into workload and workstream links", () => {
-    const e = (golden as Record<string, Entry>).sample!;
+    const e = (golden as unknown as Record<string, Entry>).sample!;
     const migrated = ProjectSchema.parse(migrateProject(structuredClone(e.project)));
     const notes = migrated.benefits.capabilities.find((c) => c.id === "notes")!;
     expect(notes.workloadIds).toEqual(expect.arrayContaining(["stt", "agent", "email"]));

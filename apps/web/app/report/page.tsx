@@ -1,6 +1,6 @@
 "use client";
 import { useMemo } from "react";
-import { compareScenarios, computeAllocation, evaluateLevers, pricesUsedRows } from "@studio/engine";
+import { compareScenarios, computeAllocation, evaluateLevers, pricesUsedRows, steadyState } from "@studio/engine";
 import { CumulativeLine, Legend, StackedBars } from "@/components/charts";
 import { catalog, useSummary } from "@/lib/compute";
 import { cad, fmt } from "@/lib/format";
@@ -27,9 +27,9 @@ export default function Report() {
   const basis = { run: "running cost only", runMaint: "running cost and maintenance", full: "the full lifecycle" }[p.roi.basis];
   const devById = new Map<string, number>();
   for (const m of ledger.months.slice(0, B)) for (const l of m.lines) if (l.stream === "devlab") devById.set(l.componentId, (devById.get(l.componentId) ?? 0) + l.cost);
-  const firstFull = ledger.months.find((m) => m.phase === "production" && m.adoption >= 1) ?? ledger.months.at(-1)!;
+  const firstFull = steadyState(ledger);
   const runById = new Map<string, number>();
-  for (const l of firstFull.lines) if (l.stream === "run" || l.stream === "platform") runById.set(l.componentId, (runById.get(l.componentId) ?? 0) + l.cost);
+  for (const l of firstFull.lines) if (!l.once && (l.stream === "run" || l.stream === "platform")) runById.set(l.componentId, (runById.get(l.componentId) ?? 0) + l.cost);
   const unverified = extra.prices.filter((r) => r.Confidence === "unverified" || r.Confidence === "single-source");
 
   return (
