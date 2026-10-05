@@ -23,7 +23,7 @@ const PROJECT_VIEWS = [
   { href: "/report", label: "Report" },
   { href: "/settings", label: "Settings" },
 ];
-const TITLES: Record<string, string> = { "/summary": "Summary", "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report", "/capacity": "Capacity (PTU)", "/projects": "Projects", "/glossary": "Glossary" };
+const TITLES: Record<string, string> = { "/summary": "Summary", "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report", "/capacity": "Capacity (PTU)", "/projects": "Projects", "/wizard": "New estimate wizard", "/glossary": "Glossary" };
 
 export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
@@ -61,7 +61,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <span aria-hidden className="relative h-5 w-5 flex-none rounded-[5px] bg-accent after:absolute after:inset-x-1 after:inset-y-[5px] after:border-b-2 after:border-l-2 after:border-accent-ink" />
           AI Cost &amp; ROI Studio
         </div>
-        <Group label="Quick tools">{nav("/tokens", "Token calculator")}</Group>
+        <Group label="Quick tools">{nav("/tokens", "Token calculator")}{nav("/wizard", "New estimate wizard")}</Group>
         <Group label="Projects">{nav("/projects", "All projects")}</Group>
         <Group label={project.name}>
           {nav("/summary", "Summary")}
@@ -82,7 +82,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <main className="grid min-h-0 min-w-0 grid-rows-[auto_auto_minmax(0,1fr)] md:h-full md:overflow-hidden">
         <header className="flex flex-wrap items-center justify-between gap-2.5 px-5 pb-2.5 pt-3">
           <div>
-            <div className="text-[11.5px] text-muted">{isProject ? project.name : path === "/tokens" ? "Quick tools" : path === "/projects" ? "Library" : path === "/glossary" ? "Help" : "Data"}</div>
+            <div className="text-[11.5px] text-muted">{isProject ? project.name : path === "/tokens" || path === "/wizard" ? "Quick tools" : path === "/projects" ? "Library" : path === "/glossary" ? "Help" : "Data"}</div>
             <h1 className="text-[21px] font-bold">{TITLES[path] ?? "Overview"}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">

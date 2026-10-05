@@ -64,6 +64,10 @@ table.data td { border-bottom: 1px solid var(--line); padding: 6px 8px; vertical
 table.data .n { text-align: right; white-space: nowrap; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 table.data tr.total td { font-weight: 600; border-top: 2px solid var(--line); border-bottom: 0; }
 
+/* Wizard step panels slide in; reduced-motion users get no movement. */
+@keyframes wiz-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) { .wiz-in { animation: wiz-in 180ms ease-out; } }
+
 /* Printing the report: hide the app chrome and keep colours. */
 @media print {
   @page { size: A4; margin: 14mm; }

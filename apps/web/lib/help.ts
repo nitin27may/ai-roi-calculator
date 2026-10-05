@@ -1,3 +1,5 @@
+import { RECIPES } from "@studio/engine";
+
 /**
  * Field help, keyed by field id. One entry per input in the studio.
  *
@@ -253,8 +255,28 @@ export const HELP = {
   scnValue: e("The new value to test against the base case.", "Percent, months or people", "150% of baseline usage.", "You choose it.", { limit: "a scenario outside the range the studio models would give unreliable results" }),
   scnLever: e("A named change, such as turning on prompt caching or moving evaluation to Batch.", "A lever", "Prompt caching on.", "The lever list is built into the studio."),
   scnPreset: e("A benefit set: conservative, typical or optimistic. It changes the time saved on every capability.", "A preset", "Conservative for a board paper.", "You choose it."),
+  wizModel: e("The model that does this job. The wizard suggests one and says why, but it never chooses for you; the list only shows models your deployment offers.", "A model from the price list", "A mid-size model for answering questions, a small one for sorting email.", PRICE),
+  wizQuality: e("Whether the suggested models lean towards lower cost or higher quality. It only moves the suggestion; you still pick the model.", "Cost, balanced or quality", "Quality for customer-facing writing, cost for bulk sorting.", "You choose it."),
+  wizBatch: e("Whether work that can wait (overnight runs, backlogs) may use the Batch tier, which costs about half as much and returns within a day. It is not offered under Canada Regional.", "On or off", "On for a document archive, off for anything a person waits on.", DEFAULT_SETTINGS),
+  wizPeople: e("The developers who build it. The wizard starts from a size that suits what you picked.", "People", "3 developers for a retrieval assistant with an agent.", "Starting size from the recipes picked. Replace it with your own team."),
+  wizMonths: e("How many months the build takes before go-live. Run costs start in the month after.", "Months", "4 months for a pilot.", "Starting length from the recipes picked. Replace it with your own plan."),
+  wizBenefitType: e("What kind of value this feature creates: time saved, cost avoided, revenue, quality or risk. Time saved is scaled by adoption on the Value page; the others are entered as an amount.", "A benefit type", "Time saved for a search tool, cost avoided for a retired licence.", "You choose it."),
+  wizBenefitBasis: e("What the time-saved figure is based on: a published benchmark, your own minutes per user per week, or minutes per item processed.", "A basis", "Benchmark when you have no measurement yet, minutes per item when each item has a known handling time.", "Benchmarks come from the library on the Value page, with their source shown."),
+  wizBenefitUsers: e("How many people get the saving.", "People", "200 staff who search the knowledge base.", "Starts from the users you gave on How much."),
+  wizBenefitMinutes: e("How long the task takes today, before the change. In minutes per user per week, or per item, depending on the basis.", "Minutes", "20 minutes to key one invoice.", "A placeholder for this kind of task. Replace it with a measured time."),
+  wizBenefitSaved: e("The share of that time the change saves, as a typical case. The Value page also models a cautious and an optimistic case.", "Percent", "60% saves 12 of 20 minutes.", "A placeholder for this kind of task. Replace it with a pilot result.", { limit: SHARE }),
+  wizBenefitAmount: e("The amount the change is worth, in Canadian dollars, per month or once.", "C$", "C$5,000 a month of avoided licence cost.", "You enter it. Nothing is scaled by adoption."),
+  wizBenefitCadence: e("Whether the amount repeats every month or is paid once at go-live.", "Monthly or once", "Monthly for a retired licence, once for a clean-up.", "You choose it."),
+  wizBenefitLabel: e("A short name for this benefit in the reports.", "Text", "Contractor spend avoided.", "You choose it."),
+  wizAssumption: e("A figure the wizard worked out for you from your answers. Change it here and the estimate follows.", "Depends on the row", "5,000 pages a month from 1,000 documents of 5 pages.", "The source is written in the row."),
   scnName: e("The name shown for this scenario in tables and charts.", "Text", "Busy year, batch evaluation.", "Suggested from the changes you picked. Edit it if you like."),
 } satisfies Record<string, HelpEntry>;
 
 export type HelpId = keyof typeof HELP;
-export const helpFor = (id: string): HelpEntry | undefined => (HELP as Record<string, HelpEntry>)[id];
+
+/** Help for the wizard's recipe questions, built from the recipes so the two cannot drift. Ids look like `wiz.rag.users`. */
+const WIZARD_HELP: Record<string, HelpEntry> = Object.fromEntries(
+  RECIPES.flatMap((r) => r.questions.map((q) => [`wiz.${r.id}.${q.id}`, e(q.help.meaning, "unit" in q ? q.unit : q.kind === "toggle" ? "Yes or no" : "A choice", q.help.example, q.help.source)] as const)),
+);
+export const wizardHelpId = (recipeId: string, questionId: string): HelpId => `wiz.${recipeId}.${questionId}` as HelpId;
+export const helpFor = (id: string): HelpEntry | undefined => (HELP as Record<string, HelpEntry>)[id] ?? WIZARD_HELP[id];
