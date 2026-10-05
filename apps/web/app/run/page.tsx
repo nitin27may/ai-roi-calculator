@@ -48,7 +48,7 @@ export default function Run() {
         <CardHead title="Production, per month" sub="At full adoption">
           <Seg label="Agent estimate" value={percentile} onChange={setPercentile} options={[{ value: "p50", label: "P50" }, { value: "p90", label: "P90" }, { value: "worst", label: "Worst" }]} />
         </CardHead>
-        <div role="listbox" aria-label="Production workloads" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
+        <div data-tour="run-workloads" role="listbox" aria-label="Production workloads" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
           {sections.filter((sec) => !hasFeatures || sec.id !== "" || sec.ws.length > 0).map((sec) => (
             <div key={sec.id || "shared"}>
               {hasFeatures && sec.id !== "" && (
@@ -76,7 +76,7 @@ export default function Run() {
         </div>
       </Card>
       <Card>
-        <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto p-3.5">
+        <div data-tour="run-inspector" className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto p-3.5">
           <Inspector sel={sel} onRemoved={() => setSel("maintenance")} />
         </div>
       </Card>

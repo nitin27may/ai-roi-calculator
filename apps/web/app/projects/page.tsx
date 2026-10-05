@@ -24,7 +24,7 @@ export default function Projects() {
   })), [library]);
 
   return (
-    <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div data-tour="projects-list" className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(0,1fr)_360px]">
       <Card>
         <CardHead title={`${library.length} project${library.length === 1 ? "" : "s"}`} sub="Saved in this browser. Use Save to file to keep a copy or share one." />
         {unreadableCount > 0 && (

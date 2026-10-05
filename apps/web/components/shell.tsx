@@ -9,6 +9,7 @@ import { useStudio } from "@/lib/store";
 import { describeIssue } from "@/lib/validation";
 import { HelpMenu } from "@/components/help-menu";
 import { PageIntro } from "@/components/page-intro";
+import { ProductTour } from "@/components/product-tour";
 import { catalog, useLedger } from "@/lib/compute";
 import { cad, cn, fmt } from "@/lib/format";
 
@@ -54,6 +55,7 @@ export function Shell({ children }: { children: ReactNode }) {
 
   return (
     <div className="grid h-full grid-cols-1 md:grid-cols-[212px_minmax(0,1fr)]">
+      <ProductTour />
       <nav aria-label="Main" className="flex flex-col gap-4 overflow-auto border-b border-line bg-surface px-3 py-4 md:border-b-0 md:border-r">
         <div className="flex items-center gap-2 font-display text-base font-bold">
           <span aria-hidden className="relative h-5 w-5 flex-none rounded-[5px] bg-accent after:absolute after:inset-x-1 after:inset-y-[5px] after:border-b-2 after:border-l-2 after:border-accent-ink" />
@@ -182,12 +184,12 @@ function ProjectFile() {
 
   const btn = "flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-ink-2 hover:bg-surface-2";
   return (
-    <Group label="Project file & export">
+    <div data-tour="export"><Group label="Project file & export">
       <button type="button" className={btn} onClick={exportFile}><Download size={14} />Save to file</button>
       <button type="button" className={btn} onClick={() => input.current?.click()}><Upload size={14} />Open file as new project</button>
       <button type="button" className={btn} onClick={() => create("meeting", meetingIntelligence.name)}><RotateCcw size={14} />New copy of the sample</button>
       <ExportButtons btn={btn} />
       <input ref={input} type="file" accept=".json" hidden onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])} />
-    </Group>
+    </Group></div>
   );
 }

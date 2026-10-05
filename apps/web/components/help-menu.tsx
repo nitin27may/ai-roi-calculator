@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useRef, type KeyboardEvent } from "react";
-import { BookOpen, ChevronDown, CircleHelp, Database, Info } from "lucide-react";
+import { BookOpen, ChevronDown, CircleHelp, Database, Info, Route } from "lucide-react";
+import { startTour } from "@/components/product-tour";
 import { INTROS } from "@/lib/intros";
 import { resetIntro } from "@/components/page-intro";
 import { menuKeys } from "@/lib/menu-keys";
@@ -32,6 +33,7 @@ export function HelpMenu({ path }: { path: string }) {
       <div ref={menu} role="menu" aria-label="Help" className="absolute right-0 z-30 mt-1 w-[240px] overflow-hidden rounded-lg border border-line bg-surface shadow-lg">
         <Link href="/glossary" role="menuitem" className={item} onClick={() => close()}><BookOpen size={14} />Glossary</Link>
         <Link href="/prices" role="menuitem" className={item} onClick={() => close()}><Database size={14} />Prices &amp; sources</Link>
+        <button type="button" role="menuitem" className={item} onClick={() => { close(true); startTour(); }}><Route size={14} />Take the tour</button>
         {path in INTROS && <button type="button" role="menuitem" className={`${item} border-t border-line`} onClick={() => { resetIntro(path); close(true); }}><Info size={14} />Show what this page answers</button>}
       </div>
     </details>

@@ -22,7 +22,7 @@ export default function Roi() {
   const [tab, setTab] = useState<Tab>("cash");
   const { project, roi } = useLedger();
   return (
-    <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
+    <div data-tour="roi-view" className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Assumptions />
       <Card>
         <CardHead title={{ cash: "Cumulative cash position", years: "By year", capabilities: "ROI by capability", beforeAfter: "Today vs with AI", sensitivity: "What moves NPV most", scenarios: "Scenarios" }[tab]}

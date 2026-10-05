@@ -19,7 +19,7 @@ export default function Settings() {
   const defaultAi = sf.routing === "global" ? catalog.snowflake.aiCreditGlobal : catalog.snowflake.aiCreditRegional;
   const defaultPlatform = catalog.snowflake.platformCredit[sf.edition] ?? catalog.snowflake.platformCredit.enterprise!;
   return (
-    <div className="grid min-h-0 gap-3.5 overflow-auto lg:grid-cols-2">
+    <div data-tour="settings-azure" className="grid min-h-0 gap-3.5 overflow-auto lg:grid-cols-2">
       <Card>
         <CardHead title="Project" sub="Name, start date and timeline" />
         <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 px-3.5 pb-3.5">
