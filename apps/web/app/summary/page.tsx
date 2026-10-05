@@ -1,21 +1,27 @@
 "use client";
 import Link from "next/link";
-import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
-import type { AlertGroup } from "@studio/engine";
-import { Card, CardHead, Pill } from "@/components/ui";
+import { useMemo } from "react";
+import { WIDE_RANGE_TEXT, compareScenarios, moneyBand } from "@studio/engine";
+import { Card, CardHead } from "@/components/ui";
 import { BulletBar, CumulativeLine, RangeBar, RankedBars, ViewToggle, Waterfall } from "@/components/charts";
 import { Story } from "@/components/story";
-import { useSummary } from "@/lib/compute";
-import { cad, cadUnit, fmt } from "@/lib/format";
-
-const ALERT_TONE: Record<AlertGroup["id"], "ok" | "warn" | "crit" | "n"> = {
-  notOffered: "crit", retiring: "crit", tierFallback: "warn", lowConfidence: "warn", other: "n",
-};
-
-const WATERFALL_COST_IDS = ["build", "year1Run", "laterRun"];
+import { Dumbbell } from "@/components/charts-compare";
+import { CumulativeTable, DriversTable, FinanceMeasures, HeadlineTiles, RiskSummary, VerdictChip, WATERFALL_COST_IDS, WaterfallTable, wideDrivers } from "@/components/summary-parts";
+import { catalog, useSummary } from "@/lib/compute";
+import { cad, cadUnit } from "@/lib/format";
 
 export default function Summary() {
-  const { ledger, roi, summary: s } = useSummary();
+  const { project, roi, summary: s } = useSummary();
+  const scenarios = useMemo(() => compareScenarios(project, catalog), [project]);
+  const rangeRows = [
+    { id: "cost", label: "Total cost", ...s.range.totalCost },
+    { id: "build", label: "Build", ...s.range.build },
+    { id: "run", label: "Annual run", ...s.range.annualRun },
+    { id: "benefit", label: "Total benefit", ...s.range.totalBenefit },
+    { id: "npv", label: "NPV", ...s.range.npv },
+  ].map((r) => ({ ...r, wide: moneyBand(r).wide }));
+  const wideLabels = rangeRows.filter((r) => r.wide).map((r) => r.label);
+  const drivers = wideDrivers(s);
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3.5 overflow-auto">
@@ -33,16 +39,16 @@ export default function Summary() {
       </div>
 
       <div className="grid shrink-0 gap-3.5 lg:grid-cols-2" data-tour="summary-charts">
-        <Card>
+        <Card id="how-sure">
           <CardHead title="How sure are we?" sub="Cautious, expected and optimistic cases side by side. Cautious means heavier usage and the conservative benefit column; optimistic means lighter usage and the optimistic column." />
           <div className="px-3.5 pb-3.5">
-            <RangeBar caption="Low, expected and high for cost, build, run, benefit and NPV" rows={[
-              { id: "cost", label: "Total cost", ...s.range.totalCost },
-              { id: "build", label: "Build", ...s.range.build },
-              { id: "run", label: "Annual run", ...s.range.annualRun },
-              { id: "benefit", label: "Total benefit", ...s.range.totalBenefit },
-              { id: "npv", label: "NPV", ...s.range.npv },
-            ]} />
+            <RangeBar caption="Low, expected and high for cost, build, run, benefit and NPV" rows={rangeRows} />
+            {wideLabels.length > 0 && (
+              <p className="mt-2 rounded-md bg-warn-soft px-2.5 py-1.5 text-[12px] text-warn">
+                {WIDE_RANGE_TEXT.replace(": see how sure we are", "")} on {wideLabels.join(", ").toLowerCase()}: the cautious and optimistic cases are far apart.
+                {drivers.length > 0 && <> The biggest drivers are {drivers.join(", ")}.</>} The table view has every number.
+              </p>
+            )}
           </div>
         </Card>
         <Card>
@@ -69,6 +75,13 @@ export default function Summary() {
           </div>
         </Card>
       </div>
+
+      <Card className="shrink-0">
+        <CardHead title="What if we change something?" sub={<>Baseline against each scenario on NPV and monthly run cost. <Link href="/roi" className="underline">Add scenarios on the ROI page →</Link></>} />
+        <div className="px-3.5 pb-3.5">
+          <ScenarioCompare results={scenarios} />
+        </div>
+      </Card>
 
       <div className="grid shrink-0 gap-3.5 lg:grid-cols-2">
         <Card>
@@ -115,95 +128,6 @@ export default function Summary() {
   );
 }
 
-function VerdictChip({ verdict }: { verdict: { text: string; npvPositive: boolean; tone: "ok" | "warn" | "crit" } }) {
-  const Icon = verdict.tone === "ok" ? CheckCircle2 : verdict.tone === "warn" ? AlertTriangle : XCircle;
-  const toneCls = { ok: "bg-good-soft text-good", warn: "bg-warn-soft text-warn", crit: "bg-crit-soft text-crit" }[verdict.tone];
-  return (
-    <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] font-semibold ${toneCls}`}>
-      <Icon size={16} aria-hidden="true" />
-      <span>{verdict.text} · NPV {verdict.npvPositive ? "positive" : "negative"}</span>
-    </div>
-  );
-}
-
-const span = (r: { low: number; high: number }) => `${cad(r.low)} to ${cad(r.high)}`;
-const paybackSpan = (r: { best: number | null; worst: number | null }, horizon: number) =>
-  r.best === null ? `Not within ${horizon} months` : `Month ${r.best} to ${r.worst === null ? `after ${horizon}` : r.worst}`;
-
-function HeadlineTiles({ s }: { s: ReturnType<typeof useSummary>["summary"] }) {
-  const tiles: { label: string; value: string; sub?: string; range?: string }[] = [
-    { label: "Total cost over plan", value: cad(s.totalCost), sub: `${s.horizonMonths} months`, range: span(s.range.totalCost) },
-    { label: "Build", value: cad(s.build), sub: `${fmt(s.devLabShare * 100)}% AI Dev Lab`, range: span(s.range.build) },
-    { label: "Annual run (steady state)", value: cad(s.steadyStateAnnualRun), sub: "run + platform + maintenance", range: span(s.range.annualRun) },
-    { label: "Benefit per year", value: cad(s.benefitPerYear), sub: "at full adoption" },
-    { label: "NPV", value: cad(s.npv), sub: `at ${s.discountRatePct}%`, range: span(s.range.npv) },
-    { label: "Payback", value: s.paybackMonth ? `Month ${s.paybackMonth}` : `> ${s.horizonMonths} months`, sub: `ROI ${fmt(s.roi * 100)}%`, range: paybackSpan(s.range.payback, s.horizonMonths) },
-  ];
-  return (
-    <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 xl:grid-cols-6">
-      {tiles.map((t) => (
-        <div key={t.label} className="min-w-0 rounded-lg border border-line bg-surface px-3.5 py-2.5">
-          <div className="truncate text-[11.5px] text-muted">{t.label}</div>
-          <div className="num truncate font-display text-xl font-bold leading-tight">{t.value}</div>
-          {t.sub && <div className="truncate text-[11px] text-ink-2">{t.sub}</div>}
-          {t.range && <div className="num text-[10.5px] leading-tight text-muted" title={`Range across the cautious, expected and optimistic cases: ${t.range}`}>{t.range}</div>}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function FinanceMeasures({ s }: { s: ReturnType<typeof useSummary>["summary"] }) {
-  const rows: [string, string, string?][] = [
-    ["Internal rate of return (IRR)", s.irrPct === null ? "Not defined" : `${fmt(s.irrPct)}% a year`, s.range.irrPct ? `${fmt(s.range.irrPct.low)}% to ${fmt(s.range.irrPct.high)}%` : undefined],
-    ["Hurdle rate", s.hurdleRatePct === null ? "Not set" : `${fmt(s.hurdleRatePct)}% a year`, s.clearsHurdle === null ? undefined : s.clearsHurdle ? "IRR clears the hurdle" : "IRR is below the hurdle"],
-    ["Payback", s.paybackMonth ? `Month ${s.paybackMonth}` : `Not within ${s.horizonMonths} months`],
-    ["Payback after discounting", s.discountedPaybackMonth ? `Month ${s.discountedPaybackMonth}` : `Not within ${s.horizonMonths} months`, s.discountRatePct === 0 ? "Same as payback at a 0% rate" : undefined],
-    ["NPV", cad(s.npv), `at ${s.discountRatePct}%`],
-    ...(s.terminalValue > 0 ? [["Terminal value (in NPV and IRR)", cad(s.terminalValue)] as [string, string]] : []),
-  ];
-  return (
-    <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 px-3.5 pb-3.5 text-[12.5px]">
-      {rows.map(([k, v, note]) => (
-        <div key={k} className="contents">
-          <dt className="text-ink-2">{k}{note && <span className="block text-[11px] text-muted">{note}</span>}</dt>
-          <dd className="num self-center text-right font-semibold text-ink">{v}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
-function WaterfallTable({ s }: { s: ReturnType<typeof useSummary>["summary"] }) {
-  return (
-    <table className="data">
-      <thead><tr><th>Step</th><th className="n">Amount</th></tr></thead>
-      <tbody>{s.waterfall.map((w) => {
-        const signed = WATERFALL_COST_IDS.includes(w.id) ? -w.value : w.value;
-        return <tr key={w.id}><td>{w.label}</td><td className="n">{signed >= 0 ? "+" : ""}{cad(signed)}</td></tr>;
-      })}</tbody>
-    </table>
-  );
-}
-
-function CumulativeTable({ values }: { values: number[] }) {
-  return (
-    <table className="data">
-      <thead><tr><th>Month</th><th className="n">Cumulative net</th></tr></thead>
-      <tbody>{values.map((v, i) => <tr key={i}><td>Month {i + 1}</td><td className="n">{cad(v)}</td></tr>)}</tbody>
-    </table>
-  );
-}
-
-function DriversTable({ rows }: { rows: { label: string; value: number }[] }) {
-  return (
-    <table className="data">
-      <thead><tr><th>Cost line</th><th className="n">Over the plan</th></tr></thead>
-      <tbody>{rows.map((r) => <tr key={r.label}><td>{r.label}</td><td className="n">{cad(r.value)}</td></tr>)}</tbody>
-    </table>
-  );
-}
-
 function MiniTornado({ s }: { s: ReturnType<typeof useSummary>["summary"] }) {
   const rows = s.sensitivityTop3;
   if (!rows.length) return <p className="text-sm text-muted">Not enough inputs on this project to rank sensitivity drivers.</p>;
@@ -211,7 +135,7 @@ function MiniTornado({ s }: { s: ReturnType<typeof useSummary>["summary"] }) {
   const lo = Math.min(base, ...rows.map((r) => Math.min(r.low, r.high)), 0);
   const hi = Math.max(base, ...rows.map((r) => Math.max(r.low, r.high)), 0);
   const pad = (hi - lo || 1) * 0.17;
-  const x = (v: number) => ((v - (lo - pad)) / (hi - lo + 2 * pad || 1)) * 100;
+  const x = (v: number) => Math.round((10000 * (v - (lo - pad))) / (hi - lo + 2 * pad || 1)) / 100;
   return (
     <ViewToggle table={<TornadoTable rows={rows} />}>
       <div className="grid grid-cols-[minmax(120px,190px)_1fr] gap-x-3 gap-y-2 text-[12px]">
@@ -222,8 +146,8 @@ function MiniTornado({ s }: { s: ReturnType<typeof useSummary>["summary"] }) {
               <span className="truncate py-1 text-ink-2" title={r.label}>{r.label}</span>
               <div className="relative h-6" title={`${r.lowLabel}: ${cad(r.low)} · ${r.highLabel}: ${cad(r.high)}`}>
                 <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${x(0)}%` }} />
-                <div className="absolute top-1 bottom-1 rounded-l" style={{ left: `${x(down)}%`, width: `${Math.max(0.5, x(Math.min(base, up)) - x(down))}%`, background: "var(--risk)", opacity: 0.75 }} />
-                <div className="absolute top-1 bottom-1 rounded-r" style={{ left: `${x(Math.max(base, down))}%`, width: `${Math.max(0.5, x(up) - x(Math.max(base, down)))}%`, background: "var(--good)", opacity: 0.75 }} />
+                <div className="absolute top-1 bottom-1 rounded-l" style={{ left: `${x(down)}%`, width: `${Math.max(0.5, Math.round(100 * (x(Math.min(base, up)) - x(down))) / 100)}%`, background: "var(--risk)", opacity: 0.75 }} />
+                <div className="absolute top-1 bottom-1 rounded-r" style={{ left: `${x(Math.max(base, down))}%`, width: `${Math.max(0.5, Math.round(100 * (x(up) - x(Math.max(base, down)))) / 100)}%`, background: "var(--good)", opacity: 0.75 }} />
                 <div className="absolute inset-y-0 w-0.5 bg-ink" style={{ left: `${x(base)}%` }} />
               </div>
             </div>
@@ -243,21 +167,24 @@ function TornadoTable({ rows }: { rows: { id: string; label: string; lowLabel: s
   );
 }
 
-function RiskSummary({ alerts }: { alerts: AlertGroup[] }) {
-  if (!alerts.length) return <p className="text-sm text-muted">Nothing needs attention.</p>;
+
+function ScenarioCompare({ results }: { results: ReturnType<typeof compareScenarios> }) {
+  if (results.length < 2) return <p className="text-sm text-muted">No scenarios yet. A scenario is a saved what-if, such as a cheaper model or double the volume; add one on the ROI page and it appears here.</p>;
+  const [base, ...rest] = results as [ReturnType<typeof compareScenarios>[number], ...ReturnType<typeof compareScenarios>];
+  const run = (r: typeof base) => r.ledger.totals.runRate + r.ledger.totals.maintRate;
+  const table = (
+    <table className="data">
+      <thead><tr><th>Scenario</th><th className="n">NPV</th><th className="n">Run cost / month</th><th className="n">Payback</th></tr></thead>
+      <tbody>{results.map((r) => <tr key={r.id}><td>{r.label}{r.error ? " (could not be applied)" : ""}</td><td className="n">{cad(r.roi.npv)}</td><td className="n">{cad(run(r))}</td><td className="n">{r.roi.paybackMonth ? `Month ${r.roi.paybackMonth}` : "Not within plan"}</td></tr>)}</tbody>
+    </table>
+  );
   return (
-    <div className="flex flex-col gap-2.5">
-      {alerts.map((g) => (
-        <div key={g.id} className="rounded-md border border-line p-2.5">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[12.5px] font-medium text-ink">{g.label}</span>
-            <Pill tone={ALERT_TONE[g.id]}>{g.count}</Pill>
-          </div>
-          <ul className="mt-1 list-disc pl-4 text-[11.5px] text-ink-2">
-            {g.items.map((m) => <li key={m} className="truncate">{m}</li>)}
-          </ul>
-        </div>
-      ))}
-    </div>
+    <ViewToggle table={table}>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Dumbbell title="NPV" baseline={base.roi.npv} rows={rest.map((r) => ({ id: r.id, label: r.label, value: r.roi.npv }))} />
+        <Dumbbell title="Run cost per month" baseline={run(base)} rows={rest.map((r) => ({ id: r.id, label: r.label, value: run(r) }))} higherIsBetter={false} />
+      </div>
+      {rest.some((r) => r.error) && <p className="mt-2 text-[11.5px] text-warn">A scenario that could not be applied is shown at the baseline figure.</p>}
+    </ViewToggle>
   );
 }
