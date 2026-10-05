@@ -59,7 +59,7 @@ export default function Report() {
     { label: `NPV at ${s.discountRatePct}%`, ...s.range.npv },
   ];
   const drivers = wideDrivers(s);
-  const wideLabels = rangeRows.filter((r) => moneyBand(r).wide).map((r) => r.label.toLowerCase());
+  const wideLabels = rangeRows.filter((r) => moneyBand(r).wide).map((r) => r.label.replace(/^(?!NPV|IRR)([A-Z])/, (c) => c.toLowerCase()));
   const cap = s.hurdleRatePct;
 
   return (
@@ -127,7 +127,7 @@ export default function Report() {
         {/* 3. Assumptions and how sure we are */}
         <section className="report-page flex flex-col gap-4 rounded-lg border border-line bg-surface p-8 print:rounded-none print:border-0 print:p-0">
           <h2 className="text-xl font-bold">Assumptions and how sure we are</h2>
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-6 [&_td.n]:whitespace-normal [&_td.n]:font-sans">
             <section className="break-inside-avoid">
               <h3 className="mb-1.5 text-[15px] font-bold">What this estimate assumes</h3>
               <table className="data">
@@ -184,12 +184,12 @@ export default function Report() {
           <section className="break-inside-avoid">
             <h3 className="mb-2 text-lg font-bold">Cost and benefit by month</h3>
             <Legend items={[...STREAMS.map((x) => ({ label: x.label, color: x.color })), { label: "Benefit", color: "var(--ink)", line: true }]} />
-            <StackedBars rows={rows} series={STREAMS} line={{ key: "benefit", label: "Benefit", color: "var(--ink)" }} xLabel={(i) => `M${i + 1}`} className="relative mt-2 h-[260px]" />
+            <StackedBars rows={rows} series={STREAMS} line={{ key: "benefit", label: "Benefit", color: "var(--ink)" }} xLabel={(i) => `M${i + 1}`} className="relative mt-2 h-[260px] w-[688px] max-w-full" />
           </section>
 
           <section className="break-inside-avoid">
             <h3 className="mb-2 text-lg font-bold">Cumulative position</h3>
-            <CumulativeLine values={roi.cumulative} payback={roi.paybackMonth} className="relative h-[220px]" />
+            <CumulativeLine values={roi.cumulative} payback={roi.paybackMonth} className="relative h-[220px] w-[688px] max-w-full" />
           </section>
 
           <div className="grid gap-6 md:grid-cols-2 print:grid-cols-2">
