@@ -36,6 +36,16 @@ const steps: Record<number, Step> = {
       benefits: { ...benefits, capabilities },
     };
   },
+  /**
+   * v3 → v4: ranges and CFO depth. Every new setting is optional or empty and its absence means the old behaviour,
+   * so totals do not move: Dev Lab stays at P50, no re-sends or Prompt Shields, no confidence haircut, no
+   * revenue, quality or risk benefits, no terminal value, nothing capitalised.
+   */
+  3: (raw) => {
+    const benefits = (raw.benefits ?? {}) as Record<string, unknown>;
+    const settings = (raw.settings ?? {}) as Record<string, unknown>;
+    return { ...raw, version: 4, settings: { ...settings, devLabPercentile: "p50" }, benefits: { ...benefits, value: Array.isArray(benefits.value) ? benefits.value : [] } };
+  },
 };
 
 /** Upgrades a saved project to `CURRENT_PROJECT_VERSION`, one step at a time. Leaves non-project input untouched so `ProjectSchema.safeParse` reports the real problem. */

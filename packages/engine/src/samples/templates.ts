@@ -18,7 +18,7 @@ export function blankProject(name: string, startDate = nextMonth()): Project {
     build: { team: [{ roleId: "dev", people: 2, hoursPerMonth: 160, experiments: true }, { roleId: "architect", people: 0.5, hoursPerMonth: 160, experiments: false }], includeLabour: true, workstreams: [], contingencyPct: 10, contingencyScope: "labour", activities: [], environment: [{ id: "logs", label: "App Insights (dev)", unitPriceId: "log-analytics-ingest", quantity: 5 }] },
     workloads: [],
     maintenance: { mode: "pctOfBuild", pctPerYear: 20 },
-    benefits: { capabilities: [], avoidedCosts: [], oneOff: [] },
+    benefits: { capabilities: [], avoidedCosts: [], oneOff: [], value: [] },
     roi: { basis: "full", benefitPreset: "typical", devCutPct: 0, maintCutPct: 0, transitionCosts: [], growthPctPerYear: 0, rateEscalationPctPerYear: 2, discountRatePct: 8 },
     scenarios: [],
   };

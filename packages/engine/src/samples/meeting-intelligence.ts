@@ -101,7 +101,7 @@ export const meetingIntelligence: Project = {
       { id: "ask", label: "Ask-my-meetings answers", hoursSavedPerMonth: 140, roleId: "knowledgeWorker", featureId: "ask", workloadIds: ["chat", "retrieval", "search", "embed", "docs"], workstreamIds: ["ws-ask", "ws-shared"] },
     ],
     avoidedCosts: [{ id: "licence", label: "Retire third-party transcription licence", monthly: 4000, startMonth: 10 }],
-    oneOff: [],
+    oneOff: [], value: [],
   },
   roi: {
     basis: "full", benefitPreset: "typical", devCutPct: 0, maintCutPct: 0,
