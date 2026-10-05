@@ -16,7 +16,7 @@ Updated in every PR and posted after every merge. Plan: [docs/plan](plan/README.
 | 10 | Exec | Summary page | Done | #13 | P4 |
 | 11 | Flexibility | Feature model and timing | In review | #16 | P5 |
 | 12 | Guidance | Help, glossary, validation | Done | #15 | P6 |
-| 13 | Guidance | Product tour | Pending | | P7 |
+| 13 | Guidance | Product tour | In review | #PR | P7 |
 | 14 | Accuracy / CFO | Ranges, IRR, risk weighting | Pending | | P8 |
 | 15 | Flexibility | Use-case wizard | Pending | | P9 |
 | 16 | Coverage | Infra, tools, images, PTU in ledger | Pending | | P10 |

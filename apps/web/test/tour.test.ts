@@ -75,7 +75,7 @@ describe("tour step data", () => {
     for (const s of TOUR_STEPS) if (s.route) expect(routes.has(s.route), `${s.id}: ${s.route}`).toBe(true);
   });
   it("has a data-tour attribute in the app source for every target", () => {
-    for (const s of TOUR_STEPS) if (s.target) expect(source.includes(`data-tour="${s.target}"`), `${s.id}: ${s.target}`).toBe(true);
+    for (const s of TOUR_STEPS) if (s.target) expect(new RegExp(`data-tour=(\\{[^}]*)?"${s.target}"`).test(source), `${s.id}: ${s.target}`).toBe(true);
   });
   it("uses no emojis", () => {
     for (const s of TOUR_STEPS) expect(/\p{Extended_Pictographic}/u.test(s.title + s.body)).toBe(false);
