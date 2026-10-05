@@ -113,9 +113,9 @@ function Docs({ top }: { top: ReactNode }) {
   const cheapest = routes[0]!;
   return (
     <Split top={top} inputs={<>
-        <Field label="Pages"><NumberInput value={pages} min={1} onChange={setPages} /></Field>
-        <Field label="Page type"><Select value={pageType} options={[["plain", "Plain (500 words)"], ["dense", "Dense PDF (700 words)"], ["slide", "Slide (40 words)"], ["spreadsheet", "Spreadsheet page"]].map(([value, label]) => ({ value: value!, label: label! }))} onChange={(v) => setPageType(v as typeof pageType)} /></Field>
-        <Field label="Summarize with"><Select value={summaryModel} options={modelOptions((m) => m.platform === "azure")} onChange={setSummaryModel} /></Field>
+        <Field label="Pages" help="tokPages"><NumberInput value={pages} min={1} onChange={setPages} /></Field>
+        <Field label="Page type" help="pageType"><Select value={pageType} options={[["plain", "Plain (500 words)"], ["dense", "Dense PDF (700 words)"], ["slide", "Slide (40 words)"], ["spreadsheet", "Spreadsheet page"]].map(([value, label]) => ({ value: value!, label: label! }))} onChange={(v) => setPageType(v as typeof pageType)} /></Field>
+        <Field label="Summarize with" help="tokSummaryModel"><Select value={summaryModel} options={modelOptions((m) => m.platform === "azure")} onChange={setSummaryModel} /></Field>
       </>}>
       <div><h2 className="text-base font-bold">Read and summarize {fmt(pages)} pages</h2><div className="text-xs text-muted">About {fmt(pages * words)} words, or {fmt(pages * words * heuristics.tokens.perWord)} o200k tokens of text. Cheapest first.</div></div>
       <table className="data">
@@ -137,8 +137,8 @@ function Audio({ top }: { top: ReactNode }) {
   const max = Math.max(...rows.map((r) => r.rate));
   return (
     <Split top={top} inputs={<>
-        <Field label="Audio hours"><NumberInput value={hours} min={0.1} step={0.5} onChange={setHours} /></Field>
-        <Field label="Speaker diarization"><Select value={diarize ? "y" : "n"} options={[{ value: "y", label: "Yes" }, { value: "n", label: "No" }]} onChange={(v) => setDiarize(v === "y")} /></Field>
+        <Field label="Audio hours" help="tokAudioHours"><NumberInput value={hours} min={0.1} step={0.5} onChange={setHours} /></Field>
+        <Field label="Speaker diarization" help="diarize"><Select value={diarize ? "y" : "n"} options={[{ value: "y", label: "Yes" }, { value: "n", label: "No" }]} onChange={(v) => setDiarize(v === "y")} /></Field>
       </>}>
       <div><h2 className="text-base font-bold">Transcribe {fmt(hours, 1)} hour{hours === 1 ? "" : "s"} of audio</h2><div className="text-xs text-muted">About {fmt(hours * heuristics.speech.wordsPerMinute * 60)} words, or {fmt(hours * heuristics.speech.wordsPerMinute * 60 * heuristics.tokens.perWord)} transcript tokens. Prices as of {date}.</div></div>
       <table className="data">
@@ -162,9 +162,9 @@ function AgentRun({ top }: { top: ReactNode }) {
   const rows = (["p50", "p90", "worst"] as const).map((p) => ({ p, r: simulateHarness(h, book, { modelId, cacheHit: cacheHit / 100, percentile: p, date }) }));
   return (
     <Split top={top} inputs={<>
-        <Field label="Harness"><Select value={hid} options={harnesses.map((x) => ({ value: x.id, label: x.label }))} onChange={setHid} /></Field>
-        <Field label="Model"><Select value={modelId} options={modelOptions()} onChange={setModelId} /></Field>
-        <Field label="Cache hit"><NumberInput value={cacheHit} max={100} suffix="%" onChange={setCacheHit} /></Field>
+        <Field label="Harness" help="harnessId"><Select value={hid} options={harnesses.map((x) => ({ value: x.id, label: x.label }))} onChange={setHid} /></Field>
+        <Field label="Model" help="modelId"><Select value={modelId} options={modelOptions()} onChange={setModelId} /></Field>
+        <Field label="Cache hit" help="cacheHit"><NumberInput value={cacheHit} max={100} suffix="%" onChange={setCacheHit} /></Field>
       </>}>
       <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-base font-bold">One run of {h.label}</h2><AddButton onClick={() => add({ kind: "agent", label: h.label, harnessId: h.id, modelId, tasksPerMonth: 1000, cacheHit: cacheHit / 100, toolFees: [] })} /></div>
       <table className="data">

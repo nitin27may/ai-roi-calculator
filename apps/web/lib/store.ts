@@ -1,5 +1,6 @@
 "use client";
 import { create } from "zustand";
+import { humanizeIssue } from "@/lib/validation";
 import { PROJECT_TEMPLATES, ProjectSchema, meetingIntelligence, migrateProject, type Percentile, type Project } from "@studio/engine";
 
 const LIBRARY_KEY = "ai-cost-roi-studio:library";
@@ -114,8 +115,8 @@ export const useStudio = create<State>((set, get) => {
       fn(draft);
       const parsed = ProjectSchema.safeParse(draft);
       if (!parsed.success) {
-        const i = parsed.error.issues[0];
-        return set({ problem: `That change was not applied: ${i?.path.join(".")}: ${i?.message}` });
+        console.warn("Edit refused by the schema:", parsed.error.issues[0]);
+        return set({ problem: humanizeIssue(parsed.error.issues[0]) });
       }
       get().replace(parsed.data, true);
     },

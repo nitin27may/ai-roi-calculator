@@ -20,8 +20,8 @@ export default function Capacity() {
       <Card>
         <CardHead title="Provisioned throughput (PTU) or pay-as-you-go" sub={`Azure models in production at month ${a.month} (first month at full adoption). PTU is sized for peak and billed every hour.`}>
           <div className="flex flex-wrap items-end gap-2.5">
-            <Field label="Deployment"><Select value={deployment} options={DEPLOY} onChange={(v) => setDeployment(v as PtuDeployment)} /></Field>
-            <Field label="Peak ÷ average load"><NumberInput value={peak} min={1} max={20} step={0.5} onChange={setPeak} /></Field>
+            <Field label="Deployment" help="ptuDeployment"><Select value={deployment} options={DEPLOY} onChange={(v) => setDeployment(v as PtuDeployment)} /></Field>
+            <Field label="Peak ÷ average load" help="peakFactor"><NumberInput value={peak} min={1} max={20} step={0.5} onChange={setPeak} /></Field>
           </div>
         </CardHead>
         <div className="min-h-0 flex-1 overflow-auto px-3.5 pb-3.5">
@@ -74,12 +74,12 @@ function Calculator({ deployment }: { deployment: PtuDeployment }) {
     <Card>
       <CardHead title="Size a deployment" sub="Peak requests per minute and request size" />
       <div className="flex flex-col gap-3 px-3.5 pb-3.5">
-        <Field label="Model"><Select value={modelId} options={catalog.ptu.models.map((m) => ({ value: m.modelId, label: catalog.chatModels.find((c) => c.id === m.modelId)?.label ?? m.modelId }))} onChange={setModelId} /></Field>
+        <Field label="Model" help="ptuModel"><Select value={modelId} options={catalog.ptu.models.map((m) => ({ value: m.modelId, label: catalog.chatModels.find((c) => c.id === m.modelId)?.label ?? m.modelId }))} onChange={setModelId} /></Field>
         <div className="grid grid-cols-2 gap-2.5">
-          <Field label="Peak requests / minute"><NumberInput value={rpm} onChange={setRpm} /></Field>
-          <Field label="Cached share of prompt"><NumberInput value={cache} max={100} suffix="%" onChange={setCache} /></Field>
-          <Field label="Prompt tokens"><NumberInput value={prompt} onChange={setPrompt} /></Field>
-          <Field label="Response tokens"><NumberInput value={response} onChange={setResponse} /></Field>
+          <Field label="Peak requests / minute" help="peakRpm"><NumberInput value={rpm} onChange={setRpm} /></Field>
+          <Field label="Cached share of prompt" help="cachedShare"><NumberInput value={cache} max={100} suffix="%" onChange={setCache} /></Field>
+          <Field label="Prompt tokens" help="ptuPrompt"><NumberInput value={prompt} onChange={setPrompt} /></Field>
+          <Field label="Response tokens" help="ptuResponse"><NumberInput value={response} onChange={setResponse} /></Field>
         </div>
         {s && (
           <table className="data">

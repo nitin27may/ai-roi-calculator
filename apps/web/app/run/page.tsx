@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, availableIn, type AzureDeployment, cascadeCall, harnessUsage, newHarness, newWorkload, removeWorkload, simulateHarness, sizeSearch, voiceCall, type Workload } from "@studio/engine";
-import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Pill, Seg, Select } from "@/components/ui";
-import { Plus, Trash2 } from "lucide-react";
+import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Pill, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
+import { Plus } from "lucide-react";
 import { Explain } from "@/components/explain";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
 import { Fields, HARNESS_SPECS, WAREHOUSE_SPECS, WORKLOAD_SPECS } from "@/components/fields";
@@ -36,7 +36,7 @@ export default function Run() {
         <CardHead title="Production, per month" sub="At full adoption">
           <Seg label="Agent estimate" value={percentile} onChange={setPercentile} options={[{ value: "p50", label: "P50" }, { value: "p90", label: "P90" }, { value: "worst", label: "Worst" }]} />
         </CardHead>
-        <div role="listbox" aria-label="Production workloads" className="min-h-0 flex-1 overflow-auto">
+        <div role="listbox" aria-label="Production workloads" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
           {groups.map(([g, ws]) => (
             <div key={g}>
               <GroupHead>{g}</GroupHead>
@@ -122,17 +122,17 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
           d.maintenance = mode === "none" ? { mode } : mode === "pctOfBuild" ? { mode, pctPerYear: 20 } : { mode, team: [{ roleId: d.rateCard[0]!.id, people: 0.5, hoursPerMonth: 160, experiments: false }] };
         })} options={[{ value: "none", label: "None" }, { value: "pctOfBuild", label: "% of build" }, { value: "team", label: "Support team" }]} />
         {project.maintenance.mode === "none" && <p className="text-xs text-muted">No maintenance cost. Use this when support sits in another budget or you are costing tokens only.</p>}
-        {project.maintenance.mode === "pctOfBuild" && <Field label="Per year, as a share of build cost"><NumberInput value={project.maintenance.pctPerYear} max={100} suffix="%" onChange={(v) => edit((d) => { if (d.maintenance.mode === "pctOfBuild") d.maintenance.pctPerYear = v; })} /></Field>}
+        {project.maintenance.mode === "pctOfBuild" && <Field label="Per year, as a share of build cost" help="maintenancePct"><NumberInput value={project.maintenance.pctPerYear} max={100} suffix="%" onChange={(v) => edit((d) => { if (d.maintenance.mode === "pctOfBuild") d.maintenance.pctPerYear = v; })} /></Field>}
         {project.maintenance.mode === "team" && (
           <table className="data">
             <thead><tr><th>Role</th><th className="n">People</th><th className="n">Hours / month</th><th /></tr></thead>
             <tbody>
               {project.maintenance.team.map((t, i) => (
                 <tr key={i}>
-                  <td><Select value={t.roleId} options={project.rateCard.map((r) => ({ value: r.id, label: r.label }))} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.roleId = v; })} /></td>
-                  <td className="n w-24"><NumberInput value={t.people} step={0.1} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.people = v; })} /></td>
-                  <td className="n w-28"><NumberInput value={t.hoursPerMonth} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.hoursPerMonth = v; })} /></td>
-                  <td><button type="button" aria-label="Remove line" onClick={() => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team.splice(i, 1); })}><Trash2 size={14} /></button></td>
+                  <td><Select label={`Role, maintenance row ${i + 1}`} value={t.roleId} options={project.rateCard.map((r) => ({ value: r.id, label: r.label }))} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.roleId = v; })} /></td>
+                  <td className="n w-24"><NumberInput label={`People, maintenance row ${i + 1}`} value={t.people} step={0.1} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.people = v; })} /></td>
+                  <td className="n w-28"><NumberInput label={`Hours per month, maintenance row ${i + 1}`} value={t.hoursPerMonth} onChange={(v) => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team[i]!.hoursPerMonth = v; })} /></td>
+                  <td><TrashButton label="Remove line" onClick={() => edit((d) => { if (d.maintenance.mode === "team") d.maintenance.team.splice(i, 1); })} /></td>
                 </tr>
               ))}
             </tbody>
@@ -231,12 +231,12 @@ function DocumentRoute({ id }: { id: string }) {
   const route = w.route;
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-2.5">
-      <Field label="Route"><Select value={route.type} options={[{ value: "extract", label: "Extract text first" }, { value: "direct", label: "PDF straight to a model" }]} onChange={(v) => set((x) => { x.route = v === "direct" ? { type: "direct", modelId: "gpt-5.4-mini", outputTokens: 50 } : { type: "extract", extractorId: "di-layout", addOnIds: [] }; })} /></Field>
+      <Field label="Route" help="docRoute"><Select value={route.type} options={[{ value: "extract", label: "Extract text first" }, { value: "direct", label: "PDF straight to a model" }]} onChange={(v) => set((x) => { x.route = v === "direct" ? { type: "direct", modelId: "gpt-5.4-mini", outputTokens: 50 } : { type: "extract", extractorId: "di-layout", addOnIds: [] }; })} /></Field>
       {route.type === "extract"
-        ? <Field label="Extraction service"><Select value={route.extractorId} options={extractors} onChange={(v) => set((x) => { if (x.route.type === "extract") x.route.extractorId = v; if (v.startsWith("sf-") && !x.warehouse) x.warehouse = { size: "m", hoursPerMonth: 10 }; if (!v.startsWith("sf-")) delete x.warehouse; })} /></Field>
+        ? <Field label="Extraction service" help="docExtractor"><Select value={route.extractorId} options={extractors} onChange={(v) => set((x) => { if (x.route.type === "extract") x.route.extractorId = v; if (v.startsWith("sf-") && !x.warehouse) x.warehouse = { size: "m", hoursPerMonth: 10 }; if (!v.startsWith("sf-")) delete x.warehouse; })} /></Field>
         : <>
-            <Field label="Model"><Select value={route.modelId} options={models} onChange={(v) => set((x) => { if (x.route.type === "direct") x.route.modelId = v; })} /></Field>
-            <Field label="Output tokens / page"><NumberInput value={route.outputTokens} min={0} onChange={(n) => set((x) => { if (x.route.type === "direct") x.route.outputTokens = n; })} /></Field>
+            <Field label="Model" help="docModel"><Select value={route.modelId} options={models} onChange={(v) => set((x) => { if (x.route.type === "direct") x.route.modelId = v; })} /></Field>
+            <Field label="Output tokens / page" help="docOutputTokens"><NumberInput value={route.outputTokens} min={0} onChange={(n) => set((x) => { if (x.route.type === "direct") x.route.outputTokens = n; })} /></Field>
           </>}
     </div>
   );

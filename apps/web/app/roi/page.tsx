@@ -1,8 +1,9 @@
 "use client";
 import { useMemo, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { LEVERS, applyScenario, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityVolume, workloadVolume, sensitivity, capabilityHours, compareScenarios, computeAllocation, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
-import { Card, CardHead, Field, NumberInput, Pill, Seg, Select } from "@/components/ui";
+import { Card, CardHead, Field, NumberInput, Pill, Seg, Select, TextInput, TrashButton } from "@/components/ui";
+import type { HelpId } from "@/lib/help";
 import { CumulativeLine, Legend } from "@/components/charts";
 import { catalog, deploymentOptions, modelOptions, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
@@ -62,9 +63,9 @@ function Assumptions() {
         </fieldset>
         <BenefitAssumptions />
         <div className="grid grid-cols-3 gap-2">
-          <Field label="Growth / year"><NumberInput value={project.roi.growthPctPerYear} min={-50} max={500} suffix="%" onChange={(v) => edit((d) => { d.roi.growthPctPerYear = v; })} /></Field>
-          <Field label="Rate escalation"><NumberInput value={project.roi.rateEscalationPctPerYear} max={50} suffix="%" onChange={(v) => edit((d) => { d.roi.rateEscalationPctPerYear = v; })} /></Field>
-          <Field label="Discount rate"><NumberInput value={project.roi.discountRatePct} max={50} suffix="%" onChange={(v) => edit((d) => { d.roi.discountRatePct = v; })} /></Field>
+          <Field label="Growth / year" help="growth"><NumberInput value={project.roi.growthPctPerYear} min={-50} max={500} suffix="%" onChange={(v) => edit((d) => { d.roi.growthPctPerYear = v; })} /></Field>
+          <Field label="Rate escalation" help="escalation"><NumberInput value={project.roi.rateEscalationPctPerYear} max={50} suffix="%" onChange={(v) => edit((d) => { d.roi.rateEscalationPctPerYear = v; })} /></Field>
+          <Field label="Discount rate" help="discount"><NumberInput value={project.roi.discountRatePct} max={50} suffix="%" onChange={(v) => edit((d) => { d.roi.discountRatePct = v; })} /></Field>
         </div>
         <div className="flex flex-col gap-2.5">
           {slider("Reduce development cost", project.roi.devCutPct, (n) => edit((d) => { d.roi.devCutPct = n; }), "dev-cut")}
@@ -84,21 +85,21 @@ function Assumptions() {
               <div key={a.id} className="mb-2 flex flex-col gap-2 rounded-md border border-line p-2">
                 <div className="flex items-center gap-2">
                   <input className={cn(textIn, "flex-1")} value={a.label} aria-label="Avoided cost" onChange={(e) => upd((x) => { x.label = e.target.value; })} />
-                  <button type="button" aria-label="Remove avoided cost" onClick={() => edit((d) => { d.benefits.avoidedCosts.splice(i, 1); })}><Trash2 size={14} /></button>
+                  <TrashButton label="Remove avoided cost" onClick={() => edit((d) => { d.benefits.avoidedCosts.splice(i, 1); })} />
                 </div>
                 <Seg label="Avoided cost type" value={headcount ? "fte" : "fixed"} onChange={(v) => upd((x) => { if (v === "fte") { x.fte = 1; x.roleId = project.benefits.capabilities[0]?.roleId ?? project.rateCard.at(-1)!.id; x.hoursPerMonth = 160; } else { delete x.fte; delete x.roleId; delete x.hoursPerMonth; } })}
                   options={[{ value: "fixed", label: "Fixed amount" }, { value: "fte", label: "Headcount" }]} />
                 <div className="grid grid-cols-2 gap-2">
                   {headcount ? (
                     <>
-                      <Field label="FTE avoided"><NumberInput value={a.fte ?? 0} step={0.1} onChange={(v) => upd((x) => { x.fte = v; })} /></Field>
-                      <Field label="Hours per FTE / month"><NumberInput value={a.hoursPerMonth ?? 160} onChange={(v) => upd((x) => { x.hoursPerMonth = v; })} /></Field>
-                      <Field label="Role"><Select value={a.roleId ?? ""} options={project.rateCard.map((r) => ({ value: r.id, label: `${r.label} (${cad(r.hourlyRate)}/h)` }))} onChange={(v) => upd((x) => { x.roleId = v; })} /></Field>
+                      <Field label="FTE avoided" help="fteAvoided"><NumberInput value={a.fte ?? 0} step={0.1} onChange={(v) => upd((x) => { x.fte = v; })} /></Field>
+                      <Field label="Hours per FTE / month" help="hoursPerFte"><NumberInput value={a.hoursPerMonth ?? 160} onChange={(v) => upd((x) => { x.hoursPerMonth = v; })} /></Field>
+                      <Field label="Role" help="role"><Select value={a.roleId ?? ""} options={project.rateCard.map((r) => ({ value: r.id, label: `${r.label} (${cad(r.hourlyRate)}/h)` }))} onChange={(v) => upd((x) => { x.roleId = v; })} /></Field>
                     </>
                   ) : (
-                    <Field label="CAD per month"><NumberInput value={a.monthly} onChange={(v) => upd((x) => { x.monthly = v; })} /></Field>
+                    <Field label="CAD per month" help="avoidedMonthly"><NumberInput value={a.monthly} onChange={(v) => upd((x) => { x.monthly = v; })} /></Field>
                   )}
-                  <Field label={`From month (go-live ${B + 1})`}><NumberInput value={a.startMonth ?? B + 1} min={1} max={H} onChange={(v) => upd((x) => { x.startMonth = Math.round(v); })} /></Field>
+                  <Field label={`From month (go-live ${B + 1})`} help="capLiveFrom"><NumberInput value={a.startMonth ?? B + 1} min={1} max={H} onChange={(v) => upd((x) => { x.startMonth = Math.round(v); })} /></Field>
                 </div>
                 {headcount && <div className="text-[11.5px] text-muted"><span className="num font-semibold text-ink">{cad(avoidedMonthly(project, a))}/month</span>, rising with rate escalation. Count it only if the role is actually not hired, or is redeployed to funded work.</div>}
                 {overlap && <div role="note" className="rounded bg-warn-soft px-2 py-1.5 text-[11.5px] text-warn">A time-saving capability is valued at the same role. If those saved hours are what lets you avoid this headcount, you are counting the same benefit twice.</div>}
@@ -232,10 +233,10 @@ function BenefitAssumptions() {
       <Seg label="Benefit preset" value={project.roi.benefitPreset} onChange={(v) => edit((d) => { d.roi.benefitPreset = v; })} options={PRESETS.map((p) => ({ ...p }))} />
       <p className="text-[11.5px] text-muted">Picks each benchmark&apos;s saving and the default adoption and realisation. {a.rationale} Capabilities entered as hours are not affected.</p>
       <div className="grid grid-cols-2 gap-2">
-        <Field label="Adoption (active users)"><NumberInput value={a.adoptionPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.roi.adoptionPct = v; })} /></Field>
-        <Field label="Realisation (time that becomes value)"><NumberInput value={a.realisationPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.roi.realisationPct = v; })} /></Field>
-        <Field label="Users already licensed (e.g. M365 Copilot)"><NumberInput value={project.roi.licensedPct ?? 0} max={100} suffix="%" onChange={(v) => edit((d) => { d.roi.licensedPct = v || undefined; })} /></Field>
-        <Field label="Working days / month"><NumberInput value={project.roi.workingDaysPerMonth ?? 21} min={1} max={31} onChange={(v) => edit((d) => { d.roi.workingDaysPerMonth = v; })} /></Field>
+        <Field label="Adoption (active users)" help="adoption"><NumberInput value={a.adoptionPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.roi.adoptionPct = v; })} /></Field>
+        <Field label="Realisation (time that becomes value)" help="realisation"><NumberInput value={a.realisationPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.roi.realisationPct = v; })} /></Field>
+        <Field label="Users already licensed (e.g. M365 Copilot)" help="licensed"><NumberInput value={project.roi.licensedPct ?? 0} max={100} suffix="%" onChange={(v) => edit((d) => { d.roi.licensedPct = v || undefined; })} /></Field>
+        <Field label="Working days / month" help="roiWorkingDays"><NumberInput value={project.roi.workingDaysPerMonth ?? 21} min={1} max={31} onChange={(v) => edit((d) => { d.roi.workingDaysPerMonth = v; })} /></Field>
       </div>
       {overridden && <button type="button" className="w-fit text-xs text-accent underline" onClick={() => edit((d) => { delete d.roi.adoptionPct; delete d.roi.realisationPct; })}>Reset adoption and realisation to the preset</button>}
     </div>
@@ -279,8 +280,8 @@ function CapabilityCard({ c, i }: { c: Capability; i: number }) {
   const bench = c.benchmarkId ? lib.capabilities.find((b) => b.id === c.benchmarkId) : undefined;
   const driver = c.driver ?? "hours";
   const textIn = "min-w-0 rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]";
-  const num = (label: string, value: number | undefined, set: (x: Capability, v: number) => void, opts: { max?: number; suffix?: string } = {}) => (
-    <Field label={label}><NumberInput value={value ?? 0} max={opts.max} suffix={opts.suffix} onChange={(v) => upd((x) => set(x, v))} /></Field>
+  const num = (label: string, help: HelpId, value: number | undefined, set: (x: Capability, v: number) => void, opts: { max?: number; suffix?: string } = {}) => (
+    <Field label={label} help={help}><NumberInput value={value ?? 0} max={opts.max} suffix={opts.suffix} onChange={(v) => upd((x) => set(x, v))} /></Field>
   );
   const unit = c.unit ?? bench?.unit ?? "minutes";
   const savings = c.savings ?? bench?.savings ?? { conservative: 0, typical: 0, optimistic: 0 };
@@ -288,7 +289,7 @@ function CapabilityCard({ c, i }: { c: Capability; i: number }) {
     <div className="mb-2 flex flex-col gap-2 rounded-md border border-line p-2">
       <div className="flex items-center gap-2">
         <input className={cn(textIn, "flex-1")} value={c.label} aria-label="Capability" onChange={(e) => upd((x) => { x.label = e.target.value; })} />
-        <button type="button" aria-label="Remove capability" onClick={() => edit((d) => { d.benefits.capabilities.splice(i, 1); })}><Trash2 size={14} /></button>
+        <TrashButton label="Remove capability" onClick={() => edit((d) => { d.benefits.capabilities.splice(i, 1); })} />
       </div>
       {bench && (
         <div className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-muted">
@@ -299,34 +300,34 @@ function CapabilityCard({ c, i }: { c: Capability; i: number }) {
         </div>
       )}
       <div className="grid grid-cols-2 gap-2">
-        <Field label="Worked out"><Select value={driver} options={DRIVERS} onChange={(v) => upd((x) => { x.driver = v as Capability["driver"]; if (v !== "hours") { x.users ??= 100; x.tasksPerUserPerDay ??= 1; x.baselineMinutes ??= 30; x.savings ??= { conservative: 5, typical: 10, optimistic: 15 }; x.unit ??= "minutes"; } })} /></Field>
-        <Field label="Valued at"><Select value={c.roleId} options={project.rateCard.map((r) => ({ value: r.id, label: `${r.label} (${cad(r.hourlyRate)}/h)` }))} onChange={(v) => upd((x) => { x.roleId = v; })} /></Field>
-        {driver === "hours" && num("Net hours saved / month", c.hoursSavedPerMonth, (x, v) => { x.hoursSavedPerMonth = v; })}
+        <Field label="Worked out" help="capDriver"><Select value={driver} options={DRIVERS} onChange={(v) => upd((x) => { x.driver = v as Capability["driver"]; if (v !== "hours") { x.users ??= 100; x.tasksPerUserPerDay ??= 1; x.baselineMinutes ??= 30; x.savings ??= { conservative: 5, typical: 10, optimistic: 15 }; x.unit ??= "minutes"; } })} /></Field>
+        <Field label="Valued at" help="capRole"><Select value={c.roleId} options={project.rateCard.map((r) => ({ value: r.id, label: `${r.label} (${cad(r.hourlyRate)}/h)` }))} onChange={(v) => upd((x) => { x.roleId = v; })} /></Field>
+        {driver === "hours" && num("Net hours saved / month", "capNetHours", c.hoursSavedPerMonth, (x, v) => { x.hoursSavedPerMonth = v; })}
         {driver !== "hours" && (() => {
           const perUser = driver !== "perVolume";
           const sources = project.workloads.filter((w) => { const v = workloadVolume(w); return perUser ? v.users !== undefined : v.items !== undefined; });
           return (
-            <Field label={perUser ? "Take users from" : "Take items from"}>
+            <Field label={perUser ? "Take users from" : "Take items from"} help="capVolumeFrom">
               <Select value={c.volumeFrom ?? ""} options={[{ value: "", label: "Entered here" }, ...sources.map((w) => ({ value: w.id, label: `${w.label}${perUser ? "" : ` (${workloadVolume(w).itemsKey})`}` }))]}
                 onChange={(v) => upd((x) => { if (v) x.volumeFrom = v; else { const cur = capabilityVolume(project, x); x.users = cur.users; x.itemsPerMonth = cur.items; delete x.volumeFrom; } })} />
             </Field>
           );
         })()}
         {(driver === "perTask" || driver === "perUserWeek") && (c.volumeFrom
-          ? <Field label="Users (from the workload)"><span className="num py-1.5 text-[13px]">{fmt(capabilityVolume(project, c).users)}</span></Field>
-          : num("Users", c.users, (x, v) => { x.users = v; }))}
-        {driver === "perTask" && num("Tasks per user per day", c.tasksPerUserPerDay, (x, v) => { x.tasksPerUserPerDay = v; })}
+          ? <Field label="Users (from the workload)" help="capUsers"><span className="num py-1.5 text-[13px]">{fmt(capabilityVolume(project, c).users)}</span></Field>
+          : num("Users", "capUsersIn", c.users, (x, v) => { x.users = v; }))}
+        {driver === "perTask" && num("Tasks per user per day", "capTasksPerDay", c.tasksPerUserPerDay, (x, v) => { x.tasksPerUserPerDay = v; })}
         {driver === "perVolume" && (c.volumeFrom
-          ? <Field label="Items per month (from the workload)"><span className="num py-1.5 text-[13px]">{fmt(capabilityVolume(project, c).items)}</span></Field>
-          : num("Items per month", c.itemsPerMonth, (x, v) => { x.itemsPerMonth = v; }))}
-        {driver === "perVolume" && num("Share handled", c.handledPct ?? 100, (x, v) => { x.handledPct = v; }, { max: 100, suffix: "%" })}
-        {driver !== "hours" && num(driver === "perUserWeek" ? "Baseline min / week" : "Baseline minutes", c.baselineMinutes ?? bench?.baselineMinutes, (x, v) => { x.baselineMinutes = v; })}
-        {driver !== "hours" && <Field label="Saving is in"><Select value={unit} options={[{ value: "minutes", label: driver === "perUserWeek" ? "minutes / week" : "minutes" }, { value: "pct", label: "% of baseline" }]} onChange={(v) => upd((x) => { x.unit = v as "minutes" | "pct"; })} /></Field>}
+          ? <Field label="Items per month (from the workload)" help="capItems"><span className="num py-1.5 text-[13px]">{fmt(capabilityVolume(project, c).items)}</span></Field>
+          : num("Items per month", "capItemsIn", c.itemsPerMonth, (x, v) => { x.itemsPerMonth = v; }))}
+        {driver === "perVolume" && num("Share handled", "capHandled", c.handledPct ?? 100, (x, v) => { x.handledPct = v; }, { max: 100, suffix: "%" })}
+        {driver !== "hours" && num(driver === "perUserWeek" ? "Baseline min / week" : "Baseline minutes", "capBaseline", c.baselineMinutes ?? bench?.baselineMinutes, (x, v) => { x.baselineMinutes = v; })}
+        {driver !== "hours" && <Field label="Saving is in" help="capSavingUnit"><Select value={unit} options={[{ value: "minutes", label: driver === "perUserWeek" ? "minutes / week" : "minutes" }, { value: "pct", label: "% of baseline" }]} onChange={(v) => upd((x) => { x.unit = v as "minutes" | "pct"; })} /></Field>}
       </div>
       {driver !== "hours" && (
         <div className="grid grid-cols-3 gap-2">
           {PRESETS.map((p) => (
-            <Field key={p.value} label={`${p.label}${project.roi.benefitPreset === p.value ? " ●" : ""}`}>
+            <Field key={p.value} label={`${p.label}${project.roi.benefitPreset === p.value ? " (in use)" : ""}`} help="capSavings">
               <NumberInput value={savings[p.value]} suffix={unit === "pct" ? "%" : "min"} onChange={(v) => upd((x) => { x.savings = { ...(x.savings ?? savings), [p.value]: v }; })} />
             </Field>
           ))}
@@ -336,15 +337,15 @@ function CapabilityCard({ c, i }: { c: Capability; i: number }) {
         <details className="text-xs">
           <summary className="cursor-pointer text-ink-2">Adoption, realisation and timing for this capability</summary>
           <div className="mt-1.5 grid grid-cols-2 gap-2">
-            {driver !== "perVolume" && num("Adoption", h.adoptionPct, (x, v) => { x.adoptionPct = v; }, { max: 100, suffix: "%" })}
-            {num("Realisation", h.realisationPct, (x, v) => { x.realisationPct = v; }, { max: 100, suffix: "%" })}
-            {driver === "perUserWeek" && num("Licence overlap", Math.round((c.licenceOverlap ?? bench?.licenceOverlap ?? 0) * 100), (x, v) => { x.licenceOverlap = v / 100; }, { max: 100, suffix: "%" })}
-            <Field label={`Live from month (go-live ${B + 1})`}><NumberInput value={c.liveFromMonth ?? B + 1} min={B + 1} max={H} onChange={(v) => upd((x) => { x.liveFromMonth = Math.round(v) > B + 1 ? Math.round(v) : undefined; })} /></Field>
+            {driver !== "perVolume" && num("Adoption", "adoption", h.adoptionPct, (x, v) => { x.adoptionPct = v; }, { max: 100, suffix: "%" })}
+            {num("Realisation", "realisation", h.realisationPct, (x, v) => { x.realisationPct = v; }, { max: 100, suffix: "%" })}
+            {driver === "perUserWeek" && num("Licence overlap", "capOverlap", Math.round((c.licenceOverlap ?? bench?.licenceOverlap ?? 0) * 100), (x, v) => { x.licenceOverlap = v / 100; }, { max: 100, suffix: "%" })}
+            <Field label={`Live from month (go-live ${B + 1})`} help="capLiveFrom"><NumberInput value={c.liveFromMonth ?? B + 1} min={B + 1} max={H} onChange={(v) => upd((x) => { x.liveFromMonth = Math.round(v) > B + 1 ? Math.round(v) : undefined; })} /></Field>
           </div>
           {(c.adoptionPct !== undefined || c.realisationPct !== undefined) && <button type="button" className="mt-1 text-accent underline" onClick={() => upd((x) => { delete x.adoptionPct; delete x.realisationPct; })}>Use the project&apos;s adoption and realisation</button>}
         </details>
       )}
-      {driver === "hours" && <Field label={`Live from month (go-live ${B + 1})`}><NumberInput value={c.liveFromMonth ?? B + 1} min={B + 1} max={H} onChange={(v) => upd((x) => { x.liveFromMonth = Math.round(v) > B + 1 ? Math.round(v) : undefined; })} /></Field>}
+      {driver === "hours" && <Field label={`Live from month (go-live ${B + 1})`} help="capLiveFrom"><NumberInput value={c.liveFromMonth ?? B + 1} min={B + 1} max={H} onChange={(v) => upd((x) => { x.liveFromMonth = Math.round(v) > B + 1 ? Math.round(v) : undefined; })} /></Field>}
       <details className="text-xs">
         <summary className="cursor-pointer text-ink-2">Uses {c.componentIds.length} workload{c.componentIds.length === 1 ? "" : "s"} or workstream{c.componentIds.length === 1 ? "" : "s"} (for ROI by capability)</summary>
         <div className="mt-1.5 grid grid-cols-2 gap-1">
@@ -376,11 +377,11 @@ function MonthItems({ title, hint, items, onAdd, onChange, onRemove, amountLabel
         <div key={it.id} className="mb-2 grid grid-cols-[1fr_auto] items-end gap-2 rounded-md border border-line p-2">
           <input className="col-span-2 min-w-0 rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]" value={it.label} aria-label={title} onChange={(e) => onChange(i, "label", e.target.value)} />
           <div className={cn("grid gap-2", it.to !== undefined ? "grid-cols-3" : "grid-cols-2")}>
-            <Field label={amountLabel}><NumberInput value={it.amount} onChange={(v) => onChange(i, "amount", v)} /></Field>
-            <Field label={it.to !== undefined ? "From month" : "Month"}><NumberInput value={it.from} min={1} max={H} onChange={(v) => onChange(i, "from", v)} /></Field>
-            {it.to !== undefined && <Field label="To month"><NumberInput value={it.to} min={1} max={H} onChange={(v) => onChange(i, "to", v)} /></Field>}
+            <Field label={amountLabel} help="itemAmount"><NumberInput value={it.amount} onChange={(v) => onChange(i, "amount", v)} /></Field>
+            <Field label={it.to !== undefined ? "From month" : "Month"} help="itemFrom"><NumberInput value={it.from} min={1} max={H} onChange={(v) => onChange(i, "from", v)} /></Field>
+            {it.to !== undefined && <Field label="To month" help="itemTo"><NumberInput value={it.to} min={1} max={H} onChange={(v) => onChange(i, "to", v)} /></Field>}
           </div>
-          <button type="button" aria-label={`Remove ${title}`} className="pb-2" onClick={() => onRemove(i)}><Trash2 size={14} /></button>
+          <TrashButton label={`Remove ${title}`} onClick={() => onRemove(i)} />
         </div>
       ))}
       <button type="button" className="flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2" onClick={onAdd}><Plus size={14} />Add</button>
@@ -493,7 +494,7 @@ function Scenarios() {
                   <>
                     <button type="button" className="rounded border border-line px-1.5 text-xs hover:bg-surface-2" title="Make this the project" onClick={() => { const s = project.scenarios.find((x) => x.id === r.id)!; const q = applyScenario(project, s, catalog); q.scenarios = project.scenarios.filter((x) => x.id !== r.id); replace(q); }}>Adopt</button>{" "}
                   </>
-                )}{i > 0 && <button type="button" aria-label={`Delete ${r.label}`} onClick={() => edit((d) => { d.scenarios = d.scenarios.filter((x) => x.id !== r.id); })}><Trash2 size={14} /></button>}</td>
+                )}{i > 0 && <TrashButton label={`Delete ${r.label}`} onClick={() => edit((d) => { d.scenarios = d.scenarios.filter((x) => x.id !== r.id); })} />}</td>
               </tr>
             ))}
           </tbody>
@@ -502,18 +503,18 @@ function Scenarios() {
       <div className="rounded-md border border-line p-3">
         <h3 className="mb-2 text-sm font-semibold">New scenario</h3>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] items-end gap-2.5">
-          <Field label="Change"><Select value={kind} onChange={(v) => setKind(v as EditKind)} options={[{ value: "model", label: "Model for a workload" }, { value: "scale", label: "Usage volume (%)" }, { value: "buildMonths", label: "Build months" }, { value: "developers", label: "Experimenting developers" }, { value: "lever", label: "Apply a savings lever" }, { value: "preset", label: "Benefit preset" }]} /></Field>
-          {kind === "model" && <><Field label="Workload"><Select value={wid} onChange={(v) => { setWid(v); setModel(modelChoices(v)[0]?.value ?? ""); }} options={llmWorkloads.map((w) => ({ value: w.id, label: w.label }))} /></Field><Field label="Model"><Select value={modelChoices(wid).some((o) => o.value === model) ? model : (modelChoices(wid)[0]?.value ?? "")} onChange={setModel} options={modelChoices(wid)} /></Field></>}
-          {(kind === "scale" || kind === "buildMonths" || kind === "developers") && <Field label={kind === "scale" ? "Percent of baseline" : kind === "buildMonths" ? "Months" : "People"}><NumberInput value={num} min={kind === "scale" ? 1 : 1} max={kind === "scale" ? 1000 : 24} onChange={setNum} /></Field>}
-          {kind === "lever" && <Field label="Lever"><Select value={lever} onChange={setLever} options={LEVERS.map((l) => ({ value: l.id, label: l.label }))} /></Field>}
-          {kind === "preset" && <Field label="Preset"><Select value={preset} onChange={(v) => setPreset(v as typeof preset)} options={[{ value: "conservative", label: "Conservative" }, { value: "typical", label: "Typical" }, { value: "optimistic", label: "Optimistic" }]} /></Field>}
+          <Field label="Change" help="scnChange"><Select value={kind} onChange={(v) => setKind(v as EditKind)} options={[{ value: "model", label: "Model for a workload" }, { value: "scale", label: "Usage volume (%)" }, { value: "buildMonths", label: "Build months" }, { value: "developers", label: "Experimenting developers" }, { value: "lever", label: "Apply a savings lever" }, { value: "preset", label: "Benefit preset" }]} /></Field>
+          {kind === "model" && <><Field label="Workload" help="scnWorkload"><Select value={wid} onChange={(v) => { setWid(v); setModel(modelChoices(v)[0]?.value ?? ""); }} options={llmWorkloads.map((w) => ({ value: w.id, label: w.label }))} /></Field><Field label="Model" help="scnModel"><Select value={modelChoices(wid).some((o) => o.value === model) ? model : (modelChoices(wid)[0]?.value ?? "")} onChange={setModel} options={modelChoices(wid)} /></Field></>}
+          {(kind === "scale" || kind === "buildMonths" || kind === "developers") && <Field label={kind === "scale" ? "Percent of baseline" : kind === "buildMonths" ? "Months" : "People"} help="scnValue"><NumberInput value={num} min={kind === "scale" ? 1 : 1} max={kind === "scale" ? 1000 : 24} onChange={setNum} /></Field>}
+          {kind === "lever" && <Field label="Lever" help="scnLever"><Select value={lever} onChange={setLever} options={LEVERS.map((l) => ({ value: l.id, label: l.label }))} /></Field>}
+          {kind === "preset" && <Field label="Preset" help="scnPreset"><Select value={preset} onChange={(v) => setPreset(v as typeof preset)} options={[{ value: "conservative", label: "Conservative" }, { value: "typical", label: "Typical" }, { value: "optimistic", label: "Optimistic" }]} /></Field>}
           <button type="button" className="flex h-[30px] w-fit items-center gap-1.5 rounded-md border border-line px-2.5 text-xs font-medium hover:bg-surface-2" onClick={addEdit}><Plus size={14} />Add change</button>
         </div>
         {draft.length > 0 && (
           <div className="mt-3 flex flex-col gap-2">
             <div className="flex flex-wrap gap-1.5">{draft.map((d, i) => <Pill key={i}>{d.text}</Pill>)}</div>
             <div className="flex flex-wrap items-end gap-2">
-              <Field label="Name"><input className="rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]" placeholder={draft.map((x) => x.text).join(", ")} value={label} onChange={(e) => setLabel(e.target.value)} /></Field>
+              <Field label="Name" help="scnName"><TextInput placeholder={draft.map((x) => x.text).join(", ")} value={label} onChange={setLabel} /></Field>
               <button type="button" className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-ink" onClick={save}>Save scenario</button>
               <button type="button" className="rounded-md border border-line px-3 py-1.5 text-xs" onClick={() => setDraft([])}>Clear</button>
             </div>
