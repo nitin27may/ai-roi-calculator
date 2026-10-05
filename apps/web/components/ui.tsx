@@ -6,8 +6,8 @@ import { helpFor, type HelpId } from "@/lib/help";
 import { rangeMessage } from "@/lib/validation";
 import { HelpTip } from "@/components/help-tip";
 
-export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("flex min-h-0 min-w-0 flex-col rounded-lg border border-line bg-surface", className)}>{children}</div>;
+export function Card({ children, className, id }: { children: ReactNode; className?: string; id?: string }) {
+  return <div id={id} className={cn("flex min-h-0 min-w-0 flex-col rounded-lg border border-line bg-surface", className)}>{children}</div>;
 }
 
 export function CardHead({ title, sub, children }: { title: ReactNode; sub?: ReactNode; children?: ReactNode }) {

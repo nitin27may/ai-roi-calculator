@@ -152,7 +152,8 @@ export function Waterfall({ steps, costIds, className }: { steps: WaterfallBar[]
   const lo = Math.min(0, ...bars.map((b) => Math.min(b.start, b.end)));
   const hi = Math.max(0, ...bars.map((b) => Math.max(b.start, b.end)));
   const pad = (hi - lo || 1) * 0.08;
-  const pct = (v: number) => (100 * (v - (lo - pad))) / (hi - lo + 2 * pad || 1);
+  // Rounded to 2 decimals so the style strings are identical on the server and in the browser (unrounded floats differ in the last digits and trip hydration).
+  const pct = (v: number) => Math.round((10000 * (v - (lo - pad))) / (hi - lo + 2 * pad || 1)) / 100;
   const zero = pct(0);
   const labelCol = "minmax(100px,150px)";
   return (
@@ -165,7 +166,7 @@ export function Waterfall({ steps, costIds, className }: { steps: WaterfallBar[]
       </div>
       {bars.map((b) => {
         const color = b.color === "ink" && b.value < 0 ? "var(--risk)" : WATERFALL_COLOR[b.color];
-        const left = Math.min(pct(b.start), pct(b.end)), width = Math.max(0.6, Math.abs(pct(b.end) - pct(b.start)));
+        const left = Math.min(pct(b.start), pct(b.end)), width = Math.max(0.6, Math.round(100 * Math.abs(pct(b.end) - pct(b.start))) / 100);
         const labelOnRight = pct(b.end) >= pct(b.start);
         // Costs are entered as positive magnitudes internally; show them signed so direction reads without decoding bar position.
         const signedValue = costIds.includes(b.id) ? -b.value : b.value;
@@ -173,9 +174,10 @@ export function Waterfall({ steps, costIds, className }: { steps: WaterfallBar[]
         // Keep the amount label outside the bar when there's room; otherwise pin it against the
         // bar's own inner edge with a matching background, so it stays readable even when it's
         // wider than the bar and runs past it onto the empty track.
-        const fitsOutside = labelOnRight ? left + width < 82 : left > 18;
-        const outsideStyle = labelOnRight ? { left: `calc(${left + width}% + 6px)` } : { right: `calc(${100 - left}% + 6px)` };
-        const insideStyle = labelOnRight ? { right: `calc(${100 - (left + width)}% + 4px)` } : { left: `calc(${left}% + 4px)` };
+        const end = Math.round(100 * (left + width)) / 100;
+        const fitsOutside = labelOnRight ? end < 82 : left > 18;
+        const outsideStyle = labelOnRight ? { left: `calc(${end}% + 6px)` } : { right: `calc(${Math.round(100 * (100 - left)) / 100}% + 6px)` };
+        const insideStyle = labelOnRight ? { right: `calc(${Math.round(100 * (100 - end)) / 100}% + 4px)` } : { left: `calc(${left}% + 4px)` };
         return (
           <div key={b.id} className="grid items-center gap-2 text-[12px]" style={{ gridTemplateColumns: labelCol + " 1fr" }}>
             <span className="truncate text-ink-2" title={b.label}>{b.label}</span>
@@ -234,7 +236,7 @@ export function BulletBar({ value, baseline, color = "var(--accent)" }: { value:
   );
 }
 
-export interface RangeRow { id: string; label: string; low: number; expected: number; high: number; format?: (v: number) => string }
+export interface RangeRow { id: string; label: string; low: number; expected: number; high: number; format?: (v: number) => string; /** The range is too wide to read as plain numbers; the row is tagged and the bar is drawn lighter. */ wide?: boolean }
 
 /**
  * One bar per figure: the span from the lowest to the highest case, with the expected value marked. Rows share one
@@ -246,7 +248,7 @@ export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string
     <table className="data">
       {caption && <caption className="sr-only">{caption}</caption>}
       <thead><tr><th>Figure</th><th className="n">Low</th><th className="n">Expected</th><th className="n">High</th></tr></thead>
-      <tbody>{rows.map((r) => <tr key={r.id}><td>{r.label}</td><td className="n">{show(r, r.low)}</td><td className="n">{show(r, r.expected)}</td><td className="n">{show(r, r.high)}</td></tr>)}</tbody>
+      <tbody>{rows.map((r) => <tr key={r.id}><td>{r.label}{r.wide ? " (wide range)" : ""}</td><td className="n">{show(r, r.low)}</td><td className="n">{show(r, r.expected)}</td><td className="n">{show(r, r.high)}</td></tr>)}</tbody>
     </table>
   );
   return (
@@ -261,7 +263,7 @@ export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string
           const pos = (v: number) => Math.min(98, Math.max(2, x(v)));
           return (
             <div key={r.id} className="grid grid-cols-[minmax(100px,150px)_1fr] items-center gap-2 text-[12px]">
-              <span className="truncate text-ink-2" title={r.label}>{r.label}</span>
+              <span className="truncate text-ink-2" title={r.label}>{r.label}{r.wide && <span className="ml-1 rounded bg-warn-soft px-1 text-[10.5px] font-medium text-warn">Wide</span>}</span>
               <div>
                 <div className="relative h-5" title={`${r.label}: ${show(r, r.low)} to ${show(r, r.high)}, expected ${show(r, r.expected)}`}>
                   {x(0) > 0 && x(0) < 100 && <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${x(0)}%` }} />}
