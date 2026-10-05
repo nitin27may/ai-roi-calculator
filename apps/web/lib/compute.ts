@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 import { loadCatalog } from "@studio/catalog";
-import { DEPLOYMENT_LABEL, availableIn, buildLedger, computeRoi, evaluateLevers, type AzureDeployment } from "@studio/engine";
+import { DEPLOYMENT_LABEL, availableIn, buildLedger, computeRoi, evaluateLevers, summarize, type AzureDeployment } from "@studio/engine";
 import { useStudio } from "./store";
 
 /** The bundled CAD price catalogue (validated once). */
@@ -15,6 +15,16 @@ export function useLedger() {
     const roi = computeRoi(ledger, project.roi.basis, project.roi.discountRatePct);
     return { project, ledger, roi };
   }, [project, percentile]);
+}
+
+/**
+ * The single figures behind the Summary page, the Report and the Excel export, so all three
+ * always agree. Built on top of `useLedger()`'s memoised ledger and ROI.
+ */
+export function useSummary() {
+  const { project, ledger, roi } = useLedger();
+  const summary = useMemo(() => summarize(project, ledger, roi, catalog), [project, ledger, roi]);
+  return { project, ledger, roi, summary };
 }
 
 export function useLevers() {

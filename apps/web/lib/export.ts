@@ -32,7 +32,7 @@ export async function exportXlsx(p: Project, ledger: Ledger, roi: RoiResult) {
     for (const c of money) { const col = ws.getColumn(c); col.numFmt = '"C$"#,##0.00'; }
     return ws;
   };
-  sheet("Summary", summaryRows(p, ledger, roi));
+  sheet("Summary", summaryRows(p, ledger, roi, catalog));
   const months = monthRows(ledger, roi);
   sheet("Months", months, Object.keys(months[0] ?? {}).filter((k) => !["Month", "Date", "Phase", "Adoption"].includes(k)));
   sheet("Line items", lineItemRows(ledger), ["Unit price (CAD)", "Cost (CAD)"]);

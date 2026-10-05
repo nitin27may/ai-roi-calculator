@@ -51,7 +51,7 @@ export default function Projects() {
                   <div><dt className="text-muted">Payback</dt><dd className="num font-semibold">{s.r.paybackMonth ? `M${s.r.paybackMonth}` : "–"} · {fmt(s.r.roi * 100)}%</dd></div>
                 </dl>
                 <div className="mt-auto flex flex-wrap gap-1.5">
-                  <button type="button" className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-ink" onClick={() => { open(e.id); router.push("/overview"); }}>Open</button>
+                  <button type="button" className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-ink" onClick={() => { open(e.id); router.push("/summary"); }}>Open</button>
                   <button type="button" className="flex items-center gap-1 rounded-md border border-line px-2.5 py-1 text-xs hover:bg-surface-2" onClick={() => duplicate(e.id)}><Copy size={12} />Duplicate</button>
                   {confirm === e.id
                     ? <><button type="button" className="rounded-md bg-crit px-2.5 py-1 text-xs font-medium text-white" onClick={() => { remove(e.id); setConfirm(null); }}>Delete for good</button><button type="button" className="rounded-md border border-line px-2.5 py-1 text-xs" onClick={() => setConfirm(null)}>Keep</button></>
@@ -64,7 +64,7 @@ export default function Projects() {
       </Card>
       <Card>
         <CardHead title="New project" sub="Start from a template; everything can be changed afterwards" />
-        <form className="flex flex-col gap-3 px-3.5 pb-3.5" onSubmit={(ev) => { ev.preventDefault(); create(template, name.trim() || PROJECT_TEMPLATES.find((t) => t.id === template)!.label); setName(""); router.push("/overview"); }}>
+        <form className="flex flex-col gap-3 px-3.5 pb-3.5" onSubmit={(ev) => { ev.preventDefault(); create(template, name.trim() || PROJECT_TEMPLATES.find((t) => t.id === template)!.label); setName(""); router.push("/summary"); }}>
           <Field label="Project name"><input className="rounded-md border border-line bg-surface-2 px-2 py-1.5 text-[13px]" value={name} placeholder="e.g. Claims assistant" onChange={(e) => setName(e.target.value)} /></Field>
           <fieldset className="flex flex-col gap-1.5">
             <legend className="mb-1 text-[11.5px] text-muted">Template</legend>
