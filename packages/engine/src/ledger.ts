@@ -6,7 +6,7 @@ import { cashLine, workloadLines } from "./workloads.js";
 import { oneTimeKey, workloadWindow } from "./features.js";
 import { isCashItem } from "./project.js";
 import { devLabLines, teamLines } from "./devlab.js";
-import { avoidedMonthly, capabilityHours } from "./benefits.js";
+import { avoidedMonthly, capabilityHours, confidenceWeight, valueItemMonthly } from "./benefits.js";
 import { line, sum, type Line, type Stream } from "./lines.js";
 
 export interface MonthBenefit {
@@ -14,6 +14,10 @@ export interface MonthBenefit {
   capabilities: Record<string, number>;
   avoided: number;
   oneOff: number;
+  /** Revenue, quality and risk-reduction value, by value item id. */
+  value: Record<string, number>;
+  /** Avoided cost and value that belongs to a capability, by capability id (already included in `avoided` and `value`). */
+  attributed: Record<string, number>;
 }
 
 export interface Month {
@@ -59,7 +63,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
   const rates = new Map(p.rateCard.map((r) => [r.id, r.hourlyRate]));
   const growth = 1 + p.roi.growthPctPerYear / 100;
   const escalation = 1 + p.roi.rateEscalationPctPerYear / 100;
-  const capFull = new Map(p.benefits.capabilities.map((c) => [c.id, capabilityHours(p, c, catalog.benchmarks).net * (rates.get(c.roleId) ?? 0)]));
+  const capFull = new Map(p.benefits.capabilities.map((c) => [c.id, capabilityHours(p, c, catalog.benchmarks).net * (rates.get(c.roleId) ?? 0) * confidenceWeight(c.confidencePct)]));
 
   const contingency = 1 + p.build.contingencyPct / 100;
   /** Contingency on non-labour build costs (labour carries it in its rate); 1 when it covers labour only. */
@@ -70,7 +74,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
     const date = monthDate(p.startDate, m);
     let lines: Line[] = [];
     let adoption = 0;
-    const benefitBy: MonthBenefit = { capabilities: {}, avoided: 0, oneOff: 0 };
+    const benefitBy: MonthBenefit = { capabilities: {}, avoided: 0, oneOff: 0, value: {}, attributed: {} };
     if (m <= B) {
       if (p.build.includeLabour) lines.push(...teamLines(p, p.build.team, "labour", "team", contingency, m));
       lines.push(...devLabLines(p, m, book, date));
@@ -123,12 +127,31 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
     }
     // Headcount escalates with pay rates; a fixed amount (licence, contract) stays flat.
     const escNow = m > B ? escalation ** Math.floor((m - B - 1) / 12) : 1;
-    for (const a of p.benefits.avoidedCosts) if (m >= (a.startMonth ?? B + 1)) benefitBy.avoided += avoidedMonthly(p, a) * (a.fte !== undefined && a.roleId ? escNow : 1);
+    for (const a of p.benefits.avoidedCosts) {
+      if (m < (a.startMonth ?? B + 1)) continue;
+      const amount = avoidedMonthly(p, a) * (a.fte !== undefined && a.roleId ? escNow : 1) * confidenceWeight(a.confidencePct);
+      benefitBy.avoided += amount;
+      if (a.capabilityId && capFull.has(a.capabilityId)) benefitBy.attributed[a.capabilityId] = (benefitBy.attributed[a.capabilityId] ?? 0) + amount;
+    }
+    if (m > B) {
+      const g2 = growth ** ((m - B - 1) / 12);
+      for (const v of p.benefits.value) {
+        const start = Math.max(B + 1, v.startMonth ?? B + 1);
+        if (m < start) continue;
+        const kv = m - start + 1;
+        const rampMonths = p.timeline.adoptionRampMonths;
+        const ramp = v.ramp === false ? 1 : rampMonths === 0 ? 1 : Math.min(1, kv / rampMonths);
+        const grow = v.ramp === false || v.kind === "risk" ? 1 : g2;
+        const amount = valueItemMonthly(p, v) * ramp * grow * confidenceWeight(v.confidencePct);
+        benefitBy.value[v.id] = amount;
+        if (v.capabilityId && capFull.has(v.capabilityId)) benefitBy.attributed[v.capabilityId] = (benefitBy.attributed[v.capabilityId] ?? 0) + amount;
+      }
+    }
     for (const o of p.benefits.oneOff) if (m === o.month) benefitBy.oneOff += o.amount;
     lines = applyFreeAllowances(lines, book);
     const byStream = Object.fromEntries(STREAMS.map((s) => [s, 0])) as Record<Stream, number>;
     for (const l of lines) byStream[l.stream] += l.cost;
-    const benefit = sum(Object.values(benefitBy.capabilities)) + benefitBy.avoided + benefitBy.oneOff;
+    const benefit = sum(Object.values(benefitBy.capabilities)) + benefitBy.avoided + benefitBy.oneOff + sum(Object.values(benefitBy.value));
     months.push({ m, date, phase: m <= B ? "build" : "production", adoption, lines, byStream, benefit, benefitBy });
   }
   const last = months[months.length - 1]!;
@@ -153,7 +176,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
       devLab: sum(buildMonths.map((x) => x.byStream.devlab)),
       runRate: firstFull.byStream.run + firstFull.byStream.platform - onceCost,
       maintRate: firstFull.byStream.maint,
-      benefitRate: sum([...capFull.values()]) + sum(p.benefits.avoidedCosts.map((a) => avoidedMonthly(p, a))),
+      benefitRate: sum([...capFull.values()]) + sum(p.benefits.avoidedCosts.map((a) => avoidedMonthly(p, a) * confidenceWeight(a.confidencePct))) + sum(p.benefits.value.map((v) => valueItemMonthly(p, v) * confidenceWeight(v.confidencePct))),
     },
   };
 }

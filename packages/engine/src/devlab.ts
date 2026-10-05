@@ -23,7 +23,7 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
   const out: Line[] = [];
   const at = <T>(xs: T[], i: number) => xs[Math.min(i, xs.length - 1)]!;
   const inWindow = (a: { fromMonth: number; toMonth?: number | undefined }) => m >= a.fromMonth && m <= (a.toMonth ?? p.timeline.buildMonths);
-  const runCost = (h: Harness, modelId: string, cacheHit: number) => simulateHarness(h, book, { modelId, cacheHit, percentile: "p50", date });
+  const runCost = (h: Harness, modelId: string, cacheHit: number) => simulateHarness(h, book, { modelId, cacheHit, percentile: p.settings.devLabPercentile ?? "p50", date });
   const harness = (a: { id: string; harnessId: string }) => {
     const h = harnesses.get(a.harnessId);
     if (!h) throw new Error(`Dev Lab activity ${a.id} references unknown harness ${a.harnessId}`);

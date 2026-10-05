@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 import { loadCatalog } from "@studio/catalog";
-import { DEPLOYMENT_LABEL, availableIn, buildLedger, computeRoi, evaluateLevers, summarize, type AzureDeployment } from "@studio/engine";
+import { DEPLOYMENT_LABEL, availableIn, buildLedger, computeRoi, roiOptions, evaluateLevers, summarize, type AzureDeployment } from "@studio/engine";
 import { useStudio } from "./store";
 
 /** The bundled CAD price catalogue (validated once). */
@@ -12,7 +12,7 @@ export function useLedger() {
   const percentile = useStudio((s) => s.percentile);
   return useMemo(() => {
     const ledger = buildLedger(project, catalog, percentile);
-    const roi = computeRoi(ledger, project.roi.basis, project.roi.discountRatePct);
+    const roi = computeRoi(ledger, project.roi.basis, project.roi.discountRatePct, roiOptions(project));
     return { project, ledger, roi };
   }, [project, percentile]);
 }
