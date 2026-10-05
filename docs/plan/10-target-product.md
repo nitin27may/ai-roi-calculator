@@ -34,6 +34,12 @@ Help:          Take the tour | Glossary | How estimates work
 
 Every chart has a "View as table" toggle. The tiles and charts reuse a single engine function, `summarize()` in `packages/engine/src/report.ts`, so the Summary page, the Report and the Excel export always show the same numbers.
 
+**P4 delivery notes (deviations):**
+- The waterfall and the mini tornado are built from plain HTML/CSS percentage-width bars (the same technique the existing sensitivity tornado on Value & ROI already uses), not a raw `<svg>`. An SVG version hit label collisions at narrow widths — the row label and the amount label share the same text layer and can overlap once a bar runs close to either edge. The HTML version keeps the row label in its own grid column (so it can never collide with the amount label) and moves the amount label inside the bar once it would otherwise run past the edge. Same semantic colours, same "View as table" affordance, no chart library either way.
+- The bullet chart for unit cost is a single bar with a tick mark at today's manual cost, rather than a full qualitative-range bullet chart — there's no qualitative range (poor/ok/good) defined for these costs yet, so a plain bar-plus-marker is the honest version of "against today's manual cost".
+- The low–high range slot on the headline tiles and the P10–P90 band on the cumulative line are left out entirely (no empty placeholder), per P8's own scope; they land with ranges in P8.
+- The scenario dumbbell chart is out of scope here; it is P11's row, unchanged.
+
 ## 3.4 Guided estimation (use-case wizard), spec
 
 Steps:

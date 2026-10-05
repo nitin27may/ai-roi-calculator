@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 import { compareScenarios, computeAllocation, evaluateLevers, pricesUsedRows } from "@studio/engine";
 import { CumulativeLine, Legend, StackedBars } from "@/components/charts";
-import { catalog, useLedger } from "@/lib/compute";
+import { catalog, useSummary } from "@/lib/compute";
 import { cad, fmt } from "@/lib/format";
 
 const STREAMS = [
@@ -15,7 +15,7 @@ const STREAMS = [
 
 /** A printable one-document summary. Use the browser's Print → Save as PDF. */
 export default function Report() {
-  const { project: p, ledger, roi } = useLedger();
+  const { project: p, ledger, roi, summary: s } = useSummary();
   const extra = useMemo(() => ({
     alloc: computeAllocation(p, ledger, p.roi.basis),
     scenarios: compareScenarios(p, catalog),
@@ -43,9 +43,9 @@ export default function Report() {
           <div className="text-xs uppercase tracking-[0.08em] text-muted">AI cost & ROI estimate · CAD · prices as of {catalog.meta.asOf}</div>
           <h1 className="mt-1 text-3xl font-bold">{p.name}</h1>
           <p className="mt-2 max-w-[70ch] text-[15px] text-ink-2">
-            Building takes <b>{B} months</b> and costs <b>{cad(t.build)}</b>, of which <b>{cad(t.devLab)}</b> is AI usage while building (the AI Dev Lab).
-            In production it costs <b>{cad(t.runRate)}</b> a month to run plus <b>{cad(t.maintRate)}</b> for maintenance, against <b>{cad(t.benefitRate)}</b> a month in benefit at full adoption.
-            Measured on {basis}, it {roi.paybackMonth ? <>pays back in <b>month {roi.paybackMonth}</b></> : <><b>does not pay back</b> within {p.timeline.horizonMonths} months</>}, with an ROI of <b>{fmt(roi.roi * 100)}%</b> and an NPV of <b>{cad(roi.npv)}</b> at {roi.discountRatePct}%.
+            Building takes <b>{B} months</b> and costs <b>{cad(s.build)}</b>, of which <b>{fmt(s.devLabShare * 100)}%</b> is AI usage while building (the AI Dev Lab).
+            In production it costs <b>{cad(s.steadyStateAnnualRun / 12)}</b> a month to run and maintain at full adoption, against <b>{cad(s.benefitPerYear / 12)}</b> a month in benefit.
+            Measured on {basis}, it {s.paysBackWithinPlan ? <>pays back in <b>month {s.paybackMonth}</b></> : <><b>does not pay back</b> within {s.horizonMonths} months</>}, with an ROI of <b>{fmt(s.roi * 100)}%</b> and an NPV of <b>{cad(s.npv)}</b> at {s.discountRatePct}%.
           </p>
         </header>
 
@@ -109,7 +109,7 @@ export default function Report() {
             <h2 className="mb-2 text-lg font-bold">Scenarios</h2>
             <table className="data">
               <thead><tr><th>Scenario</th><th className="n">Build</th><th className="n">Run / month</th><th className="n">Payback</th><th className="n">ROI</th><th className="n">NPV</th></tr></thead>
-              <tbody>{extra.scenarios.map((s) => <tr key={s.id}><td>{s.label}</td><td className="n">{cad(s.ledger.totals.build)}</td><td className="n">{cad(s.ledger.totals.runRate)}</td><td className="n">{s.roi.paybackMonth ? `M${s.roi.paybackMonth}` : "–"}</td><td className="n">{fmt(s.roi.roi * 100)}%</td><td className="n">{cad(s.roi.npv)}</td></tr>)}</tbody>
+              <tbody>{extra.scenarios.map((sc) => <tr key={sc.id}><td>{sc.label}</td><td className="n">{cad(sc.ledger.totals.build)}</td><td className="n">{cad(sc.ledger.totals.runRate)}</td><td className="n">{sc.roi.paybackMonth ? `M${sc.roi.paybackMonth}` : "–"}</td><td className="n">{fmt(sc.roi.roi * 100)}%</td><td className="n">{cad(sc.roi.npv)}</td></tr>)}</tbody>
             </table>
           </section>
         )}

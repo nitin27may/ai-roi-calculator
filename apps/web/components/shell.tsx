@@ -10,14 +10,16 @@ import { catalog, useLedger } from "@/lib/compute";
 import { cad, cn, fmt } from "@/lib/format";
 
 const PROJECT_VIEWS = [
+  { href: "/summary", label: "Summary" },
   { href: "/overview", label: "Overview" },
   { href: "/build", label: "Build" },
   { href: "/run", label: "Run" },
   { href: "/roi", label: "Value & ROI" },
   { href: "/capacity", label: "Capacity (PTU)" },
+  { href: "/report", label: "Report" },
   { href: "/settings", label: "Settings" },
 ];
-const TITLES: Record<string, string> = { "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report", "/capacity": "Capacity (PTU)", "/projects": "Projects" };
+const TITLES: Record<string, string> = { "/summary": "Summary", "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report", "/capacity": "Capacity (PTU)", "/projects": "Projects" };
 
 export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
@@ -57,11 +59,13 @@ export function Shell({ children }: { children: ReactNode }) {
         <Group label="Quick tools">{nav("/tokens", "Token calculator")}</Group>
         <Group label="Projects">{nav("/projects", "All projects")}</Group>
         <Group label={project.name}>
+          {nav("/summary", "Summary")}
           {nav("/overview", "Overview")}
           {nav("/build", "Build", `M1–${B}`)}
           {nav("/run", "Run", `M${B + 1}–${H}`)}
           {nav("/roi", "Value & ROI")}
           {nav("/capacity", "Capacity (PTU)")}
+          {nav("/report", "Report")}
           {nav("/settings", "Settings")}
         </Group>
         <Group label="Data">{nav("/prices", "Prices & sources")}</Group>
@@ -73,7 +77,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <main className="grid min-h-0 min-w-0 grid-rows-[auto_auto_minmax(0,1fr)] md:h-full md:overflow-hidden">
         <header className="flex flex-wrap items-center justify-between gap-2.5 px-5 pb-2.5 pt-3">
           <div>
-            <div className="text-[11.5px] text-muted">{isProject || path === "/report" ? project.name : path === "/tokens" ? "Quick tools" : path === "/projects" ? "Library" : "Data"}</div>
+            <div className="text-[11.5px] text-muted">{isProject ? project.name : path === "/tokens" ? "Quick tools" : path === "/projects" ? "Library" : "Data"}</div>
             <h1 className="text-[21px] font-bold">{TITLES[path] ?? "Overview"}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -84,7 +88,7 @@ export function Shell({ children }: { children: ReactNode }) {
             ))}
           </div>
         </header>
-        {isProject ? <KpiBar /> : <div />}
+        {isProject && path !== "/summary" ? <KpiBar /> : <div />}
         {problem && <div role="alert" className="mx-5 mt-2 rounded-md bg-crit-soft px-3 py-2 text-sm text-crit">{problem}</div>}
         <div className="min-h-0 px-5 pb-4 pt-3.5">{children}</div>
       </main>

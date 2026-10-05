@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { cad, kcad } from "@/lib/format";
+import { cad, cadUnit, kcad } from "@/lib/format";
 
 /** Measures a container so charts draw at real pixel size (crisp text, no stretching). */
 export function useSize<T extends HTMLElement>() {
@@ -113,6 +113,124 @@ export function Spark({ values, color }: { values: number[]; color: string }) {
     <svg width={w} height={h} aria-hidden="true" className="block">
       {values.map((v, i) => <rect key={i} x={i * bw + 1} y={h - Math.max(1, (v / max) * h)} width={Math.max(1, bw - 2)} height={Math.max(1, (v / max) * h)} rx={1} fill={color} />)}
     </svg>
+  );
+}
+
+/** Shows a chart, with a small toggle to switch to an accessible table of the same data. */
+export function ViewToggle({ table, children }: { table: ReactNode; children: ReactNode }) {
+  const [asTable, setAsTable] = useState(false);
+  return (
+    <div>
+      <div className="flex justify-end">
+        <button type="button" className="rounded-md px-1.5 py-0.5 text-[11px] font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline" onClick={() => setAsTable((v) => !v)}>
+          {asTable ? "View as chart" : "View as table"}
+        </button>
+      </div>
+      {asTable ? table : children}
+    </div>
+  );
+}
+
+export interface WaterfallBar { id: string; label: string; value: number; color: "build" | "run" | "benefit" | "ink" }
+
+const WATERFALL_COLOR: Record<WaterfallBar["color"], string> = { build: "var(--build)", run: "var(--run)", benefit: "var(--benefit)", ink: "var(--ink)" };
+
+/**
+ * Horizontal waterfall: cost steps draw down from the running total, the benefit step draws it
+ * back up, and the net step is a full bar from zero. The row label sits in its own HTML column
+ * so it can never collide with the amount label drawn against the bar; semantic colours, no
+ * chart library.
+ */
+export function Waterfall({ steps, costIds, className }: { steps: WaterfallBar[]; costIds: string[]; className?: string }) {
+  let running = 0;
+  const bars = steps.map((b) => {
+    if (b.id === "net") return { ...b, start: 0, end: b.value };
+    const start = running;
+    running += costIds.includes(b.id) ? -b.value : b.value;
+    return { ...b, start, end: running };
+  });
+  const lo = Math.min(0, ...bars.map((b) => Math.min(b.start, b.end)));
+  const hi = Math.max(0, ...bars.map((b) => Math.max(b.start, b.end)));
+  const pad = (hi - lo || 1) * 0.08;
+  const pct = (v: number) => (100 * (v - (lo - pad))) / (hi - lo + 2 * pad || 1);
+  const zero = pct(0);
+  const labelCol = "minmax(100px,150px)";
+  return (
+    <div className={className ?? "flex flex-col gap-1.5"} role="img" aria-label="Waterfall from build cost to net">
+      <div className="grid items-center gap-2 text-[10.5px] text-muted" style={{ gridTemplateColumns: labelCol + " 1fr" }}>
+        <span />
+        <div className="relative h-4">
+          <span className="num absolute -translate-x-1/2" style={{ left: `${zero}%` }}>C$0</span>
+        </div>
+      </div>
+      {bars.map((b) => {
+        const color = b.color === "ink" && b.value < 0 ? "var(--risk)" : WATERFALL_COLOR[b.color];
+        const left = Math.min(pct(b.start), pct(b.end)), width = Math.max(0.6, Math.abs(pct(b.end) - pct(b.start)));
+        const labelOnRight = pct(b.end) >= pct(b.start);
+        // Costs are entered as positive magnitudes internally; show them signed so direction reads without decoding bar position.
+        const signedValue = costIds.includes(b.id) ? -b.value : b.value;
+        const amount = `${signedValue >= 0 ? "+" : ""}${cad(signedValue)}`;
+        // Keep the amount label outside the bar when there's room; otherwise pin it against the
+        // bar's own inner edge with a matching background, so it stays readable even when it's
+        // wider than the bar and runs past it onto the empty track.
+        const fitsOutside = labelOnRight ? left + width < 82 : left > 18;
+        const outsideStyle = labelOnRight ? { left: `calc(${left + width}% + 6px)` } : { right: `calc(${100 - left}% + 6px)` };
+        const insideStyle = labelOnRight ? { right: `calc(${100 - (left + width)}% + 4px)` } : { left: `calc(${left}% + 4px)` };
+        return (
+          <div key={b.id} className="grid items-center gap-2 text-[12px]" style={{ gridTemplateColumns: labelCol + " 1fr" }}>
+            <span className="truncate text-ink-2" title={b.label}>{b.label}</span>
+            <div className="relative h-6" title={`${b.label}: ${amount}`}>
+              <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${zero}%` }} />
+              <div className="absolute top-1 bottom-1 rounded" style={{ left: `${left}%`, width: `${width}%`, background: color }} />
+              {fitsOutside ? (
+                <span className="num absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[11.5px] font-semibold text-ink" style={outsideStyle}>{amount}</span>
+              ) : (
+                <span className="num absolute top-1/2 -translate-y-1/2 whitespace-nowrap rounded px-1 text-[11.5px] font-semibold" style={{ ...insideStyle, background: color, color: "var(--bg)" }}>{amount}</span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** A cost driver's stream, for colouring its bar with the one-meaning-per-colour palette. */
+export type DriverColor = "labour" | "devlab" | "run" | "platform" | "maint" | "other";
+
+const DRIVER_COLOR: Record<DriverColor, string> = {
+  labour: "var(--build-2)", devlab: "var(--build)", run: "var(--run)", platform: "var(--platform)", maint: "var(--maint)", other: "var(--muted)",
+};
+
+/** Ranked horizontal bars, longest first, coloured by stream — used for cost drivers, never a pie. */
+export function RankedBars({ rows, className }: { rows: { label: string; value: number; color: DriverColor }[]; className?: string }) {
+  const [ref, { w }] = useSize<HTMLDivElement>();
+  const max = Math.max(...rows.map((r) => r.value), 1);
+  return (
+    <div ref={ref} className={className ?? "flex flex-col gap-2"}>
+      {rows.map((r) => (
+        <div key={r.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 text-[12.5px]">
+          <div className="min-w-0">
+            <div className="truncate text-ink-2">{r.label}</div>
+            <div className="h-[9px] overflow-hidden rounded bg-surface-2">
+              {w > 0 && <div className="h-full rounded" style={{ width: `${Math.max(1.5, (100 * r.value) / max)}%`, background: DRIVER_COLOR[r.color] }} />}
+            </div>
+          </div>
+          <span className="num whitespace-nowrap font-semibold text-ink">{cad(r.value)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** A bullet bar: this project's unit cost against today's manual cost for the same unit, when known. */
+export function BulletBar({ value, baseline, color = "var(--accent)" }: { value: number; baseline: number | null; color?: string }) {
+  const max = Math.max(value, baseline ?? 0, 0.01) * 1.15;
+  return (
+    <div className="relative h-[18px] rounded bg-surface-2">
+      <div className="absolute inset-y-0 left-0 rounded" style={{ width: `${Math.max(1.5, (100 * value) / max)}%`, background: color }} />
+      {baseline !== null && <div className="absolute inset-y-[-3px] w-0.5 bg-ink" style={{ left: `${Math.min(99, (100 * baseline) / max)}%` }} title={`Today, manually: ${cadUnit(baseline)}`} />}
+    </div>
   );
 }
 

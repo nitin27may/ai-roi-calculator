@@ -12,8 +12,8 @@ Updated in every PR and posted after every merge. Plan: [docs/plan](plan/README.
 | 6 | Plan | Audit and plan docs | Done | #10 | P0 |
 | 7 | Foundation | Migration, C$, palette | Done | #11 | P1 |
 | 8 | Pricing | Configurable processing tier | Done | #12 | P2; Priority and Flex deferred |
-| 9 | Accuracy | Token accuracy I | In review | #14 | P3 |
-| 10 | Exec | Summary page | Pending | | P4 |
+| 9 | Accuracy | Token accuracy I | Done | #14 | P3 |
+| 10 | Exec | Summary page | In review | #13 | P4 |
 | 11 | Flexibility | Feature model and timing | Pending | | P5 |
 | 12 | Guidance | Help, glossary, validation | Pending | | P6 |
 | 13 | Guidance | Product tour | Pending | | P7 |
