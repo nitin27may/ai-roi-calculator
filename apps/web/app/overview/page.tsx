@@ -16,7 +16,7 @@ export default function Overview() {
       <div className="grid min-h-0 gap-3.5 lg:grid-cols-[minmax(0,1fr)_330px]">
         <Card>
           <CardHead title="Lifecycle" sub={<>Each lane is a cost stream by month. <b>Drag the go-live line</b> (or focus it and use the arrow keys) to change how long the build runs.</>}>
-            <Legend items={[{ label: "Build", color: "var(--build)" }, { label: "Production", color: "var(--run)" }, { label: "Benefit", color: "var(--benefit)" }]} />
+            <Legend items={[{ label: "Build", color: "var(--build)" }, { label: "Production", color: "var(--run)" }, { label: "Platform", color: "var(--platform)" }, { label: "Maintenance", color: "var(--maint)" }, { label: "Benefit", color: "var(--benefit)" }]} />
           </CardHead>
           <LifecycleCanvas />
         </Card>

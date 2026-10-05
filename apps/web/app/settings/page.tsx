@@ -25,7 +25,7 @@ export default function Settings() {
       </Card>
       <Card>
         <CardHead title="Azure" sub="Foundry deployment type for all models" />
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 px-3.5 pb-3.5">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3 px-3.5 pb-3.5">
           <Field label="Default deployment"><Select value={project.settings.azureDeployment} options={DEPLOYMENTS.map((d) => ({ value: d, label: DEPLOYMENT_LABEL[d] }))} onChange={(v) => edit((d) => { d.settings.azureDeployment = v as AzureDeployment; })} /></Field>
           <Field label="Processing tier"><Select value={project.settings.processingTier ?? "standard"} options={TIERS.map((t) => ({ value: t, label: TIER_LABEL[t] }))} onChange={(v) => edit((d) => { d.settings.processingTier = v as ProcessingTier; })} /></Field>
         </div>
