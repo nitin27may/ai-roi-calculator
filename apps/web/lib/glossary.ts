@@ -8,6 +8,12 @@ export interface GlossaryTerm {
 
 export const GLOSSARY: GlossaryTerm[] = [
   {
+    id: "snowflake-credit",
+    term: "Snowflake credit",
+    plain: "Snowflake bills in credits, not dollars. The studio shows the credits each workload uses and multiplies them by what one credit costs you in Canadian dollars, so you can see both numbers.",
+    technical: "AI credits cover Cortex AI functions, Search, Agents and the REST API; platform credits cover warehouses and similar compute. CAD = credits x CAD per credit. The default CAD per credit comes from the catalogue (routing for AI credits, edition for platform credits); Settings, Snowflake lets you replace either with your contract rate, and a manual tag marks the figures that use it.",
+  },
+  {
     id: "token",
     term: "Token",
     plain: "The unit a model reads and writes. A token is a short piece of a word, so a typical English word is a little over one token. Models are priced per million tokens.",

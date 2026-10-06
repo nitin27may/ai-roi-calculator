@@ -36,6 +36,8 @@ export interface Line {
   onceMonth?: number;
   /** The Azure deployment an LLM line was priced for; lets PTU analysis compare against that deployment's own price. */
   deployment?: "global" | "regional" | "dataZone";
+  /** Snowflake lines only: the credits behind the CAD figure. Credits for a line = quantity x creditsPerUnit. */
+  credit?: { type: "ai" | "platform"; creditsPerUnit: number; cadPerCredit: number; manual: boolean };
   /** Pay-as-you-go spillover of a workload in PTU mode; the rest of its load runs on the provisioned capacity. */
   onPtu?: boolean;
 }

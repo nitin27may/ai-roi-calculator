@@ -254,6 +254,11 @@ export function lineItemRows(ledger: Ledger): Row[] {
       Month: mo.m, Date: mo.date, Phase: mo.phase, Stream: l.stream, Component: l.componentId, Item: l.label,
       Quantity: Math.round(l.quantity * 1000) / 1000, Unit: l.unit, "Unit price (CAD)": Math.round(l.unitPrice * 1e6) / 1e6, "Cost (CAD)": r2(l.cost),
       Behaviour: l.behaviour, Meter: l.meter, Formula: l.formula,
+      // Appended after the existing columns; blank for non-Snowflake lines.
+      "Credit type": l.credit ? (l.credit.type === "ai" ? "AI credit" : "Platform credit") : "",
+      Credits: l.credit ? Math.round(l.quantity * l.credit.creditsPerUnit * 1000) / 1000 : "",
+      "CAD per credit": l.credit ? Math.round(l.credit.cadPerCredit * 1e6) / 1e6 : "",
+      "Credit rate": l.credit ? (l.credit.manual ? "manual" : "catalogue") : "",
     })));
 }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadCatalog } from "@studio/catalog";
-import { PriceBook, newWorkload, meetingIntelligence, workloadLines, type Workload } from "../src/index.js";
+import { PriceBook, creditSummary, newWorkload, meetingIntelligence, warehouseLine, workloadLines, type Workload } from "../src/index.js";
 
 const cat = loadCatalog();
 const book = new PriceBook(cat, { azureDeployment: "dataZone", snowflake: { routing: "global", edition: "enterprise" } });
@@ -40,5 +40,62 @@ describe("Snowflake workloads", () => {
     const ls = lines(w);
     expect(ls.find((l) => l.id === "d:extract")!.cost).toBeCloseTo(10 * rate("sf-parse-layout") * cat.snowflake.aiCreditGlobal, 6);
     expect(ls.find((l) => l.id === "d:warehouse")!.cost).toBeCloseTo(5 * 4 * platform, 6);
+  });
+});
+
+describe("Snowflake credits to CAD", () => {
+  const fnWorkload = () => {
+    const w = newWorkload(structuredClone(meetingIntelligence), "snowflakeFunction") as Extract<Workload, { kind: "snowflakeFunction" }>;
+    return w;
+  };
+  const withSettings = (snowflake: { aiCreditCad?: number; platformCreditCad?: number }) =>
+    new PriceBook(cat, { azureDeployment: "dataZone", snowflake: { routing: "global", edition: "enterprise", ...snowflake } });
+
+  it("carries credits, rate and the conversion in the formula on a Cortex function line", () => {
+    const w = fnWorkload();
+    const fn = lines(w).find((l) => l.id.endsWith(":fn"))!;
+    const credits = (w.rowsPerMonth * (w.tokensPerRow + w.hiddenPromptTokens + w.outputTokensPerRow)) / 1e6 * rate("sf-ai-classify");
+    expect(fn.credit).toEqual({ type: "ai", creditsPerUnit: rate("sf-ai-classify"), cadPerCredit: cat.snowflake.aiCreditGlobal, manual: false });
+    expect(fn.quantity * fn.credit!.creditsPerUnit).toBeCloseTo(credits, 6);
+    expect(fn.cost).toBeCloseTo(credits * cat.snowflake.aiCreditGlobal, 6);
+    expect(fn.formula).toContain(`AI credits × C$${cat.snowflake.aiCreditGlobal.toFixed(2)}/credit = C$`);
+    expect(fn.formula).toContain("catalogue rate");
+  });
+
+  it("gives known credits a known CAD figure on a warehouse line (4 credits/h x 10 h x C$ rate)", () => {
+    const b = withSettings({ platformCreditCad: 4 });
+    const wh = warehouseLine("x", "Test", { size: "m", hoursPerMonth: 10 }, b, "usage");
+    expect(wh.cost).toBeCloseTo(160, 9);
+    expect(wh.credit).toEqual({ type: "platform", creditsPerUnit: 4, cadPerCredit: 4, manual: true });
+    expect(wh.formula).toContain("40 platform credits × C$4.00/credit = C$160.00 (manual rate)");
+  });
+
+  it("override changes the rate and tag but not the credits; default is tagged catalogue", () => {
+    const w = fnWorkload();
+    const base = workloadLines(w, { ...ctx, book: withSettings({}) }).find((l) => l.id.endsWith(":fn"))!;
+    const over = workloadLines(w, { ...ctx, book: withSettings({ aiCreditCad: 3 }) }).find((l) => l.id.endsWith(":fn"))!;
+    expect(over.credit!.manual).toBe(true);
+    expect(base.credit!.manual).toBe(false);
+    expect(over.quantity * over.credit!.creditsPerUnit).toBeCloseTo(base.quantity * base.credit!.creditsPerUnit, 9);
+    expect(over.cost).toBeCloseTo(over.quantity * over.credit!.creditsPerUnit * 3, 9);
+    expect(over.formula).toContain("C$3.00/credit");
+    expect(over.formula).toContain("manual rate");
+  });
+
+  it("leaves cost identical to credits x rate on every Snowflake line, and puts no credit data on Azure lines", () => {
+    const w = newWorkload(structuredClone(meetingIntelligence), "snowflakeComplete");
+    for (const l of lines(w)) {
+      expect(l.credit).toBeDefined();
+      expect(l.cost).toBeCloseTo(l.quantity * l.credit!.creditsPerUnit * l.credit!.cadPerCredit, 6);
+    }
+    const az = lines({ kind: "llm", id: "a", label: "a", callsPerMonth: 10, modelId: "gpt-5.4", inputTokens: 100, cachedInputTokens: 0, outputTokens: 10, batchShare: 0, reasoning: "none" } as Workload);
+    expect(az.every((l) => l.credit === undefined)).toBe(true);
+  });
+
+  it("summarises credits per type and exports them as appended line-item columns", () => {
+    const w = newWorkload(structuredClone(meetingIntelligence), "snowflakeFunction");
+    const s = creditSummary(lines(w));
+    expect(s.map((x) => x.type).sort()).toEqual(["ai", "platform"]);
+    expect(s.reduce((t, x) => t + x.cad, 0)).toBeCloseTo(lines(w).reduce((t, l) => t + l.cost, 0), 6);
   });
 });

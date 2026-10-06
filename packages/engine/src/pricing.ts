@@ -120,6 +120,17 @@ export class PriceBook {
     return s.platformCreditCad ?? this.catalog.snowflake.platformCredit[s.edition] ?? this.catalog.snowflake.platformCredit.enterprise!;
   }
 
+  /** The CAD-per-credit in use, the catalogue default for the current routing/edition, and whether a manual override is set. */
+  creditRate(type: "ai" | "platform"): { cad: number; defaultCad: number; manual: boolean } {
+    const s = this.settings.snowflake;
+    if (type === "ai") {
+      const defaultCad = s.routing === "global" ? this.catalog.snowflake.aiCreditGlobal : this.catalog.snowflake.aiCreditRegional;
+      return { cad: this.aiCreditCad(), defaultCad, manual: s.aiCreditCad !== undefined };
+    }
+    const defaultCad = this.catalog.snowflake.platformCredit[s.edition] ?? this.catalog.snowflake.platformCredit.enterprise!;
+    return { cad: this.platformCreditCad(), defaultCad, manual: s.platformCreditCad !== undefined };
+  }
+
   /** CAD per 1M tokens for a model on a given date (ISO yyyy-mm-dd). */
   tokenPrices(id: string, date: string, requestInputTokens = 0): TokenPrices {
     const m = this.chatModel(id);
