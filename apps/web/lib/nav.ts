@@ -6,3 +6,13 @@
 export function showProjectMenu(state: { hydrated: boolean; library: readonly { id: string }[]; activeId: string }): boolean {
   return state.hydrated && state.library.length > 0 && state.library.some((e) => e.id === state.activeId);
 }
+
+export interface ProjectRow { id: string; name: string; active: boolean }
+/**
+ * The sidebar's project rows: every saved project, with the open one marked. Empty before the library has
+ * loaded and with an empty library, so the whole section disappears.
+ */
+export function projectRows(state: { hydrated: boolean; library: readonly { id: string; project: { name: string } }[]; activeId: string }): ProjectRow[] {
+  if (!state.hydrated) return [];
+  return state.library.map((e) => ({ id: e.id, name: e.project.name, active: e.id === state.activeId }));
+}
