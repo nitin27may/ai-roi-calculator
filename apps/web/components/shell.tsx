@@ -210,7 +210,7 @@ function KpiBar() {
     <>
       <div className="grid h-2 gap-0.5 overflow-hidden rounded" style={{ gridTemplateColumns: `${B}fr ${H - B}fr` }}><i className="bg-[var(--s2)]" /><i className="bg-[var(--s3)]" /></div>
       <span className="text-xs text-ink-2" title={monthLegendText(project.startDate, B, H)}>Build M1–{B} · Production M{B + 1}–{H}</span>
-      <span className="text-[11px] text-muted">M1 = month 1 of the project</span>
+      <span className="text-xs text-muted">M1 = month 1 of the project</span>
     </>
   );
   return (

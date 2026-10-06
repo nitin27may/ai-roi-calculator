@@ -16,7 +16,7 @@ describe("report rows", () => {
     expect(monthRows(L, R).at(-1)!["Cumulative net"]).toBeCloseTo(R.totalBenefit - R.totalCost, 0);
   });
   it("summary and prices used are populated", () => {
-    expect(summaryRows(p, L, R, cat).find((r) => r.Item.startsWith("Payback month"))!.Value).toBe(R.paybackMonth!);
+    expect(summaryRows(p, L, R, cat).find((r) => String(r.Item).startsWith("Payback month"))!.Value).toBe(R.paybackMonth!);
     const prices = pricesUsedRows(L, cat);
     expect(prices.some((r) => r.Id === "gpt-5.4")).toBe(true);
     expect(prices.every((r) => r.Confidence)).toBe(true);

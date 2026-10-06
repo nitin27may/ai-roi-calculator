@@ -46,12 +46,12 @@ function WideNote({ s, anchor }: { s: Summary; anchor: boolean }) {
  */
 export function HeadlineTiles({ s, linkWide = true }: { s: Summary; linkWide?: boolean }) {
   const tiles: { label: string; value: string; sub?: string; range?: ReactNode }[] = [
-    { label: "Total cost over plan", value: cad(s.totalCost), sub: `${s.horizonMonths} months`, range: moneyBand(s.range.totalCost).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.totalCost) },
+    { label: "Total cost over plan", value: cad(s.totalCost), sub: `${s.horizonMonths} months · ${s.basisLabel}`, range: moneyBand(s.range.totalCost).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.totalCost) },
     { label: "Build", value: cad(s.build), sub: `${fmt(s.devLabShare * 100)}% AI Dev Lab`, range: moneyBand(s.range.build).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.build) },
     { label: "Annual run (steady state)", value: cad(s.steadyStateAnnualRun), sub: "run + platform + maintenance", range: moneyBand(s.range.annualRun).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.annualRun) },
     { label: "Benefit per year", value: cad(s.benefitPerYear), sub: "at full adoption", range: moneyBand(s.range.totalBenefit).wide ? <WideNote s={s} anchor={linkWide} /> : undefined },
-    { label: "NPV", value: cad(s.npv), sub: `at ${s.discountRatePct}%`, range: moneyBand(s.range.npv).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.npv) },
-    { label: "Payback", value: s.paybackMonth ? `Month ${s.paybackMonth}` : `> ${s.horizonMonths} months`, sub: `ROI ${fmt(s.roi * 100)}%`, range: paybackSpan(s.range.payback, s.horizonMonths) },
+    { label: "NPV", value: cad(s.npv), sub: `at ${s.discountRatePct}% · ${s.basisLabel}`, range: moneyBand(s.range.npv).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.npv) },
+    { label: "Payback", value: s.paybackMonth ? `Month ${s.paybackMonth}` : `> ${s.horizonMonths} months`, sub: `ROI ${fmt(s.roi * 100)}% · ${s.basisLabel}`, range: paybackSpan(s.range.payback, s.horizonMonths) },
   ];
   return (
     <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 xl:grid-cols-6 print:grid-cols-3">
@@ -59,7 +59,7 @@ export function HeadlineTiles({ s, linkWide = true }: { s: Summary; linkWide?: b
         <div key={t.label} className="min-w-0 rounded-lg border border-line bg-surface px-3.5 py-2.5">
           <div className="truncate text-xs text-muted">{t.label}</div>
           <div className="num truncate font-display text-xl font-bold leading-tight">{t.value}</div>
-          {t.sub && <div className="truncate text-xs text-ink-2">{t.sub}</div>}
+          {t.sub && <div className="text-xs text-ink-2" title={t.sub}>{t.sub}</div>}
           {t.range && <div className="num text-xs leading-tight text-muted">{t.range}</div>}
         </div>
       ))}

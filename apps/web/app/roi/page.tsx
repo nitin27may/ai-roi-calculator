@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
-import { LEVERS, applyScenario, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityVolume, workloadVolume, sensitivity, capabilityHours, compareScenarios, computeAllocation, linkCapabilityToFeature, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
+import { COST_BASES, LEVERS, applyScenario, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityVolume, workloadVolume, sensitivity, capabilityHours, compareScenarios, computeAllocation, linkCapabilityToFeature, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Seg, Select, TextInput, TrashButton } from "@/components/ui";
 import type { HelpId } from "@/lib/help";
 import { CumulativeLine, Legend } from "@/components/charts";
@@ -12,11 +12,7 @@ import { MonthLegend } from "@/components/months";
 import { ConfidenceField, FinanceInputs, ValueItems } from "@/components/roi-extras";
 import { cad, cn, fmt } from "@/lib/format";
 
-const BASES = [
-  { value: "run", label: "Running cost only", hint: "Production AI usage + platform. Use this for an app that already exists." },
-  { value: "runMaint", label: "Running + maintenance", hint: "Adds the support team and transition costs." },
-  { value: "full", label: "Full lifecycle", hint: "Build labour + AI Dev Lab + dev environment + run + maintenance + transition." },
-] as const;
+const BASES = COST_BASES;
 
 type Tab = "cash" | "years" | "capabilities" | "beforeAfter" | "sensitivity" | "scenarios";
 
@@ -60,7 +56,8 @@ function Assumptions() {
       </CardHead>
       <div id="roi-assumptions" className={cn("min-h-0 flex-1 flex-col gap-4 overflow-auto px-3.5 pb-3.5 lg:flex", open ? "flex" : "hidden")}>
         <fieldset className="flex flex-col gap-1.5">
-          <legend className="mb-1.5 text-sm font-semibold">Measure ROI against</legend>
+          <legend className="mb-0.5 text-sm font-semibold">Cost basis: what ROI is measured against</legend>
+          <p className="mb-1 text-xs text-ink-2">This choice changes total cost, net, ROI, NPV and payback everywhere, including the Summary, Report and Excel. Also set in Settings.</p>
           {BASES.map((b) => (
             <label key={b.value} className={cn("grid cursor-pointer grid-cols-[auto_1fr] gap-2 rounded-md border px-2.5 py-2 text-[12.5px]", project.roi.basis === b.value ? "border-accent bg-accent-soft" : "border-line")}>
               <input type="radio" name="basis" checked={project.roi.basis === b.value} onChange={() => edit((d) => { d.roi.basis = b.value; })} />

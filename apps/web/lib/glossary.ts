@@ -127,6 +127,18 @@ export const GLOSSARY: GlossaryTerm[] = [
     plain: "How much of the time saved turns into real value. If a tool saves 100 hours and people spend half of that on other useful work, realisation is 50% and only half the hours count as a benefit.",
     technical: "A factor applied to hours saved before they are multiplied by the loaded hourly rate: benefit = hours saved x adoption x realisation x rate.",
   },
+  {
+    id: "month-index",
+    term: "Month index (M1)",
+    plain: "Months are numbered from the start of the project. Month 1, shortened to M1, is the first build month. Months 1 to 6 are build by default and the rest are production, and the numbers can be turned into calendar months with the start date in Settings.",
+    technical: "A 1-based index into the ledger. The build length and plan length are Build months and Plan length in Settings. Tables write Month 1; tight charts write M1 and carry this legend.",
+  },
+  {
+    id: "intensity",
+    term: "Intensity",
+    plain: "How hard an activity runs in a given month. 100% means the full volumes set on the activity, 50% means half and 0% means it is switched off that month.",
+    technical: "A per-month multiplier between 0 and 1 applied to an AI Dev Lab activity's volumes before pricing. Labour and any per-person items additionally scale with headcount where the activity says so.",
+  },
 ];
 
 export const glossaryById = (id: string): GlossaryTerm | undefined => GLOSSARY.find((g) => g.id === id);

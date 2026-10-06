@@ -4,7 +4,7 @@ import { COST_BASES, basisLabel, buildLedger, computeRoi, meetingIntelligence as
 
 const cat = loadCatalog();
 const clone = (): Project => structuredClone(sample);
-const total = (p: Project) => buildLedger(p, cat).months.reduce((a, m) => a + m.total, 0);
+const total = (p: Project) => buildLedger(p, cat).months.reduce((a, m) => a + m.lines.reduce((b, l) => b + l.cost, 0), 0);
 const run = (p: Project) => buildLedger(p, cat).totals.runRate;
 
 describe("cost basis is an explicit choice", () => {
@@ -31,7 +31,7 @@ describe("cost basis is an explicit choice", () => {
       expect(s.totalCost).toBeCloseTo(roi.totalCost, 6);
       const rows = summaryRows(p, l, roi, cat);
       expect(rows.find((x) => x.Item === "ROI measured against")!.Value).toBe(b.label);
-      expect(rows.find((x) => x.Item.startsWith("Total cost over plan"))!.Item).toContain(b.label);
+      expect(String(rows.find((x) => String(x.Item).startsWith("Total cost over plan"))!.Item)).toContain(b.label);
     }
   });
   it("an old project without a Settings default still loads and keeps its basis", () => {

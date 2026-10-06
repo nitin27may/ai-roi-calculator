@@ -180,8 +180,8 @@ export function CapacityPanel({ w }: { w: Capable }) {
       <h3 className="mb-1.5 text-sm font-semibold">Capacity</h3>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-x-3 gap-y-2.5">
         <Field label="Billing mode" help="ptuMode">
-          <Select value={ptu ? "ptu" : "payg"} options={[{ value: "payg", label: "Pay-as-you-go" }, { value: "ptu", label: "Provisioned (PTU) plus spillover" }]}
-            onChange={(v) => upd((x) => { if (v === "ptu") x.ptu = { term: "monthly" }; else delete x.ptu; })} />
+          <Select value={ptu ? "ptu" : w.payg ? "payg" : "project"} options={[{ value: "project", label: `Follow project setting (${project.settings.pricingModel === "ptu" ? "PTU" : "pay-as-you-go"})` }, { value: "payg", label: "Pay-as-you-go" }, { value: "ptu", label: "Provisioned (PTU) plus spillover" }]}
+            onChange={(v) => upd((x) => { delete x.ptu; delete x.payg; if (v === "ptu") x.ptu = { term: "monthly" }; else if (v === "payg") x.payg = true; })} />
         </Field>
         {ptu && (
           <>

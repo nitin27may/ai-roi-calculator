@@ -27,6 +27,11 @@ export default function Capacity() {
           </div>
         </CardHead>
         <div className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">
+          <div data-testid="capacity-mode" className="mb-3 rounded-r-md border-l-[3px] border-line bg-surface-2 px-3 py-2 text-[12.5px]">
+            {project.settings.pricingModel === "ptu"
+              ? <><b>This project is priced on provisioned throughput.</b> Azure OpenAI models reserve PTUs on a 1-month term, sized for peak load, and load above capacity spills over to pay-as-you-go; workloads can opt out on their Run page. The table below prices the same load every way for comparison. Change this in Settings, Pricing model.</>
+              : <><b>This project is priced pay-as-you-go, so PTU here is optional and advisory.</b> Nothing on this page changes the totals. If a PTU column wins below, switch Pricing model to Provisioned throughput in Settings, or set it on a single workload.</>}
+          </div>
           <div className="mb-3 rounded-r-md border-l-[3px] border-accent bg-accent-soft px-3 py-2 text-[12.5px]">
             {anyPtuWins
               ? <>At this load, <b>PTU is cheaper for {a.rows.filter((r) => r.cheapest !== "payg").map((r) => r.label).join(", ")}</b>. Check the utilization: PTU only pays when the deployment stays busy.</>
