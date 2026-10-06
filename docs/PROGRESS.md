@@ -22,5 +22,6 @@ Updated in every PR and posted after every merge. Plan: [docs/plan](plan/README.
 | 16 | Coverage | Infra, tools, images, PTU in ledger | Done | #21 | P10 |
 | 17 | Exec | Report v2, comparison | Done | #20 | P11 |
 | 18 | Quality | Responsive, accessibility | Done | #22 | P12; P9b wizard benefit types in #23 |
+| 19 | Guidance / Coverage | Guided file and agent token estimator | In review | #25 | P13 |
 
 Status values: Pending, In progress, In review, Done, Deferred.
