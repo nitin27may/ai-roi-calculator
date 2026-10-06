@@ -4,6 +4,8 @@ import { Plus } from "lucide-react";
 import { ACTIVITY_KINDS, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, addAllocationPeriod, allocationPeriods, overlappingPeriods, peakAllocation, removeAllocationPeriod, removeWorkstream, setAllocation, updateAllocationPeriod, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@studio/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
 import { Explain } from "@/components/explain";
+import { MonthLegend, MonthTh, TableNote, WhereFrom } from "@/components/months";
+import { MONTH_TABLE_NOTES } from "@/lib/months";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
 import { Legend, Spark, StackedBars } from "@/components/charts";
 import { ACTIVITY_SPECS, Fields } from "@/components/fields";
@@ -66,6 +68,22 @@ export default function Build() {
   );
 }
 
+/** Which Dev Lab activities change when developers are added or removed. Labour always does. */
+const SCALES_WITH_PEOPLE: ReadonlySet<DevActivity["kind"]> = new Set(["iterations", "playground", "tooling"]);
+
+/** Plain-language inputs behind each activity's cost, for the "Where this comes from" line. */
+const ACTIVITY_SOURCE: Record<DevActivity["kind"], string> = {
+  bakeoff: "The candidate models and their months, the evaluation cases, repeats and sweeps per month set above, with each model's price from Prices & sources. It runs once, however many developers there are.",
+  iterations: "Developers who run experiments (Team & rate card), runs per developer per day, cases per run and working days set above, priced with the harness model's rates. It grows with headcount.",
+  regression: "Runs per month and cases per run set above, from the start month shown, priced with the harness model's rates. It does not change with headcount.",
+  evaluation: "The judge model, token sizes and evaluators set above, applied to the runs the other activities make. It follows those runs, not headcount.",
+  redteam: "Scans per month, risk categories, objectives and attack strategies set above, priced with the target model's rates. It does not change with headcount.",
+  playground: "Developers who run experiments (Team & rate card), calls per developer per day and tokens per call set above. It grows with headcount.",
+  tooling: "Copilot seats per developer and the coding agent's tokens per developer day set above, times the number of developers on Team & rate card. It grows with headcount.",
+  synthetic: "Examples kept per month, pass rate, and the generator and judge token sizes set above. It does not change with headcount.",
+  finetune: "Training runs, examples, tokens per example and epochs set above, plus tuned deployments kept and their hosting hours. It does not change with headcount.",
+};
+
 function describe(a: DevActivity): string {
   switch (a.kind) {
     case "bakeoff": return `${a.candidates.length} models × ${a.cases} cases × ${a.repeats} repeats`;
@@ -97,13 +115,15 @@ function AllActivities() {
       <div className="rounded-r-md border-l-[3px] border-accent bg-accent-soft px-3 py-2 text-[12.5px]">
         <b>{cad(ledger.totals.devLab)} over {B} months</b>, the same as <b>{fmt(ledger.totals.devLab / Math.max(1, runRate), 1)} months</b> of production run cost including maintenance. The largest activity is <b>{top?.label}</b>.
       </div>
+      <MonthLegend />
       {(view === "chart" || view === "grid") && <Legend items={series.map((s) => ({ label: s.label, color: s.color }))} />}
       {view === "ws" ? <ByWorkstream /> : view === "people" ? <ByPerson /> : view === "models" ? <ByModel /> : view === "plan" ? <PlanGrid /> : view === "chart" ? (
         <StackedBars rows={rows} series={series} xLabel={(i) => `Month ${i + 1}`} className="relative min-h-[280px] flex-1" />
       ) : (
         <div className="overflow-auto">
+          <TableNote>{MONTH_TABLE_NOTES.cost} Amounts are AI Dev Lab spend only; build labour is on Team &amp; rate card.</TableNote>
           <table className="data">
-            <thead><tr><th>Activity</th>{months.map((m) => <th key={m.m} className="n">M{m.m}</th>)}<th className="n">Total</th></tr></thead>
+            <thead><tr><th>Activity</th>{months.map((m) => <MonthTh key={m.m} m={m.m} />)}<th className="n">Total</th></tr></thead>
             <tbody>
               {series.map((s) => {
                 const mx = Math.max(...rows.flatMap((r) => series.map((x) => r[x.key]!)), 1);
@@ -128,16 +148,20 @@ function PlanGrid() {
   const update = (id: string, fn: (a: Exclude<DevActivity, { kind: "evaluation" }>) => void) => edit((d) => { const a = d.build.activities.find((x) => x.id === id); if (a && hasPlan(a)) fn(a); });
   return (
     <div className="overflow-auto">
-      <p className="mb-2 text-xs text-muted">Bake-offs plan <b>sweeps</b> per month; other activities plan <b>intensity</b> (1 = the volumes set on the activity, 0 = off). Greyed months are outside the activity&apos;s window. Evaluation follows the runs it scores.</p>
+      <TableNote>
+        <b>What the numbers are.</b> {MONTH_TABLE_NOTES.intensity} Bake-off rows are sweeps instead: {MONTH_TABLE_NOTES.sweeps.replace("Sweeps by month: ", "").replace(" Type a number in any cell to change it.", "")}
+        {" "}The small C$ figure under each number is that month&apos;s cost. Greyed months are outside the activity&apos;s window. Use &quot;Apply...&quot; to fill a row from a shape. Evaluation follows the runs it scores, so it has no numbers to set.
+      </TableNote>
+      <TableNote>{MONTH_TABLE_NOTES.headcount} Adding developers raises iterations, playground and tooling (and build labour); bake-off, regression, red teaming, synthetic data and fine-tuning stay the same.</TableNote>
       <table className="data">
-        <thead><tr><th>Activity</th><th>Shape</th>{months.map((m) => <th key={m} className="n">M{m}</th>)}</tr></thead>
+        <thead><tr><th>Activity</th><th>Shape</th>{months.map((m) => <MonthTh key={m} m={m} />)}</tr></thead>
         <tbody>
           {project.build.activities.map((a) => {
-            if (!hasPlan(a)) return <tr key={a.id}><td>{a.label}</td><td className="text-xs text-muted">follows runs</td>{months.map((m) => <td key={m} className="n text-xs text-muted">{cad(cost(a.id, m))}</td>)}</tr>;
+            if (!hasPlan(a)) return <tr key={a.id}><td>{a.label}<small className="block text-muted">C$ per month, follows the runs it scores</small></td><td className="text-xs text-muted">follows runs</td>{months.map((m) => <td key={m} className="n text-xs text-muted">{cad(cost(a.id, m))}</td>)}</tr>;
             const vals = planValues(a, B);
             return (
               <tr key={a.id}>
-                <td className="whitespace-nowrap">{a.label}<small className="block text-muted">{a.kind === "bakeoff" ? "sweeps" : "intensity"}</small></td>
+                <td className="whitespace-nowrap">{a.label}<small className="block text-muted">{a.kind === "bakeoff" ? "sweeps per month" : "intensity (1 = normal)"}</small><small className="block text-muted">{SCALES_WITH_PEOPLE.has(a.kind) ? "scales with people" : "fixed, not per person"}</small></td>
                 <td className="w-32"><Select label={`Apply a shape to ${a.label}`} value="" options={[{ value: "", label: "Apply…" }, ...PLAN_SHAPES.map((s) => ({ value: s.id, label: s.label }))]} onChange={(v) => v && update(a.id, (x) => applyShape(x, v as PlanShape, B))} /></td>
                 {months.map((m) => {
                   const on = inPlanWindow(a, m, B);
@@ -164,8 +188,9 @@ function ByWorkstream() {
   if (project.build.workstreams.length === 0) return <p className="text-sm text-muted">No workstreams yet. Add one from the list to split the build by feature.</p>;
   return (
     <div className="overflow-auto">
+      <TableNote>Build cost by feature (workstream) and month, in C$. Labour comes from the people you allocate to each workstream (Team &amp; rate card), and AI Dev Lab from the activities assigned to it. {MONTH_TABLE_NOTES.headcount}</TableNote>
       <table className="data">
-        <thead><tr><th>Workstream</th><th className="n">People (avg)</th><th className="n">Labour</th><th className="n">AI Dev Lab</th><th className="n">Total</th>{Array.from({ length: B }, (_, i) => <th key={i} className="n">M{i + 1}</th>)}</tr></thead>
+        <thead><tr><th>Workstream</th><th className="n">People (avg)</th><th className="n">Labour</th><th className="n">AI Dev Lab</th><th className="n">Total</th>{Array.from({ length: B }, (_, i) => <MonthTh key={i} m={i + 1} />)}</tr></thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.id || "project"}>
@@ -191,12 +216,13 @@ function ByPerson() {
   const shown = rows.filter((r) => r.devlab > 0 || r.labour > 0);
   return (
     <div className="flex flex-col gap-3 overflow-auto">
+      <TableNote className="mb-0">Spend per person by month, in C$ per person. It is the team&apos;s Dev Lab spend divided by the developers running experiments, so removing a developer raises everyone else&apos;s share only for activities that do not scale with people (bake-off, regression, red teaming).</TableNote>
       <div className="flex flex-wrap items-end gap-3">
         <Field label="AI Dev Lab budget per person per month" help="devBudget"><NumberInput value={budget ?? 0} suffix="CAD" onChange={(v) => edit((d) => { d.build.devBudgetPerMonth = v > 0 ? v : undefined; })} /></Field>
         <p className="max-w-md text-xs text-muted">Monthly columns are AI Dev Lab spend per person. Workstream activities are charged to the people on that workstream by their share; project-wide ones to everyone running experiments. 0 = no budget.</p>
       </div>
       <table className="data">
-        <thead><tr><th>Person / line</th><th className="n">Labour</th><th className="n">AI Dev Lab</th>{Array.from({ length: B }, (_, i) => <th key={i} className="n">M{i + 1}</th>)}</tr></thead>
+        <thead><tr><th>Person / line</th><th className="n">Labour</th><th className="n">AI Dev Lab</th>{Array.from({ length: B }, (_, i) => <MonthTh key={i} m={i + 1} />)}</tr></thead>
         <tbody>
           {shown.map((r) => (
             <tr key={r.seat}>
@@ -222,6 +248,8 @@ function ByModel() {
   const name = (m: string) => catalog.chatModels.find((c) => c.id === m)?.label ?? catalog.unitPrices.find((u) => u.id === m)?.label ?? m;
   return (
     <div className="flex flex-col gap-1.5">
+      <TableNote>Total AI Dev Lab spend on each model or service over all {project.timeline.buildMonths} build months, in C$ and as a share of the Dev Lab total. Each bar adds up every activity that uses that model.</TableNote>
+      <WhereFrom to="/prices" toLabel="Prices & sources">the models chosen on each activity, the tokens those activities use, and each model&apos;s price.</WhereFrom>
       {rows.map((r) => (
         <div key={r.meter} className="grid grid-cols-[minmax(140px,240px)_1fr_auto] items-center gap-2.5 text-[12.5px]">
           <span className="truncate">{name(r.meter)}</span>
@@ -373,6 +401,7 @@ function Team() {
         </tbody>
       </table>
       </div>
+      <WhereFrom>labour is people &times; hours per month &times; the role&apos;s hourly rate, for each month in the From and To window. It always changes with headcount. Developers ticked &quot;Experiments&quot; also drive the per-developer Dev Lab activities (iterations, playground, tooling). Change people, hours and months in the table above.</WhereFrom>
       {project.build.workstreams.length > 0 && <AllocationMatrix />}
       <button type="button" className="flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2" onClick={() => edit((d) => { d.build.team.push({ roleId: d.rateCard[0]!.id, people: 1, hoursPerMonth: 160, experiments: false }); })}><Plus size={14} />Add team line</button>
       <h3 className="text-sm font-semibold">Rate card (CAD per hour)</h3>
@@ -433,6 +462,7 @@ function DevEnvironment() {
       <div><h2 className="text-base font-bold">Dev environment</h2><div className="text-xs text-muted">Services the team runs while building, billed every build month: dev search index, API gateway, logging, sandboxes.</div></div>
       <div className="font-display text-[26px] font-bold">{cad(lines.reduce((s, l) => s + l.cost, 0))}<span className="ml-1.5 font-sans text-xs font-normal text-muted">over {B} months</span></div>
       <CostItems items={project.build.environment} locate={(d) => d.build.environment} idPrefix="env" firstMonthLabel="build month 1" />
+      <WhereFrom to="/prices" toLabel="Prices & sources">the items listed above (quantity times catalogue price). These are fixed monthly services, so they do not change with headcount.</WhereFrom>
       <p className="text-xs text-muted">Catalogue items are before free allowances; the total above applies them. A free-text cost needs no catalogue price: enter C$ per month or once.</p>
       <Explain title="How this is calculated" lines={lines} months={B} />
     </>
@@ -478,6 +508,7 @@ function Activity({ id, onRemoved }: { id: string; onRemoved: () => void }) {
         <div role="note" className="rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">This project-wide activity counts every developer, and workstreams have their own {a.kind === "iterations" ? "iterations" : "playground work"} too. Check you are not counting the same effort twice.</div>
       )}
       <Fields specs={ACTIVITY_SPECS[a.kind] ?? []} value={a as unknown as Record<string, unknown>} locate={locate} />
+      <TableNote className="mb-0"><b>Months on the chart below.</b> Month 1 is the first build month. The bars are this activity&apos;s cost in C$ in each month; {hasPlan(a) ? "edit the shape on the Plan view (All activities, Plan) or type intensity values in the field above." : "it follows the runs it scores, so it has no month numbers of its own."}</TableNote>
       {a.kind === "bakeoff" && (
         <div>
           <h3 className="mb-1.5 text-sm font-semibold">Candidate models and the months they run</h3>
@@ -498,6 +529,7 @@ function Activity({ id, onRemoved }: { id: string; onRemoved: () => void }) {
         </div>
       )}
       <StackedBars rows={rows} series={[{ key: "v", label: a.label, color: COLORS[i % COLORS.length]! }]} xLabel={(k) => `Month ${k + 1}`} className="relative h-[200px] flex-none" />
+      <WhereFrom>{ACTIVITY_SOURCE[a.kind]} Change it in the fields above.</WhereFrom>
       <Explain title="How this is calculated" lines={lines} months={B} />
     </>
   );
