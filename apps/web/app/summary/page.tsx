@@ -5,6 +5,7 @@ import { WIDE_RANGE_TEXT, compareScenarios, moneyBand } from "@studio/engine";
 import { Card, CardHead } from "@/components/ui";
 import { BulletBar, CumulativeLine, RangeBar, RankedBars, ViewToggle, Waterfall } from "@/components/charts";
 import { Story } from "@/components/story";
+import { MonthLegend } from "@/components/months";
 import { Dumbbell } from "@/components/charts-compare";
 import { CumulativeTable, DriversTable, FinanceMeasures, HeadlineTiles, RiskSummary, VerdictChip, WATERFALL_COST_IDS, WaterfallTable, wideDrivers } from "@/components/summary-parts";
 import { catalog, useSummary } from "@/lib/compute";
@@ -72,6 +73,7 @@ export default function Summary() {
             <ViewToggle table={<CumulativeTable values={roi.cumulative} />}>
               <CumulativeLine values={roi.cumulative} payback={roi.paybackMonth} className="relative h-[260px] shrink-0" />
             </ViewToggle>
+            <MonthLegend className="mt-2" />
           </div>
         </Card>
       </div>

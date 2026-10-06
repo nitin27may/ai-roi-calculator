@@ -5,6 +5,7 @@ import type { Month } from "@studio/engine";
 import { Card, CardHead, Pill, Seg } from "@/components/ui";
 import { Legend, useSize } from "@/components/charts";
 import { Story } from "@/components/story";
+import { MonthLegend } from "@/components/months";
 import { catalog, useLedger, useLevers } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad, kcad } from "@/lib/format";
@@ -38,6 +39,7 @@ export default function Overview() {
             <Legend items={[{ label: "Build", color: "var(--build)" }, { label: "Production", color: "var(--run)" }, { label: "Platform", color: "var(--platform)" }, { label: "Maintenance", color: "var(--maint)" }, { label: "Benefit", color: "var(--benefit)" }]} />
           </CardHead>
           <LifecycleCanvas />
+          <MonthLegend className="px-3.5 pb-3" />
         </Card>
         <Card>
           <div className="px-3.5 pb-2 pt-3">

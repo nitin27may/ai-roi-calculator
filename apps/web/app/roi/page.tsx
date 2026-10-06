@@ -8,6 +8,7 @@ import { CumulativeLine, Legend } from "@/components/charts";
 import { catalog, deploymentOptions, modelOptions, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { AddMenu } from "@/components/add-menu";
+import { MonthLegend } from "@/components/months";
 import { ConfidenceField, FinanceInputs, ValueItems } from "@/components/roi-extras";
 import { cad, cn, fmt } from "@/lib/format";
 
@@ -30,7 +31,7 @@ export default function Roi() {
           sub={tab === "scenarios" ? "What-ifs compared with the baseline on the selected cost basis" : `Benefit minus ${BASES.find((b) => b.value === project.roi.basis)!.label.toLowerCase()} · NPV at ${project.roi.discountRatePct}%: ${cad(roi.npv)}`}>
           <Seg label="View" value={tab} onChange={setTab} options={[{ value: "cash", label: "Cash" }, { value: "years", label: "By year" }, { value: "capabilities", label: "By capability" }, { value: "beforeAfter", label: "Before / after" }, { value: "sensitivity", label: "Sensitivity" }, { value: "scenarios", label: "Scenarios" }]} />
         </CardHead>
-        {tab === "cash" ? <div className="flex min-h-0 flex-1 px-1.5 pb-1.5"><CumulativeLine values={roi.cumulative} payback={roi.paybackMonth} /></div>
+        {tab === "cash" ? <><div className="flex min-h-0 flex-1 px-1.5 pb-1.5"><CumulativeLine values={roi.cumulative} payback={roi.paybackMonth} /></div><MonthLegend className="px-3.5 pb-3" /></>
           : <div className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">{tab === "years" ? <Years /> : tab === "capabilities" ? <Capabilities /> : tab === "beforeAfter" ? <BeforeAfterView /> : tab === "sensitivity" ? <Tornado /> : <Scenarios />}</div>}
       </Card>
     </div>
