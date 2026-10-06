@@ -15,11 +15,30 @@ export type Row = Record<string, string | number>;
 /** Said wherever a build figure appears while the project leaves build labour out, so nobody reads it as a full build cost. */
 export const LABOUR_EXCLUDED_TEXT = "Build labour excluded";
 
-/** True when this project does not cost build labour (Settings or Build: "Exclude build labour cost"). */
-export const labourExcluded = (p: Pick<Project, "build">): boolean => !p.build.includeLabour;
+/** Build team lines left out of cost one by one (the "Costed" tick on Build), out of all lines. Zero while the project-wide switch excludes everything. */
+export const labourLineCounts = (p: Pick<Project, "build">): { excluded: number; total: number } => {
+  const total = p.build.team.length;
+  return { excluded: p.build.includeLabour ? p.build.team.filter((t) => t.costed === false).length : total, total };
+};
 
-/** "Build", or "Build (build labour excluded)" when labour is left out. */
-export const buildLabel = (p: Pick<Project, "build">, base = "Build"): string => (labourExcluded(p) ? `${base} (${LABOUR_EXCLUDED_TEXT.toLowerCase()})` : base);
+/** True when no build labour is costed: the project-wide switch is on, or every team line is switched off. */
+export const labourExcluded = (p: Pick<Project, "build">): boolean => {
+  const { excluded, total } = labourLineCounts(p);
+  return !p.build.includeLabour || (total > 0 && excluded === total);
+};
+
+/** True when some, but not all, build team lines are left out of cost. */
+export const labourPartlyExcluded = (p: Pick<Project, "build">): boolean => !labourExcluded(p) && labourLineCounts(p).excluded > 0;
+
+/** "Some build labour excluded (2 of 5 lines)", or "" when every line is costed or all are excluded. */
+export const labourPartialText = (p: Pick<Project, "build">): string => {
+  if (!labourPartlyExcluded(p)) return "";
+  const c = labourLineCounts(p);
+  return `Some build labour excluded (${c.excluded} of ${c.total} lines)`;
+};
+
+/** "Build", "Build (build labour excluded)" or "Build (some build labour excluded)". */
+export const buildLabel = (p: Pick<Project, "build">, base = "Build"): string => (labourExcluded(p) ? `${base} (${LABOUR_EXCLUDED_TEXT.toLowerCase()})` : labourPartlyExcluded(p) ? `${base} (some build labour excluded)` : base);
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -45,6 +64,8 @@ export interface Verdict { text: string; npvPositive: boolean; paysBack: boolean
 export interface Summary {
   /** The project leaves build labour out of every figure here (Dev Lab and all other costs still count). */
   labourExcluded: boolean;
+  /** "Some build labour excluded (N of M lines)" when only some team lines are left out of cost; empty otherwise. */
+  labourPartial: string;
   basis: Project["roi"]["basis"];
   /** Display name of `basis`, for labelling every headline figure. */
   basisLabel: string;
@@ -189,6 +210,7 @@ export function summarize(p: Project, ledger: Ledger, roi: RoiResult, cat: Catal
   const verdict = verdictFor(roi);
   return {
     labourExcluded: labourExcluded(p),
+    labourPartial: labourPartialText(p),
     basis: roi.basis,
     basisLabel: basisLabel(roi.basis),
     totalCost: roi.totalCost,
@@ -258,6 +280,7 @@ export function summaryRows(p: Project, ledger: Ledger, roi: RoiResult, cat: Cat
     { Item: "First build month", Value: p.startDate },
     { Item: "Build months", Value: p.timeline.buildMonths },
     ...(s.labourExcluded ? [{ Item: "Build labour", Value: "Excluded from every figure (set in Settings or on Build)" }] : []),
+    ...(s.labourPartial ? [{ Item: "Build labour", Value: `${s.labourPartial}: those lines still drive AI Dev Lab volumes but add no cost` }] : []),
     { Item: "Plan length (months)", Value: s.horizonMonths },
     { Item: buildLabel(p, "Build cost"), Value: r2(s.build) },
     { Item: "  of which labour", Value: s.labourExcluded ? "Excluded" : r2(t.buildLabour) },

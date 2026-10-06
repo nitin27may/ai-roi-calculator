@@ -101,7 +101,7 @@ export async function buildWorkbook(p: Project, ledger: Ledger, roi: RoiResult, 
   ], ["Benefit", "Direct cost", "Shared cost", "Net"]);
   sheet("Assumptions", [
     ...p.rateCard.map((r) => ({ Section: "Rate card", Item: r.label, Value: r.hourlyRate, Unit: labourExcluded(p) ? "CAD/hour (not costed: build labour excluded)" : "CAD/hour" })),
-    ...p.build.team.map((t) => ({ Section: "Build team", Item: `${t.phase ?? "Build"}: ${p.rateCard.find((r) => r.id === t.roleId)?.label}`, Value: t.people, Unit: `people, months ${t.fromMonth ?? 1}–${t.toMonth ?? p.timeline.buildMonths}${labourExcluded(p) ? " (labour not costed: build labour excluded)" : ""}` })),
+    ...p.build.team.map((t) => ({ Section: "Build team", Item: `${t.phase ?? "Build"}: ${p.rateCard.find((r) => r.id === t.roleId)?.label}`, Value: t.people, Unit: `people, months ${t.fromMonth ?? 1}–${t.toMonth ?? p.timeline.buildMonths}${labourExcluded(p) ? " (labour not costed: build labour excluded)" : t.costed === false ? " (not costed: line excluded)" : ""}${t.rateOverride !== undefined ? `, manual rate CAD ${t.rateOverride}/hour` : ""}` })),
     ...p.benefits.capabilities.map((c) => { const h = capabilityHours(p, c, cat.benchmarks); return { Section: "Time saved", Item: c.label, Value: Math.round(h.net * 10) / 10, Unit: `net hours/month at full rollout: ${h.formula}` }; }),
     ...p.benefits.avoidedCosts.map((c) => ({ Section: "Avoided cost", Item: c.label, Value: Math.round(avoidedMonthly(p, c)), Unit: `${c.fte !== undefined ? `${c.fte} FTE, ` : ""}CAD/month from month ${c.startMonth ?? p.timeline.buildMonths + 1}` })),
     { Section: "ROI", Item: "Benefit preset", Value: p.roi.benefitPreset, Unit: "" },

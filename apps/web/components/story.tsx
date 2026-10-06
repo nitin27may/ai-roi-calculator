@@ -1,4 +1,5 @@
 "use client";
+import { labourExcluded } from "@studio/engine";
 import { useStudio } from "@/lib/store";
 
 /** The one-sentence story of the project, editable inline. Shared by the Summary page and the Overview. */
@@ -14,7 +15,7 @@ export function Story() {
   );
   return (
     <p className="m-0 text-base leading-[1.9] text-ink-2">
-      {project.build.includeLabour ? (
+      {!labourExcluded(project) ? (
         <>
           {num(devs, (n) => edit((d) => { const t = d.build.team.find((x) => x.experiments); if (t) t.people = n; }), 1, 30, "Developers")} developers build for{" "}
           {num(project.timeline.buildMonths, (n) => edit((d) => { d.timeline.buildMonths = n; }), 1, 18, "Build months")} months, testing{" "}

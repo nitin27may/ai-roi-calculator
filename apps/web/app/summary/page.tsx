@@ -60,7 +60,7 @@ export default function Summary() {
 
       <div className="grid shrink-0 gap-3.5 lg:grid-cols-2">
         <Card>
-          <CardHead title="Build, run and benefit" sub={s.labourExcluded ? "How the plan nets out, build to benefit. Build labour excluded." : "How the plan nets out, build to benefit."} />
+          <CardHead title="Build, run and benefit" sub={s.labourExcluded ? "How the plan nets out, build to benefit. Build labour excluded." : s.labourPartial ? `How the plan nets out, build to benefit. ${s.labourPartial}.` : "How the plan nets out, build to benefit."} />
           <div className="px-3.5 pb-3.5">
             <ViewToggle table={<WaterfallTable s={s} />}>
               <Waterfall steps={s.waterfall} costIds={WATERFALL_COST_IDS} />
