@@ -87,7 +87,11 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
           if (it.cadence === "monthly" || m === Math.min(B, it.month ?? 1)) lines.push({ ...cashLine(`devenv:${it.id}`, "devenv", it, "devenv"), once: it.cadence === "once" });
         } else lines.push(line({ id: `devenv:${it.id}`, componentId: "devenv", label: it.label, stream: "devenv", behaviour: "fixed", meter: it.unitPriceId, quantity: it.quantity, unit: book.unit(it.unitPriceId).unit, unitPrice: book.unitPrice(it.unitPriceId), formula: `${it.quantity} × ${book.unit(it.unitPriceId).unit}` }));
       }
-      lines = lines.map((l) => { const f = (l.stream === "labour" ? 1 : nonLabourContingency) * devCut; return { ...l, unitPrice: l.unitPrice * f, cost: l.cost * f }; });
+      lines = lines.map((l) => {
+        if (l.manual) return l;
+        const f = (l.stream === "labour" ? 1 : nonLabourContingency) * devCut;
+        return { ...l, unitPrice: l.unitPrice * f, cost: l.cost * f };
+      });
       buildTotal += sum(lines.map((l) => l.cost));
     } else {
       const k = m - B; // production month, 1-based
