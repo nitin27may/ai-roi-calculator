@@ -50,18 +50,30 @@ export const writeSidebarCollapsed = (storage: PrefStorage, collapsed: boolean):
   try { storage.setItem(SIDEBAR_KEY, collapsed ? "collapsed" : "expanded"); } catch { /* storage blocked */ }
 };
 
-/** Which projects have their sidebar section folded, remembered per project id. */
+/**
+ * Per-project sidebar fold state. Only explicit choices are stored (id -> open); a project with no choice is
+ * open when it is the active one and folded otherwise. Older versions stored a plain list of folded ids.
+ */
 export const PROJECT_MENU_KEY = "studio.projectMenu";
-const readFolded = (storage: PrefStorage): string[] => {
+export const PROJECT_MENU_STATE_KEY = "studio.projectMenuState";
+const readChoices = (storage: PrefStorage): Record<string, boolean> => {
+  const out: Record<string, boolean> = {};
   try {
-    const v: unknown = JSON.parse(storage.getItem(PROJECT_MENU_KEY) ?? "[]");
-    return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
-  } catch { return []; }
+    const legacy: unknown = JSON.parse(storage.getItem(PROJECT_MENU_KEY) ?? "[]");
+    if (Array.isArray(legacy)) for (const id of legacy) if (typeof id === "string") out[id] = false;
+  } catch { /* unreadable: no choices */ }
+  try {
+    const v: unknown = JSON.parse(storage.getItem(PROJECT_MENU_STATE_KEY) ?? "{}");
+    if (v && typeof v === "object" && !Array.isArray(v)) for (const [id, open] of Object.entries(v)) if (typeof open === "boolean") out[id] = open;
+  } catch { /* unreadable: no choices */ }
+  return out;
 };
-export const readProjectMenuCollapsed = (storage: PrefStorage, projectId: string): boolean => readFolded(storage).includes(projectId);
-export const writeProjectMenuCollapsed = (storage: PrefStorage, projectId: string, collapsed: boolean): void => {
+/** The saved choice for a project, or null when the user has not toggled it. */
+export const readProjectMenuChoice = (storage: PrefStorage, projectId: string): boolean | null => readChoices(storage)[projectId] ?? null;
+/** Whether a project's pages are shown: the saved choice, else open only for the active project. */
+export const resolveProjectMenuOpen = (choice: boolean | null, isActive: boolean): boolean => choice ?? isActive;
+export const writeProjectMenuOpen = (storage: PrefStorage, projectId: string, open: boolean): void => {
   try {
-    const rest = readFolded(storage).filter((id) => id !== projectId);
-    storage.setItem(PROJECT_MENU_KEY, JSON.stringify(collapsed ? [...rest, projectId] : rest));
+    storage.setItem(PROJECT_MENU_STATE_KEY, JSON.stringify({ ...readChoices(storage), [projectId]: open }));
   } catch { /* storage blocked */ }
 };

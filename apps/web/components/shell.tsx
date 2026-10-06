@@ -17,8 +17,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { monthLegendText } from "@/lib/months";
 import { catalog, useLedger } from "@/lib/compute";
 import { cad, cn, fmt } from "@/lib/format";
-import { DRAWER_CLOSE_EVENT, DRAWER_OPEN_EVENT, readProjectMenuCollapsed, readSidebarCollapsed, writeProjectMenuCollapsed, writeSidebarCollapsed } from "@/lib/prefs";
-import { showProjectMenu } from "@/lib/nav";
+import { DRAWER_CLOSE_EVENT, DRAWER_OPEN_EVENT, readProjectMenuChoice, readSidebarCollapsed, resolveProjectMenuOpen, writeProjectMenuOpen, writeSidebarCollapsed } from "@/lib/prefs";
+import { projectRows, showProjectMenu, type ProjectRow } from "@/lib/nav";
 import { downloadProject } from "@/lib/project-file";
 import { LabourExcludedNote } from "@/components/labour-excluded";
 import { EmptyLibrary } from "@/components/empty-library";
@@ -115,22 +115,23 @@ export function Shell({ children }: { children: ReactNode }) {
 
   const isProject = PROJECT_VIEWS.some((v) => v.href === path);
   const hasProject = showProjectMenu({ hydrated, library, activeId });
-  const [menuFolded, setMenuFolded] = useState(false);
-  // The folded state is read after mount (and when the open project changes) so the static export and first render match.
-  useEffect(() => { if (activeId) setMenuFolded(readProjectMenuCollapsed(localStorage, activeId)); }, [activeId]);
-  const toggleMenu = () => setMenuFolded((f) => { writeProjectMenuCollapsed(localStorage, activeId, !f); return !f; });
+  const rows = projectRows({ hydrated, library, activeId });
   // No project to show on a project page (all deleted, then a reload or back button): go to the library, which explains.
   const noProjectHere = isProject && hydrated && library.length === 0;
   useEffect(() => { if (noProjectHere) router.replace("/projects"); }, [noProjectHere, router]);
   const B = project.timeline.buildMonths, H = project.timeline.horizonMonths;
 
-  const link = (href: string, Icon: LucideIcon, label: string, small?: string) => (
-    <Link key={href} href={href} aria-current={path === href ? "page" : undefined} title={label}
-      className={cn("flex items-center justify-between gap-2 rounded-md px-2 py-1.5 font-medium", path === href ? "bg-accent-soft text-ink" : "text-ink-2 hover:bg-surface-2")}>
-      <span className="flex min-w-0 items-center gap-2"><Icon size={15} aria-hidden className="flex-none" /><span className="nav-label truncate">{label}</span></span>
-      {small && <small className="num nav-label text-xs text-muted">{small}</small>}
-    </Link>
-  );
+  // Project page links are only "current" for the active project; the others just switch to it.
+  const link: NavLink = (href, Icon, label, small, onClick, current = true) => {
+    const here = path === href && current;
+    return (
+      <Link key={href} href={href} aria-current={here ? "page" : undefined} title={label} onClick={onClick}
+        className={cn("flex items-center justify-between gap-2 rounded-md px-2 py-1.5 font-medium", here ? "bg-accent-soft text-ink" : "text-ink-2 hover:bg-surface-2")}>
+        <span className="flex min-w-0 items-center gap-2"><Icon size={15} aria-hidden className="flex-none" /><span className="nav-label truncate">{label}</span></span>
+        {small && <small className="num nav-label text-xs text-muted">{small}</small>}
+      </Link>
+    );
+  };
 
   return (
     <div className={cn("grid min-h-full grid-cols-1 lg:h-full lg:transition-[grid-template-columns] lg:duration-200 motion-reduce:lg:transition-none", collapsed ? "lg:grid-cols-[60px_minmax(0,1fr)]" : "lg:grid-cols-[212px_minmax(0,1fr)]")}>
@@ -151,27 +152,9 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
         <Group label="Quick tools">{link("/tokens", Calculator, "Token calculator")}{link("/wizard", Sparkles, "New estimate wizard")}</Group>
         <Group label="Projects">{link("/projects", FolderOpen, "All projects")}</Group>
-        {hasProject && (
-          <div className="flex flex-col gap-px" data-testid="project-menu">
-            <button type="button" id="project-menu-toggle" aria-expanded={!menuFolded} aria-controls="project-menu-pages" onClick={toggleMenu} title={project.name}
-              className="flex items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-xs uppercase tracking-[0.08em] text-muted hover:bg-surface-2">
-              <span className="nav-label truncate">{project.name}</span>
-              <ChevronDown size={14} aria-hidden className={cn("flex-none transition-transform duration-200 motion-reduce:transition-none", menuFolded && "-rotate-90")} />
-            </button>
-            <div aria-hidden className="nav-rule mx-2 hidden border-t border-line" />
-            <div id="project-menu-pages" role="group" aria-labelledby="project-menu-toggle" inert={menuFolded}
-              className={cn("grid transition-[grid-template-rows,opacity] duration-200 motion-reduce:transition-none", menuFolded ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100")}>
-              <div className="flex min-h-0 flex-col gap-px overflow-hidden">
-                {link("/summary", LayoutDashboard, "Summary")}
-                {link("/overview", ChartColumn, "Overview")}
-                {link("/build", Hammer, "Build", `M1–${B}`)}
-                {link("/run", Activity, "Run", `M${B + 1}–${H}`)}
-                {link("/roi", TrendingUp, "Value & ROI")}
-                {link("/capacity", Cpu, "Capacity (PTU)")}
-                {link("/report", FileText, "Report")}
-                {link("/settings", Settings, "Settings")}
-              </div>
-            </div>
+        {rows.length > 0 && (
+          <div className="flex flex-col gap-1" data-testid="project-menu">
+            {rows.map((r) => <ProjectNode key={r.id} row={r} rail={collapsed && !narrow} path={path} B={B} H={H} link={link} />)}
           </div>
         )}
         <Group label="Data">{link("/prices", Database, "Prices & sources")}{link("/glossary", BookOpen, "Glossary")}</Group>
@@ -213,6 +196,46 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
         <div className="min-h-0 px-3 pb-4 pt-3.5 sm:px-5">{isProject && !hasProject ? (hydrated ? <EmptyLibrary /> : null) : children}</div>
       </main>
+    </div>
+  );
+}
+
+type NavLink = (href: string, Icon: LucideIcon, label: string, small?: string, onClick?: () => void, current?: boolean) => ReactNode;
+
+/** One project in the sidebar tree: a fold button and its pages. Following a page link makes the project the active one. */
+function ProjectNode({ row, rail, path, B, H, link }: { row: ProjectRow; rail: boolean; path: string; B: number; H: number; link: NavLink }) {
+  const open = useStudio((s) => s.open);
+  const [choice, setChoice] = useState<boolean | null>(null);
+  // Read after mount so the static export and the first client render match.
+  useEffect(() => setChoice(readProjectMenuChoice(localStorage, row.id)), [row.id]);
+  const expanded = resolveProjectMenuOpen(choice, row.active);
+  const toggle = () => { writeProjectMenuOpen(localStorage, row.id, !expanded); setChoice(!expanded); };
+  // The project's own timeline is only known for the active one; the others show plain page names.
+  const build = row.active ? `M1\u2013${B}` : undefined, run = row.active ? `M${B + 1}\u2013${H}` : undefined;
+  const go = () => open(row.id);
+  const show = rail ? row.active : expanded;
+  const pid = `project-menu-${row.id}`;
+  return (
+    <div className={cn("flex flex-col gap-px", !row.active && "lg:group-data-[collapsed=true]:hidden")} data-testid="project-row" data-project-id={row.id} data-active={row.active}>
+      <button type="button" id={`${pid}-toggle`} aria-expanded={expanded} aria-controls={`${pid}-pages`} onClick={toggle} title={row.name}
+        className="flex items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-xs uppercase tracking-[0.08em] text-muted hover:bg-surface-2 lg:group-data-[collapsed=true]:hidden">
+        <span className={cn("nav-label truncate", row.active && "font-semibold text-ink-2")}>{row.name}</span>
+        <ChevronDown size={14} aria-hidden className={cn("flex-none transition-transform duration-200 motion-reduce:transition-none", !expanded && "-rotate-90")} />
+      </button>
+      <div aria-hidden className="nav-rule mx-2 hidden border-t border-line" />
+      <div id={`${pid}-pages`} role="group" aria-labelledby={`${pid}-toggle`} inert={!show}
+        className={cn("grid transition-[grid-template-rows,opacity] duration-200 motion-reduce:transition-none", show ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}>
+        <div className="flex min-h-0 flex-col gap-px overflow-hidden">
+          {link("/summary", LayoutDashboard, "Summary", undefined, go, row.active)}
+          {link("/overview", ChartColumn, "Overview", undefined, go, row.active)}
+          {link("/build", Hammer, "Build", build, go, row.active)}
+          {link("/run", Activity, "Run", run, go, row.active)}
+          {link("/roi", TrendingUp, "Value & ROI", undefined, go, row.active)}
+          {link("/capacity", Cpu, "Capacity (PTU)", undefined, go, row.active)}
+          {link("/report", FileText, "Report", undefined, go, row.active)}
+          {link("/settings", Settings, "Settings", undefined, go, row.active)}
+        </div>
+      </div>
     </div>
   );
 }
