@@ -34,7 +34,6 @@ describe("cost basis is an explicit choice", () => {
       expect(String(rows.find((x) => String(x.Item).startsWith("Total cost over plan"))!.Item)).toContain(b.label);
     }
   }, 30_000);
-}, 30_000);
   it("an old project without a Settings default still loads and keeps its basis", () => {
     expect(ProjectSchema.parse(sample).roi.basis).toBe(sample.roi.basis);
   });
