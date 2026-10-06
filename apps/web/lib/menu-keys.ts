@@ -20,3 +20,20 @@ export function menuKeys(e: { key: string; preventDefault: () => void }, menu: H
   items[next]?.focus();
   return true;
 }
+
+/** Where a menu opens and how tall it may be: upward by default, downward when it would not fit above but fits better below. */
+export function menuPlacement(spaceAbove: number, spaceBelow: number, menuHeight: number): { up: boolean; maxHeight: number } {
+  const up = spaceAbove >= menuHeight || spaceAbove >= spaceBelow;
+  return { up, maxHeight: Math.max(120, Math.floor(up ? spaceAbove : spaceBelow)) };
+}
+
+/** The room a menu has above and below its trigger, within the nearest clipping ancestor or the window. */
+export function roomAround(trigger: HTMLElement): { above: number; below: number } {
+  let bounds = { top: 0, bottom: innerHeight };
+  for (let el = trigger.parentElement; el; el = el.parentElement) {
+    const o = getComputedStyle(el).overflowY;
+    if (o !== "visible") { const r = el.getBoundingClientRect(); bounds = { top: Math.max(bounds.top, r.top), bottom: Math.min(bounds.bottom, r.bottom) }; break; }
+  }
+  const t = trigger.getBoundingClientRect();
+  return { above: t.top - bounds.top - 8, below: bounds.bottom - t.bottom - 8 };
+}
