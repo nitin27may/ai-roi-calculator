@@ -49,3 +49,19 @@ export const readSidebarCollapsed = (storage: PrefStorage): boolean => {
 export const writeSidebarCollapsed = (storage: PrefStorage, collapsed: boolean): void => {
   try { storage.setItem(SIDEBAR_KEY, collapsed ? "collapsed" : "expanded"); } catch { /* storage blocked */ }
 };
+
+/** Which projects have their sidebar section folded, remembered per project id. */
+export const PROJECT_MENU_KEY = "studio.projectMenu";
+const readFolded = (storage: PrefStorage): string[] => {
+  try {
+    const v: unknown = JSON.parse(storage.getItem(PROJECT_MENU_KEY) ?? "[]");
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+  } catch { return []; }
+};
+export const readProjectMenuCollapsed = (storage: PrefStorage, projectId: string): boolean => readFolded(storage).includes(projectId);
+export const writeProjectMenuCollapsed = (storage: PrefStorage, projectId: string, collapsed: boolean): void => {
+  try {
+    const rest = readFolded(storage).filter((id) => id !== projectId);
+    storage.setItem(PROJECT_MENU_KEY, JSON.stringify(collapsed ? [...rest, projectId] : rest));
+  } catch { /* storage blocked */ }
+};

@@ -1,10 +1,10 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import {
   Activity, BookOpen, Calculator, Cpu, Database, Download, FileSpreadsheet, FileText, FolderOpen, Hammer, LayoutDashboard, Menu, PanelLeftClose, PanelLeftOpen,
-  Printer, Redo2, RotateCcw, Settings, Sparkles, TrendingUp, Undo2, Upload, X, ChartColumn, type LucideIcon,
+  ChevronDown, Printer, Redo2, RotateCcw, Settings, Sparkles, TrendingUp, Undo2, Upload, X, ChartColumn, type LucideIcon,
 } from "lucide-react";
 import { exportCsv, exportXlsx } from "@/lib/export";
 import { DEPLOYMENT_LABEL, ProjectSchema, meetingIntelligence, migrateProject } from "@studio/engine";
@@ -17,7 +17,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { monthLegendText } from "@/lib/months";
 import { catalog, useLedger } from "@/lib/compute";
 import { cad, cn, fmt } from "@/lib/format";
-import { DRAWER_CLOSE_EVENT, DRAWER_OPEN_EVENT, readSidebarCollapsed, writeSidebarCollapsed } from "@/lib/prefs";
+import { DRAWER_CLOSE_EVENT, DRAWER_OPEN_EVENT, readProjectMenuCollapsed, readSidebarCollapsed, writeProjectMenuCollapsed, writeSidebarCollapsed } from "@/lib/prefs";
+import { showProjectMenu } from "@/lib/nav";
+import { downloadProject } from "@/lib/project-file";
+import { EmptyLibrary } from "@/components/empty-library";
 
 const PROJECT_VIEWS = [
   { href: "/summary", label: "Summary" },
@@ -39,6 +42,10 @@ export function Shell({ children }: { children: ReactNode }) {
   const hydrate = useStudio((s) => s.hydrate);
   const project = useStudio((s) => s.project);
   const problem = useStudio((s) => s.problem);
+  const hydrated = useStudio((s) => s.hydrated);
+  const library = useStudio((s) => s.library);
+  const activeId = useStudio((s) => s.activeId);
+  const router = useRouter();
   useEffect(() => hydrate(), [hydrate]);
   const canUndo = useStudio((s) => s.past.length > 0);
   const canRedo = useStudio((s) => s.future.length > 0);
@@ -106,6 +113,14 @@ export function Shell({ children }: { children: ReactNode }) {
   };
 
   const isProject = PROJECT_VIEWS.some((v) => v.href === path);
+  const hasProject = showProjectMenu({ hydrated, library, activeId });
+  const [menuFolded, setMenuFolded] = useState(false);
+  // The folded state is read after mount (and when the open project changes) so the static export and first render match.
+  useEffect(() => { if (activeId) setMenuFolded(readProjectMenuCollapsed(localStorage, activeId)); }, [activeId]);
+  const toggleMenu = () => setMenuFolded((f) => { writeProjectMenuCollapsed(localStorage, activeId, !f); return !f; });
+  // No project to show on a project page (all deleted, then a reload or back button): go to the library, which explains.
+  const noProjectHere = isProject && hydrated && library.length === 0;
+  useEffect(() => { if (noProjectHere) router.replace("/projects"); }, [noProjectHere, router]);
   const B = project.timeline.buildMonths, H = project.timeline.horizonMonths;
 
   const link = (href: string, Icon: LucideIcon, label: string, small?: string) => (
@@ -135,18 +150,31 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
         <Group label="Quick tools">{link("/tokens", Calculator, "Token calculator")}{link("/wizard", Sparkles, "New estimate wizard")}</Group>
         <Group label="Projects">{link("/projects", FolderOpen, "All projects")}</Group>
-        <Group label={project.name}>
-          {link("/summary", LayoutDashboard, "Summary")}
-          {link("/overview", ChartColumn, "Overview")}
-          {link("/build", Hammer, "Build", `M1–${B}`)}
-          {link("/run", Activity, "Run", `M${B + 1}–${H}`)}
-          {link("/roi", TrendingUp, "Value & ROI")}
-          {link("/capacity", Cpu, "Capacity (PTU)")}
-          {link("/report", FileText, "Report")}
-          {link("/settings", Settings, "Settings")}
-        </Group>
+        {hasProject && (
+          <div className="flex flex-col gap-px" data-testid="project-menu">
+            <button type="button" id="project-menu-toggle" aria-expanded={!menuFolded} aria-controls="project-menu-pages" onClick={toggleMenu} title={project.name}
+              className="flex items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-xs uppercase tracking-[0.08em] text-muted hover:bg-surface-2">
+              <span className="nav-label truncate">{project.name}</span>
+              <ChevronDown size={14} aria-hidden className={cn("flex-none transition-transform duration-200 motion-reduce:transition-none", menuFolded && "-rotate-90")} />
+            </button>
+            <div aria-hidden className="nav-rule mx-2 hidden border-t border-line" />
+            <div id="project-menu-pages" role="group" aria-labelledby="project-menu-toggle" inert={menuFolded}
+              className={cn("grid transition-[grid-template-rows,opacity] duration-200 motion-reduce:transition-none", menuFolded ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100")}>
+              <div className="flex min-h-0 flex-col gap-px overflow-hidden">
+                {link("/summary", LayoutDashboard, "Summary")}
+                {link("/overview", ChartColumn, "Overview")}
+                {link("/build", Hammer, "Build", `M1–${B}`)}
+                {link("/run", Activity, "Run", `M${B + 1}–${H}`)}
+                {link("/roi", TrendingUp, "Value & ROI")}
+                {link("/capacity", Cpu, "Capacity (PTU)")}
+                {link("/report", FileText, "Report")}
+                {link("/settings", Settings, "Settings")}
+              </div>
+            </div>
+          </div>
+        )}
         <Group label="Data">{link("/prices", Database, "Prices & sources")}{link("/glossary", BookOpen, "Glossary")}</Group>
-        <ProjectFile />
+        <ProjectFile hasProject={hasProject} />
         <button type="button" onClick={toggleCollapsed} aria-pressed={collapsed} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className="mt-auto hidden items-center gap-2 rounded-md px-2 py-1.5 text-left text-ink-2 hover:bg-surface-2 lg:flex">
           {collapsed ? <PanelLeftOpen size={15} aria-hidden /> : <PanelLeftClose size={15} aria-hidden />}
@@ -162,7 +190,7 @@ export function Shell({ children }: { children: ReactNode }) {
             <button ref={menuButton} type="button" aria-label="Open menu" aria-expanded={drawerOpen} aria-controls="main-nav" onClick={() => (drawerOpen ? closeDrawer(false) : openDrawer())}
               className="grid h-9 w-9 flex-none place-items-center rounded-md border border-line bg-surface text-ink-2 hover:bg-surface-2 lg:hidden"><Menu size={18} aria-hidden /></button>
             <div className="min-w-0">
-              <div className="truncate text-xs text-muted">{isProject ? project.name : path === "/tokens" || path === "/wizard" ? "Quick tools" : path === "/projects" ? "Library" : path === "/glossary" ? "Help" : "Data"}</div>
+              <div className="truncate text-xs text-muted">{isProject && hasProject ? project.name : path === "/tokens" || path === "/wizard" ? "Quick tools" : path === "/projects" ? "Library" : path === "/glossary" ? "Help" : "Data"}</div>
               <h1 className="text-xl font-bold sm:text-[21px]">{TITLES[path] ?? "Overview"}</h1>
             </div>
           </div>
@@ -177,11 +205,11 @@ export function Shell({ children }: { children: ReactNode }) {
           </div>
         </header>
         <div>
-          {isProject && path !== "/summary" && <KpiBar />}
+          {isProject && hasProject && path !== "/summary" && <KpiBar />}
           {problem && <div role="alert" className="mx-3 mt-2 rounded-md bg-crit-soft px-3 py-2 text-sm text-crit sm:mx-5">{problem}</div>}
-          {(isProject || path === "/tokens") && <PageIntro path={path} />}
+          {((isProject && hasProject) || path === "/tokens") && <PageIntro path={path} />}
         </div>
-        <div className="min-h-0 px-3 pb-4 pt-3.5 sm:px-5">{children}</div>
+        <div className="min-h-0 px-3 pb-4 pt-3.5 sm:px-5">{isProject && !hasProject ? (hydrated ? <EmptyLibrary /> : null) : children}</div>
       </main>
     </div>
   );
@@ -239,19 +267,12 @@ function ExportButtons({ btn }: { btn: string }) {
   );
 }
 
-function ProjectFile() {
+function ProjectFile({ hasProject }: { hasProject: boolean }) {
   const project = useStudio((s) => s.project);
   const add = useStudio((s) => s.add);
   const create = useStudio((s) => s.create);
   const input = useRef<HTMLInputElement>(null);
-  const exportFile = () => {
-    const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `${project.name.replace(/[^\w-]+/g, "-").toLowerCase()}.aicost.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
+  const exportFile = () => downloadProject(project);
   const importFile = async (f: File) => {
     try {
       const raw = JSON.parse(await f.text());
@@ -273,10 +294,10 @@ function ProjectFile() {
   const btn = "flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-ink-2 hover:bg-surface-2";
   return (
     <div data-tour="export"><Group label="Project file & export">
-      <button type="button" className={btn} title="Save to file" onClick={exportFile}><Download size={14} aria-hidden className="flex-none" /><span className="nav-label">Save to file</span></button>
+      {hasProject && <button type="button" className={btn} title="Save to file" onClick={exportFile}><Download size={14} aria-hidden className="flex-none" /><span className="nav-label">Save to file</span></button>}
       <button type="button" className={btn} title="Open file as new project" onClick={() => input.current?.click()}><Upload size={14} aria-hidden className="flex-none" /><span className="nav-label">Open file as new project</span></button>
       <button type="button" className={btn} title="New copy of the sample" onClick={() => create("meeting", meetingIntelligence.name)}><RotateCcw size={14} aria-hidden className="flex-none" /><span className="nav-label">New copy of the sample</span></button>
-      <ExportButtons btn={btn} />
+      {hasProject && <ExportButtons btn={btn} />}
       <input ref={input} type="file" accept=".json" hidden onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])} />
     </Group></div>
   );
