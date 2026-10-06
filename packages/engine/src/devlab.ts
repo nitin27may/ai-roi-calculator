@@ -6,6 +6,11 @@ import { evaluationLines } from "./workloads.js";
 import { fmtInt, line, sum, type Line } from "./lines.js";
 import { resolveAssumptions } from "./assumptions.js";
 
+/** Meter id on lines whose amount was typed in; it is not a catalogue price. */
+export const MANUAL_METER = "manual-entry";
+/** Component id of the fixed monthly Dev Lab allowance line. */
+export const ALLOWANCE_ID = "devlab-allowance";
+
 /** Reasoning tokens for a Dev Lab call, billed as output, only for models the catalogue marks as reasoning models (E2). */
 const reasoningOut = (book: PriceBook, modelId: string, r: ReasoningEffort | number) => (book.isReasoningModel(modelId) ? reasoningTokens(r) : 0);
 
@@ -29,6 +34,16 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
     const h = harnesses.get(a.harnessId);
     if (!h) throw new Error(`Dev Lab activity ${a.id} references unknown harness ${a.harnessId}`);
     return h;
+  };
+
+  /** A typed amount for this activity and month replaces whatever the calculation put in `out` from index `from`. */
+  const applyOverride = (a: DevActivity, from: number) => {
+    const typed = a.monthlyOverrideCad?.[String(m)];
+    if (typed === undefined) return;
+    const calculated = sum(out.slice(from).map((l) => l.cost));
+    out.length = from;
+    out.push(line({ id: `${a.id}:manual`, componentId: a.id, label: `${a.label}: entered amount`, stream: "devlab", behaviour: "fixed", meter: MANUAL_METER, quantity: 1, unit: "month", unitPrice: typed,
+      formula: `Typed in by hand; the calculation gave CAD ${calculated.toFixed(2)}`, manual: true, calculated, ...(a.workstreamId ? { workstreamId: a.workstreamId } : {}) }));
   };
 
   for (const a of p.build.activities) {
@@ -149,6 +164,8 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
         break;
     }
     if (a.workstreamId) for (let k = start; k < out.length; k++) out[k]!.workstreamId = a.workstreamId;
+    // Evaluation is costed below, from the runs the other activities make, so its typed amount is applied there.
+    if (a.kind !== "evaluation") applyOverride(a, start);
   }
   // Evaluation scores runs in its own scope. A project-wide evaluation also scores the workstreams
   // that have no evaluation of their own; workstreams marked not evaluated are never scored.
@@ -160,10 +177,18 @@ export function devLabLines(p: Project, m: number, book: PriceBook, date: string
       ? (evaluated(a.workstreamId) ? [a.workstreamId] : [])
       : [...runsByScope.keys()].filter((k) => k === "" || (evaluated(k) && !ownEval.has(k)));
     const n = sum(scopes.map((k) => { const r = runsByScope.get(k)!; return r.bakeoff * a.scoredShare.bakeoff + r.iterations * a.scoredShare.iterations + r.regression * a.scoredShare.regression; }));
+    const from = out.length;
     if (n > 0) {
       const ls = evaluationLines(a.id, a.label, "devlab", n, a.judgeModelId, a.evaluators, a.queryTokens, a.contextTokens, a.responseTokens, a.safetyEvaluators, book, date);
       out.push(...(a.workstreamId ? ls.map((l) => ({ ...l, workstreamId: a.workstreamId })) : ls));
     }
+    applyOverride(a, from);
+  }
+  // A fixed team allowance replaces the whole calculation (typed cells included) for the month.
+  const allowance = p.build.devLabMonthlyCad ?? 0;
+  if (allowance > 0) {
+    return [line({ id: "devlab:allowance", componentId: ALLOWANCE_ID, label: "AI Dev Lab: fixed monthly allowance", stream: "devlab", behaviour: "fixed", meter: MANUAL_METER, quantity: 1, unit: "month", unitPrice: allowance,
+      formula: `Fixed team allowance of CAD ${allowance.toFixed(2)} a month replaces the calculated AI Dev Lab spend`, manual: true, calculated: sum(out.map((l) => l.cost)) })];
   }
   return out;
 }

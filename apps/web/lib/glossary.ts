@@ -62,6 +62,12 @@ export const GLOSSARY: GlossaryTerm[] = [
     technical: "A set of build-phase activities (bake-off, iterations, regression, evaluation, red team, playground, synthetic data, fine-tuning, tooling) priced from the same token prices as production and shown apart from labour in the build cost.",
   },
   {
+    id: "dev-lab-typed-cost",
+    term: "Typed Dev Lab cost",
+    plain: "A C$ amount you type into one cell of the Build cost grid to replace what the studio calculated for that activity and month. Edited cells are marked, and you can reset any of them to the calculation.",
+    technical: "Stored per activity as a month-to-CAD map. A typed amount replaces that activity's calculated lines for the month and is final: contingency and the AI development-cost cut are not applied on top. A fixed monthly Dev Lab allowance, if set, replaces the whole calculation and the typed cells for every build month.",
+  },
+  {
     id: "harness",
     term: "Harness",
     plain: "The setup around an agent that decides how many tokens one task uses: its instructions, its tools, how many steps it takes and how much each tool returns.",

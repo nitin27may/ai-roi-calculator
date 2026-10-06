@@ -29,51 +29,56 @@ export const HarnessSchema = z.object({
 
 /** Optional workstream the activity belongs to; absent means project-wide. `featureId` is for an activity with no workstream that still belongs to one feature (a workstream's own feature wins). */
 const Scope = { workstreamId: id.optional(), featureId: id.optional() };
+/**
+ * Optional hand-typed cost for single months: build month (as a string, "1" is the first) to CAD. A month present here replaces
+ * the calculated cost of this activity for that month; a month absent uses the calculation. See devlab.ts.
+ */
+const Overrides = { monthlyOverrideCad: z.record(z.string().regex(/^[1-9]\d*$/), n0).optional() };
 const Window = { fromMonth: z.number().int().positive().default(1), toMonth: z.number().int().positive().optional() };
 
 export const DevActivitySchema = z.discriminatedUnion("kind", [
   z.object({
-    kind: z.literal("bakeoff"), id, label: z.string(), ...Scope, harnessId: id,
+    kind: z.literal("bakeoff"), id, label: z.string(), ...Scope, ...Overrides, harnessId: id,
     candidates: z.array(z.object({ modelId: id, ...Window })),
     cases: z.number().int().positive(), repeats: z.number().int().positive(),
     /** Sweeps per month; the last value repeats for later months. */
     sweepsPerMonth: z.array(n0).min(1), cacheHit: share, batchShare: share,
   }),
   z.object({
-    kind: z.literal("iterations"), id, label: z.string(), ...Scope, harnessId: id, modelId: id,
+    kind: z.literal("iterations"), id, label: z.string(), ...Scope, ...Overrides, harnessId: id, modelId: id,
     runsPerDevPerDay: n0, subsetCases: z.number().int().positive(), workingDays: n0, cacheHit: share,
     /** Intensity per month (1 = full); last value repeats. */
     monthFactors: z.array(n0).default([1]),
   }),
   z.object({
-    kind: z.literal("regression"), id, label: z.string(), ...Scope, harnessId: id, modelIds: z.array(id).min(1),
+    kind: z.literal("regression"), id, label: z.string(), ...Scope, ...Overrides, harnessId: id, modelIds: z.array(id).min(1),
     runsPerMonth: n0, cases: z.number().int().positive(), cacheHit: share, batchShare: share, ...Window,
     /** Intensity per month (1 = full); last value repeats. */
     monthFactors: z.array(n0).default([1]),
   }),
   z.object({
-    kind: z.literal("evaluation"), id, label: z.string(), ...Scope, judgeModelId: id, evaluators: z.array(z.string()),
+    kind: z.literal("evaluation"), id, label: z.string(), ...Scope, ...Overrides, judgeModelId: id, evaluators: z.array(z.string()),
     queryTokens: n0, contextTokens: n0, responseTokens: n0,
     /** Share of the runs from other activities that are scored. An absent kind is not scored: nothing is assumed about activities the project does not have. */
     scoredShare: z.object({ bakeoff: share.default(0), iterations: share.default(0), regression: share.default(0) }).default({}),
     safetyEvaluators: z.number().int().nonnegative(),
   }),
   z.object({
-    kind: z.literal("redteam"), id, label: z.string(), ...Scope, targetModelId: id, scansPerMonth: n0,
+    kind: z.literal("redteam"), id, label: z.string(), ...Scope, ...Overrides, targetModelId: id, scansPerMonth: n0,
     categories: z.number().int().positive(), objectivesPerCategory: z.number().int().positive(), strategies: z.number().int().nonnegative(),
     multiTurnShare: share, ...Window,
     /** Intensity per month (1 = full); last value repeats. */
     monthFactors: z.array(n0).default([1]),
   }),
   z.object({
-    kind: z.literal("playground"), id, label: z.string(), ...Scope, modelId: id,
+    kind: z.literal("playground"), id, label: z.string(), ...Scope, ...Overrides, modelId: id,
     callsPerDevPerDay: n0, inputTokens: n0, outputTokens: n0, workingDays: n0, reasoning: ReasoningSetting,
     /** Intensity per month (1 = full); last value repeats. */
     monthFactors: z.array(n0).default([1]),
   }),
   z.object({
     /** Synthetic test or training data: generate, then keep what a judge model accepts. */
-    kind: z.literal("synthetic"), id, label: z.string(), ...Scope,
+    kind: z.literal("synthetic"), id, label: z.string(), ...Scope, ...Overrides,
     generatorModelId: id, acceptedPerMonth: n0, passRate: z.number().min(0.01).max(1),
     genInputTokens: n0, genOutputTokens: n0, reasoning: ReasoningSetting,
     /** Optional judge pass that filters the generated examples. */
@@ -83,7 +88,7 @@ export const DevActivitySchema = z.discriminatedUnion("kind", [
   }),
   z.object({
     /** Fine-tuning runs (training priced per 1M tokens, or per hour for reinforcement fine-tuning) and hosting of the tuned deployments. */
-    kind: z.literal("finetune"), id, label: z.string(), ...Scope,
+    kind: z.literal("finetune"), id, label: z.string(), ...Scope, ...Overrides,
     trainingPriceId: id, runsPerMonth: n0,
     examples: n0, tokensPerExample: n0, epochs: z.number().int().positive(),
     hoursPerRun: n0,
@@ -91,7 +96,7 @@ export const DevActivitySchema = z.discriminatedUnion("kind", [
     monthFactors: z.array(n0).default([1]),
   }),
   z.object({
-    kind: z.literal("tooling"), id, label: z.string(), ...Scope,
+    kind: z.literal("tooling"), id, label: z.string(), ...Scope, ...Overrides,
     copilotSeatsPerDev: n0, copilotPlan: z.enum(["copilot-business", "copilot-enterprise"]),
     codingModelId: id, codingTokensPerDevPerDay: z.object({ input: n0, cachedInput: n0, output: n0 }), workingDays: n0,
     /** Intensity per month (1 = full); last value repeats. */
@@ -438,6 +443,11 @@ const ProjectObject = z.object({
     workstreams: z.array(WorkstreamSchema).default([]),
     /** Optional AI Dev Lab budget per experimenting person per month (CAD). */
     devBudgetPerMonth: n0.optional(),
+    /**
+     * Optional fixed AI Dev Lab spend per month for the whole team (CAD). When above 0 it replaces the calculated Dev Lab cost
+     * (and any typed cells) in every build month. devBudgetPerMonth is only a per-person limit the plan is compared with.
+     */
+    devLabMonthlyCad: n0.optional(),
     contingencyPct: n0,
     /** What contingency is added to: build labour only (default), or also Dev Lab, dev environment and one-time build costs. */
     contingencyScope: z.enum(["labour", "all"]).default("labour"),

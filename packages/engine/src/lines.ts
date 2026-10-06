@@ -38,6 +38,10 @@ export interface Line {
   deployment?: "global" | "regional" | "dataZone";
   /** Snowflake lines only: the credits behind the CAD figure. Credits for a line = quantity x creditsPerUnit. */
   credit?: { type: "ai" | "platform"; creditsPerUnit: number; cadPerCredit: number; manual: boolean };
+  /** A hand-typed amount (Dev Lab cell or monthly allowance): final as typed, so contingency and the AI dev-cost cut are not applied on top. */
+  manual?: boolean;
+  /** For a typed cell: what the calculation gave for it, so the screen can show what was replaced. */
+  calculated?: number;
   /** Pay-as-you-go spillover of a workload in PTU mode; the rest of its load runs on the provisioned capacity. */
   onPtu?: boolean;
 }

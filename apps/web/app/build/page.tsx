@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { ACTIVITY_KINDS, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, labourExcluded, labourPartialText, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, addAllocationPeriod, allocationPeriods, overlappingPeriods, peakAllocation, removeAllocationPeriod, removeWorkstream, setAllocation, updateAllocationPeriod, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@studio/engine";
+import { ACTIVITY_KINDS, ALLOWANCE_ID, MANUAL_METER, allowanceActive, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, labourExcluded, labourPartialText, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, addAllocationPeriod, allocationPeriods, overlappingPeriods, peakAllocation, removeAllocationPeriod, removeWorkstream, setAllocation, updateAllocationPeriod, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@studio/engine";
 import { RateCardEditor } from "@/components/rate-card";
 import { HelpTip } from "@/components/help-tip";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
+import { CostGrid } from "@/components/cost-grid";
 import { Explain } from "@/components/explain";
 import { MonthLegend, MonthTh, TableNote, WhereFrom } from "@/components/months";
 import { MONTH_TABLE_NOTES } from "@/lib/months";
@@ -105,8 +106,10 @@ function AllActivities() {
   const { project, ledger } = useLedger();
   const [view, setView] = useState<"chart" | "grid" | "plan" | "ws" | "people" | "models">("chart");
   const B = project.timeline.buildMonths, months = ledger.months.slice(0, B), acts = project.build.activities;
-  const rows = months.map((m) => Object.fromEntries(acts.map((a) => [a.id, m.lines.filter((l) => l.componentId === a.id && l.stream === "devlab").reduce((s, l) => s + l.cost, 0)])));
-  const series = acts.map((a, i) => ({ key: a.id, label: a.label, color: COLORS[i % COLORS.length]! }));
+  const allowance = allowanceActive(project);
+  const parts = allowance ? [{ id: ALLOWANCE_ID, label: "Fixed monthly allowance" }] : acts;
+  const rows = months.map((m) => Object.fromEntries(parts.map((a) => [a.id, m.lines.filter((l) => l.componentId === a.id && l.stream === "devlab").reduce((s, l) => s + l.cost, 0)])));
+  const series = parts.map((a, i) => ({ key: a.id, label: a.label, color: COLORS[i % COLORS.length]! }));
   const runRate = ledger.totals.runRate + ledger.totals.maintRate;
   const top = [...series].sort((a, b) => rows.reduce((s, r) => s + r[b.key]!, 0) - rows.reduce((s, r) => s + r[a.key]!, 0))[0];
   return (
@@ -117,25 +120,14 @@ function AllActivities() {
       </div>
       <div className="rounded-r-md border-l-[3px] border-accent bg-accent-soft px-3 py-2 text-[12.5px]">
         <b>{cad(ledger.totals.devLab)} over {B} months</b>, the same as <b>{fmt(ledger.totals.devLab / Math.max(1, runRate), 1)} months</b> of production run cost including maintenance. The largest activity is <b>{top?.label}</b>.
+        {allowance && <> A fixed allowance of <b>{cad(project.build.devLabMonthlyCad!)}</b> a month replaces the calculated spend (change it in Settings).</>}
       </div>
       <MonthLegend />
       {(view === "chart" || view === "grid") && <Legend items={series.map((s) => ({ label: s.label, color: s.color }))} />}
       {view === "ws" ? <ByWorkstream /> : view === "people" ? <ByPerson /> : view === "models" ? <ByModel /> : view === "plan" ? <PlanGrid /> : view === "chart" ? (
         <StackedBars rows={rows} series={series} xLabel={(i) => `Month ${i + 1}`} className="relative min-h-[280px] flex-1" />
       ) : (
-        <div className="overflow-auto">
-          <TableNote>{MONTH_TABLE_NOTES.cost} Amounts are AI Dev Lab spend only; build labour is on Team &amp; rate card.</TableNote>
-          <table className="data">
-            <thead><tr><th>Activity</th>{months.map((m) => <MonthTh key={m.m} m={m.m} />)}<th className="n">Total</th></tr></thead>
-            <tbody>
-              {series.map((s) => {
-                const mx = Math.max(...rows.flatMap((r) => series.map((x) => r[x.key]!)), 1);
-                return <tr key={s.key}><td>{s.label}</td>{rows.map((r, i) => <td key={i} className="n" style={{ background: `color-mix(in srgb, var(--s1) ${Math.round((r[s.key]! / mx) * 38)}%, transparent)` }}>{cad(r[s.key]!)}</td>)}<td className="n">{cad(rows.reduce((t, r) => t + r[s.key]!, 0))}</td></tr>;
-              })}
-              <tr className="total"><td>Total</td>{months.map((m) => <td key={m.m} className="n">{cad(m.byStream.devlab)}</td>)}<td className="n">{cad(ledger.totals.devLab)}</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <CostGrid />
       )}
     </>
   );
@@ -155,6 +147,7 @@ function PlanGrid() {
         <b>What the numbers are.</b> {MONTH_TABLE_NOTES.intensity} Bake-off rows are sweeps instead: {MONTH_TABLE_NOTES.sweeps.replace("Sweeps by month: ", "").replace(" Type a number in any cell to change it.", "")}
         {" "}The small C$ figure under each number is that month&apos;s cost. Greyed months are outside the activity&apos;s window. Use &quot;Apply...&quot; to fill a row from a shape. Evaluation follows the runs it scores, so it has no numbers to set.
       </TableNote>
+      {allowanceActive(project) && <TableNote className="text-warn">A fixed monthly allowance is set in Settings, so the C$ figures below are not used in the totals while it applies.</TableNote>}
       <TableNote>{MONTH_TABLE_NOTES.headcount} Adding developers raises iterations, playground and tooling (and build labour); bake-off, regression, red teaming, synthetic data and fine-tuning stay the same.</TableNote>
       <table className="data">
         <thead><tr><th>Activity</th><th>Shape</th>{months.map((m) => <MonthTh key={m} m={m} />)}</tr></thead>
@@ -222,7 +215,7 @@ function ByPerson() {
       <TableNote className="mb-0">Spend per person by month, in C$ per person. It is the team&apos;s Dev Lab spend divided by the developers running experiments, so removing a developer raises everyone else&apos;s share only for activities that do not scale with people (bake-off, regression, red teaming).</TableNote>
       <div className="flex flex-wrap items-end gap-3">
         <Field label="AI Dev Lab budget per person per month" help="devBudget"><NumberInput value={budget ?? 0} suffix="CAD" onChange={(v) => edit((d) => { d.build.devBudgetPerMonth = v > 0 ? v : undefined; })} /></Field>
-        <p className="max-w-md text-xs text-muted">Monthly columns are AI Dev Lab spend per person. Workstream activities are charged to the people on that workstream by their share; project-wide ones to everyone running experiments. 0 = no budget.</p>
+        <p className="max-w-md text-xs text-muted">Monthly columns are AI Dev Lab spend per person. Workstream activities are charged to the people on that workstream by their share; project-wide ones to everyone running experiments. 0 = no budget. This is a limit the plan is checked against; it never changes the cost. A fixed monthly AI Dev Lab allowance (Settings) does change the cost, and this per-person limit is then checked against that allowance. The same two settings are under Settings, AI Dev Lab.</p>
       </div>
       <table className="data">
         <thead><tr><th>Person / line</th><th className="n">Labour</th><th className="n">AI Dev Lab</th>{Array.from({ length: B }, (_, i) => <MonthTh key={i} m={i + 1} />)}</tr></thead>
@@ -248,7 +241,7 @@ function ByModel() {
   const { project, ledger } = useLedger();
   const rows = devLabByMeter(ledger, project.timeline.buildMonths);
   const total = rows.reduce((s, r) => s + r.cost, 0) || 1;
-  const name = (m: string) => catalog.chatModels.find((c) => c.id === m)?.label ?? catalog.unitPrices.find((u) => u.id === m)?.label ?? m;
+  const name = (m: string) => m === MANUAL_METER ? "Typed in by hand (cells and allowance)" : catalog.chatModels.find((c) => c.id === m)?.label ?? catalog.unitPrices.find((u) => u.id === m)?.label ?? m;
   return (
     <div className="flex flex-col gap-1.5">
       <TableNote>Total AI Dev Lab spend on each model or service over all {project.timeline.buildMonths} build months, in C$ and as a share of the Dev Lab total. Each bar adds up every activity that uses that model.</TableNote>

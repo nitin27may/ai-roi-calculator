@@ -24,6 +24,6 @@ export function monthLegendText(startDate: string, buildMonths: number, horizonM
 export const MONTH_TABLE_NOTES = {
   intensity: "Intensity by month: 100% (1.0) means the activity runs at the volumes set on it that month, 0.5 means half, 0 means off. You can type a new number in any cell; the figure underneath is the cost it produces.",
   sweeps: "Sweeps by month: how many full passes of the model bake-off run that month. Each sweep tests every candidate model that is active that month. Type a number in any cell to change it.",
-  cost: "Cost by month in C$, calculated from the activities on this page. Nothing here is typed in: change the activity (volumes, models, intensity) and these figures follow.",
+  cost: "Cost by month in C$. Each figure is calculated from the activity (volumes, models, intensity), and you can also type a C$ amount in any cell to replace the calculation for that month. A cell you typed carries a dot and the word edited, and hovering it shows the calculated figure. Leave a cell blank, or press Reset, to go back to the calculation. A typed amount is final: contingency and the AI development-cost cut are not added on top. Summary, Report and Excel all use these amounts.",
   headcount: "Rows marked 'scales with people' change when you add or remove developers; the others are fixed amounts that do not.",
 } as const;
