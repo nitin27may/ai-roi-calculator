@@ -178,7 +178,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <div>
           {isProject && path !== "/summary" && <KpiBar />}
           {problem && <div role="alert" className="mx-3 mt-2 rounded-md bg-crit-soft px-3 py-2 text-sm text-crit sm:mx-5">{problem}</div>}
-          {isProject && <PageIntro path={path} />}
+          {(isProject || path === "/tokens") && <PageIntro path={path} />}
         </div>
         <div className="min-h-0 px-3 pb-4 pt-3.5 sm:px-5">{children}</div>
       </main>

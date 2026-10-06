@@ -149,6 +149,9 @@ export const HELP = {
   maxTurns: e("The most steps the agent may take before it is stopped. It caps the worst case.", "Steps", "25 stops a runaway task.", SAMPLE),
   maxTokensPerCall: e("The most tokens a single call may use. It caps the worst case.", "Tokens", "120,000.", SAMPLE, { term: "token" }),
   compactAtTokens: e("When the conversation reaches this size the agent summarises it to keep later calls small. 0 turns this off.", "Tokens, 0 for off", "60,000 compacts a long task halfway.", SAMPLE),
+  tokenBudget: e("The most tokens, input and output together, one task may spend. The agent stops after the call that crosses it. 0 means no budget.", "Tokens, 0 for none", "150,000 stops a task before it costs more than a few dollars.", SAMPLE, { term: "token-budget" }),
+  codeTokensPerStep: e("The code the agent writes on each step. It is output, so it costs more than input, and it stays in the history that later steps re-send.", "Tokens", "A short pandas script is about 300 tokens.", HEUR, { term: "code-interpreter" }),
+  execOutputTokensPerStep: e("What running that code prints back on each step: results, warnings and error tracebacks. It stays in the history.", "Tokens", "A traceback is about 400 tokens; averaged over several steps that is 100 a step.", HEUR, { term: "tool-result" }),
   retryRate: share("The share of steps that fail and have to run again.", "5% means one step in twenty is repeated.", HEUR),
 
   // Settings page
@@ -169,6 +172,11 @@ export const HELP = {
   // Token calculator
   tokPages: e("How many pages of documents to price.", "Pages", "100 pages.", "A starting value for the calculator."),
   tokSummaryModel: model("summarising the pages"),
+  tokFileType: e("What kind of file you are sending. It sets how many words a page holds, and so how many text tokens. An image or scan has no text layer, so only the picture is counted.", "Word, PDF, Excel, PowerPoint or image", "A PDF holds about 700 words a page, a slide about 40.", HEUR, { term: "token" }),
+  tokImagesPerPage: e("How many pictures sit on each page or slide: photos, charts, screenshots. Each one is charged as image tokens on top of the page text.", "Pictures per page", "2 if every page has a chart and a photo.", "A starting value for the calculator. Count your own files.", { term: "image-tokens" }),
+  tokImageSize: e("The pixel size of those pictures. Bigger pictures cost more tokens, up to a cap that depends on the model.", "Width x height in pixels", "A phone photo is about 1,024 x 768.", "Resolution presets from the vendors' image guides.", { term: "image-tokens" }),
+  tokImageDetail: e("High detail charges by picture size. Low detail, offered by some models, charges a small fixed amount and reads the picture coarsely. Models without the option ignore it.", "High or low", "Low for decorative pictures, high for charts you need read.", "OpenAI vision guide. Claude has no detail setting.", { term: "image-tokens" }),
+  tokAgentSource: e("Whether to run the numbers on an agent already defined in the open project, or to describe the agent here.", "Project agent or described here", "Describe it here for a quick question with no project.", "A choice for the calculator."),
   tokAudioHours: e("How many hours of audio to price.", "Hours", "10 hours.", "A starting value for the calculator."),
 
   // Build page

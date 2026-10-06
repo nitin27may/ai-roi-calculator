@@ -7,6 +7,7 @@ export const INTROS: Record<string, string> = {
   "/roi": "What is it worth, and when does it pay back? Add the time it saves and the costs it avoids, then set how much of that you expect to actually realise. Payback, NPV and ROI in the bar above follow from this page.",
   "/capacity": "How many provisioned throughput units (PTU) would this need? Enter the peak load and the page sizes a PTU deployment, so you can compare reserved capacity with pay-as-you-go pricing.",
   "/report": "What can be handed to someone else? This page lays the numbers out as a printable report. Print it or save it as PDF; the sidebar also exports Excel and CSV.",
+  "/tokens": "How many tokens does this file or this agent use, and what does that cost? Describe a document by its pages and pictures, or an agent by its steps, and see the tokens and cost per model. The stepper under each result shows every sum, so you can check it by hand.",
   "/settings": "What do the defaults assume? Language, deployment type, processing tier, timeline and the Snowflake options live here. Changing one updates every page that did not set its own value.",
 };
 

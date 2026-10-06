@@ -340,4 +340,7 @@ export const HARNESS_SPECS: Spec[] = [
   { key: "maxTokensPerCall", label: "Max tokens per call (cap)", type: "number", min: 1 },
   { key: "compactAtTokens", label: "Compact context at (0 = off)", type: "number" },
   { key: "retryRate", label: "Retry rate", type: "percent" },
+  { key: "codeTokensPerStep", label: "Code written per step", type: "number" },
+  { key: "execOutputTokensPerStep", label: "Code output per step", type: "number" },
+  { key: "tokenBudget", label: "Token budget per task (0 = none)", type: "number" },
 ];
