@@ -170,7 +170,12 @@ export const PtuSettingSchema = z.object({
 export type PtuSetting = z.infer<typeof PtuSettingSchema>;
 
 /** Capacity options for chat, llm and agent workloads. All absent = pay-as-you-go with no quota check. */
-const Capacity = { ptu: PtuSettingSchema.optional(), tpmQuota: n0.optional() };
+const Capacity = {
+  ptu: PtuSettingSchema.optional(),
+  /** Stay pay-as-you-go even when the project's pricing model is PTU. Ignored when `ptu` is set. */
+  payg: z.boolean().optional(),
+  tpmQuota: n0.optional(),
+};
 
 /**
  * One line of a hosting stack. `fixed`: a catalogue quantity a month. `perRequests`: catalogue units per 1,000 requests
@@ -391,6 +396,11 @@ const ProjectObject = z.object({
     azureDeployment: z.enum(["global", "regional", "dataZone"]),
     /** Default processing tier for every Azure chat workload; each workload can choose its own. Absent = Standard. */
     processingTier: ProcessingTier.optional(),
+    /**
+     * How Azure chat, LLM and agent workloads are billed by default: pay-as-you-go, or provisioned throughput (PTU) with
+     * pay-as-you-go spillover. Absent means pay-as-you-go. A workload's own Capacity settings override it.
+     */
+    pricingModel: z.enum(["payg", "ptu"]).optional(),
     /** Default text language for token counts (heuristics.tokens.language); a workload can override it. */
     language: z.string().default("en"),
     /** Which percentile the AI Dev Lab agent runs are priced at. Absent means P50. */

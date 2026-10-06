@@ -37,6 +37,8 @@ export interface PricingSettings {
   azureDeployment: AzureDeployment;
   /** Project-wide default processing tier; a workload can override it (see `withPricing`). Absent means `standard`. */
   processingTier?: ProcessingTier;
+  /** Project-wide billing model for Azure chat workloads. Absent means pay-as-you-go. */
+  pricingModel?: "payg" | "ptu";
   snowflake: {
     /** Global routing (ANY_REGION / *_GLOBAL) or regional (AZURE_US / AZURE_EU / DISABLED). */
     routing: "global" | "regional";

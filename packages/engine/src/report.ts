@@ -3,7 +3,7 @@ import type { PriceNote } from "./pricing.js";
 import { steadyState, type Ledger, type Month } from "./ledger.js";
 import type { Project } from "./project.js";
 import type { RoiResult } from "./roi.js";
-import { basisCost } from "./roi.js";
+import { basisCost, basisLabel } from "./roi.js";
 import { sum, type Stream } from "./lines.js";
 import { beforeAfter, workloadVolume } from "./benefits.js";
 import { sensitivity, type SensitivityRow } from "./sensitivity.js";
@@ -35,6 +35,8 @@ export interface Verdict { text: string; npvPositive: boolean; paysBack: boolean
 
 export interface Summary {
   basis: Project["roi"]["basis"];
+  /** Display name of `basis`, for labelling every headline figure. */
+  basisLabel: string;
   totalCost: number;
   totalBenefit: number;
   build: number;
@@ -176,6 +178,7 @@ export function summarize(p: Project, ledger: Ledger, roi: RoiResult, cat: Catal
   const verdict = verdictFor(roi);
   return {
     basis: roi.basis,
+    basisLabel: basisLabel(roi.basis),
     totalCost: roi.totalCost,
     totalBenefit: roi.totalBenefit,
     build: t.build,
@@ -237,7 +240,6 @@ export function monthRows(ledger: Ledger, roi: RoiResult): Row[] {
 export function summaryRows(p: Project, ledger: Ledger, roi: RoiResult, cat: Catalog): Row[] {
   const t = ledger.totals;
   const s = summarize(p, ledger, roi, cat);
-  const basis = { run: "Running cost only", runMaint: "Running + maintenance", full: "Full lifecycle" }[p.roi.basis];
   return [
     { Item: "Project", Value: p.name },
     { Item: "Currency", Value: "CAD" },
@@ -250,13 +252,13 @@ export function summaryRows(p: Project, ledger: Ledger, roi: RoiResult, cat: Cat
     { Item: "Year-1 run cost", Value: r2(s.year1Run) },
     { Item: "Steady-state annual run (run + platform + maintenance)", Value: r2(s.steadyStateAnnualRun) },
     { Item: "Benefit per year (full adoption)", Value: r2(s.benefitPerYear) },
-    { Item: "ROI measured against", Value: basis },
-    { Item: "Total cost over plan", Value: r2(s.totalCost) },
+    { Item: "ROI measured against", Value: s.basisLabel },
+    { Item: `Total cost over plan (${s.basisLabel})`, Value: r2(s.totalCost) },
     { Item: "Total benefit over plan", Value: r2(s.totalBenefit) },
-    { Item: "Net", Value: r2(s.totalBenefit - s.totalCost) },
-    { Item: "ROI", Value: `${Math.round(s.roi * 100)}%` },
-    { Item: `NPV at ${s.discountRatePct}%`, Value: r2(s.npv) },
-    { Item: "Payback month", Value: s.paybackMonth ?? "Not within plan" },
+    { Item: `Net (${s.basisLabel})`, Value: r2(s.totalBenefit - s.totalCost) },
+    { Item: `ROI (${s.basisLabel})`, Value: `${Math.round(s.roi * 100)}%` },
+    { Item: `NPV at ${s.discountRatePct}% (${s.basisLabel})`, Value: r2(s.npv) },
+    { Item: `Payback month (${s.basisLabel})`, Value: s.paybackMonth ?? "Not within plan" },
     { Item: "Payback month, discounted", Value: s.discountedPaybackMonth ?? "Not within plan" },
     { Item: "IRR (annual)", Value: s.irrPct === null ? "Not defined" : `${s.irrPct.toFixed(1)}%` },
     ...(s.hurdleRatePct !== null ? [{ Item: `Hurdle rate ${s.hurdleRatePct}%`, Value: s.clearsHurdle === null ? "n/a" : s.clearsHurdle ? "Cleared" : "Not cleared" }] : []),

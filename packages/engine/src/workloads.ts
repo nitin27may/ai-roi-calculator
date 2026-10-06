@@ -125,7 +125,9 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
    * over-bill spillover slightly. Batch lines never run on provisioned capacity and are left alone.
    */
   const capacity = (cw: Extract<Workload, { kind: "chat" | "llm" | "agent" }>, modelId: string, lines: Line[]): Line[] => {
-    if (!cw.ptu && cw.tpmQuota === undefined) return lines;
+    // The project's pricing model supplies a default PTU setting (1-month term, sized for peak) unless the workload opts out.
+    const ptuSetting = cw.ptu ?? (book.settings.pricingModel === "ptu" && !cw.payg ? { term: "monthly" as const } : undefined);
+    if (!ptuSetting && cw.tpmQuota === undefined) return lines;
     const cat = book.catalog;
     const deployment = book.settings.azureDeployment;
     const peakX = A.peakToAverage;
@@ -138,25 +140,25 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
     const modelLabel = book.chatModel(modelId).label;
     let out = lines;
     let spill = 1;
-    if (cw.ptu) {
+    if (ptuSetting) {
       const t = cat.ptu.models.find((m) => m.modelId === modelId);
       if (!t) {
         book.alert(`ptu-model:${id}`, { kind: "capacity", message: `${cw.label}: ${modelLabel} is not offered on provisioned throughput, so it stays pay-as-you-go` });
       } else {
         const need = sizePtu(cat, modelId, { input: avg.input * peakX, cachedInput: avg.cachedInput * peakX, output: avg.output * peakX }, deployment)!;
-        const requested = cw.ptu.ptus ?? need.ptus;
+        const requested = ptuSetting.ptus ?? need.ptus;
         const ptus = Math.max(need.min, requested);
         if (requested < need.min) book.alert(`ptu-min:${id}`, { kind: "capacity", message: `${cw.label}: ${requested} PTUs is below the ${need.min}-PTU minimum for ${modelLabel} on ${DEPLOYMENT_LABEL[deployment]}; priced at ${need.min}` });
         const capacityTpm = ptus * need.inputTpmPerPtu;
         const avgNorm = avg.input + avg.output * need.outputRatio;
         const defaultSpill = avgNorm > 0 ? Math.max(0, 1 - capacityTpm / avgNorm) : 0;
-        spill = cw.ptu.spilloverShare ?? defaultSpill;
-        if (cw.ptu.ptus !== undefined && capacityTpm < need.normTpm) {
+        spill = ptuSetting.spilloverShare ?? defaultSpill;
+        if (ptuSetting.ptus !== undefined && capacityTpm < need.normTpm) {
           book.alert(`ptu-peak:${id}`, { kind: "capacity", message: `${cw.label}: ${ptus} PTUs cover ${Math.round((capacityTpm / need.normTpm) * 100)}% of the peak load (${peakX}× average); peaks above that get throttled or spill to pay-as-you-go` });
         }
         const rate = cat.ptu.rates[deployment];
-        const perPtu = cw.ptu.term === "hourly" ? rate.hourly * HOURS_PER_MONTH : cw.ptu.term === "yearly" ? rate.yearlyReservationPerMonth : rate.monthlyReservation;
-        const termLabel = cw.ptu.term === "hourly" ? "hourly" : cw.ptu.term === "yearly" ? "1-year reservation" : "1-month reservation";
+        const perPtu = ptuSetting.term === "hourly" ? rate.hourly * HOURS_PER_MONTH : ptuSetting.term === "yearly" ? rate.yearlyReservationPerMonth : rate.monthlyReservation;
+        const termLabel = ptuSetting.term === "hourly" ? "hourly" : ptuSetting.term === "yearly" ? "1-year reservation" : "1-month reservation";
         const base = line({ id: `${id}:ptu`, componentId: id, label: `${cw.label}: provisioned throughput (${ptus} PTU, ${termLabel})`, stream: "run", behaviour: "fixed", meter: `ptu:${modelId}`, quantity: ptus, unit: "PTU-month", unitPrice: perPtu,
           formula: `${ptus} PTUs × CAD ${perPtu.toFixed(2)} per PTU-month (${termLabel}, ${DEPLOYMENT_LABEL[deployment]}) on ${modelLabel}; ${Math.round(Math.min(1, capacityTpm / Math.max(avgNorm, 1)) * 100)}% of average load fits` });
         const rest: Line[] = [];
@@ -170,7 +172,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       }
     }
     if (cw.tpmQuota !== undefined) {
-      const share = cw.ptu ? spill : 1;
+      const share = ptuSetting ? spill : 1;
       const peakTpm = (avg.input + avg.cachedInput + avg.output) * share * peakX;
       if (peakTpm > cw.tpmQuota) {
         book.alert(`quota:${id}`, { kind: "quota", message: `${cw.label}: peak about ${fmtInt(peakTpm)} tokens a minute on ${modelLabel} (${peakX}× average) is over your ${fmtInt(cw.tpmQuota)} TPM quota. Ask for more quota or split the load across deployments` });
