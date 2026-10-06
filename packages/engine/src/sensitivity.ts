@@ -109,6 +109,11 @@ function swapModel(q: Project, from: string, to: string) {
 }
 
 const scaleRates = (p: Project, ids: Set<string>, f: number) => { for (const r of p.rateCard) if (ids.has(r.id)) r.hourlyRate *= f; };
+/** Delivery rates move with the rate card, and so do manual rates on team lines. */
+const scaleDeliveryRates = (p: Project, ids: Set<string>, f: number) => {
+  scaleRates(p, ids, f);
+  for (const t of [...p.build.team, ...(p.maintenance.mode === "team" ? p.maintenance.team : [])]) if (t.rateOverride !== undefined) t.rateOverride *= f;
+};
 const benefitRoles = (p: Project) => new Set([...p.benefits.capabilities.map((c) => c.roleId), ...p.benefits.avoidedCosts.flatMap((a) => (a.roleId ? [a.roleId] : []))]);
 const deliveryRoles = (p: Project) => new Set([...p.build.team.map((t) => t.roleId), ...(p.maintenance.mode === "team" ? p.maintenance.team.map((t) => t.roleId) : [])]);
 const scaleCapabilityVolume = (p: Project, f: number) => {
@@ -169,7 +174,7 @@ export function sensitivity(p: Project, cat: Catalog): { base: number; combined:
     { id: "realisation", label: "Realisation", applies: () => hasBenchmarked, low: [`${lib.presets.conservative.realisationPct}%`, (q) => { q.roi.realisationPct = lib.presets.conservative.realisationPct; }], high: [`${lib.presets.optimistic.realisationPct}%`, (q) => { q.roi.realisationPct = lib.presets.optimistic.realisationPct; }] },
     { id: "users", label: "Users / volume of the work", low: ["−30%", (q) => scaleCapabilityVolume(q, 0.7)], high: ["+30%", (q) => scaleCapabilityVolume(q, 1.3)] },
     { id: "valueOfTime", label: "Value of an hour saved (benefit roles' rates)", low: ["−20%", (q) => scaleRates(q, benefitRoles(p), 0.8)], high: ["+20%", (q) => scaleRates(q, benefitRoles(p), 1.2)] },
-    { id: "deliveryRates", label: "Delivery team rates", applies: () => p.build.includeLabour, low: ["+20%", (q) => scaleRates(q, deliveryRoles(p), 1.2)], high: ["−20%", (q) => scaleRates(q, deliveryRoles(p), 0.8)] },
+    { id: "deliveryRates", label: "Delivery team rates", applies: () => p.build.includeLabour && p.build.team.some((t) => t.costed !== false), low: ["+20%", (q) => scaleDeliveryRates(q, deliveryRoles(p), 1.2)], high: ["−20%", (q) => scaleDeliveryRates(q, deliveryRoles(p), 0.8)] },
     { id: "runVolume", label: "AI run volume (same benefit)", low: ["×1.5", (q) => scaleRunOnly(q, 1.5, cat)], high: ["×0.7", (q) => scaleRunOnly(q, 0.7, cat)] },
     { id: "buildLength", label: "Build length (team stays on)", low: [`${Math.min(24, B + 2)} months`, (q) => setBuildLength(q, Math.min(24, B + 2))], high: [`${Math.max(1, B - 2)} months`, (q) => setBuildLength(q, Math.max(1, B - 2))] },
     { id: "ramp", label: "Adoption ramp", low: [`${p.timeline.adoptionRampMonths * 2 || 6} months`, (q) => { q.timeline.adoptionRampMonths = Math.min(24, p.timeline.adoptionRampMonths * 2 || 6); }], high: [`${Math.floor(p.timeline.adoptionRampMonths / 2)} months`, (q) => { q.timeline.adoptionRampMonths = Math.floor(p.timeline.adoptionRampMonths / 2); }] },

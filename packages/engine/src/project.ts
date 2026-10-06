@@ -364,6 +364,10 @@ export const TeamLineSchema = z.object({
   phase: z.string().optional(),
   fromMonth: z.number().int().positive().optional(),
   toMonth: z.number().int().positive().optional(),
+  /** When false, this build line is not costed (the person already exists) but still drives Dev Lab volumes. Absent means costed. */
+  costed: z.boolean().optional(),
+  /** Hourly rate (CAD) for this line only; absent means the role's rate-card rate. */
+  rateOverride: z.number().min(0).optional(),
 });
 
 /** A what-if: edits applied to a copy of the project. Arrays in a path are addressed by element id. */

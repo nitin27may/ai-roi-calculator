@@ -7,7 +7,7 @@ import {
   ChevronDown, Printer, Redo2, RotateCcw, Settings, Sparkles, TrendingUp, Undo2, Upload, X, ChartColumn, type LucideIcon,
 } from "lucide-react";
 import { exportCsv, exportXlsx } from "@/lib/export";
-import { DEPLOYMENT_LABEL, ProjectSchema, meetingIntelligence, migrateProject } from "@studio/engine";
+import { DEPLOYMENT_LABEL, ProjectSchema, labourExcluded, labourPartialText, meetingIntelligence, migrateProject } from "@studio/engine";
 import { useStudio } from "@/lib/store";
 import { describeIssue } from "@/lib/validation";
 import { HelpMenu } from "@/components/help-menu";
@@ -253,7 +253,7 @@ function KpiBar() {
   const t = ledger.totals, B = project.timeline.buildMonths, H = project.timeline.horizonMonths;
   const basis = { run: "running cost only", runMaint: "running + maintenance", full: "full lifecycle" }[project.roi.basis];
   const k = [
-    [`Build · months 1–${B}`, cad(t.build), project.build.includeLabour ? `${cad(t.devLab)} of it AI Dev Lab` : "Build labour excluded"],
+    [`Build · months 1–${B}`, cad(t.build), labourExcluded(project) ? "Build labour excluded" : labourPartialText(project) || `${cad(t.devLab)} of it AI Dev Lab`],
     ["Production run-rate", `${cad(t.runRate)}/mo`, `+ ${cad(t.maintRate)} maintenance`],
     ["Benefit at full adoption", `${cad(t.benefitRate)}/mo`, `${project.benefits.capabilities.length + project.benefits.avoidedCosts.length} sources`],
     ["Payback", roi.paybackMonth ? `Month ${roi.paybackMonth}` : `> ${H} months`, basis],

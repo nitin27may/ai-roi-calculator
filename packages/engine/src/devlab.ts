@@ -198,15 +198,16 @@ export function developers(p: Project, m?: number): number {
 export function teamLines(p: Project, team: Project["build"]["team"], stream: "labour" | "maint", componentId: string, factor = 1, m?: number): Line[] {
   const rates = new Map(p.rateCard.map((r) => [r.id, r]));
   const wsLabel = new Map(p.build.workstreams.map((w) => [w.id, w.label]));
-  const active = team.map((t, i) => [t, i] as const).filter(([t]) => m === undefined || activeIn(m, t));
+  const active = team.map((t, i) => [t, i] as const).filter(([t]) => (m === undefined || activeIn(m, t)) && (stream !== "labour" || t.costed !== false));
   return active.flatMap(([t, i]) => {
     const r = rates.get(t.roleId);
     if (!r) throw new Error(`Unknown role ${t.roleId}`);
     const who = t.name ? `${t.name} (${r.label})` : r.label;
     const label = t.phase ? `${t.phase}: ${who}` : who;
     const hours = t.people * t.hoursPerMonth;
-    const base = { componentId, stream, behaviour: "fixed" as const, meter: `role:${t.roleId}`, unit: "hour", unitPrice: r.hourlyRate * factor, seat: stream === "labour" ? i : undefined };
-    const formula = (share: number) => `${t.people} × ${t.hoursPerMonth} h${share !== 1 ? ` × ${Math.round(share * 100)}%` : ""} × CAD ${r.hourlyRate}/h${factor !== 1 ? ` × ${factor.toFixed(2)}` : ""}`;
+    const rate = t.rateOverride ?? r.hourlyRate;
+    const base = { componentId, stream, behaviour: "fixed" as const, meter: `role:${t.roleId}`, unit: "hour", unitPrice: rate * factor, seat: stream === "labour" ? i : undefined };
+    const formula = (share: number) => `${t.people} × ${t.hoursPerMonth} h${share !== 1 ? ` × ${Math.round(share * 100)}%` : ""} × CAD ${rate}/h${t.rateOverride !== undefined ? " (manual rate)" : ""}${factor !== 1 ? ` × ${factor.toFixed(2)}` : ""}`;
     const id = `${componentId}:${t.phase ?? ""}:${t.roleId}:${i}`;
     const allocs = stream === "labour" && m !== undefined ? (t.allocations ?? []).filter((a) => activeIn(m, a)) : [];
     if (!allocs.length) return [line({ ...base, id, label, quantity: hours, formula: formula(1) })];
