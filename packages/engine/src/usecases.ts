@@ -5,6 +5,7 @@ import {
 } from "./project.js";
 import { DEFAULT_HARNESS, newActivity, ACTIVITY_KINDS } from "./templates.js";
 import { blankProject } from "./samples/templates.js";
+import { IMAGE_SIZES } from "./images.js";
 
 /**
  * Use-case recipes, as data. A recipe asks a few plain questions and turns the answers into the
@@ -160,6 +161,12 @@ const round = (x: number, d = 0) => { const f = 10 ** d; return Math.round(x * f
 const num = (v: Values, k: string): number => Number(v[k] ?? 0);
 const bool = (v: Values, k: string): boolean => v[k] === true;
 const str = (v: Values, k: string): string => String(v[k] ?? "");
+
+/** The picture settings of a recipe answer, as the project's image input (`perCall` is pictures per page). */
+const imageInputFrom = (v: Values) => {
+  const size = IMAGE_SIZES.find((x) => x.id === str(v, "imageSize")) ?? IMAGE_SIZES[1];
+  return { perCall: num(v, "imagesPerPage"), widthPx: size.widthPx, heightPx: size.heightPx, detail: (str(v, "imageDetail") === "low" ? "low" : "high") as "low" | "high" };
+};
 
 const q = {
   num: (id: string, label: string, unit: string, def: number, min: number, max: number | undefined, help: [string, string, string], step?: number): Question =>
@@ -501,6 +508,9 @@ const extraction: Recipe = {
     q.num("pagesPerDoc", "Pages per document", "pages", 6, 1, 5000, ["The average length of a document.", "6 pages for an invoice with attachments.", YOU]),
     q.choice("pageType", "What a page looks like", [["plain", "Plain text"], ["dense", "Dense (tables, small print)"], ["slide", "Slides"], ["spreadsheet", "Spreadsheet"]], "dense", ["Denser pages hold more words and so more tokens.", "Dense for forms and contracts.", HEURISTICS]),
     q.choice("route", "How it is read", [["service", "A document-reading service"], ["model", "A language model reads the pages"]], "service", ["A reading service is priced per page. A model is priced per token and handles odd layouts.", "Service for standard forms, model for free-form letters.", "Catalogue prices for both are in Prices & sources."]),
+    q.num("imagesPerPage", "Pictures per page (when a model reads the pages)", "images", 0, 0, 100, ["Photos, charts or scanned figures embedded in each page. A model that reads the pages is billed for each picture as well as the text.", "2 if every page carries a chart and a photo.", "Image-token formula of the model you pick (published by the vendor); 0 leaves pictures out."]),
+    q.choice("imageSize", "Size of those pictures", IMAGE_SIZES.map((x) => [x.id, x.label] as [string, string]), "photo", ["Bigger pictures cost more tokens, up to a cap that depends on the model.", "A phone photo is about 1,024 x 768.", "Resolution presets from the vendors' image guides."]),
+    q.choice("imageDetail", "Image detail level", [["high", "High (full detail)"], ["low", "Low (a fixed small cost)"]], "high", ["Some models offer a cheap low-detail mode that reads the picture coarsely. Others ignore it.", "Low for decorative pictures, high for charts you need read.", "OpenAI vision guide; Claude has no detail setting."]),
     q.num("outTokens", "Fields written out per document", "tokens", 300, 10, 20000, ["How much structured output each document produces (field names and values).", "300 tokens is about 25 fields.", DEFAULTS]),
     q.toggle("tidy", "A model also tidies and normalises the fields", false, ["Adds a model pass that fixes formats and fills gaps after reading.", "Yes if dates and amounts arrive in mixed formats.", YOU]),
   ],
@@ -516,11 +526,15 @@ const extraction: Recipe = {
     const w = o.add({
       kind: "documents", id: p(a, "docs"), label: "Document extraction", pagesPerMonth: pages(num(v, "monthly")), pageType: str(v, "pageType") as "plain", route,
       ...(bool(v, "tidy") ? { enrich: { modelId: model!, pagesPerDoc: num(v, "pagesPerDoc"), outputTokensPerDoc: num(v, "outTokens"), reasoning: reasoningFor(a) } } : {}),
+      ...(v.route === "model" && num(v, "imagesPerPage") > 0 ? { images: imageInputFrom(v) } : {}),
       ...(usesModel && batchOk(a) ? { tier: "batch" as ProcessingTier } : {}), ...once(a, pages(num(v, "once"))), ...dep(a),
     } as Workload);
     o.field(w, ["pagesPerMonth"], "pages a month", "pages", "New documents a month x pages each.");
     o.field(w, ["oneTime", "volume"], "pages in the backlog", "pages", "Backlog documents x pages each.");
     o.field(w, ["pageType"], "page type", "type", YOU);
+    if (w.kind === "documents" && w.images) {
+      o.note("images", "Pictures per page", w.images.perCall, "images", `${YOU} Billed with the model's own image formula (${w.images.widthPx} x ${w.images.heightPx} px, ${w.images.detail} detail), on top of the page itself.`, { collection: "workloads", id: w.id, field: ["images", "perCall"] });
+    }
     if (v.route === "model") o.field(w, ["route", "outputTokens"], "tokens out per page", "tokens", "Fields written out per document divided by pages per document.");
     if (model) devActivities(o, extraction, model);
     return o.finish({ monthlyItems: num(v, "monthly"), oneTimeItems: num(v, "once"), unit: "documents", mainWorkloadId: w.id });
@@ -666,6 +680,123 @@ const multi: Recipe = {
     o.note("harness", "Agent harnesses", "planner (4 steps), worker (8 steps)", "", "Default harness sizes. Edit them on the Run page.");
     devActivities(o, multi, planner, [hp.id, hw.id], p(a, "ws"));
     return o.finish({ monthlyItems: num(v, "tasks"), oneTimeItems: num(v, "backlog"), unit: "tasks", mainWorkloadId: wp.id });
+  },
+};
+
+// ---------------------------------------------------------------- spreadsheet analysis agent
+
+/** Fixed sizes behind the spreadsheet recipe. Each is shown to the user as an editable assumption with its reasoning. */
+export const SHEET = {
+  /** o200k tokens per cell when a table is printed as text: a short value is about 2 tokens plus a separator. */
+  cellTokens: 3,
+  /** Tab name, row and column counts printed with each tab. */
+  tabOverhead: 20,
+  /** Rows and columns of the result table the code prints at the end. */
+  resultRows: 20,
+  resultCols: 6,
+  /** An error traceback the interpreter prints when the code fails. */
+  tracebackTokens: 400,
+  /** Fix-and-rerun rounds a failing task needs on average. */
+  fixRounds: 2,
+  /** Code written per call: list the tabs, inspect them, the analysis itself, one fix. */
+  listCode: 80, inspectCode: 150, analysisCode: 600, fixCode: 400,
+  systemPrompt: 1500, userInput: 300, narrationPerStep: 80, finalOutput: 500,
+} as const;
+
+export interface SheetDerivation {
+  tabsUsed: number;
+  inspectRows: number;
+  /** Tokens the tool returns on each kind of step. */
+  schemaListing: number;
+  inspect: number;
+  resultTable: number;
+  fixSteps: number;
+  /** LLM calls for one typical task, and how many of them return tool output. */
+  steps: number;
+  toolSteps: number;
+  /** Averages over the tool-returning steps, which is what the harness takes. */
+  toolResultTokens: number;
+  execOutputTokens: number;
+  codeTokens: number;
+  /** Raw totals behind those averages. */
+  toolResultTotal: number;
+  execOutputTotal: number;
+  codeTotal: number;
+}
+
+/** From the workbook's size to the tokens each loop of the agent handles. Pure, so the stepper and the tests can reproduce it. */
+export function deriveSpreadsheet(v: Values): SheetDerivation {
+  const tabs = Math.max(1, num(v, "tabs")), rows = Math.max(1, num(v, "rows")), cols = Math.max(1, num(v, "cols"));
+  const tabsUsed = Math.min(tabs, Math.max(1, num(v, "tabsUsed")));
+  const inspectRows = v.readMode === "whole" ? rows : Math.min(rows, num(v, "sampleRows"));
+  const { cellTokens: c, tabOverhead } = SHEET;
+  const schemaListing = tabs * (cols * c + tabOverhead);
+  const inspect = tabsUsed * ((inspectRows + 1) * cols * c + tabOverhead);
+  const resultTable = (SHEET.resultRows + 1) * SHEET.resultCols * c;
+  const fixSteps = Math.max(0, Math.ceil((num(v, "failPct") / 100) * SHEET.fixRounds - 1e-9));
+  // Calls: list the tabs, inspect them, write and run the analysis, any fixes, then the written answer.
+  const steps = 4 + fixSteps;
+  const toolSteps = steps - 1;
+  const toolResultTotal = schemaListing + inspect + resultTable;
+  const execOutputTotal = fixSteps * SHEET.tracebackTokens;
+  const codeTotal = SHEET.listCode + SHEET.inspectCode + SHEET.analysisCode + fixSteps * SHEET.fixCode;
+  return {
+    tabsUsed, inspectRows, schemaListing, inspect, resultTable, fixSteps, steps, toolSteps,
+    toolResultTokens: Math.round(toolResultTotal / toolSteps), execOutputTokens: Math.round(execOutputTotal / toolSteps), codeTokens: Math.round(codeTotal / toolSteps),
+    toolResultTotal, execOutputTotal, codeTotal,
+  };
+}
+
+const spreadsheet: Recipe = {
+  id: "spreadsheet", label: "Spreadsheet analysis agent (writes and runs code)", needsHarness: true, batchable: false,
+  description: "An agent opens a workbook, looks at its tabs, writes Python in a code interpreter, runs it, fixes errors and writes up the answer. Each loop re-sends everything so far. Adds an agent harness, with a step cap and token budget, and a code-interpreter session fee per task.",
+  questions: [
+    ...agentQs(500).map((x) => x.id === "tasks" ? { ...x, label: "Questions or reports per month" } : x),
+    q.num("tabs", "Tabs in the workbook", "tabs", 10, 1, 200, ["How many sheets the workbook has. The agent lists all of them on its first step.", "10 tabs: one per region plus a summary.", YOU]),
+    q.num("rows", "Rows per tab", "rows", 2000, 1, 5_000_000, ["Average data rows on a tab, not counting the header.", "2,000 rows of monthly transactions.", YOU]),
+    q.num("cols", "Columns per tab", "columns", 12, 1, 500, ["Average number of columns on a tab.", "12 columns: date, account, region, amount and so on.", YOU]),
+    q.num("tabsUsed", "Tabs one task actually reads", "tabs", 3, 1, 200, ["Most questions touch only a few tabs. The agent inspects those, not all of them.", "3 tabs for a regional variance report.", "Recipe default; replace it with what your questions need."]),
+    q.choice("readMode", "How the agent reads a tab", [["sample", "A sample of rows, then code does the work"], ["whole", "Prints the whole tab into the conversation"]], "sample", ["A sample shows the layout and lets the code process every row without sending the rows to the model. Printing a whole tab puts every row in the history, and every later loop re-sends it.", "Sample for anything over a few hundred rows.", "Standard code-interpreter practice: inspect with head(), compute in code."]),
+    q.num("sampleRows", "Rows shown in a sample", "rows", 5, 1, 1000, ["How many rows the agent prints per tab when it samples.", "5 rows, the default of a head() call.", "Recipe default (pandas head() shows 5)."]),
+    q.num("failPct", "Share of tasks whose code fails first time", "percent", 30, 0, 100, ["Generated code often hits a missing column or a type error. Each failure costs a fix-and-rerun loop.", "30 means 3 tasks in 10 need a fix.", "Recipe default; measure it from traces once you have a prototype."]),
+    q.num("maxSteps", "Maximum steps per task", "steps", 12, 1, 100, ["The most model calls the agent may make before it is stopped.", "12 steps allows about 7 more than a clean run.", "Recipe default; this is the loop cap in your agent harness."]),
+    q.num("budget", "Token budget per task (0 for none)", "tokens", 150_000, 0, 10_000_000, ["Total tokens (input and output) one task may spend. The loop stops after the call that crosses it.", "150,000 tokens, a few dollars at most on a mid-size model.", "Recipe default; set it from the most you are willing to pay for one task."]),
+  ],
+  modelRoles: [{ id: "main", label: "Agent model", need: "balanced", reason: "writing correct analysis code and reading its output needs a capable model, but not the largest" }],
+  devKinds: AGENT_DEV("Code-writing agents can be steered, so this is worth doing."),
+  benefitHint: "Minutes an analyst spends on one question or report today.",
+  benefit: () => ({ type: "timeSaved", basis: "perItem", baselineMinutes: 45, savedPct: 60 }),
+  build(a) {
+    const v = a.values, o = new Out(a), model = need(a, "spreadsheet", "main");
+    const d = deriveSpreadsheet(v);
+    const budget = Math.round(num(v, "budget"));
+    const h = agentHarness(a, "sheet", `${a.label} agent`, {
+      systemPromptTokens: SHEET.systemPrompt, tools: 1, userInputTokens: SHEET.userInput, steps: d.steps, toolCallsPerStep: 1,
+      toolResultTokens: d.toolResultTokens, outputPerStep: SHEET.narrationPerStep, finalOutputTokens: SHEET.finalOutput,
+      maxTurns: Math.max(1, Math.round(num(v, "maxSteps"))), codeTokensPerStep: d.codeTokens, execOutputTokensPerStep: d.execOutputTokens,
+      ...(budget > 0 ? { tokenBudget: budget } : {}),
+    });
+    o.harnesses.push(h);
+    o.workstreams.push({ id: p(a, "ws"), label: a.label, harnessIds: [h.id], featureId: a.featureId, evaluated: true });
+    const w = o.add({
+      kind: "agent", id: p(a, "agent"), label: "Spreadsheet tasks", harnessId: h.id, modelId: model, tasksPerMonth: num(v, "tasks"), cacheHit: 0.8,
+      toolFees: [{ unitPriceId: "code-interpreter", label: "Code interpreter session", perTask: 1 }], ...once(a, num(v, "backlog")), ...dep(a),
+    } as Workload);
+    o.field(w, ["tasksPerMonth"], "questions or reports a month", "tasks", YOU);
+    o.field(w, ["oneTime", "volume"], "tasks in the backlog", "tasks", YOU);
+    o.field(w, ["cacheHit"], "share of input served from cache", "share", "Each loop re-sends the same history, so most input is cached (sample default).");
+    const hf = (id: string, label: string, value: number, unit: string, source: string, field: string) =>
+      o.note(`harness.${id}`, `Agent harness: ${label}`, value, unit, source, { collection: "harnesses", id: h.id, field: [field] });
+    hf("steps", "steps per task", d.steps, "steps", `4 calls (list the tabs, inspect, write and run the analysis, write the answer) plus ${d.fixSteps} fix-and-rerun call(s): ${num(v, "failPct")}% of tasks fail first time x ${SHEET.fixRounds} rounds on average, rounded up.`, "steps");
+    hf("toolResult", "tool-result tokens per step", d.toolResultTokens, "tokens", `Average over ${d.toolSteps} tool steps of the schema listing (${d.schemaListing}), the inspection of ${d.tabsUsed} tab(s) (${d.inspect}) and the result table (${d.resultTable}), at ${SHEET.cellTokens} tokens a cell.`, "toolResultTokens");
+    hf("code", "code tokens written per step", d.codeTokens, "tokens", `Average over ${d.toolSteps} steps of ${SHEET.listCode} (list), ${SHEET.inspectCode} (inspect), ${SHEET.analysisCode} (analysis) and ${SHEET.fixCode} per fix. Code is output, billed at the output rate, and stays in the history.`, "codeTokensPerStep");
+    hf("exec", "execution-output tokens per step", d.execOutputTokens, "tokens", `${d.fixSteps} traceback(s) of about ${SHEET.tracebackTokens} tokens, averaged over ${d.toolSteps} tool steps.`, "execOutputTokensPerStep");
+    hf("maxTurns", "maximum steps", h.maxTurns, "steps", YOU, "maxTurns");
+    if (budget > 0) hf("budget", "token budget per task", budget, "tokens", YOU, "tokenBudget");
+    o.note("sheet.session", "Code interpreter session per task", 1, "session", "One session per task, priced from the catalogue (Agent Service Code Interpreter, per session).");
+    if (v.readMode === "whole") o.note("sheet.whole", "Whole-tab read", d.inspect, "tokens", `Printing every row of ${d.tabsUsed} tab(s) puts about ${d.inspect.toLocaleString("en-CA")} tokens in the history, which is more than most context windows. Sampling is almost always the better design.`);
+    devActivities(o, spreadsheet, model, [h.id], p(a, "ws"));
+    return o.finish({ monthlyItems: num(v, "tasks"), oneTimeItems: num(v, "backlog"), unit: "tasks", mainWorkloadId: w.id });
   },
 };
 
@@ -888,7 +1019,7 @@ const nonAi: Recipe = {
   },
 };
 
-export const RECIPES: Recipe[] = [book, extraction, rag, search, chat, agent, multi, batchJobs, email, voice, snowflake, content, translation, nonAi];
+export const RECIPES: Recipe[] = [book, extraction, rag, search, chat, agent, multi, spreadsheet, batchJobs, email, voice, snowflake, content, translation, nonAi];
 export const recipeById = (id: string): Recipe | undefined => RECIPES.find((r) => r.id === id);
 void batchQ;
 

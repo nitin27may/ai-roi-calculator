@@ -20,9 +20,9 @@ function picked(recipeId: string, deployment: AzureDeployment = "global", qualit
 const base = { name: "Test", deployment: "global" as const, quality: "balanced" as const, batchAllowed: true, build: { people: 2, months: 4 }, devKinds: [] as never[] };
 
 describe("recipes", () => {
-  it("has the 14 recipes with unique ids and sourced questions", () => {
-    expect(RECIPES).toHaveLength(14);
-    expect(new Set(RECIPES.map((r) => r.id)).size).toBe(14);
+  it("has the 15 recipes with unique ids and sourced questions", () => {
+    expect(RECIPES).toHaveLength(15);
+    expect(new Set(RECIPES.map((r) => r.id)).size).toBe(15);
     for (const r of RECIPES) for (const x of r.questions) expect(x.help.source.length).toBeGreaterThan(3);
   });
 

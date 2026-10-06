@@ -62,6 +62,42 @@ export const GLOSSARY: GlossaryTerm[] = [
     technical: "A reusable agent profile: system prompt, tool definitions, steps, tool calls per step, result size, reasoning effort and caps. The same harness feeds Dev Lab experiments and production agent workloads, so one edit flows through both.",
   },
   {
+    id: "image-tokens",
+    term: "Image tokens",
+    plain: "A picture sent to a model is charged in tokens, like text. Bigger pictures cost more, up to a cap, and each model family counts them its own way. A page with a chart can cost more in picture tokens than in words.",
+    technical: "OpenAI GPT-4o class models use 512 px tiles (85 tokens plus 170 per tile, or a flat 85 at low detail). GPT-5.4 class models use 32 px patches times a model multiplier, capped at 1,536 patches. Claude uses width x height / 750, capped near 1,600 tokens. A model with no published formula in the catalogue is flagged unverified and adds no picture tokens.",
+  },
+  {
+    id: "tool-result",
+    term: "Tool result",
+    plain: "What a tool sends back to the agent: a file's contents, search hits, or what a program printed. The model reads it as input, so a large result costs money now and again on every later step.",
+    technical: "Tokens returned by tool calls and appended to the conversation. The harness takes one average size per step. For a code interpreter that is the printed output of the code, about 3 tokens a spreadsheet cell.",
+  },
+  {
+    id: "agent-loop",
+    term: "Agent loop",
+    plain: "One round of an agent's work: the model is called, it asks for a tool, the tool runs, and the result goes back. A task is several loops. A step cap and a token budget stop a loop that will not end.",
+    technical: "One model call per loop. The studio simulates each call, so cost follows the real prompt size at every step, with caching, compaction and the context window applied. The run reports why it stopped: finished, step cap, token budget or context window.",
+  },
+  {
+    id: "history-growth",
+    term: "History growth",
+    plain: "The model remembers nothing between calls, so every loop re-sends the instructions, the question and everything said and returned so far. The prompt gets bigger each loop, and total input grows much faster than the number of loops.",
+    technical: "Input on loop k is the fixed prefix plus the history from loops 1 to k-1, so total input grows roughly with the square of the step count. Caching makes the repeated part cheaper, and compaction replaces old history with a summary.",
+  },
+  {
+    id: "code-interpreter",
+    term: "Code interpreter",
+    plain: "A sandbox where the agent writes a small program, runs it and reads what it prints. It lets the agent analyse a big spreadsheet without putting every row in the conversation. The code the agent writes is billed as output, and each session has a fee.",
+    technical: "Azure AI Foundry Agent Service Code Interpreter is billed per session, from the catalogue. Generated code and its printed output both stay in the history that later loops re-send, so the harness has separate inputs for code tokens and execution-output tokens per step.",
+  },
+  {
+    id: "token-budget",
+    term: "Token budget",
+    plain: "A limit on the total tokens one task may use. When the agent crosses it the task stops, so a task that goes wrong cannot run up a large bill. It is checked between calls, so the call that crosses the line still finishes.",
+    technical: "Input (cached included) plus output tokens, summed over every call and every compaction call. The harness checks it before each call after the first. The result carries a stop reason of token budget when it is what ended the run.",
+  },
+  {
     id: "p50-p90",
     term: "P50 and P90",
     plain: "P50 is the typical case: half of tasks use less and half use more. P90 is a bad day: nine in ten tasks use less. Budget on P50 and look at P90 to see how much headroom you need.",

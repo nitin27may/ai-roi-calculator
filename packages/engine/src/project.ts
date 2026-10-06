@@ -19,6 +19,12 @@ export const HarnessSchema = z.object({
   reasoning: z.union([z.enum(["none", "low", "medium", "high"]), n0]), keepReasoning: z.boolean(),
   maxTurns: z.number().int().positive(), maxTokensPerCall: z.number().int().positive(),
   compactAtTokens: n0, compactSummaryTokens: n0, retryRate: share,
+  /** Total tokens (input plus output) one task may spend before the loop stops. Absent or 0 means no budget. */
+  tokenBudget: n0.optional(),
+  /** Code the model writes on each step, billed as output and kept in the history. Absent means 0 (a plain tool caller). */
+  codeTokensPerStep: n0.optional(),
+  /** What running that code prints back (stdout, tracebacks), added to the history on each step. Absent means 0. */
+  execOutputTokensPerStep: n0.optional(),
 });
 
 /** Optional workstream the activity belongs to; absent means project-wide. `featureId` is for an activity with no workstream that still belongs to one feature (a workstream's own feature wins). */
@@ -190,6 +196,8 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
       /** `outputTokens`: per-page output (extracted fields/summary); 0 kept the old (undercounted) behaviour. */
       z.object({ type: z.literal("direct"), modelId: id, outputTokens: n0.default(50) }),
     ]),
+    /** Pictures embedded in the pages (`perCall` is images per page). Billed as image input on the direct route, on top of the page itself. */
+    images: ImageInputSchema.optional(),
     enrich: z.object({ modelId: id, pagesPerDoc: z.number().positive(), outputTokensPerDoc: n0, reasoning: ReasoningSetting }).optional(),
     /** Snowflake virtual warehouse that runs AI_PARSE_DOCUMENT (platform credits). */
     warehouse: Warehouse.optional(),
