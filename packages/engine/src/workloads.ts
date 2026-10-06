@@ -96,7 +96,7 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
   const A = c.assumptions ?? ASSUMPTION_DEFAULTS;
 
   /** Image tokens as extra uncached input on `modelId`, already divided by its tokenizer multiplier (image tokens are billed as counted, not re-tokenized). */
-  const imageInput = (modelId: string, img: Extract<Workload, { kind: "chat" | "llm" }>["images"]): { tokens: number; note: string } => {
+  const imageInput = (modelId: string, img: Extract<Workload, { kind: "chat" | "llm" | "documents" }>["images"]): { tokens: number; note: string } => {
     if (!img || img.perCall === 0) return { tokens: 0, note: "" };
     const m = book.chatModel(modelId);
     const r = imageCost(m, img);
@@ -197,7 +197,8 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
         for (const a of w.route.addOnIds) out.push(unit(`addon-${a}`, `${w.label}: ${book.unit(a).label}`, a, w.pagesPerMonth / 1000));
       } else {
         const perPage = H.pages.directPdfTokensPerPage[book.chatModel(w.route.modelId).tokenizer] / book.tokenizerMultiplier(w.route.modelId);
-        out.push(...llm("direct", `${w.label}: direct to model`, w.route.modelId, w.pagesPerMonth, perPage, 0, w.route.outputTokens));
+        const img = imageInput(w.route.modelId, w.images);
+        out.push(...llm("direct", `${w.label}: direct to model`, w.route.modelId, w.pagesPerMonth, perPage + img.tokens, 0, w.route.outputTokens, "usage", 0, 0, img.note ? `${img.note} per page, on top of the page itself` : ""));
       }
       if (w.warehouse) out.push(warehouseLine(id, w.label, w.warehouse, book, "usage"));
       if (w.enrich) {
