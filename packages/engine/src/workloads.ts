@@ -47,6 +47,31 @@ export function cashLine(lineId: string, componentId: string, it: CashItem, stre
   });
 }
 
+/**
+ * Marks a Snowflake line with the credits behind its CAD figure and writes the conversion into the formula:
+ * "12.4 AI credits × C$2.85/credit = C$35.34 (catalogue rate)". Total credits = quantity × creditsPerUnit.
+ */
+export function withCredits(l: Line, book: PriceBook, type: "ai" | "platform", creditsPerUnit: number): Line {
+  const r = book.creditRate(type);
+  const total = l.quantity * creditsPerUnit;
+  const name = type === "ai" ? "AI" : "platform";
+  const formula = `${l.formula} · ${total.toLocaleString("en-CA", { maximumFractionDigits: 2 })} ${name} credits × C$${r.cad.toFixed(2)}/credit = C$${(total * r.cad).toLocaleString("en-CA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${r.manual ? "manual rate" : "catalogue rate"})`;
+  return { ...l, formula, credit: { type, creditsPerUnit, cadPerCredit: r.cad, manual: r.manual } };
+}
+
+/** Credits and CAD per credit type across Snowflake lines (lines without credit data are ignored). */
+export function creditSummary(lines: readonly Line[]): { type: "ai" | "platform"; credits: number; cad: number; cadPerCredit: number; manual: boolean }[] {
+  const out = new Map<"ai" | "platform", { type: "ai" | "platform"; credits: number; cad: number; cadPerCredit: number; manual: boolean }>();
+  for (const l of lines) {
+    if (!l.credit) continue;
+    const e = out.get(l.credit.type) ?? { type: l.credit.type, credits: 0, cad: 0, cadPerCredit: l.credit.cadPerCredit, manual: l.credit.manual };
+    e.credits += l.quantity * l.credit.creditsPerUnit;
+    e.cad += l.cost;
+    out.set(l.credit.type, e);
+  }
+  return [...out.values()];
+}
+
 /** Monthly lines for one production workload at full adoption. */
 export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
   const { date } = c;
@@ -69,8 +94,10 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       const idSuffix = tier === "batch" ? ":batch" : "";
       const batchNote = tier === "batch" ? ` · ${Math.round(batchShare * 100)}% via Batch` : "";
       const writeNote = writeTok ? ` + ${fmtInt(tokens.cacheWrite ?? 0)} cache write` : "";
-      return line({ id: `${id}:${part}${idSuffix}`, componentId: id, label, stream: "run", behaviour, meter: modelId, tier, quantity: qty, unit: "call", unitPrice: per, tokens, deployment: book.settings.azureDeployment,
+      const l = line({ id: `${id}:${part}${idSuffix}`, componentId: id, label, stream: "run", behaviour, meter: modelId, tier, quantity: qty, unit: "call", unitPrice: per, tokens, deployment: book.settings.azureDeployment,
         formula: `${fmtInt(qty)} calls × (${fmtInt(tokens.input)} in + ${fmtInt(tokens.cachedInput)} cached${writeNote} + ${fmtInt(tokens.output)} out tokens) on ${modelLabel}${batchNote}${note}` });
+      const rate = book.aiCreditCad();
+      return book.chatModel(modelId).platform === "snowflake" && rate > 0 ? withCredits(l, book, "ai", per / rate) : l;
     };
     if (!batchShare) return [tierLine("standard", calls)];
     const out: Line[] = [];
@@ -83,7 +110,8 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
   const unit = (part: string, label: string, unitPriceId: string, qty: number, behaviour: "usage" | "fixed" = "usage", stream: Line["stream"] = "run"): Line => {
     const u = book.unit(unitPriceId);
     const per = book.unitPrice(unitPriceId);
-    return line({ id: `${id}:${part}`, componentId: id, label, stream, behaviour, meter: unitPriceId, quantity: qty, unit: u.unit, unitPrice: per, formula: `${qty.toLocaleString("en-CA", { maximumFractionDigits: 2 })} × ${u.unit} at CAD ${per.toFixed(4)}` });
+    const l = line({ id: `${id}:${part}`, componentId: id, label, stream, behaviour, meter: unitPriceId, quantity: qty, unit: u.unit, unitPrice: per, formula: `${qty.toLocaleString("en-CA", { maximumFractionDigits: 2 })} × ${u.unit} at CAD ${per.toFixed(4)}` });
+    return u.price === undefined && u.credits !== undefined ? withCredits(l, book, u.creditType === "platform" ? "platform" : "ai", u.credits) : l;
   };
 
   /**
@@ -94,6 +122,11 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
     book.catalog.unitPrices.some((u) => u.id === SHIELDS) ? [unit("shields", `${w.label}: Prompt Shields`, SHIELDS, (requests * Math.ceil(chars / 1000)) / 1000)] : [];
 
   const A = c.assumptions ?? ASSUMPTION_DEFAULTS;
+  /** Credits on an embedding line when the model is a Snowflake one (catalogue credits per 1M tokens). */
+  const embedLine = (l: Line, modelId: string): Line => {
+    const e = book.catalog.embeddingModels.find((x) => x.id === modelId);
+    return e?.platform === "snowflake" ? withCredits(l, book, "ai", e.credits ?? 0) : l;
+  };
 
   /** Image tokens as extra uncached input on `modelId`, already divided by its tokenizer multiplier (image tokens are billed as counted, not re-tokenized). */
   const imageInput = (modelId: string, img: Extract<Workload, { kind: "chat" | "llm" | "documents" }>["images"]): { tokens: number; note: string } => {
@@ -184,7 +217,9 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
   switch (w.kind) {
     case "transcription": {
       const rate = book.speechPerHour(w.engineId, date, w.diarize);
-      const out: Line[] = [line({ id: `${id}:stt`, componentId: id, label: w.label, stream: "run", behaviour: "usage", meter: w.engineId, quantity: w.hoursPerMonth, unit: "audio hour", unitPrice: rate, formula: `${fmtInt(w.hoursPerMonth)} h × CAD ${rate.toFixed(3)}/h` })];
+      const eng = book.catalog.speechEngines.find((x) => x.id === w.engineId);
+      const sttLine = line({ id: `${id}:stt`, componentId: id, label: w.label, stream: "run", behaviour: "usage", meter: w.engineId, quantity: w.hoursPerMonth, unit: "audio hour", unitPrice: rate, formula: `${fmtInt(w.hoursPerMonth)} h × CAD ${rate.toFixed(3)}/h` });
+      const out: Line[] = [eng?.creditsPerHour !== undefined && eng.perAudioHour === undefined && !eng.tokens && book.aiCreditCad() > 0 && !(w.diarize && eng.diarization === "add-on") ? withCredits(sttLine, book, "ai", rate / book.aiCreditCad()) : sttLine];
       if (w.summary) {
         const transcript = H.speech.wordsPerMinute * 60 * H.tokens.perWord * (1 + (w.diarize ? H.speech.diarizationOverhead.names : 0));
         const outTok = w.summary.outputTokens + reasoningOut(book, w.summary.modelId, w.summary.reasoning);
@@ -339,8 +374,8 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       const u = book.unit(w.functionId);
       const tokens = w.rowsPerMonth * (w.tokensPerRow + w.hiddenPromptTokens + w.outputTokensPerRow);
       return [
-        line({ id: `${id}:fn`, componentId: id, label: `${w.label}: ${u.label}`, stream: "run", behaviour: "usage", meter: w.functionId, quantity: tokens / unitDivisor(u.unit), unit: u.unit, unitPrice: book.unitPrice(w.functionId),
-          formula: `${fmtInt(w.rowsPerMonth)} rows × (${fmtInt(w.tokensPerRow)} input + ${fmtInt(w.hiddenPromptTokens)} hidden prompt + ${fmtInt(w.outputTokensPerRow)} output) tokens × ${u.credits} AI credits per ${u.unit}` }),
+        withCredits(line({ id: `${id}:fn`, componentId: id, label: `${w.label}: ${u.label}`, stream: "run", behaviour: "usage", meter: w.functionId, quantity: tokens / unitDivisor(u.unit), unit: u.unit, unitPrice: book.unitPrice(w.functionId),
+          formula: `${fmtInt(w.rowsPerMonth)} rows × (${fmtInt(w.tokensPerRow)} input + ${fmtInt(w.hiddenPromptTokens)} hidden prompt + ${fmtInt(w.outputTokensPerRow)} output) tokens × ${u.credits} credits per ${u.unit}` }), book, u.creditType === "platform" ? "platform" : "ai", u.credits ?? 0),
         warehouseLine(id, w.label, w.warehouse, book, "usage"),
       ];
     }
@@ -348,12 +383,13 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
       const dims = book.embeddingDims(w.embeddingModelId);
       const gb = (w.rows * (w.vectorColumns * dims * 4 + w.avgRowBytes)) / 1e9;
       const serving = book.unitPrice("sf-search-serving");
+      const servingUnit = book.unit("sf-search-serving");
       const embedTokens = w.rows * w.changedShareMonthly * w.tokensPerRow;
       return [
-        line({ id: `${id}:serving`, componentId: id, label: `${w.label}: serving`, stream: "platform", behaviour: "fixed", meter: "sf-search-serving", quantity: gb, unit: "GB-month", unitPrice: serving,
-          formula: `${fmtInt(w.rows)} rows × (${w.vectorColumns} × ${dims} dims × 4 B + ${fmtInt(w.avgRowBytes)} B) = ${gb.toFixed(2)} GB × 6.3 AI credits` }),
-        line({ id: `${id}:embed`, componentId: id, label: `${w.label}: embedding changed rows`, stream: "run", behaviour: "usage", meter: w.embeddingModelId, quantity: embedTokens / 1e6, unit: "1M tokens", unitPrice: book.embeddingPer1M(w.embeddingModelId),
-          formula: `${Math.round(w.changedShareMonthly * 100)}% of ${fmtInt(w.rows)} rows × ${fmtInt(w.tokensPerRow)} tokens re-embedded per month` }),
+        withCredits(line({ id: `${id}:serving`, componentId: id, label: `${w.label}: serving`, stream: "platform", behaviour: "fixed", meter: "sf-search-serving", quantity: gb, unit: "GB-month", unitPrice: serving,
+          formula: `${fmtInt(w.rows)} rows × (${w.vectorColumns} × ${dims} dims × 4 B + ${fmtInt(w.avgRowBytes)} B) = ${gb.toFixed(2)} GB × ${servingUnit.credits ?? 0} credits per GB-month` }), book, servingUnit.creditType === "platform" ? "platform" : "ai", servingUnit.credits ?? 0),
+        embedLine(line({ id: `${id}:embed`, componentId: id, label: `${w.label}: embedding changed rows`, stream: "run", behaviour: "usage", meter: w.embeddingModelId, quantity: embedTokens / 1e6, unit: "1M tokens", unitPrice: book.embeddingPer1M(w.embeddingModelId),
+          formula: `${Math.round(w.changedShareMonthly * 100)}% of ${fmtInt(w.rows)} rows × ${fmtInt(w.tokensPerRow)} tokens re-embedded per month` }), w.embeddingModelId),
         warehouseLine(id, `${w.label}: refresh`, w.warehouse, book, "fixed"),
       ];
     }
@@ -413,8 +449,8 @@ export function cascadeCall(w: Extract<Workload, { kind: "voiceAgent" }>, book: 
 export function warehouseLine(id: string, label: string, wh: { size: "xs" | "s" | "m" | "l" | "xl"; hoursPerMonth: number }, book: PriceBook, behaviour: "usage" | "fixed"): Line {
   const cph = book.catalog.snowflake.warehouseCreditsPerHour[wh.size] ?? 4;
   const credit = book.platformCreditCad();
-  return line({ id: `${id}:warehouse`, componentId: id, label: `${label}: ${wh.size.toUpperCase()} warehouse`, stream: "run", behaviour, meter: `sf-warehouse-${wh.size}`, quantity: wh.hoursPerMonth, unit: "warehouse hour", unitPrice: cph * credit,
-    formula: `${wh.hoursPerMonth} h × ${cph} credits/h × CAD ${credit.toFixed(2)} per platform credit` });
+  return withCredits(line({ id: `${id}:warehouse`, componentId: id, label: `${label}: ${wh.size.toUpperCase()} warehouse`, stream: "run", behaviour, meter: `sf-warehouse-${wh.size}`, quantity: wh.hoursPerMonth, unit: "warehouse hour", unitPrice: cph * credit,
+    formula: `${wh.hoursPerMonth} h × ${cph} credits/h` }), book, "platform", cph);
 }
 
 /** Divisor that turns a raw count into catalogue units ("1K transactions" → 1000). */

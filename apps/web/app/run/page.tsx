@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, availableIn, resolveAssumptions, type AzureDeployment, cascadeCall, agentAddedFor, featureBreakdown, harnessUsage, newFeature, newHarness, newWorkload, removeFeature, removeWorkload, simulateHarness, sizeSearch, steadyState, voiceCall, workloadRange, type Workload } from "@studio/engine";
+import { creditSummary, DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, availableIn, resolveAssumptions, type AzureDeployment, cascadeCall, agentAddedFor, featureBreakdown, harnessUsage, newFeature, newHarness, newWorkload, removeFeature, removeWorkload, simulateHarness, sizeSearch, steadyState, voiceCall, workloadRange, type Workload } from "@studio/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Pill, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
 import { Plus } from "lucide-react";
 import { RangeBar } from "@/components/charts";
@@ -11,6 +11,7 @@ import { catalog, modelOptions, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad, fmt } from "@/lib/format";
 import { CostItems, FeatureSelect, WorkloadTiming } from "@/components/feature-fields";
+import { SnowflakeCredits } from "@/components/snowflake-credits";
 import { CapacityPanel, HostingPanel, ImagesPanel, ToolFeesPanel } from "@/components/p10-panels";
 
 const GROUP: Record<Workload["kind"], string> = {
@@ -32,6 +33,7 @@ export default function Run() {
   });
   const steady = steadyState(ledger);
   const costOf = (id: string) => steady.lines.filter((l) => l.componentId === id && !l.once).reduce((s, l) => s + l.cost, 0);
+  const creditsOf = (id: string) => creditSummary(steady.lines.filter((l) => l.componentId === id && !l.once)).reduce((t, x) => t + x.credits, 0);
   const groupsOf = (ws: Workload[]) => ORDER.map((g) => [g, ws.filter((w) => GROUP[w.kind] === g)] as const).filter(([, x]) => x.length);
   const hasFeatures = project.features.length > 0;
   const sections = hasFeatures
@@ -41,7 +43,7 @@ export default function Run() {
   const rowOf = (w: Workload, g: string) => {
     const usage = steady.lines.some((l) => l.componentId === w.id && l.behaviour === "usage");
     const timed = w.startMonth !== undefined || w.endMonth !== undefined || w.rampMonths !== undefined || w.oneTime !== undefined;
-    return <ListRow key={w.id} selected={sel === w.id} onClick={() => setSel(w.id)} title={w.label} sub={`${hasFeatures ? `${g} · ` : ""}${summary(w)}`} aside={<>{timed && <Pill>timed</Pill>} <Pill>{usage ? "usage" : "fixed"}</Pill></>} value={cad(costOf(w.id))} />;
+    return <ListRow key={w.id} selected={sel === w.id} onClick={() => setSel(w.id)} title={w.label} sub={`${hasFeatures ? `${g} · ` : ""}${summary(w)}${creditsOf(w.id) > 0 ? ` · ${fmt(creditsOf(w.id))} credits` : ""}`} aside={<>{timed && <Pill>timed</Pill>} <Pill>{usage ? "usage" : "fixed"}</Pill></>} value={cad(costOf(w.id))} />;
   };
 
   return (
@@ -238,6 +240,7 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
         onRename={(v) => edit((d) => { const x = d.workloads.find((y) => y.id === w.id); if (x) x.label = v; })}
         onRemove={() => { edit((d) => removeWorkload(d, w.id)); onRemoved(); }} />
       <div className="font-display text-[26px] font-bold">{cad(total)}<span className="ml-1.5 font-sans text-xs font-normal text-muted">per month at full adoption{(w.kind === "agent" || w.kind === "chat" || w.kind === "llm") ? ` · ${percentile.toUpperCase()}` : ""}</span></div>
+      {creditSummary(lines).length > 0 && <div className="-mt-2 text-xs text-muted" data-testid="credit-line">{creditSummary(lines).map((t) => `${fmt(t.credits)} ${t.type === "ai" ? "AI" : "platform"} credits at ${cad(t.cadPerCredit, 2)} each (${t.manual ? "manual rate" : "catalogue rate"})`).join(" · ")} = {cad(total, 2)}</div>}
       <WorkloadRange w={w} />
       <div className="max-w-xs"><FeatureSelect value={w.featureId} onChange={(v) => edit((d) => { const x = d.workloads.find((y) => y.id === w.id); if (x) { if (v) x.featureId = v; else delete x.featureId; } })} /></div>
       {WORKLOAD_SPECS[w.kind] && <Fields specs={WORKLOAD_SPECS[w.kind]!} value={w as unknown as Record<string, unknown>} locate={locate} />}
@@ -258,6 +261,7 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
       {w.kind === "voiceAgent" && <VoiceCompare id={w.id} />}
       {w.kind === "agent" && <HarnessTable harnessId={w.harnessId} modelId={w.modelId} cacheHit={w.cacheHit} tasks={w.tasksPerMonth} />}
       {w.kind === "aiSearch" && <SearchSizing w={w} />}
+      <SnowflakeCredits lines={lines} />
       <WorkloadTiming w={w} />
       <Explain title="How this is calculated" lines={lines} months={1} />
     </>

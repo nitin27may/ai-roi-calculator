@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { heuristics } from "@studio/catalog";
-import { DEFAULT_HARNESS, FILE_TYPES, IMAGE_SIZES, PriceBook, fileTokens, fileType, simulateHarness, uniqueId, workloadLines, type FileInput, type HarnessDef, type Workload } from "@studio/engine";
+import { creditSummary, DEFAULT_HARNESS, FILE_TYPES, IMAGE_SIZES, PriceBook, fileTokens, fileType, simulateHarness, uniqueId, workloadLines, type FileInput, type HarnessDef, type Workload } from "@studio/engine";
 import { useRouter } from "next/navigation";
 import { Bar, Card, CardHead, Field, NumberInput, Pill, Seg, Select } from "@/components/ui";
 import { catalog, modelOptions } from "@/lib/compute";
@@ -86,7 +86,7 @@ function TextCount({ top }: { top: ReactNode }) {
         <tbody>
           {models.map((id) => {
             const m = book.chatModel(id), t = Math.round(base * book.tokenizerMultiplier(id));
-            return <tr key={id}><td>{m.label}</td><td>{m.tokenizer} ×{book.tokenizerMultiplier(id).toFixed(2)}</td><td className="n">{fmt(t)}</td><td className="n">{cad(book.chatCost(id, { input: t * 1000, output: 0 }, catalog.meta.asOf), 2)}</td><td><AddButton onClick={() => add(m.platform === "snowflake"
+            return <tr key={id}><td>{m.label}</td><td>{m.tokenizer} ×{book.tokenizerMultiplier(id).toFixed(2)}</td><td className="n">{fmt(t)}</td><td className="n">{cad(book.chatCost(id, { input: t * 1000, output: 0 }, catalog.meta.asOf), 2)}{m.platform === "snowflake" && <div className="text-xs text-muted">{fmt(book.chatCost(id, { input: t * 1000, output: 0 }, catalog.meta.asOf) / book.aiCreditCad())} AI credits at {cad(book.aiCreditCad(), 2)}</div>}</td><td><AddButton onClick={() => add(m.platform === "snowflake"
               ? { kind: "snowflakeComplete", label: `AI_COMPLETE on ${m.label}`, modelId: id, rowsPerMonth: 10000, inputTokens: base, outputTokens: 300, warehouse: { size: "m", hoursPerMonth: 10 } }
               : { kind: "llm", label: `LLM calls on ${m.label}`, callsPerMonth: 10000, modelId: id, inputTokens: base, cachedInputTokens: 0, outputTokens: 300, batchShare: 0, reasoning: "none" })} /></td></tr>;
           })}
@@ -153,7 +153,7 @@ function Docs({ top }: { top: ReactNode }) {
       </table>
       <table className="data">
         <thead><tr><th>Route</th><th>Via</th><th className="n">CAD</th><th className="w-[28%]" /><th /></tr></thead>
-        <tbody>{routes.map((r) => <tr key={r.route}><td>{r.route} {r.tag === "unverified" && <Pill>unverified</Pill>}{r.tag === "plus warehouse time" && <Pill>+ warehouse</Pill>}</td><td>{r.via}</td><td className="n">{cad(r.cost, 2)}</td><td><div className="pt-1.5"><Bar ratio={r.cost / max} /></div></td><td><AddButton onClick={() => { const { id: _id, ...w } = r.make(); add(w as NewWorkload); }} /></td></tr>)}</tbody>
+        <tbody>{routes.map((r) => <tr key={r.route}><td>{r.route} {r.tag === "unverified" && <Pill>unverified</Pill>}{r.tag === "plus warehouse time" && <Pill>+ warehouse</Pill>}</td><td>{r.via}</td><td className="n">{cad(r.cost, 2)}{creditSummary(r.lines).map((t) => <div key={t.type} className="text-xs text-muted">{fmt(t.credits)} {t.type === "ai" ? "AI" : "platform"} credits at {cad(t.cadPerCredit, 2)}</div>)}</td><td><div className="pt-1.5"><Bar ratio={r.cost / max} /></div></td><td><AddButton onClick={() => { const { id: _id, ...w } = r.make(); add(w as NewWorkload); }} /></td></tr>)}</tbody>
       </table>
       <p className="text-xs text-muted">Cheapest here: <b className="text-ink-2">{cheapest.route}</b>. Sending a PDF straight to a model bills extracted text plus an image of every page{images ? `, plus the ${fmt(file.imagesPerPage)} embedded picture${file.imagesPerPage === 1 ? "" : "s"} on each page` : ""}. Extracting first costs more per page on small models but keeps the text reusable for search and for repeated questions. Routes that extract text first do not send the pictures to the model.</p>
       <Explain title="How the cheapest route reads the file" lines={cheapest.lines} months={1} digits={4} />

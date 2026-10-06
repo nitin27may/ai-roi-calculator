@@ -1,10 +1,10 @@
 "use client";
 import { LabourExcludeToggle } from "@/components/labour-excluded";
-import { Card, CardHead, Field, NumberInput, Select, TextInput } from "@/components/ui";
+import { Card, CardHead, Field, NumberInput, Pill, Select, TextInput } from "@/components/ui";
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad } from "@/lib/format";
-import { COST_BASES, DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, resolveAssumptions, type AzureDeployment, type CostBasis, type ProcessingTier } from "@studio/engine";
+import { COST_BASES, PriceBook, DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, resolveAssumptions, type AzureDeployment, type CostBasis, type ProcessingTier } from "@studio/engine";
 
 /** heuristics.tokens.language keys, with display names. */
 const LANGUAGE_OPTIONS = [
@@ -17,8 +17,9 @@ export default function Settings() {
   const project = useStudio((s) => s.project);
   const edit = useStudio((s) => s.edit);
   const sf = project.settings.snowflake;
-  const defaultAi = sf.routing === "global" ? catalog.snowflake.aiCreditGlobal : catalog.snowflake.aiCreditRegional;
-  const defaultPlatform = catalog.snowflake.platformCredit[sf.edition] ?? catalog.snowflake.platformCredit.enterprise!;
+  const book = new PriceBook(catalog, project.settings);
+  const ai = book.creditRate("ai"), platform = book.creditRate("platform");
+  const defaultAi = ai.defaultCad, defaultPlatform = platform.defaultCad;
   const A = resolveAssumptions(project);
   const setA = (key: keyof typeof A, v: number) => edit((d) => { d.settings.assumptions = { ...d.settings.assumptions, [key]: v }; });
   return (
@@ -86,6 +87,24 @@ export default function Settings() {
           <Field label="Edition" help="sfEdition"><Select value={sf.edition} options={[{ value: "standard", label: "Standard" }, { value: "enterprise", label: "Enterprise" }, { value: "businessCritical", label: "Business Critical" }, { value: "vps", label: "VPS" }]} onChange={(v) => edit((d) => { d.settings.snowflake.edition = v as typeof sf.edition; })} /></Field>
           <Field label={`CAD per AI credit (default ${cad(defaultAi, 2)})`} help="sfAiCredit"><NumberInput value={sf.aiCreditCad ?? defaultAi} step={0.01} onChange={(v) => edit((d) => { d.settings.snowflake.aiCreditCad = v > 0 ? v : undefined; })} /></Field>
           <Field label={`CAD per platform credit (default ${cad(defaultPlatform, 2)})`} help="sfPlatformCredit"><NumberInput value={sf.platformCreditCad ?? defaultPlatform} step={0.01} onChange={(v) => edit((d) => { d.settings.snowflake.platformCreditCad = v > 0 ? v : undefined; })} /></Field>
+        </div>
+        <div className="px-3.5 pb-3.5" data-testid="snowflake-conversion">
+          <table className="data">
+            <thead><tr><th>Credit</th><th className="n">Catalogue default</th><th className="n">In use</th><th>Rate</th><th className="n">1,000 credits</th><th><span className="sr-only">Reset</span></th></tr></thead>
+            <tbody>
+              {([["AI credit", ai, "aiCreditCad"], ["Platform credit", platform, "platformCreditCad"]] as const).map(([label, r, key]) => (
+                <tr key={key}>
+                  <td>{label}</td>
+                  <td className="n">{cad(r.defaultCad, 2)}</td>
+                  <td className="n">{cad(r.cad, 2)}</td>
+                  <td>{r.manual ? <Pill tone="warn">manual</Pill> : <Pill>catalogue</Pill>}</td>
+                  <td className="n">{cad(1000 * r.cad, 2)}</td>
+                  <td>{r.manual && <button type="button" className="inline-flex min-h-6 items-center whitespace-nowrap rounded-md border border-line px-2 py-0.5 text-xs font-medium hover:bg-surface-2" aria-label={`Reset ${label.toLowerCase()} rate to default`} onClick={() => edit((d) => { delete d.settings.snowflake[key]; })}>Reset to default</button>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-1.5 text-xs text-muted">Worked example: 1,000 AI credits = {cad(1000 * ai.cad, 2)}; 1,000 platform credits = {cad(1000 * platform.cad, 2)}. Every Snowflake line shows its credits and this rate.</p>
         </div>
         <p className="px-3.5 pb-3.5 text-xs text-muted">AI credits cover Cortex AI functions, Search, Agents and the REST API. Platform credits cover warehouses, Cortex Analyst and fine-tuning. Claude and Gemini are not served under AZURE_US or AZURE_EU routing; requests go to AWS or Google over the public internet.</p>
       </Card>

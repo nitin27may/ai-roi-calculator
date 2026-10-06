@@ -92,7 +92,7 @@ export async function buildWorkbook(p: Project, ledger: Ledger, roi: RoiResult, 
 
   const months = monthRows(ledger, roi);
   sheet("Months", months, Object.keys(months[0] ?? {}).filter((k) => !["Month", "Date", "Phase", "Adoption"].includes(k)));
-  sheet("Line items", lineItemRows(ledger), ["Unit price (CAD)", "Cost (CAD)"]);
+  sheet("Line items", lineItemRows(ledger), ["Unit price (CAD)", "Cost (CAD)", "CAD per credit"]);
   const a = computeAllocation(p, ledger, p.roi.basis);
   sheet("ROI by capability", [
     ...a.capabilities.map((c) => ({ Capability: c.label, Benefit: Math.round(c.benefit), "Direct cost": Math.round(c.direct), "Shared cost": Math.round(c.shared), Net: Math.round(c.net), ROI: c.roi === null ? "" : `${Math.round(c.roi * 100)}%` })),
