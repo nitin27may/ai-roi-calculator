@@ -1,8 +1,8 @@
 {
-  "name": "ai-cost-roi-studio",
+  "name": "ai-roi-calculator",
   "private": true,
   "version": "0.1.0",
-  "description": "Local, offline AI token, cost and ROI calculator for Azure and Snowflake workloads (CAD).",
+  "description": "Local, offline AI cost and ROI calculator for Azure and Snowflake workloads (CAD). Includes a token calculator for quick estimates.",
   "type": "module",
   "packageManager": "pnpm@10.28.0",
   "scripts": {
