@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { DEPLOYMENT_LABEL, WIDE_RANGE_TEXT, compareScenarios, computeAllocation, evaluateLevers, moneyBand, pricesUsedRows, steadyState } from "@studio/engine";
+import { DEPLOYMENT_LABEL, LABOUR_EXCLUDED_TEXT, WIDE_RANGE_TEXT, buildLabel, compareScenarios, computeAllocation, evaluateLevers, moneyBand, pricesUsedRows, steadyState } from "@studio/engine";
 import { CumulativeLine, Legend, RankedBars, StackedBars, Waterfall } from "@/components/charts";
 import { Field, TextInput } from "@/components/ui";
 import { FinanceMeasures, HeadlineTiles, RiskSummary, VerdictChip, WATERFALL_COST_IDS, wideDrivers } from "@/components/summary-parts";
@@ -44,6 +44,7 @@ export default function Report() {
   const t = ledger.totals, B = p.timeline.buildMonths;
   const rows = ledger.months.map((m) => ({ labour: m.byStream.labour, devlab: m.byStream.devlab + m.byStream.devenv, run: m.byStream.run, platform: m.byStream.platform, maint: m.byStream.maint + m.byStream.transition, benefit: m.benefit }));
   const basis = BASIS_WORDS[p.roi.basis];
+  const streams = s.labourExcluded ? STREAMS.filter((x) => x.key !== "labour") : STREAMS;
   const devById = new Map<string, number>();
   for (const m of ledger.months.slice(0, B)) for (const l of m.lines) if (l.stream === "devlab") devById.set(l.componentId, (devById.get(l.componentId) ?? 0) + l.cost);
   const firstFull = steadyState(ledger);
@@ -53,7 +54,7 @@ export default function Report() {
   const fx = catalog.meta.fx;
   const rangeRows = [
     { label: "Total cost over the plan", ...s.range.totalCost },
-    { label: "Build", ...s.range.build },
+    { label: buildLabel(p), ...s.range.build },
     { label: "Annual run, steady state", ...s.range.annualRun },
     { label: "Total benefit over the plan", ...s.range.totalBenefit },
     { label: `NPV at ${s.discountRatePct}%`, ...s.range.npv },
@@ -96,7 +97,7 @@ export default function Report() {
             <div className="text-xs uppercase tracking-[0.08em] text-muted">Executive summary · {p.name}</div>
             <div className="mt-2"><VerdictChip verdict={s.verdict} /></div>
             <p className="mt-2 max-w-[78ch] text-[13.5px] leading-snug text-ink-2">
-              Building takes <b>{B} months</b> and costs <b>{cad(s.build)}</b>. Running and maintaining it costs <b>{cad(s.steadyStateAnnualRun / 12)}</b> a month at full adoption, against <b>{cad(s.benefitPerYear / 12)}</b> a month in benefit.
+              Building takes <b>{B} months</b> and costs <b>{cad(s.build)}</b>{s.labourExcluded ? <> (build labour excluded)</> : null}. Running and maintaining it costs <b>{cad(s.steadyStateAnnualRun / 12)}</b> a month at full adoption, against <b>{cad(s.benefitPerYear / 12)}</b> a month in benefit.
               Measured on {basis}, it {s.paysBackWithinPlan ? <>pays back in <b>month {s.paybackMonth}</b></> : <><b>does not pay back</b> within {s.horizonMonths} months</>}, with an NPV of <b>{cad(s.npv)}</b> at {s.discountRatePct}%.
             </p>
           </header>
@@ -133,6 +134,7 @@ export default function Report() {
               <table className="data">
                 <tbody>
                   <tr><td>Build</td><td className="n">{B} months, from {p.startDate}</td></tr>
+                  {s.labourExcluded && <tr><td>Build labour</td><td className="n">{LABOUR_EXCLUDED_TEXT}: not in any figure in this report</td></tr>}
                   <tr><td>Plan length</td><td className="n">{p.timeline.horizonMonths} months</td></tr>
                   <tr><td>Adoption ramp</td><td className="n">{p.timeline.adoptionRampMonths} months to full use</td></tr>
                   <tr><td>Cost measured on</td><td className="n">{basis}</td></tr>
@@ -183,8 +185,8 @@ export default function Report() {
 
           <section className="break-inside-avoid">
             <h3 className="mb-2 text-lg font-bold">Cost and benefit by month</h3>
-            <Legend items={[...STREAMS.map((x) => ({ label: x.label, color: x.color })), { label: "Benefit", color: "var(--ink)", line: true }]} />
-            <StackedBars rows={rows} series={STREAMS} line={{ key: "benefit", label: "Benefit", color: "var(--ink)" }} xLabel={(i) => `M${i + 1}`} className="relative mt-2 h-[260px] w-[688px] max-w-full" />
+            <Legend items={[...streams.map((x) => ({ label: x.label, color: x.color })), { label: "Benefit", color: "var(--ink)", line: true }]} />
+            <StackedBars rows={rows} series={streams} line={{ key: "benefit", label: "Benefit", color: "var(--ink)" }} xLabel={(i) => `M${i + 1}`} className="relative mt-2 h-[260px] w-[688px] max-w-full" />
           </section>
 
           <section className="break-inside-avoid">
@@ -194,10 +196,10 @@ export default function Report() {
 
           <div className="grid gap-6 md:grid-cols-2 print:grid-cols-2">
             <section className="break-inside-avoid">
-              <h3 className="mb-2 text-lg font-bold">Build, months 1 to {B}</h3>
+              <h3 className="mb-2 text-lg font-bold">Build, months 1 to {B}{s.labourExcluded ? " (build labour excluded)" : ""}</h3>
               <table className="data">
                 <tbody>
-                  <tr><td>Labour</td><td className="n">{cad(t.buildLabour)}</td></tr>
+                  <tr><td>Labour</td><td className="n">{s.labourExcluded ? "Excluded" : cad(t.buildLabour)}</td></tr>
                   {p.build.activities.map((a) => <tr key={a.id}><td>{a.label}</td><td className="n">{cad(devById.get(a.id) ?? 0)}</td></tr>)}
                   <tr><td>Dev environment</td><td className="n">{cad(ledger.months.slice(0, B).reduce((sum, m) => sum + m.byStream.devenv, 0))}</td></tr>
                   <tr className="total"><td>Total</td><td className="n">{cad(t.build)}</td></tr>
@@ -240,7 +242,7 @@ export default function Report() {
             <section className="break-inside-avoid">
               <h3 className="mb-2 text-lg font-bold">Scenarios</h3>
               <table className="data">
-                <thead><tr><th>Scenario</th><th className="n">Build</th><th className="n">Run / month</th><th className="n">Payback</th><th className="n">ROI</th><th className="n">NPV</th></tr></thead>
+                <thead><tr><th>Scenario</th><th className="n">{buildLabel(p)}</th><th className="n">Run / month</th><th className="n">Payback</th><th className="n">ROI</th><th className="n">NPV</th></tr></thead>
                 <tbody>{extra.scenarios.map((sc) => <tr key={sc.id}><td>{sc.label}</td><td className="n">{cad(sc.ledger.totals.build)}</td><td className="n">{cad(sc.ledger.totals.runRate)}</td><td className="n">{sc.roi.paybackMonth ? `M${sc.roi.paybackMonth}` : "–"}</td><td className="n">{fmt(sc.roi.roi * 100)}%</td><td className="n">{cad(sc.roi.npv)}</td></tr>)}</tbody>
               </table>
             </section>

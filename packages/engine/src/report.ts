@@ -12,6 +12,15 @@ import { verdictFor } from "./present.js";
 
 export type Row = Record<string, string | number>;
 
+/** Said wherever a build figure appears while the project leaves build labour out, so nobody reads it as a full build cost. */
+export const LABOUR_EXCLUDED_TEXT = "Build labour excluded";
+
+/** True when this project does not cost build labour (Settings or Build: "Exclude build labour cost"). */
+export const labourExcluded = (p: Pick<Project, "build">): boolean => !p.build.includeLabour;
+
+/** "Build", or "Build (build labour excluded)" when labour is left out. */
+export const buildLabel = (p: Pick<Project, "build">, base = "Build"): string => (labourExcluded(p) ? `${base} (${LABOUR_EXCLUDED_TEXT.toLowerCase()})` : base);
+
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
 export interface WaterfallStep {
@@ -34,6 +43,8 @@ export interface AlertGroup { id: "notOffered" | "retiring" | "tierFallback" | "
 export interface Verdict { text: string; npvPositive: boolean; paysBack: boolean; tone: "ok" | "warn" | "crit" }
 
 export interface Summary {
+  /** The project leaves build labour out of every figure here (Dev Lab and all other costs still count). */
+  labourExcluded: boolean;
   basis: Project["roi"]["basis"];
   /** Display name of `basis`, for labelling every headline figure. */
   basisLabel: string;
@@ -177,6 +188,7 @@ export function summarize(p: Project, ledger: Ledger, roi: RoiResult, cat: Catal
   const paysBackWithinPlan = roi.paybackMonth !== null;
   const verdict = verdictFor(roi);
   return {
+    labourExcluded: labourExcluded(p),
     basis: roi.basis,
     basisLabel: basisLabel(roi.basis),
     totalCost: roi.totalCost,
@@ -199,7 +211,7 @@ export function summarize(p: Project, ledger: Ledger, roi: RoiResult, cat: Catal
     range: projectRange(p, cat, { expected: { ledger, roi } }),
     horizonMonths: p.timeline.horizonMonths,
     waterfall: [
-      { id: "build", label: "Building & testing", value: buildCost, color: "build" },
+      { id: "build", label: buildLabel(p, "Building & testing"), value: buildCost, color: "build" },
       { id: "year1Run", label: "Running — year 1", value: year1Run, color: "run" },
       { id: "laterRun", label: "Running — later years", value: laterRun, color: "run" },
       { id: "benefit", label: "Benefit", value: roi.totalBenefit, color: "benefit" },
@@ -245,9 +257,10 @@ export function summaryRows(p: Project, ledger: Ledger, roi: RoiResult, cat: Cat
     { Item: "Currency", Value: "CAD" },
     { Item: "First build month", Value: p.startDate },
     { Item: "Build months", Value: p.timeline.buildMonths },
+    ...(s.labourExcluded ? [{ Item: "Build labour", Value: "Excluded from every figure (set in Settings or on Build)" }] : []),
     { Item: "Plan length (months)", Value: s.horizonMonths },
-    { Item: "Build cost", Value: r2(s.build) },
-    { Item: "  of which labour", Value: r2(t.buildLabour) },
+    { Item: buildLabel(p, "Build cost"), Value: r2(s.build) },
+    { Item: "  of which labour", Value: s.labourExcluded ? "Excluded" : r2(t.buildLabour) },
     { Item: "  of which AI Dev Lab", Value: r2(t.devLab) },
     { Item: "Year-1 run cost", Value: r2(s.year1Run) },
     { Item: "Steady-state annual run (run + platform + maintenance)", Value: r2(s.steadyStateAnnualRun) },

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useMemo } from "react";
-import { WIDE_RANGE_TEXT, compareScenarios, moneyBand } from "@studio/engine";
+import { WIDE_RANGE_TEXT, buildLabel, compareScenarios, moneyBand } from "@studio/engine";
 import { Card, CardHead } from "@/components/ui";
 import { BulletBar, CumulativeLine, RangeBar, RankedBars, ViewToggle, Waterfall } from "@/components/charts";
 import { Story } from "@/components/story";
@@ -16,7 +16,7 @@ export default function Summary() {
   const scenarios = useMemo(() => compareScenarios(project, catalog), [project]);
   const rangeRows = [
     { id: "cost", label: "Total cost", ...s.range.totalCost },
-    { id: "build", label: "Build", ...s.range.build },
+    { id: "build", label: buildLabel(project), ...s.range.build },
     { id: "run", label: "Annual run", ...s.range.annualRun },
     { id: "benefit", label: "Total benefit", ...s.range.totalBenefit },
     { id: "npv", label: "NPV", ...s.range.npv },
@@ -60,7 +60,7 @@ export default function Summary() {
 
       <div className="grid shrink-0 gap-3.5 lg:grid-cols-2">
         <Card>
-          <CardHead title="Build, run and benefit" sub="How the plan nets out, build to benefit." />
+          <CardHead title="Build, run and benefit" sub={s.labourExcluded ? "How the plan nets out, build to benefit. Build labour excluded." : "How the plan nets out, build to benefit."} />
           <div className="px-3.5 pb-3.5">
             <ViewToggle table={<WaterfallTable s={s} />}>
               <Waterfall steps={s.waterfall} costIds={WATERFALL_COST_IDS} />

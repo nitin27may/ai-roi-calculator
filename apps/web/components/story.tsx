@@ -14,8 +14,17 @@ export function Story() {
   );
   return (
     <p className="m-0 text-base leading-[1.9] text-ink-2">
-      {num(devs, (n) => edit((d) => { const t = d.build.team.find((x) => x.experiments); if (t) t.people = n; }), 1, 30, "Developers")} developers build for{" "}
-      {num(project.timeline.buildMonths, (n) => edit((d) => { d.timeline.buildMonths = n; }), 1, 18, "Build months")} months, testing{" "}
+      {project.build.includeLabour ? (
+        <>
+          {num(devs, (n) => edit((d) => { const t = d.build.team.find((x) => x.experiments); if (t) t.people = n; }), 1, 30, "Developers")} developers build for{" "}
+          {num(project.timeline.buildMonths, (n) => edit((d) => { d.timeline.buildMonths = n; }), 1, 18, "Build months")} months, testing{" "}
+        </>
+      ) : (
+        <>
+          Build labour is excluded from every figure. The AI Dev Lab runs for{" "}
+          {num(project.timeline.buildMonths, (n) => edit((d) => { d.timeline.buildMonths = n; }), 1, 18, "Build months")} months, testing{" "}
+        </>
+      )}
       <b className="num text-ink">{bake?.kind === "bakeoff" ? bake.candidates.length : 0}</b> candidate models. Then{" "}
       {chat?.kind === "chat" ? num(chat.users, (n) => edit((d) => { const w = d.workloads.find((x) => x.id === chat.id); if (w?.kind === "chat") w.users = n; }), 1, 1_000_000, "Users") : "your"} users adopt it over{" "}
       {num(project.timeline.adoptionRampMonths, (n) => edit((d) => { d.timeline.adoptionRampMonths = n; }), 0, 24, "Adoption months")} months. ROI is measured on{" "}

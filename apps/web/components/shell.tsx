@@ -20,6 +20,7 @@ import { cad, cn, fmt } from "@/lib/format";
 import { DRAWER_CLOSE_EVENT, DRAWER_OPEN_EVENT, readProjectMenuCollapsed, readSidebarCollapsed, writeProjectMenuCollapsed, writeSidebarCollapsed } from "@/lib/prefs";
 import { showProjectMenu } from "@/lib/nav";
 import { downloadProject } from "@/lib/project-file";
+import { LabourExcludedNote } from "@/components/labour-excluded";
 import { EmptyLibrary } from "@/components/empty-library";
 
 const PROJECT_VIEWS = [
@@ -206,6 +207,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </header>
         <div>
           {isProject && hasProject && path !== "/summary" && <KpiBar />}
+          {isProject && hasProject && <LabourExcludedNote />}
           {problem && <div role="alert" className="mx-3 mt-2 rounded-md bg-crit-soft px-3 py-2 text-sm text-crit sm:mx-5">{problem}</div>}
           {((isProject && hasProject) || path === "/tokens") && <PageIntro path={path} />}
         </div>
@@ -228,7 +230,7 @@ function KpiBar() {
   const t = ledger.totals, B = project.timeline.buildMonths, H = project.timeline.horizonMonths;
   const basis = { run: "running cost only", runMaint: "running + maintenance", full: "full lifecycle" }[project.roi.basis];
   const k = [
-    [`Build · months 1–${B}`, cad(t.build), `${cad(t.devLab)} of it AI Dev Lab`],
+    [`Build · months 1–${B}`, cad(t.build), project.build.includeLabour ? `${cad(t.devLab)} of it AI Dev Lab` : "Build labour excluded"],
     ["Production run-rate", `${cad(t.runRate)}/mo`, `+ ${cad(t.maintRate)} maintenance`],
     ["Benefit at full adoption", `${cad(t.benefitRate)}/mo`, `${project.benefits.capabilities.length + project.benefits.avoidedCosts.length} sources`],
     ["Payback", roi.paybackMonth ? `Month ${roi.paybackMonth}` : `> ${H} months`, basis],

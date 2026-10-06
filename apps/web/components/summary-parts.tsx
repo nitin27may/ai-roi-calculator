@@ -1,7 +1,7 @@
 "use client";
 import type { ReactNode } from "react";
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
-import { WIDE_RANGE_TEXT, formatIrr, irrBand, moneyBand, type AlertGroup, type Summary } from "@studio/engine";
+import { LABOUR_EXCLUDED_TEXT, WIDE_RANGE_TEXT, formatIrr, irrBand, moneyBand, type AlertGroup, type Summary } from "@studio/engine";
 import { Pill } from "@/components/ui";
 import { cad, fmt } from "@/lib/format";
 
@@ -47,7 +47,7 @@ function WideNote({ s, anchor }: { s: Summary; anchor: boolean }) {
 export function HeadlineTiles({ s, linkWide = true }: { s: Summary; linkWide?: boolean }) {
   const tiles: { label: string; value: string; sub?: string; range?: ReactNode }[] = [
     { label: "Total cost over plan", value: cad(s.totalCost), sub: `${s.horizonMonths} months · ${s.basisLabel}`, range: moneyBand(s.range.totalCost).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.totalCost) },
-    { label: "Build", value: cad(s.build), sub: `${fmt(s.devLabShare * 100)}% AI Dev Lab`, range: moneyBand(s.range.build).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.build) },
+    { label: "Build", value: cad(s.build), sub: s.labourExcluded ? LABOUR_EXCLUDED_TEXT : `${fmt(s.devLabShare * 100)}% AI Dev Lab`, range: moneyBand(s.range.build).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.build) },
     { label: "Annual run (steady state)", value: cad(s.steadyStateAnnualRun), sub: "run + platform + maintenance", range: moneyBand(s.range.annualRun).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.annualRun) },
     { label: "Benefit per year", value: cad(s.benefitPerYear), sub: "at full adoption", range: moneyBand(s.range.totalBenefit).wide ? <WideNote s={s} anchor={linkWide} /> : undefined },
     { label: "NPV", value: cad(s.npv), sub: `at ${s.discountRatePct}% · ${s.basisLabel}`, range: moneyBand(s.range.npv).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.npv) },

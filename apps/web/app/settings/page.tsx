@@ -1,4 +1,5 @@
 "use client";
+import { LabourExcludeToggle } from "@/components/labour-excluded";
 import { Card, CardHead, Field, NumberInput, Select, TextInput } from "@/components/ui";
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
@@ -57,6 +58,13 @@ export default function Settings() {
           <p>Priority and Flex processing are not priced yet; only Standard and Batch are selectable here.</p>
           <p><b className="text-ink-2">Global Standard</b>: every Foundry model, including the OpenAI audio and realtime models; requests can be processed in any Azure region. <b className="text-ink-2">Canada Regional Standard</b>: data stays in Canada, but only gpt-4o, gpt-4.1-mini, OpenAI embeddings and Azure Speech are offered. <b className="text-ink-2">US Data Zone Standard</b>: data stays in the US; GPT-5.x/6, the Azure-hosted Claude models and partner models.</p>
           <p>Azure Speech and MAI-Transcribe are not Foundry deployments: they run in an Azure Speech (Cognitive Services) resource. Canada Regional means a resource in Canada, where MAI-Transcribe is not offered; Global and US Data Zone mean a resource in a US region such as East US.</p>
+        </div>
+      </Card>
+      <Card>
+        <CardHead title="Build labour" sub="Whether the build team's cost is counted" />
+        <div className="flex flex-col gap-2 px-3.5 pb-3.5">
+          <LabourExcludeToggle />
+          <p className="text-xs text-muted">Use this when the team is already paid for elsewhere and only the AI spend is new money. The same setting is on the Build page.</p>
         </div>
       </Card>
       <Card>
