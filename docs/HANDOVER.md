@@ -2,7 +2,7 @@
 
 What you need to pick this project up on another machine: finish the repository setup, run the app, refresh prices, and continue development.
 
-- **Repository:** https://github.com/nitin27may/token-calculator
+- **Repository:** https://github.com/nitin27may/ai-roi-calculator (renamed from `token-calculator` on 2026-10-06; GitHub redirects the old URL, but update any local clone with `git remote set-url origin https://github.com/nitin27may/ai-roi-calculator.git`)
 - **State at handover (2026-10-02):** `main` and `claude/research-and-plan` point to the same commit. All work is merged into `main`. 121 tests pass, and the type check and production build are clean.
 
 ---
@@ -13,18 +13,18 @@ What you need to pick this project up on another machine: finish the repository 
 
 ```bash
 gh auth status                                   # make sure you are logged in as nitin27may
-gh repo edit nitin27may/token-calculator --default-branch main
-gh repo view nitin27may/token-calculator --json defaultBranchRef -q .defaultBranchRef.name   # prints: main
+gh repo edit nitin27may/ai-roi-calculator --default-branch main
+gh repo view nitin27may/ai-roi-calculator --json defaultBranchRef -q .defaultBranchRef.name   # prints: main
 
 # Optional: delete the old branch (identical to main). Only after the default has changed.
-gh api -X DELETE repos/nitin27may/token-calculator/git/refs/heads/claude/research-and-plan
+gh api -X DELETE repos/nitin27may/ai-roi-calculator/git/refs/heads/claude/research-and-plan
 ```
 
 Recommended after that:
 
 - **Protect `main`.** Require a pull request and passing checks before merging:
   ```bash
-  gh api -X PUT repos/nitin27may/token-calculator/branches/main/protection \
+  gh api -X PUT repos/nitin27may/ai-roi-calculator/branches/main/protection \
     -F required_status_checks=null -F enforce_admins=false \
     -F 'required_pull_request_reviews[required_approving_review_count]=0' -F restrictions=null
   ```
@@ -42,8 +42,8 @@ Recommended after that:
 - **Git.** `gh` is only needed for section 1.
 
 ```bash
-git clone https://github.com/nitin27may/token-calculator.git
-cd token-calculator
+git clone https://github.com/nitin27may/ai-roi-calculator.git
+cd ai-roi-calculator
 corepack enable          # once per machine
 pnpm install
 pnpm test                # expect: 121 passed
@@ -283,7 +283,7 @@ CI (`.github/workflows/ci.yml`) runs the same three on every pull request and on
 
 ## Hosting (Cloudflare Pages)
 
-The web app is a static export (`output: "export"` in `apps/web/next.config.ts`; all state is in the browser, no server routes). It is published to the Pages project `token-calculator` at https://token-calculator-532.pages.dev. Deploy with `pnpm run deploy` from the repo root.
+The web app is a static export (`output: "export"` in `apps/web/next.config.ts`; all state is in the browser, no server routes). It is published to the Pages project `token-calculator` at https://token-calculator-532.pages.dev. The Pages project keeps its original name because Cloudflare cannot rename a project, so the live URL did not change with the repository rename. Deploy with `pnpm run deploy` from the repo root.
 
 Gotchas:
 - Use wrangler 3 for Pages. Wrangler 4 delegates `pages` commands to Workers auto-configuration and will not create or deploy a Pages project from this workspace.

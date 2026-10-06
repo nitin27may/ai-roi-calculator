@@ -1,6 +1,6 @@
 # AI Cost & ROI Studio
 
-A local, offline calculator for what an AI use case costs to **build** and to **run**, and whether it pays back. Everything is priced in **CAD**, and the only providers are **Azure** (Foundry models including Claude on Foundry, Speech, Document Intelligence, Content Understanding, AI Search, Content Safety, evaluation) and **Snowflake Cortex**.
+A local, offline ROI calculator for AI use cases: what one costs to **build** and to **run**, and whether it pays back. It includes a token calculator for quick estimates with no project. Everything is priced in **CAD**, and the only providers are **Azure** (Foundry models including Claude on Foundry, Speech, Document Intelligence, Content Understanding, AI Search, Content Safety, evaluation) and **Snowflake Cortex**.
 
 > **Picking this up on a new machine?** Start with [docs/HANDOVER.md](docs/HANDOVER.md): setup, price refresh, code map and open items.
 
