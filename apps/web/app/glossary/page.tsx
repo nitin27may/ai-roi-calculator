@@ -2,7 +2,8 @@ import { GLOSSARY } from "@/lib/glossary";
 
 export default function Glossary() {
   return (
-    <div className="mx-auto grid max-w-[860px] gap-3">
+    <div className="h-full min-h-0 overflow-auto scroll-hint">
+    <div className="mx-auto grid max-w-[860px] gap-3 pb-2">
       <nav aria-label="Terms" className="flex flex-wrap gap-1.5">
         {GLOSSARY.map((t) => <a key={t.id} href={`#${t.id}`} className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-[12px] text-ink-2 hover:bg-surface-2">{t.term}</a>)}
       </nav>
@@ -13,6 +14,7 @@ export default function Glossary() {
           <p className="mt-2 border-t border-line pt-2 text-[12.5px] text-ink-2"><b className="text-muted">Technical: </b>{t.technical}</p>
         </section>
       ))}
+    </div>
     </div>
   );
 }
