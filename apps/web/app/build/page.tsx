@@ -6,6 +6,7 @@ import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select, Tr
 import { Explain } from "@/components/explain";
 import { MonthLegend, MonthTh, TableNote, WhereFrom } from "@/components/months";
 import { MONTH_TABLE_NOTES } from "@/lib/months";
+import { LabourExcludeToggle } from "@/components/labour-excluded";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
 import { Legend, Spark, StackedBars } from "@/components/charts";
 import { ACTIVITY_SPECS, Fields } from "@/components/fields";
@@ -33,11 +34,11 @@ export default function Build() {
   return (
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Card>
-        <CardHead title={`Build, months 1–${B}`} sub="Labour, AI Dev Lab and dev environment"><span className="num text-sm">{cad(ledger.totals.build)}</span></CardHead>
+        <CardHead title={`Build, months 1–${B}`} sub={project.build.includeLabour ? "Labour, AI Dev Lab and dev environment" : "AI Dev Lab and dev environment. Build labour excluded"}><span className="num text-sm">{cad(ledger.totals.build)}</span></CardHead>
         <div data-tour="build-list" role="listbox" aria-label="Build cost items" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
           <ListRow selected={sel === "all"} onClick={() => setSel("all")} title="AI Dev Lab, all activities" sub="tokens and AI services while building" aside={<Spark values={allDev} color="var(--s2)" />} value={cad(devTotal)} />
           <GroupHead>Labour</GroupHead>
-          <ListRow selected={sel === "team"} onClick={() => setSel("team")} title="Team & rate card" sub={project.build.includeLabour ? project.build.team.map((t) => t.name ?? `${t.people} ${project.rateCard.find((r) => r.id === t.roleId)?.label ?? t.roleId}`).join(" · ") : "Labour not costed: the team only drives Dev Lab volumes"} value={cad(labTotal)} />
+          <ListRow selected={sel === "team"} onClick={() => setSel("team")} title="Team & rate card" sub={project.build.includeLabour ? project.build.team.map((t) => t.name ?? `${t.people} ${project.rateCard.find((r) => r.id === t.roleId)?.label ?? t.roleId}`).join(" · ") : "Build labour excluded: the team only drives Dev Lab volumes"} value={project.build.includeLabour ? cad(labTotal) : "Excluded"} />
           <GroupHead>Workstreams</GroupHead>
           {wsRows.filter((r) => r.id).map((r) => (
             <ListRow key={r.id} selected={sel === `ws:${r.id}`} onClick={() => setSel(`ws:${r.id}`)} title={r.label} sub={`${fmt(r.people, 1)} people · ${acts.filter((a) => a.workstreamId === r.id).length} activities`} aside={<Spark values={r.byMonth} color="var(--s3)" />} value={cad(r.total)} />
@@ -379,8 +380,9 @@ function Team() {
   return (
     <>
       <div><h2 className="text-base font-bold">Team & rate card</h2><div className="text-xs text-muted">Labour for the build in CAD. Ticked lines run AI experiments and drive per-developer Dev Lab volumes.</div></div>
-      <div className="font-display text-[26px] font-bold">{cad(ledger.totals.buildLabour)}</div>
-      <label className="flex items-center gap-2 text-[12.5px]"><input type="checkbox" checked={project.build.includeLabour} onChange={(e) => edit((d) => { d.build.includeLabour = e.target.checked; })} />Include labour cost <span className="text-muted">(untick to cost AI spend only; the team still drives Dev Lab volumes)</span></label>
+      <div className="font-display text-[26px] font-bold">{project.build.includeLabour ? cad(ledger.totals.buildLabour) : "Excluded"}</div>
+      <LabourExcludeToggle />
+      {!project.build.includeLabour && <p className="rounded-md bg-warn-soft px-2.5 py-1.5 text-xs text-warn">Build labour excluded: nothing below is costed. People and experiment ticks still set the AI Dev Lab volumes, and the rates still value time saved and maintenance.</p>}
       <div className="flex-none overflow-x-auto">
       <table className="data">
         <thead><tr><th>Name</th><th>Phase</th><th>Role</th><th className="n">People</th><th className="n">Hours / month</th><th className="n">From</th><th className="n">To</th><th>Experiments</th><th /></tr></thead>

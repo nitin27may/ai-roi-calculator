@@ -1,8 +1,8 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Copy, Trash2, Wand2 } from "lucide-react";
+import { Copy, Download, Trash2, Wand2 } from "lucide-react";
 import { PROJECT_TEMPLATES, buildLedger, compareFigures, computeRoi, costSplit, roiOptions, verdictFor } from "@studio/engine";
 import { Card, CardHead, Field, TextInput } from "@/components/ui";
 import { CompareBars, COMPARE_COLORS, MiniSplit } from "@/components/charts-compare";
@@ -10,6 +10,8 @@ import { VerdictChip } from "@/components/summary-parts";
 import { COMPARE_ROWS, bestIndex } from "@/lib/compare";
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
+import { downloadProject } from "@/lib/project-file";
+import { EmptyLibrary } from "@/components/empty-library";
 import { cad, cn, fmt } from "@/lib/format";
 
 export default function Projects() {
@@ -21,6 +23,7 @@ export default function Projects() {
   const [name, setName] = useState("");
   const [template, setTemplate] = useState("");
   const [confirm, setConfirm] = useState<string | null>(null);
+  const triggers = useRef(new Map<string, HTMLButtonElement>());
   const [picked, setPicked] = useState<string[]>([]);
   const summaries = useMemo(() => new Map(library.map((e) => {
     const L = buildLedger(e.project, catalog);
@@ -43,6 +46,7 @@ export default function Projects() {
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto px-3.5 pb-3.5">
         {chosen.length >= 2 && <ProjectCompare ids={chosen} library={library} summaries={summaries} onClear={() => setPicked([])} />}
         {chosen.length === 1 && <p className="rounded-md bg-surface-2 px-3 py-2 text-[12.5px] text-ink-2">Pick one or two more projects to compare them side by side. You can compare up to three.</p>}
+        {library.length === 0 && <EmptyLibrary />}
         <div className="grid auto-rows-min grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
           {library.map((e, i) => {
             const s = summaries.get(e.id)!;
@@ -72,10 +76,12 @@ export default function Projects() {
                 <div className="mt-auto flex flex-wrap gap-1.5">
                   <button type="button" className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-ink" onClick={() => { open(e.id); router.push("/summary"); }}>Open</button>
                   <button type="button" className="flex items-center gap-1 rounded-md border border-line px-2.5 py-1 text-xs hover:bg-surface-2" onClick={() => duplicate(e.id)}><Copy size={12} />Duplicate</button>
-                  {confirm === e.id
-                    ? <><button type="button" className="rounded-md bg-crit px-2.5 py-1 text-xs font-medium text-white" onClick={() => { remove(e.id); setConfirm(null); }}>Delete for good</button><button type="button" className="rounded-md border border-line px-2.5 py-1 text-xs" onClick={() => setConfirm(null)}>Keep</button></>
-                    : <button type="button" className="flex items-center gap-1 rounded-md border border-line px-2.5 py-1 text-xs text-crit hover:bg-crit-soft" onClick={() => setConfirm(e.id)}><Trash2 size={12} />Delete</button>}
+                  <button type="button" ref={(el) => { if (el) triggers.current.set(e.id, el); else triggers.current.delete(e.id); }} aria-expanded={confirm === e.id} aria-controls={`delete-${e.id}`} className="flex items-center gap-1 rounded-md border border-line px-2.5 py-1 text-xs text-crit hover:bg-crit-soft" onClick={() => setConfirm(confirm === e.id ? null : e.id)}><Trash2 size={12} aria-hidden />Delete</button>
                 </div>
+                <DeleteConfirm id={`delete-${e.id}`} open={confirm === e.id} name={e.project.name}
+                  onKeep={() => { setConfirm(null); triggers.current.get(e.id)?.focus(); }}
+                  onExport={() => downloadProject(e.project)}
+                  onDelete={() => { remove(e.id); setConfirm(null); document.getElementById("main-content")?.focus(); }} />
               </div>
             );
           })}
@@ -102,6 +108,32 @@ export default function Projects() {
           <button type="submit" disabled={!template} className="rounded-md border border-accent px-3 py-1.5 text-sm font-medium text-accent disabled:cursor-not-allowed disabled:opacity-40">{template ? "Create from preset" : "Pick a preset to create"}</button>
         </form>
       </Card>
+    </div>
+  );
+}
+
+/**
+ * Inline delete confirmation: no browser alert and no modal. It opens in place under the card with a
+ * short height animation, takes focus on the safe choice, and Escape closes it.
+ */
+function DeleteConfirm({ id, open, name, onKeep, onExport, onDelete }: { id: string; open: boolean; name: string; onKeep: () => void; onExport: () => void; onDelete: () => void }) {
+  const keep = useRef<HTMLButtonElement>(null);
+  useEffect(() => { if (open) keep.current?.focus(); }, [open]);
+  return (
+    <div id={id} className={cn("grid transition-[grid-template-rows,opacity] duration-200 motion-reduce:transition-none", open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} inert={!open}
+      onKeyDown={(ev) => { if (ev.key === "Escape") { ev.stopPropagation(); onKeep(); } }}>
+      <div className="min-h-0 overflow-hidden">
+        <div role="group" aria-label={`Delete ${name}`} className="mt-1 flex flex-col gap-2 rounded-md border border-crit bg-crit-soft p-2.5 text-[12.5px]">
+          <p className="text-ink">
+            Delete <b>{name}</b>? Projects are stored only in this browser, so it cannot be recovered afterwards unless you export it first.
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            <button type="button" ref={keep} className="rounded-md border border-line bg-surface px-2.5 py-1 text-xs font-medium" onClick={onKeep}>Keep</button>
+            <button type="button" className="flex items-center gap-1 rounded-md border border-line bg-surface px-2.5 py-1 text-xs" onClick={onExport}><Download size={12} aria-hidden />Export first</button>
+            <button type="button" className="rounded-md bg-crit px-2.5 py-1 text-xs font-medium text-white" onClick={onDelete}>Delete for good</button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

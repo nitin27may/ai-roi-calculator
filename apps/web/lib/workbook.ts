@@ -1,5 +1,5 @@
 import type { Workbook } from "exceljs";
-import { WIDE_RANGE_TEXT, avoidedMonthly, capabilityHours, computeAllocation, irrBand, lineItemRows, moneyBand, monthRows, pricesUsedRows, summarize, summaryRows, type Ledger, type Project, type RoiResult, type Row } from "@studio/engine";
+import { WIDE_RANGE_TEXT, avoidedMonthly, buildLabel, labourExcluded, capabilityHours, computeAllocation, irrBand, lineItemRows, moneyBand, monthRows, pricesUsedRows, summarize, summaryRows, type Ledger, type Project, type RoiResult, type Row } from "@studio/engine";
 import type { Catalog } from "@studio/catalog";
 import type { ChartMonth } from "./xlsx-chart";
 
@@ -17,7 +17,7 @@ export function rangeTableRows(p: Project, ledger: Ledger, roi: RoiResult, cat: 
   });
   const rows: Row[] = [
     money("Total cost over the plan", s.range.totalCost),
-    money("Build", s.range.build),
+    money(buildLabel(p), s.range.build),
     money("Annual run, steady state", s.range.annualRun),
     money("Total benefit over the plan", s.range.totalBenefit),
     money(`NPV at ${s.discountRatePct}%`, s.range.npv),
@@ -100,8 +100,8 @@ export async function buildWorkbook(p: Project, ledger: Ledger, roi: RoiResult, 
     { Capability: "Unallocated cost", Benefit: "", "Direct cost": Math.round(a.unallocated.cost), "Shared cost": "", Net: "", ROI: "" },
   ], ["Benefit", "Direct cost", "Shared cost", "Net"]);
   sheet("Assumptions", [
-    ...p.rateCard.map((r) => ({ Section: "Rate card", Item: r.label, Value: r.hourlyRate, Unit: "CAD/hour" })),
-    ...p.build.team.map((t) => ({ Section: "Build team", Item: `${t.phase ?? "Build"}: ${p.rateCard.find((r) => r.id === t.roleId)?.label}`, Value: t.people, Unit: `people, months ${t.fromMonth ?? 1}–${t.toMonth ?? p.timeline.buildMonths}` })),
+    ...p.rateCard.map((r) => ({ Section: "Rate card", Item: r.label, Value: r.hourlyRate, Unit: labourExcluded(p) ? "CAD/hour (not costed: build labour excluded)" : "CAD/hour" })),
+    ...p.build.team.map((t) => ({ Section: "Build team", Item: `${t.phase ?? "Build"}: ${p.rateCard.find((r) => r.id === t.roleId)?.label}`, Value: t.people, Unit: `people, months ${t.fromMonth ?? 1}–${t.toMonth ?? p.timeline.buildMonths}${labourExcluded(p) ? " (labour not costed: build labour excluded)" : ""}` })),
     ...p.benefits.capabilities.map((c) => { const h = capabilityHours(p, c, cat.benchmarks); return { Section: "Time saved", Item: c.label, Value: Math.round(h.net * 10) / 10, Unit: `net hours/month at full rollout: ${h.formula}` }; }),
     ...p.benefits.avoidedCosts.map((c) => ({ Section: "Avoided cost", Item: c.label, Value: Math.round(avoidedMonthly(p, c)), Unit: `${c.fte !== undefined ? `${c.fte} FTE, ` : ""}CAD/month from month ${c.startMonth ?? p.timeline.buildMonths + 1}` })),
     { Section: "ROI", Item: "Benefit preset", Value: p.roi.benefitPreset, Unit: "" },

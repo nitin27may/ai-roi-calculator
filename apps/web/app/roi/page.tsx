@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
-import { COST_BASES, LEVERS, applyScenario, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityVolume, workloadVolume, sensitivity, capabilityHours, compareScenarios, computeAllocation, linkCapabilityToFeature, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
+import { COST_BASES, LEVERS, applyScenario, buildLabel, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityVolume, workloadVolume, sensitivity, capabilityHours, compareScenarios, computeAllocation, linkCapabilityToFeature, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Seg, Select, TextInput, TrashButton } from "@/components/ui";
 import type { HelpId } from "@/lib/help";
 import { CumulativeLine, Legend } from "@/components/charts";
@@ -506,7 +506,7 @@ function Scenarios() {
     <div className="flex flex-col gap-4">
       <div className="overflow-auto">
         <table className="data">
-          <thead><tr><th>Scenario</th><th className="n">Build</th><th className="n">Run / month</th><th className="n">Payback</th><th className="n">ROI</th><th className="n">NPV</th><th /></tr></thead>
+          <thead><tr><th>Scenario</th><th className="n">{buildLabel(project)}</th><th className="n">Run / month</th><th className="n">Payback</th><th className="n">ROI</th><th className="n">NPV</th><th /></tr></thead>
           <tbody>
             {results.map((r, i) => (
               <tr key={r.id} style={i === 0 ? { background: "var(--surface-2)" } : undefined}>

@@ -1,6 +1,6 @@
 "use client";
 import { create } from "zustand";
-import { humanizeIssue } from "@/lib/validation";
+import { humanizeIssue } from "./validation";
 import { PROJECT_TEMPLATES, ProjectSchema, meetingIntelligence, migrateProject, type Percentile, type Project } from "@studio/engine";
 
 const LIBRARY_KEY = "ai-cost-roi-studio:library";
@@ -35,13 +35,18 @@ interface State {
   add: (p: Project) => string;
   open: (id: string) => void;
   duplicate: (id: string) => string;
+  /** Delete a project. Any project can go, including the last one; the library is then empty (no re-seeding). */
   remove: (id: string) => void;
+  /** Add a fresh copy of the bundled sample project. */
+  loadSample: () => string;
 }
 
 let lastEditAt = 0;
 const newId = () => `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 const now = () => new Date().toISOString();
 const firstEntry = (): LibraryEntry => ({ id: "sample", project: meetingIntelligence, updatedAt: now() });
+/** Stands in for `project` while the library is empty so pages never read undefined; the shell shows an empty state instead and nothing edits it. */
+const PLACEHOLDER: Project = meetingIntelligence;
 
 /** Migrates then validates a saved project, logging why it was dropped so the Projects page can surface a count. */
 function safeMigrateAndParse(raw: unknown): { success: true; data: Project } | { success: false } {
@@ -68,9 +73,9 @@ function persist(library: LibraryEntry[], activeId: string) {
 
 export const useStudio = create<State>((set, get) => {
   const commit = (library: LibraryEntry[], activeId: string, extra: Partial<State> = {}) => {
-    const active = library.find((e) => e.id === activeId) ?? library[0]!;
-    persist(library, active.id);
-    set({ library, activeId: active.id, project: active.project, problem: null, ...extra });
+    const active = library.find((e) => e.id === activeId) ?? library[0];
+    persist(library, active?.id ?? "");
+    set({ library, activeId: active?.id ?? "", project: active?.project ?? PLACEHOLDER, problem: null, ...extra });
   };
   const initial = firstEntry();
   return {
@@ -98,6 +103,8 @@ export const useStudio = create<State>((set, get) => {
             return [];
           });
           if (library.length) return commit(library, data.activeId, { hydrated: true, unreadableCount: unreadable });
+          // A saved, deliberately empty library (every project deleted) stays empty rather than re-seeding the sample.
+          if (Array.isArray(data.library) && data.library.length === 0) return commit([], "", { hydrated: true, past: [], future: [] });
           if (unreadable) set({ unreadableCount: unreadable });
         }
         const legacy = localStorage.getItem(LEGACY_KEY);
@@ -122,7 +129,7 @@ export const useStudio = create<State>((set, get) => {
     },
     replace: (p, coalesce = false) => {
       const { library, activeId, project, past } = get();
-      if (p === project) return;
+      if (p === project || !activeId) return;
       const merge = coalesce && Date.now() - lastEditAt < 600 && past.length > 0;
       lastEditAt = coalesce ? Date.now() : 0;
       commit(library.map((e) => (e.id === activeId ? { ...e, project: p, updatedAt: now() } : e)), activeId, { past: merge ? past : [...past, project].slice(-50), future: [] });
@@ -156,9 +163,11 @@ export const useStudio = create<State>((set, get) => {
       return get().add({ ...structuredClone(src.project), name: `${src.project.name} (copy)` });
     },
     remove: (id) => {
-      const rest = get().library.filter((e) => e.id !== id);
-      const library = rest.length ? rest : [firstEntry()];
-      commit(library, get().activeId === id ? library[0]!.id : get().activeId);
+      const { library: before, activeId } = get();
+      if (!before.some((e) => e.id === id)) return;
+      const library = before.filter((e) => e.id !== id);
+      commit(library, activeId === id ? (library[0]?.id ?? "") : activeId, activeId === id ? { past: [], future: [] } : {});
     },
+    loadSample: () => get().add(structuredClone(meetingIntelligence)),
   };
 });
