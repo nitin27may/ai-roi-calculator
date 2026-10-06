@@ -733,7 +733,7 @@ export function deriveSpreadsheet(v: Values): SheetDerivation {
   const schemaListing = tabs * (cols * c + tabOverhead);
   const inspect = tabsUsed * ((inspectRows + 1) * cols * c + tabOverhead);
   const resultTable = (SHEET.resultRows + 1) * SHEET.resultCols * c;
-  const fixSteps = Math.ceil((num(v, "failPct") / 100) * SHEET.fixRounds - 1e-9);
+  const fixSteps = Math.max(0, Math.ceil((num(v, "failPct") / 100) * SHEET.fixRounds - 1e-9));
   // Calls: list the tabs, inspect them, write and run the analysis, any fixes, then the written answer.
   const steps = 4 + fixSteps;
   const toolSteps = steps - 1;
