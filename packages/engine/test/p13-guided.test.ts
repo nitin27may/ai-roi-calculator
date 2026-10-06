@@ -193,7 +193,7 @@ describe("spreadsheet recipe", () => {
     const lines = buildLedger(res.project, cat).months.at(-1)!.lines;
     const fee = lines.find((l) => l.meter === "code-interpreter")!;
     expect(fee.quantity).toBe(500);
-    expect(fee.unitPrice).toBeCloseTo(cat.unitPrices.find((u) => u.id === "code-interpreter")!.price, 8);
+    expect(fee.unitPrice).toBeCloseTo(cat.unitPrices.find((u) => u.id === "code-interpreter")!.price!, 8);
     // Every derived default is an editable assumption with a source.
     const notes = res.assumptions.filter((a) => a.id.includes("harness."));
     expect(notes.length).toBeGreaterThanOrEqual(5);

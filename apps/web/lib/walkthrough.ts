@@ -57,7 +57,7 @@ export function fileGuide(cat: Catalog, settings: ConstructorParameters<typeof P
       {
         id: "text", title: "2. Text becomes tokens",
         plain: "Words are turned into tokens. English averages about 1.33 tokens a word, and each model family counts a little differently.",
-        rows: [{ label: "Text tokens", value: n0(t.textTokens), note: t.textFormula }],
+        rows: [{ label: "Text tokens", value: n0(t.textTokens) }],
         formula: t.textFormula,
       },
       {
@@ -68,7 +68,7 @@ export function fileGuide(cat: Catalog, settings: ConstructorParameters<typeof P
         rows: [
           { label: "Pictures in the file", value: n0(t.imagesTotal) },
           { label: "Tokens per picture", value: t.imageSupported ? n0(t.imageTokensEach) : "unverified" },
-          { label: "Picture tokens", value: n0(t.imageTokens), note: t.imageFormula },
+          { label: "Picture tokens", value: n0(t.imageTokens) },
         ],
         formula: t.imageFormula,
       },
@@ -88,7 +88,7 @@ export function fileGuide(cat: Catalog, settings: ConstructorParameters<typeof P
         rows: [
           { label: "Input price", value: `${c(price.input, 2)} per 1M tokens` },
           { label: "Input cost", value: c(inCost), note: `${n0(t.total)} x ${c(price.input, 2)} / 1,000,000` },
-          { label: `Answer of ${n0(outputTokens)} words-worth of tokens`, value: c(outCost), note: `${n0(outputTokens * mult)} tokens x ${c(price.output, 2)} / 1,000,000` },
+          { label: `Answer (${n0(outputTokens)} tokens)`, value: c(outCost), note: `${n0(outputTokens * mult)} tokens x ${c(price.output, 2)} / 1,000,000` },
           { label: "One file", value: c(total) },
         ],
         formula: `${c(inCost)} + ${c(outCost)} = ${c(total)} for one file`,
@@ -116,9 +116,12 @@ export function agentGuide(cat: Catalog, settings: ConstructorParameters<typeof 
   const price = book.tokenPrices(inp.modelId, date);
   const fee = book.unitPrice("code-interpreter");
   const tasks = Number(v.tasks) || 0;
-  const uncached = run.inputTokens - run.cachedTokens;
+  // The engine's inputTokens is the new (uncached) input only; cached reads and the one-off cache write are counted apart.
+  const uncached = run.inputTokens;
+  const writePrice = price.cacheWrite ?? price.input;
   const cInput = (uncached * price.input) / 1e6, cCached = (run.cachedTokens * price.cachedInput) / 1e6, cOut = (run.outputTokens * price.output) / 1e6;
-  const other = run.cost - cInput - cCached - cOut;
+  const cWrite = (run.cacheWriteTokens * writePrice) / 1e6;
+  const other = run.cost - cInput - cCached - cOut - cWrite;
   const total = run.cost + fee;
   const last = run.trace.at(-1)!;
   const sample = v.readMode === "whole" ? "every row" : `${d.inspectRows} sample rows`;
@@ -163,8 +166,8 @@ export function agentGuide(cat: Catalog, settings: ConstructorParameters<typeof 
         id: "resend", title: "4. What each loop re-sends",
         plain: "The model has no memory between calls. Every loop re-sends the instructions, the question and everything said and returned so far, so the prompt grows each time.",
         rows: [
-          ...run.trace.map((t) => ({ label: `Loop ${t.step}`, value: `${n0(t.promptTokens)} tokens in`, note: `${n0(t.cachedTokens)} cached, ${n0(t.promptTokens - t.cachedTokens)} new; ${n0(t.outputTokens)} out` })),
-          { label: "All loops", value: `${n0(run.inputTokens)} in, ${n0(run.outputTokens)} out`, note: `Loop ${last.step} alone re-sends ${n0(last.promptTokens)} tokens` },
+          ...run.trace.map((t) => ({ label: `Loop ${t.step}`, value: `${n0(t.promptTokens)} tokens in`, note: `${n0(t.cachedTokens)} cached, ${n0(t.promptTokens - t.cachedTokens - t.cacheWriteTokens)} new${t.cacheWriteTokens ? `, ${n0(t.cacheWriteTokens)} written to cache` : ""}; ${n0(t.outputTokens)} out` })),
+          { label: "All loops", value: `${n0(run.trace.reduce((x, t) => x + t.promptTokens, 0))} in, ${n0(run.outputTokens)} out`, note: `Loop ${last.step} alone re-sends ${n0(last.promptTokens)} tokens` },
         ],
         formula: `Loop k re-sends the opening (${n0(h.systemPromptTokens + h.tools * h.tokensPerTool + h.userInputTokens)} tokens) plus the history from loops 1 to k-1`,
       },
@@ -175,7 +178,8 @@ export function agentGuide(cat: Catalog, settings: ConstructorParameters<typeof 
           { label: "New input", value: c(cInput), note: `${n0(uncached)} x ${c(price.input, 2)} / 1M` },
           { label: "Cached input", value: c(cCached), note: `${n0(run.cachedTokens)} x ${c(price.cachedInput, 2)} / 1M (${Math.round(inp.cacheHit * 100)}% cache hit)` },
           { label: "Output (answers and code)", value: c(cOut), note: `${n0(run.outputTokens)} x ${c(price.output, 2)} / 1M` },
-          ...(Math.abs(other) > 0.0005 ? [{ label: "Retry allowance and cache writes", value: c(other), note: `Retry rate ${Math.round(h.retryRate * 100)}% of a run` }] : []),
+          ...(run.cacheWriteTokens > 0 ? [{ label: "Cache write (first call)", value: c(cWrite), note: `${n0(run.cacheWriteTokens)} x ${c(writePrice, 2)} / 1M, once per task` }] : []),
+          ...(Math.abs(other) > 0.0005 ? [{ label: "Retry allowance", value: c(other), note: `${Math.round(h.retryRate * 100)}% of the model cost, for steps that fail and run again` }] : []),
           { label: `Model total (${model.label})`, value: c(run.cost) },
           { label: "Code interpreter session", value: c(fee, 4), note: "One session per task, from the price list" },
           { label: "One task", value: c(total) },

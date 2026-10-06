@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadCatalog } from "@studio/catalog";
-import { blankProject } from "@studio/engine";
+import { PriceBook, blankProject } from "@studio/engine";
 import { GLOSSARY } from "../lib/glossary";
 import { HELP } from "../lib/help";
 import { INTROS } from "../lib/intros";
@@ -45,6 +45,13 @@ describe("worked example: agent", () => {
     expect(dump(g)).toContain("560");
     expect(dump(g)).toContain("708");
     expect(dump(g)).toContain("378");
+  });
+  it("model cost reconciles: new input + cache write + cached + output, times the retry allowance", () => {
+    const p = new PriceBook(cat, settings).tokenPrices("gpt-5.4", cat.meta.asOf);
+    const r = g.run;
+    const parts = (r.inputTokens * p.input + r.cacheWriteTokens * (p.cacheWrite ?? p.input) + r.cachedTokens * p.cachedInput + r.outputTokens * p.output) / 1e6;
+    expect(parts * 1.05).toBeCloseTo(r.cost, 8);
+    expect(r.inputTokens + r.cachedTokens + r.cacheWriteTokens).toBe(r.trace.reduce((x, t) => x + t.promptTokens, 0));
   });
   it("re-sends a longer prompt on every loop", () => {
     const p = g.run.trace.map((t) => t.promptTokens);

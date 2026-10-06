@@ -124,7 +124,7 @@ function Docs({ top }: { top: ReactNode }) {
       ...["gpt-5.4", "gpt-5.4-mini", "claude-sonnet-5-5", "claude-opus-5-5"].map((m) => ({ route: `${imageOnly ? "Images" : "PDF"} straight to ${book.chatModel(m).label}`, via: "Azure", cost: sum(direct(m)) + book.chatCost(m, { input: 0, output: out * book.tokenizerMultiplier(m) }, date), tag: "", w: direct(m), make: () => ({ ...direct(m), label: `Documents: straight to ${book.chatModel(m).label}` }) })),
       ...["sf-parse-ocr", "sf-parse-layout"].map((x) => ({ route: `${book.unit(x).label} → GPT-5.4 (Snowflake)`, via: "Snowflake", cost: sum(extract(x, "sf:openai-gpt-5.4")), tag: "plus warehouse time", w: extract(x, "sf:openai-gpt-5.4"), make: () => ({ ...extract(x, "sf:openai-gpt-5.4"), label: `Documents: ${book.unit(x).label}`, warehouse: { size: "m" as const, hoursPerMonth: 5 } }) })),
     ];
-    return rows.sort((a, b) => a.cost - b.cost).map((r) => ({ ...r, lines: run(r.w) }));
+    return rows.sort((a, b) => a.cost - b.cost).map((r) => ({ ...r, lines: run({ ...r.w, label: r.route } as Workload) }));
   }, [book, pages, pageType, summaryModel, date, images, imageOnly]);
   const max = Math.max(...routes.map((r) => r.cost));
   const cheapest = routes[0]!;
@@ -156,7 +156,7 @@ function Docs({ top }: { top: ReactNode }) {
         <tbody>{routes.map((r) => <tr key={r.route}><td>{r.route} {r.tag === "unverified" && <Pill>unverified</Pill>}{r.tag === "plus warehouse time" && <Pill>+ warehouse</Pill>}</td><td>{r.via}</td><td className="n">{cad(r.cost, 2)}</td><td><div className="pt-1.5"><Bar ratio={r.cost / max} /></div></td><td><AddButton onClick={() => { const { id: _id, ...w } = r.make(); add(w as NewWorkload); }} /></td></tr>)}</tbody>
       </table>
       <p className="text-xs text-muted">Cheapest here: <b className="text-ink-2">{cheapest.route}</b>. Sending a PDF straight to a model bills extracted text plus an image of every page{images ? `, plus the ${fmt(file.imagesPerPage)} embedded picture${file.imagesPerPage === 1 ? "" : "s"} on each page` : ""}. Extracting first costs more per page on small models but keeps the text reusable for search and for repeated questions. Routes that extract text first do not send the pictures to the model.</p>
-      <Explain title="How the cheapest route is priced" lines={cheapest.lines} months={1} />
+      <Explain title="How the cheapest route reads the file" lines={cheapest.lines} months={1} digits={4} />
       <TokenGuide guide={guide} />
     </Split>
   );
@@ -239,7 +239,7 @@ function AgentRun({ top }: { top: ReactNode }) {
         ))}
         <div className="flex gap-3 text-xs text-ink-2"><span><i className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-[var(--s1)]" />cached</span><span><i className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-[var(--s2)]" />new input</span></div>
       </div>
-      <Explain title="How one run is priced" lines={lines} months={1} />
+      <Explain title="How 1,000 runs a month are priced on the Run page (a warm cache trims the first-call write)" lines={lines} months={1} digits={4} />
       {guide && <>
         <Seg label="How the worked example reads each tab" value={readMode} onChange={setReadMode} options={[{ value: "sample", label: "Sample rows" }, { value: "whole", label: "Whole tab" }]} />
         <TokenGuide guide={guide} heading="How this is calculated: a 10-tab workbook" />
