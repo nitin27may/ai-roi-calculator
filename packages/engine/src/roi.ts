@@ -3,6 +3,19 @@ import type { Project } from "./project.js";
 
 export type CostBasis = Project["roi"]["basis"];
 
+/**
+ * The three cost bases ROI, payback and NPV can be measured against. One list so the ROI page, Settings, Summary,
+ * Report and Excel use the same words. `label` names the basis; `short` fits in a tile caption; `hint` is the one-line explanation.
+ */
+export const COST_BASES: readonly { value: CostBasis; label: string; short: string; hint: string }[] = [
+  { value: "run", label: "Running cost only", short: "running cost only", hint: "Production AI usage and platform. Use this for an app that already exists." },
+  { value: "runMaint", label: "Running + maintenance", short: "running + maintenance", hint: "Adds the support team and transition costs, but not the build." },
+  { value: "full", label: "Full lifecycle", short: "full lifecycle", hint: "Build labour, AI Dev Lab, dev environment, running, maintenance and transition: everything the project costs." },
+];
+
+/** Display name of a cost basis, e.g. "Full lifecycle". */
+export const basisLabel = (b: CostBasis): string => COST_BASES.find((x) => x.value === b)!.label;
+
 export interface RoiOptions {
   /** Years of the last 12 months' net cash flow added at the end of the horizon. 0 or absent: none. */
   terminalValueYears?: number;

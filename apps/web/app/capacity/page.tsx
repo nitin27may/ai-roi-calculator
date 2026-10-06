@@ -27,11 +27,16 @@ export default function Capacity() {
           </div>
         </CardHead>
         <div className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">
-          <div className="mb-3 rounded-r-md border-l-[3px] border-accent bg-accent-soft px-3 py-2 text-[12.5px]">
+          <div data-testid="capacity-mode" className="mb-3 rounded-r-md border-l-[3px] border-line bg-surface-2 px-3 py-2 text-[12.5px]">
+            {project.settings.pricingModel === "ptu"
+              ? <><b>This project is priced on provisioned throughput.</b> Azure OpenAI models reserve PTUs on a 1-month term, sized for peak load, and load above capacity spills over to pay-as-you-go; workloads can opt out on their Run page. The table below prices the same load every way for comparison. Models already on PTU are not repeated in the table. Change this in Settings, Pricing model.</>
+              : <><b>This project is priced pay-as-you-go, so PTU here is optional and advisory.</b> Nothing on this page changes the totals. If a PTU column wins below, switch Pricing model to Provisioned throughput in Settings, or set it on a single workload.</>}
+          </div>
+          {project.settings.pricingModel !== "ptu" && <div className="mb-3 rounded-r-md border-l-[3px] border-accent bg-accent-soft px-3 py-2 text-[12.5px]">
             {anyPtuWins
               ? <>At this load, <b>PTU is cheaper for {a.rows.filter((r) => r.cheapest !== "payg").map((r) => r.label).join(", ")}</b>. Check the utilization: PTU only pays when the deployment stays busy.</>
               : <><b>Pay-as-you-go is cheaper for every model here.</b> Microsoft prices a fully used PTU at about the pay-as-you-go cost of the same tokens, so a reservation only breaks even near the utilization shown. Buy PTU for guaranteed latency and throughput, not to save money.</>}
-          </div>
+          </div>}
           {a.rows.length === 0 ? <p className="text-sm text-muted">No Azure OpenAI models with a PTU table are used in production.</p> : (
             <table className="data">
               <thead><tr><th>Model</th><th>Deployment</th><th className="n">Tokens / month</th><th className="n">PTUs for peak</th><th className="n">Utilization</th><th className="n">PAYG</th><th className="n">PTU hourly</th><th className="n">1-month res.</th><th className="n">1-year res.</th><th className="n">Break-even (1-mo / 1-yr)</th></tr></thead>

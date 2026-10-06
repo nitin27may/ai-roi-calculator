@@ -14,6 +14,7 @@ import { HelpMenu } from "@/components/help-menu";
 import { PageIntro } from "@/components/page-intro";
 import { ProductTour } from "@/components/product-tour";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { monthLegendText } from "@/lib/months";
 import { catalog, useLedger } from "@/lib/compute";
 import { cad, cn, fmt } from "@/lib/format";
 import { DRAWER_CLOSE_EVENT, DRAWER_OPEN_EVENT, readSidebarCollapsed, writeSidebarCollapsed } from "@/lib/prefs";
@@ -208,7 +209,8 @@ function KpiBar() {
   const bar = (
     <>
       <div className="grid h-2 gap-0.5 overflow-hidden rounded" style={{ gridTemplateColumns: `${B}fr ${H - B}fr` }}><i className="bg-[var(--s2)]" /><i className="bg-[var(--s3)]" /></div>
-      <span className="text-xs text-ink-2">Build M1–{B} · Production M{B + 1}–{H}</span>
+      <span className="text-xs text-ink-2" title={monthLegendText(project.startDate, B, H)}>Build M1–{B} · Production M{B + 1}–{H}</span>
+      <span className="text-xs text-muted">M1 = month 1 of the project</span>
     </>
   );
   return (

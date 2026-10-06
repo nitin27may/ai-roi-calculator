@@ -3,7 +3,7 @@ import { Card, CardHead, Field, NumberInput, Select, TextInput } from "@/compone
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad } from "@/lib/format";
-import { DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, resolveAssumptions, type AzureDeployment, type ProcessingTier } from "@studio/engine";
+import { COST_BASES, DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, resolveAssumptions, type AzureDeployment, type CostBasis, type ProcessingTier } from "@studio/engine";
 
 /** heuristics.tokens.language keys, with display names. */
 const LANGUAGE_OPTIONS = [
@@ -31,7 +31,9 @@ export default function Settings() {
           <Field label="Plan length (months)" help="horizonMonths"><NumberInput value={project.timeline.horizonMonths} min={12} max={120} onChange={(v) => edit((d) => { d.timeline.horizonMonths = Math.round(v); })} /></Field>
           <Field label="Adoption ramp (months)" help="adoptionRamp"><NumberInput value={project.timeline.adoptionRampMonths} min={0} max={24} onChange={(v) => edit((d) => { d.timeline.adoptionRampMonths = Math.round(v); })} /></Field>
           <Field label="Default language" help="settingsLanguage"><Select value={project.settings.language ?? "en"} options={LANGUAGE_OPTIONS} onChange={(v) => edit((d) => { d.settings.language = v; })} /></Field>
+          <Field label="Default ROI cost basis" help="settingsCostBasis"><Select value={project.roi.basis} options={COST_BASES.map((b) => ({ value: b.value, label: b.label }))} onChange={(v) => edit((d) => { d.roi.basis = v as CostBasis; })} /></Field>
         </div>
+        <p className="px-3.5 pb-3.5 text-xs text-muted">{COST_BASES.find((b) => b.value === project.roi.basis)?.hint} The same choice is on Value &amp; ROI, and drives the Summary, Report and Excel.</p>
       </Card>
       <Card>
         <CardHead title="Estimates" sub="How cautious the one-off build figures are" />
@@ -45,8 +47,12 @@ export default function Settings() {
         <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3 px-3.5 pb-3.5">
           <Field label="Default deployment" help="settingsDeployment"><Select value={project.settings.azureDeployment} options={DEPLOYMENTS.map((d) => ({ value: d, label: DEPLOYMENT_LABEL[d] }))} onChange={(v) => edit((d) => { d.settings.azureDeployment = v as AzureDeployment; })} /></Field>
           <Field label="Processing tier" help="settingsTier"><Select value={project.settings.processingTier ?? "standard"} options={TIERS.map((t) => ({ value: t, label: TIER_LABEL[t] }))} onChange={(v) => edit((d) => { d.settings.processingTier = v as ProcessingTier; })} /></Field>
+          <Field label="Pricing model" help="settingsPricingModel"><Select value={project.settings.pricingModel ?? "payg"} options={[{ value: "payg", label: "Pay-as-you-go (default)" }, { value: "ptu", label: "Provisioned throughput (PTU)" }]} onChange={(v) => edit((d) => { if (v === "ptu") d.settings.pricingModel = "ptu"; else delete d.settings.pricingModel; })} /></Field>
         </div>
         <div className="space-y-1.5 px-3.5 pb-3.5 text-xs text-muted">
+          <p data-testid="pricing-model-note">{project.settings.pricingModel === "ptu"
+            ? "Assumed with provisioned throughput: every Azure OpenAI model reserves PTUs on a 1-month term, sized for peak load, with load above capacity spilling over to pay-as-you-go. Models without a PTU table (Claude, partner models) stay pay-as-you-go and an alert says so. A workload can opt out on its own Run page."
+            : "Assumed with pay-as-you-go: every call is billed per token. The Capacity page still shows what PTU would cost, as advice only; nothing in the totals changes."}</p>
           <p>Every Azure workload uses this unless you set its own Deployment or Tier on the Run page, so chat can stay in Canada while transcription runs on Global.</p>
           <p>Priority and Flex processing are not priced yet; only Standard and Batch are selectable here.</p>
           <p><b className="text-ink-2">Global Standard</b>: every Foundry model, including the OpenAI audio and realtime models; requests can be processed in any Azure region. <b className="text-ink-2">Canada Regional Standard</b>: data stays in Canada, but only gpt-4o, gpt-4.1-mini, OpenAI embeddings and Azure Speech are offered. <b className="text-ink-2">US Data Zone Standard</b>: data stays in the US; GPT-5.x/6, the Azure-hosted Claude models and partner models.</p>
