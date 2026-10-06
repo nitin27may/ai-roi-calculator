@@ -23,6 +23,6 @@ Updated in every PR and posted after every merge. Plan: [docs/plan](plan/README.
 | 17 | Exec | Report v2, comparison | Done | #20 | P11 |
 | 18 | Quality | Responsive, accessibility | Done | #22 | P12; P9b wizard benefit types in #23 |
 | 19 | Guidance / Coverage | Guided file and agent token estimator | Done | #25 | P13 |
-| 20 | Review fixes | Month labels and captions, explicit cost basis, pricing model setting | In review | (this PR) | Month 1 headers and legends; Default ROI cost basis and Pricing model (pay-as-you-go or PTU) in Settings; basis shown on headline numbers; Delete any project (inline confirm, empty library stays empty); Exclude build labour flows through every figure; collapsible project menu in the sidebar |
+| 20 | Review fixes | Month labels and captions, explicit cost basis, pricing model setting | Done | #27, #28, #29, #30 | Month 1 headers and legends; Default ROI cost basis and Pricing model (pay-as-you-go or PTU) in Settings; basis shown on headline numbers; Delete any project (inline confirm, empty library stays empty); Exclude build labour flows through every figure; collapsible project menu in the sidebar |
 
 Status values: Pending, In progress, In review, Done, Deferred.
