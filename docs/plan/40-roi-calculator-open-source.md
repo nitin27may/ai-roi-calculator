@@ -45,8 +45,8 @@ Each item is one PR, rebased on main, CI green, then merged and deployed.
 4. New Cloudflare Pages project `roi-calculator`, a notice on the old site, and the homepage updated in About.
 5. README rewrite, CHANGELOG, `v1.0.0` release.
 
-## Decisions needed from Nitin
-1. Licence: MIT (recommended), Apache-2.0, or another?
-2. Product name in the UI: "ROI Calculator", or something more distinctive?
-3. The new Pages URL: create `roi-calculator` now (the old URL stays live), or keep the current URL?
-4. Is it all right to remove internal names (WorkGraph and others) from the docs, data and tests, keeping a private copy outside the repo?
+## Decisions (2026-10-07)
+1. Licence: MIT.
+2. Product name in the UI: "ROI Calculator".
+3. Live site: a new Cloudflare Pages project `roi-calculator`. The old token-calculator URL stays live with a notice linking to the new one.
+4. Internal names (WorkGraph, personal and internal host names) are removed from the repo's docs, data and tests. Anything removed is kept as a private copy outside the repo.
