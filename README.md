@@ -1,92 +1,132 @@
 # ROI Calculator
 
-A local, offline cost and ROI calculator for technology projects, in CAD: what one costs to **build** and to **run**, and whether it pays back. It includes a token calculator for AI workloads and quick estimates with no project. Everything is priced in **CAD**, and the only providers are **Azure** (Foundry models including Claude on Foundry, Speech, Document Intelligence, Content Understanding, AI Search, Content Safety, evaluation) and **Snowflake Cortex**.
+A local, offline cost and ROI calculator for technology projects, priced in CAD, with a token calculator for AI workloads.
 
-> **Setting up or maintaining the project?** Start with [docs/HANDOVER.md](docs/HANDOVER.md): setup, price refresh, code map and open items.
+[![CI](https://github.com/nitin27may/roi-calculator/actions/workflows/ci.yml/badge.svg)](https://github.com/nitin27may/roi-calculator/actions/workflows/ci.yml)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/nitin27may/roi-calculator)](https://github.com/nitin27may/roi-calculator/releases)
 
-- **Build.** Labour from a rate card by delivery phase, plus the **AI Dev Lab**: the tokens and AI services the team uses while building. That covers model bake-offs across candidate models, harness iterations, nightly regression, Foundry evaluation, AI red teaming, the playground and AI coding tools.
-- **Workstreams and people.**
-  - A workstream is a feature with one or more agents. Each team line (a named seat or a role count) gets a share of its time per workstream; whatever is left is project-wide work.
-  - Iterations and playground work in a workstream scale with the people on it.
-  - Bake-offs, regression and red teaming in a workstream run once, however many people share it, so a shared agent is not counted twice.
-  - Labour follows the shares.
-  - A capability that links a workstream carries that workstream's build cost into its own ROI.
-  - Breakdowns are available by workstream, by person (with an optional monthly AI budget per person and over-budget months highlighted) and by model.
-- **Workstream templates.** Single agent, RAG feature, multi-agent feature (planner and worker harnesses) and shared component. Each sets up its harnesses and scoped activities across the build; people are allocated separately.
-- **Synthetic data and fine-tuning.**
-  - Synthetic data: generation ÷ pass rate, with an optional judge filter and Batch.
-  - Fine-tuning: training per 1M tokens (or per hour for RFT) plus hosting hours. Fine-tune prices are unverified list prices.
-- **Editable dev environment.** Add, remove and re-price the services the team runs while building.
-- **Benefit evidence.** Capabilities can come from a benchmark library ported from an earlier internal calculator: 12 capabilities, each with sources, a confidence rating and a vendor-funded flag.
-  - Hours are worked out per task, per user-week or per item in a queue.
-  - Gross hours × realisation = net hours, valued at the role's rate.
-  - Presets (conservative / typical / optimistic) pick each benchmark's saving and the default adoption and realisation.
-  - Adoption and realisation can be overridden for the project or per capability.
-  - Licence overlap (e.g. Microsoft 365 Copilot) is deducted.
-  - Each capability can go live in its own month.
-  - Savings are capped at the task's baseline.
-  - Capabilities entered as net hours are left alone.
-- **Avoided headcount.** An avoided cost can be FTE × hours × the role's rate (rising with rate escalation). A warning flags a likely double count with time saved at the same role.
-- **Before / after.** The work's monthly cost today, from benchmark baselines across all users plus avoided costs, against the cost with AI (remaining time, AI usage, platform and maintenance).
-- **Sensitivity.** A tornado of NPV for ten inputs, each moved one at a time: savings column, adoption, realisation, users, value of time, delivery rates, AI run volume, build length, adoption ramp and growth. It also shows the combined cases: everything at its low end and everything at its high end.
-- **Capability volume from workloads.** A capability can take its users (or queue items) from a workload, so the number is entered once and moves with the workload.
-- **Month plan.** Every Dev Lab activity has an intensity per build month (sweeps for bake-offs), set in a grid or by applying a shape (ramp up, front-loaded, final third only).
-- **Optional labour, evaluation and maintenance.**
-  - Untick "Include labour cost" to cost AI spend only.
-  - Mark a workstream as not evaluated.
-  - Set maintenance to None.
-- **Add, remove and rename items.** Dev Lab activities and production workloads can be added from templates, removed or renamed.
-- **Run.** Production workloads: transcription with every speech engine side by side, documents, email, embeddings, AI Search sizing, retrieval, chat, agent harnesses at P50, P90 or worst case under caps, continuous evaluation, Content Safety and platform costs.
-- **Value & ROI.** Measure benefits against running cost only, running plus maintenance, or the full lifecycle. You get payback month, ROI, NPV at your discount rate, and cost and benefit by year.
-  - **Benefits:** time-saving capabilities, avoided costs with start months, and one-off benefits.
-  - **Costs and assumptions:** transition costs in month windows, yearly growth and rate escalation.
-  - **ROI by capability:** linked workloads are direct cost, and shared cost is split pro rata. Anything left over is shown as unallocated, with the reason.
-  - **Scenarios:** swap a model, change usage, build length or team size, or apply a lever, then compare against the baseline and adopt the one you want.
-- **Savings levers.** Concrete changes (Batch for regression, narrowing the bake-off, model routing, cheaper speech engines…), each with the saving it would give.
-- **Capacity (PTU).** Sizes provisioned throughput for each production model the way Microsoft does. It compares pay-as-you-go with PTU billed hourly, on a 1-month reservation and on a 1-year reservation. It shows utilisation and the utilisation needed to break even, and includes a calculator for sizing a single deployment.
-- **Projects.** Keep several projects in the browser and create new ones from templates: meeting intelligence, contract RAG, email triage agent, call-centre voice agent, or blank. Each project card shows build cost, run-rate and payback. Projects can be opened, duplicated or deleted.
-- **Export.** An Excel workbook (summary, months, line items with formulas, ROI by capability, assumptions, and prices used with source and confidence), a CSV of line items, and a printable report you can save as PDF.
-- **Token calculator.** Quick estimates with no project: text (exact o200k count in the browser), documents (every route compared), audio, and a single agent run.
+## What it does
 
-## Run it
+- Estimates what a project costs to **build** and to **run**: team, environments, Azure infrastructure, AI services and models.
+- Measures the **return**: benefits, payback month, ROI, NPV and IRR, with cautious, expected and optimistic cases.
+- Runs entirely in your browser. No server, no account, no telemetry. Projects stay on your machine.
 
-Requires Node 20+ and pnpm 10.
+> **Estimates, not quotes.** Every figure comes from published list prices (Azure Retail Prices API, Snowflake's published credit rates) and from assumptions you set. Your contract, discounts, region and usage will differ. Use the numbers to compare options and make a case, then confirm them with the vendor.
+
+## Screenshots
+
+The Summary page on the bundled sample project (desktop, light):
+
+![Summary page: verdict, headline tiles, ranges and finance measures](docs/img/summary.png)
+
+The Build page: team, workstreams and the AI Dev Lab by month.
+
+![Build page: labour, workstreams, AI Dev Lab cost by month](docs/img/build.png)
+
+## Features
+
+**Estimate the build**
+- Labour from a rate card by delivery phase, with named people or role counts, shares of time per workstream, month windows and contingency.
+- Workstreams (a feature with one or more agents) and templates: single agent, RAG feature, multi-agent feature, shared component.
+- AI Dev Lab: the tokens and services a team uses while building. Model bake-offs, harness iterations, nightly regression, Foundry evaluation, red teaming, synthetic data, fine-tuning and AI coding tools, with an editable cost grid and a month plan.
+- Optional labour: exclude selected lines or set manual hourly rates.
+
+**Estimate the run**
+- Production workloads: transcription, documents, email, embeddings, AI Search, retrieval, chat, voice and agent harnesses at P50, P90 or worst case.
+- Azure deployment per workload (Global, Canada Regional, US Data Zone) and a Standard or Batch processing tier.
+- Snowflake Cortex workloads, shown in credits and in CAD.
+- Capacity (PTU): pay-as-you-go against hourly, 1-month and 1-year provisioned throughput, with utilisation and break-even.
+
+**Benefits and ROI**
+- Time-saving capabilities (per task, per user-week or per queue item), avoided costs and headcount, one-off benefits, adoption and realisation, with a benchmark library that records sources and confidence.
+- Payback, ROI, NPV, IRR, hurdle rate and terminal value, on running cost only, running plus maintenance, or the full lifecycle.
+- Sensitivity (tornado), before and after view, savings levers, and scenarios you can compare and adopt.
+
+**Token calculator**
+- Quick estimates with no project: text (exact o200k count in the browser), documents with every route compared, audio, and a single agent run. Covers Azure OpenAI, Claude on Foundry and Snowflake Cortex.
+
+**Guided start**
+- Use-case wizard, first-run product tour, inline help on every input and a glossary.
+
+**Exports**
+- Excel workbook (summary, months, line items with formulas, ROI by capability, assumptions, prices used), CSV, JSON project file and a printable report you can save as PDF.
+
+**Privacy**
+- Everything stays in the browser. The app makes no network calls while you use it. Projects are saved in local storage; use Save to file and Open file to move them between machines.
+
+## Quick start
+
+Prerequisites: Node.js 22 and pnpm 10 (`corepack enable` picks up the pinned version).
 
 ```bash
+git clone https://github.com/nitin27may/roi-calculator.git
+cd roi-calculator
 pnpm install
-pnpm build      # builds the web app
-pnpm --filter @roi-calculator/web start   # http://localhost:3000
-# or, while developing:
-pnpm dev
+pnpm dev            # http://localhost:3000
 ```
-
-The app makes no network calls while you use it. Projects are saved in the browser. Use **Save to file** / **Open file** to keep `*.aicost.json` copies.
-
-## Prices
-
-The catalogue lives in `packages/catalog/data/*.json`, and every price is CAD. Each entry records its source, retrieval date and a confidence level (`verified`, `cross-checked`, `single-source`, `unverified`), plus promo windows and retirement dates. The app uses these to warn you when a promo ends or a model retires inside your plan.
 
 ```bash
-pnpm prices:azure       # Azure Retail Prices API (currencyCode=CAD) → updates Azure entries, reports unmapped meters
-pnpm prices:snowflake   # Snowflake Credit Consumption Table (PDF) → updates Cortex credit rates
-pnpm prices             # both
-```
-
-Items with no price API are curated by hand in the same JSON files. These include the semantic ranker free tier, agentic retrieval, the Foundry evaluation meter, Content Safety sub-features and MAI promos. Keep `source.retrievedAt` current when you edit them.
-
-## Layout
-
-```
-apps/web            Next.js app (Tailwind, local fonts, Zustand store)
-packages/catalog    CAD price catalogue (JSON) + Zod schemas + token heuristics
-packages/engine     Pure TypeScript cost engine: harness simulator, workloads, AI Dev Lab, monthly ledger, ROI, levers
-scripts/prices      Local price fetchers
-docs/               Research notes, design, plan, mockup
-```
-
-## Checks
-
-```bash
-pnpm test        # engine and catalogue tests
+pnpm build          # production build (static export)
+pnpm test           # engine and catalogue tests
 pnpm typecheck
+pnpm validate       # catalogue integrity
 ```
+
+On first load you get a sample project (a meeting intelligence agent) to click through.
+
+## How prices work
+
+The catalogue in `packages/catalog/data` holds every price with its source, retrieval date and a confidence level. Prices are refreshed on a networked machine and committed, so the app itself never goes online.
+
+```mermaid
+flowchart LR
+    A["Azure Retail Prices API<br/>(CAD meters)"] --> R["pnpm prices"]
+    S["Snowflake published<br/>credit rates"] --> R
+    U["USD-only list prices<br/>(for example Claude on Foundry)"] --> F["CAD/USD rate<br/>measured from Azure meters"]
+    F --> R
+    R --> C["Price catalogue<br/>packages/catalog/data"]
+    C --> E["Engine<br/>packages/engine"]
+    E --> W["Browser app<br/>no network calls"]
+
+    classDef ext fill:#fdf0d5,stroke:#b7791f,color:#3b2a0a
+    classDef core fill:#d9ecf2,stroke:#0f6b8a,color:#08303f
+    classDef infra fill:#e5e7eb,stroke:#6b7280,color:#1f2937
+    class A,S,U ext
+    class C,E,W core
+    class R,F infra
+```
+
+- Azure prices come from the Retail Prices API in CAD wherever a meter exists. Prices Microsoft publishes only in USD are converted at the CAD/USD rate measured from Azure's own meters. The rate and its date are shown in the app.
+- Snowflake Cortex uses published credit rates and your CAD price per credit.
+- Refresh with `pnpm prices:azure`, `pnpm prices:snowflake`, or `pnpm prices` for both. Add `--check` to report drift without writing. Details are in [docs/HANDOVER.md](docs/HANDOVER.md).
+- These are list prices. They exclude enterprise discounts, reservations you have not modelled, tax and support.
+
+## Project layout
+
+| Path | What it holds |
+| --- | --- |
+| `apps/web` | Next.js 15 app, static export, Tailwind, Zustand store |
+| `packages/engine` | Pure TypeScript calculation: workloads, Dev Lab, monthly ledger, ROI, levers, project schema and migrations |
+| `packages/catalog` | Price and benchmark data (JSON), Zod schemas, token heuristics |
+| `scripts/prices` | Price refresh scripts for Azure and Snowflake |
+| `docs` | [Design](docs/DESIGN.md), [handover](docs/HANDOVER.md), [plan](docs/plan/README.md), [progress](docs/PROGRESS.md) |
+
+## Roadmap
+
+Today the product is strongest on AI cost: AI workloads, the AI Dev Lab and token estimation are the deepest parts. The next step is to cover any technology project (automation, replatforming, new applications, enhancements) with environments, a resource master, current against target cost and a benefit scorecard. This is planned, not built.
+
+- Scope and gaps: [docs/plan/30-any-project-gaps.md](docs/plan/30-any-project-gaps.md)
+- Status of every item: [docs/PROGRESS.md](docs/PROGRESS.md)
+
+## Contributing
+
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, the checks to run and pull request rules. Price corrections and new Azure or Snowflake resources are covered there too.
+
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md): report vulnerabilities privately, not in public issues
+- [Support](SUPPORT.md): questions, bugs and price corrections
+
+## Licence
+
+[MIT](LICENSE)
