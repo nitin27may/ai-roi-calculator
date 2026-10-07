@@ -101,7 +101,7 @@ export function NumberInput({ value, onChange, min = 0, max, step, suffix, label
             else { setDraft(null); onChange(v); }
           }}
           onBlur={() => { setDraft(null); setError(null); }} />
-        {suffix && <span className="text-xs text-muted">{suffix}</span>}
+        {suffix && <span className="whitespace-nowrap text-xs text-muted">{suffix}</span>}
       </span>
       {error && <span id={errId} role="alert" className="flex items-start gap-1 text-xs leading-snug text-crit"><OctagonAlert size={12} className="mt-0.5 flex-none" aria-hidden />{error}</span>}
     </span>

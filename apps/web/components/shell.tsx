@@ -4,10 +4,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import {
   Activity, BookOpen, Calculator, Cpu, Database, Download, FileSpreadsheet, FileText, FolderOpen, Hammer, LayoutDashboard, Menu, PanelLeftClose, PanelLeftOpen,
-  ChevronDown, Printer, Redo2, RotateCcw, Settings, Sparkles, TrendingUp, Undo2, Upload, X, ChartColumn, type LucideIcon,
+  ChevronDown, Server, Printer, Redo2, RotateCcw, Settings, Sparkles, TrendingUp, Undo2, Upload, X, ChartColumn, type LucideIcon,
 } from "lucide-react";
 import { exportCsv, exportXlsx } from "@/lib/export";
-import { DEPLOYMENT_LABEL, ProjectSchema, labourExcluded, labourPartialText, meetingIntelligence, migrateProject } from "@roi-calculator/engine";
+import { DEPLOYMENT_LABEL, ProjectSchema, envCost, labourExcluded, labourPartialText, meetingIntelligence, migrateProject } from "@roi-calculator/engine";
 import { useStudio } from "@/lib/store";
 import { describeIssue } from "@/lib/validation";
 import { HelpMenu } from "@/components/help-menu";
@@ -23,7 +23,7 @@ import { downloadProject } from "@/lib/project-file";
 import { LabourExcludedNote } from "@/components/labour-excluded";
 import { EmptyLibrary } from "@/components/empty-library";
 
-const TITLES: Record<string, string> = { "/summary": "Summary", "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report", "/capacity": "Capacity (PTU)", "/projects": "Projects", "/wizard": "New estimate wizard", "/glossary": "Glossary" };
+const TITLES: Record<string, string> = { "/summary": "Summary", "/overview": "Overview", "/build": "Build", "/infrastructure": "Environments and infrastructure", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report", "/capacity": "Capacity (PTU)", "/projects": "Projects", "/wizard": "New estimate wizard", "/glossary": "Glossary" };
 /** Below this width the sidebar is an off-canvas drawer (Tailwind's lg breakpoint). */
 const DRAWER_QUERY = "(max-width: 1023px)";
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -220,6 +220,7 @@ function ProjectNode({ row, rail, path, B, H, link }: { row: ProjectRow; rail: b
           {link("/summary", LayoutDashboard, "Summary", undefined, go, row.active)}
           {link("/overview", ChartColumn, "Overview", undefined, go, row.active)}
           {link("/build", Hammer, "Build", build, go, row.active)}
+          {link("/infrastructure", Server, "Infrastructure", undefined, go, row.active)}
           {link("/run", Activity, "Run", run, go, row.active)}
           {link("/roi", TrendingUp, "Value & ROI", undefined, go, row.active)}
           {showCapacity && link("/capacity", Cpu, "Capacity (PTU)", undefined, go, row.active)}
@@ -242,9 +243,10 @@ const Group = ({ label, children }: { label: string; children: ReactNode }) => (
 function KpiBar() {
   const { project, ledger, roi } = useLedger();
   const t = ledger.totals, B = project.timeline.buildMonths, H = project.timeline.horizonMonths;
+  const envBuild = ledger.months.slice(0, B).reduce((x, m) => x + envCost(m), 0);
   const basis = { run: "running cost only", runMaint: "running + maintenance", full: "full lifecycle" }[project.roi.basis];
   const k = [
-    [`Build · months 1–${B}`, cad(t.build), labourExcluded(project) ? "Build labour excluded" : labourPartialText(project) || `${cad(t.devLab)} of it AI Dev Lab`],
+    [`Build · months 1–${B}`, cad(t.build), labourExcluded(project) ? "Build labour excluded" : labourPartialText(project) || `${cad(t.devLab)} of it AI Dev Lab${envBuild > 0 ? `, ${cad(envBuild)} environments` : ""}`],
     ["Production run-rate", `${cad(t.runRate)}/mo`, `+ ${cad(t.maintRate)} maintenance`],
     ["Benefit at full adoption", `${cad(t.benefitRate)}/mo`, `${project.benefits.capabilities.length + project.benefits.avoidedCosts.length} sources`],
     ["Payback", roi.paybackMonth ? `Month ${roi.paybackMonth}` : `> ${H} months`, basis],

@@ -297,7 +297,7 @@ Typed infrastructure resources (VMs, App Service plans, databases) live in `pack
 - `UnitPrice.options.{ri1,ri3,ahb,devtest}` hold the other prices, each with its own `source`. `UnitPrice.manual { price, note, retrievedAt }` replaces the pay-as-you-go price, adds a "manual" note to the ledger and shows as "manual" in Prices & sources. The refresh must never overwrite it. Option prices stay as refreshed.
 - A declared option with no price on a unit needs an explicit reason in `attrs["fallback.<option>"]` (for example `fallback.ahb` on a Linux VM). Free items set `attrs.free: true` (the only case where a price may be 0).
 - Engine: `Project.resources[]` (`ResourceSchema`, default empty) priced by `resources.ts` `resourceLines`. Each resource is costed as production at 730 hours in the production months, stream `run`, fixed. A reserved term uses the reserved price when the type offers it, else pay-as-you-go with a note. Hybrid Benefit uses the `ahb` price. A project with no resources adds no lines (the v5 golden test depends on that). With environments (A6), `envIds` selects the environments a resource exists in.
-- `packages/catalog/test/resources-coverage.test.ts` is the coverage gate: every SKU and meter has an existing price of 0 or more, every declared option has a price or a fallback note, every price has `retrievedAt`, and no price declared in a resource file is orphaned. The help entries for the resource fields (`resourceType` and friends) exist but no screen uses them yet, so `help.test.ts` does not cover them until A7.
+- `packages/catalog/test/resources-coverage.test.ts` is the coverage gate: every SKU and meter has an existing price of 0 or more, every declared option has a price or a fallback note, every price has `retrievedAt`, and no price declared in a resource file is orphaned. The help entries for the resource fields (`resourceType` and friends) are used by the Infrastructure page (A7), so `help.test.ts` covers them.
 
 ## Current state and savings (A5)
 
@@ -317,7 +317,7 @@ Typed infrastructure resources (VMs, App Service plans, databases) live in `pack
 
 ## Environments model (A6)
 
-Engine only; the page that edits environments is A7. Resources are defined once, as production. `Project.environments[]` (`EnvironmentSchema`, optional, default empty) says where and how they run.
+The page that edits environments and resources is `/infrastructure` (A7, below). Resources are defined once, as production. `Project.environments[]` (`EnvironmentSchema`, optional, default empty) says where and how they run.
 
 - `EnvironmentSchema { id, label, production, sizeFactor (1), schedule: { hoursPerDay, daysPerMonth } | { hoursPerMonth } (730), fromMonth?, toMonth?, pricing: payg | devtest }`. Empty or absent `environments` means one implicit production environment at 730 hours in the production months, exactly the A2 behaviour (the v5 golden test depends on it). `Resource.envIds` selects the environments a resource exists in; absent means all defined environments, and it is ignored when none are defined.
 - Cost per resource, environment and month = sum over the SKU's meters of quantity x option price x (hourly pay-as-you-go, Hybrid Benefit or dev/test meter ? hours / 730 : 1) x (meter scales with size ? size factor : 1). Reserved terms bill 730 hours whatever the schedule (size factor still applies); a scheduled environment on a reserved term adds a note. `pricing: devtest` uses the `devtest` option price when the type offers it and the unit has one, else pay-as-you-go with a note. A reserved term wins over dev/test.
@@ -326,8 +326,17 @@ Engine only; the page that edits environments is A7. Resources are defined once,
 - Totals: `env` in build months is added to `totals.build`; `env` in the steady-state production month is added to `runRate`. `costSplit` puts env in Build in build months and Platform in production months. The AI dev-cost cut (`devCutPct`) is not applied to resource or environment lines. Contingency follows `contingencyScope` like other non-labour build costs. Environment and resource lines stay out of the base of "maintenance as a percent of build".
 - Cost bases: `run` (Running cost only) = run + platform, so non-production environments after go-live are excluded. `runMaint` and `full` include `env`. The `COST_BASES` hint texts say so.
 - Allocation: `env` is a shared stream (shared pool under `runMaint` and `full`, labelled "Environments"). Report: stream wording "Environments", Excel month rows have an "Environments" column (0 when none), the Report page chart adds an "Environments" series only when any is above 0, and the Excel summary picture folds it into Platform.
-- Help entries exist for the environment fields (`environmentLabel` and friends); glossary has "Environment", "Size factor" and "Schedule (hours per month)". No screen uses them until A7.
+- Help entries exist for the environment fields (`environmentLabel` and friends); glossary has "Environment", "Size factor" and "Schedule (hours per month)". The Infrastructure page (A7) uses them.
 - Tests: `packages/engine/test/environments.test.ts`.
+
+## Infrastructure page (A7)
+
+- `/infrastructure` (nav: after Build). `components/infrastructure.tsx`: totals strip, environments grid, resource list with an inline picker (category, type, filtered SKU list capped at 50, so it scales to hundreds of SKUs), one card per resource.
+- Pure helpers: `apps/web/lib/infrastructure.ts` (quick-adds, schedule mode switch, month bounds, environment removal that cleans `envIds`, term options from the SKU's priced options, picker filtering). Display maths: `packages/engine/src/infrastructure.ts` (`resourceCostRows`, `environmentCostRows`, `infrastructureSummary`), read from the ledger lines, never repriced. Per-environment figures are read at the first month the environment is billed.
+- Nothing is preselected: quick-adds set only the name and production flag; a new resource has no quantity (costs 0, with a note) and pay-as-you-go. `envIds` is stored absent when every environment is ticked.
+- Overview: production resource lines move from the "Production AI usage" lane to "Platform & infrastructure", and an "Environments" lane appears when there are env lines. KPI Build subtitle and Build page subtitle name the environment cost.
+- Gotcha: a zustand selector must not return a fresh `?? []` (infinite render); default after selecting.
+- Tests: `packages/engine/test/infrastructure.test.ts`, `apps/web/test/infrastructure.test.ts`.
 
 ## Plan and progress
 

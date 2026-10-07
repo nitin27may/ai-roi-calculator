@@ -23,6 +23,7 @@ export const PROJECT_VIEWS = [
   { href: "/summary", label: "Summary" },
   { href: "/overview", label: "Overview" },
   { href: "/build", label: "Build" },
+  { href: "/infrastructure", label: "Infrastructure" },
   { href: "/run", label: "Run" },
   { href: "/roi", label: "Value & ROI" },
   { href: "/capacity", label: "Capacity (PTU)" },
