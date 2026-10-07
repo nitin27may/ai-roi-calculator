@@ -57,11 +57,14 @@ function useColumnKeys(count: number) {
 /** The same numbers as the chart, in a table that only assistive technology sees. */
 function SrTable({ caption, head, rows }: { caption: string; head: string[]; rows: string[][] }) {
   return (
-    <table className="sr-only">
-      <caption>{caption}</caption>
-      <thead><tr>{head.map((h) => <th key={h} scope="col">{h}</th>)}</tr></thead>
-      <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => (j === 0 ? <th key={j} scope="row">{c}</th> : <td key={j}>{c}</td>))}</tr>)}</tbody>
-    </table>
+    // The wrapper does the clipping: a table ignores sr-only's 1px height, so on its own it stretched the page (a blank last sheet in print).
+    <div className="sr-only">
+      <table>
+        <caption>{caption}</caption>
+        <thead><tr>{head.map((h) => <th key={h} scope="col">{h}</th>)}</tr></thead>
+        <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => (j === 0 ? <th key={j} scope="row">{c}</th> : <td key={j}>{c}</td>))}</tr>)}</tbody>
+      </table>
+    </div>
   );
 }
 
@@ -315,15 +318,15 @@ export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string
           const x = (v: number) => Math.round((10000 * (v - lo)) / span) / 100;
           const pos = (v: number) => Math.min(98, Math.max(2, x(v)));
           return (
-            <div key={r.id} className="grid grid-cols-[minmax(100px,150px)_1fr] items-center gap-2 text-[12px]">
-              <span className="truncate text-ink-2" title={r.label}>{r.label}{r.wide && <span className="ml-1 rounded bg-warn-soft px-1 text-xs font-medium text-warn">Wide</span>}</span>
+            <div key={r.id} className="grid grid-cols-1 items-center gap-x-2 gap-y-0.5 text-[12px] sm:grid-cols-[minmax(100px,150px)_1fr]">
+              <span className="text-ink-2 sm:truncate" title={r.label}>{r.label}{r.wide && <span className="ml-1 rounded bg-warn-soft px-1 text-xs font-medium text-warn">Wide</span>}</span>
               <div>
                 <div role="img" aria-label={`${r.label}: ${show(r, r.low)} to ${show(r, r.high)}, expected ${show(r, r.expected)}`} className="relative h-5" title={`${r.label}: ${show(r, r.low)} to ${show(r, r.high)}, expected ${show(r, r.expected)}`}>
                   {x(0) > 0 && x(0) < 100 && <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${x(0)}%` }} />}
                   <div className="absolute top-1.5 bottom-1.5 rounded bg-surface-2" style={{ left: `${x(r.low)}%`, width: `${r2(Math.max(0.8, x(r.high) - x(r.low)))}%`, background: "var(--accent)", opacity: 0.35 }} />
                   <div className="absolute inset-y-0.5 w-0.5 rounded bg-ink" style={{ left: `${pos(r.expected)}%` }} />
                 </div>
-                <div className="num flex justify-between text-xs text-muted"><span>{show(r, r.low)}</span><span className="font-semibold text-ink">{show(r, r.expected)}</span><span>{show(r, r.high)}</span></div>
+                <div className="num flex justify-between gap-2 text-xs text-muted"><span>{show(r, r.low)}</span><span className="font-semibold text-ink">{show(r, r.expected)}</span><span>{show(r, r.high)}</span></div>
               </div>
             </div>
           );

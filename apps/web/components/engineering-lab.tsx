@@ -44,7 +44,7 @@ export function ToolsPanel({ onOpenAi }: { onOpenAi: () => void }) {
       {items.length > 0 && (
         <div className="flex-none overflow-x-auto">
           <table className="data">
-            <thead><tr><th>Tool</th><th><span className="inline-flex items-center gap-0.5">Billed<HelpTip id="toolAmount" label="Billed" /></span></th><th><span className="inline-flex items-center gap-0.5">Per person<HelpTip id="toolPerPerson" label="Per person" /></span></th><th className="n">Amount</th><th className="n">Over the build</th><th /></tr></thead>
+            <thead><tr><th>Tool</th><th><span className="inline-flex items-center gap-0.5">Billed<HelpTip id="toolAmount" label="Billed" /></span></th><th><span className="inline-flex items-center gap-0.5">Per person<HelpTip id="toolPerPerson" label="Per person" /></span></th><th className="n">Amount</th><th className="n">Over the build</th><th><span className="sr-only">Actions</span></th></tr></thead>
             <tbody>
               {items.map((it) => (
                 <tr key={it.id}>

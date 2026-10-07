@@ -57,6 +57,8 @@ export default function Report() {
   const firstFull = steadyState(ledger);
   const runById = new Map<string, number>();
   for (const l of firstFull.lines) if (!l.once && (l.stream === "run" || l.stream === "platform")) runById.set(l.componentId, (runById.get(l.componentId) ?? 0) + l.cost);
+  // What the production table's total holds besides the workloads listed, so its rows add up to its total.
+  const otherRun = Math.max(0, ledger.totals.runRate - p.workloads.reduce((sum, w) => sum + (runById.get(w.id) ?? 0), 0));
   const unverified = extra.prices.filter((r) => r.Confidence === "unverified" || r.Confidence === "single-source");
   const fx = catalog.meta.fx;
   const rangeRows = [
@@ -83,7 +85,7 @@ export default function Report() {
         {/* 1. Cover */}
         <section className="report-page report-cover flex min-h-[560px] flex-col justify-between rounded-lg border border-line bg-surface p-5 sm:p-10 print:min-h-[250mm] print:rounded-none print:border-0 print:p-0">
           <div>
-            <div className="text-xs uppercase tracking-[0.1em] text-muted">AI cost and ROI estimate</div>
+            <div className="text-xs uppercase tracking-[0.1em] text-muted">Cost and ROI estimate</div>
             <div className="mt-24 h-1.5 w-20 rounded bg-accent print:mt-40" />
             <h1 className="mt-5 max-w-[18ch] text-3xl sm:text-5xl font-bold leading-[1.08]">{p.name}</h1>
             <p className="mt-4 max-w-[52ch] text-[15px] text-ink-2">A {p.timeline.horizonMonths}-month view of what it costs to build and run, what it returns, and how sure we are.</p>
@@ -252,6 +254,7 @@ export default function Report() {
               <table className="data">
                 <tbody>
                   {p.workloads.map((w) => <tr key={w.id}><td>{w.label}</td><td className="n">{cad(runById.get(w.id) ?? 0)}</td></tr>)}
+                  {otherRun >= 0.5 && <tr data-testid="report-other-run"><td>Infrastructure, environments and other running costs</td><td className="n">{cad(otherRun)}</td></tr>}
                   <tr><td>Maintenance</td><td className="n">{cad(t.maintRate)}</td></tr>
                   <tr className="total"><td>Total</td><td className="n">{cad(t.runRate + t.maintRate)}</td></tr>
                 </tbody>
@@ -297,6 +300,7 @@ export default function Report() {
             <section className="break-inside-avoid">
               <h3 className="mb-2 text-lg font-bold">Watch-outs</h3>
               <ul className="list-disc pl-5 text-[13px] text-ink-2">
+                {ledger.notes.length === 0 && unverified.length === 0 && <li className="list-none">Nothing needs attention.</li>}
                 {ledger.notes.map((n) => <li key={n.message}>{n.message}</li>)}
                 {unverified.length > 0 && <li>{unverified.length} prices used here are single-source or unverified: {unverified.map((r) => r.Item).join(", ")}.</li>}
               </ul>

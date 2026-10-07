@@ -127,7 +127,7 @@ export function DeliveryCostsPanel() {
       {items.length > 0 && (
         <div className="flex-none overflow-x-auto">
           <table className="data">
-            <thead><tr><th>Item</th><th><span className="inline-flex items-center gap-0.5">Category<HelpTip id="deliveryCostCategory" label="Category" /></span></th><th>Billed</th><th className="n"><span className="inline-flex items-center gap-0.5">Amount<HelpTip id="deliveryCostAmount" label="Amount" /></span></th><th className="n">In the plan</th><th /></tr></thead>
+            <thead><tr><th>Item</th><th><span className="inline-flex items-center gap-0.5">Category<HelpTip id="deliveryCostCategory" label="Category" /></span></th><th>Billed</th><th className="n"><span className="inline-flex items-center gap-0.5">Amount<HelpTip id="deliveryCostAmount" label="Amount" /></span></th><th className="n">In the plan</th><th><span className="sr-only">Actions</span></th></tr></thead>
             <tbody>
               {items.map((it) => (
                 <tr key={it.id}>

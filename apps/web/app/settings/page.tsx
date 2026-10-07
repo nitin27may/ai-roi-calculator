@@ -86,7 +86,7 @@ export default function Settings() {
           <Field label={`CAD per platform credit (default ${cad(defaultPlatform, 2)})`} help="sfPlatformCredit"><NumberInput value={sf.platformCreditCad ?? defaultPlatform} step={0.01} onChange={(v) => edit((d) => { d.settings.snowflake.platformCreditCad = v > 0 ? v : undefined; })} /></Field>
         </div>
         <div className="px-3.5 pb-3.5" data-testid="snowflake-conversion">
-          <table className="data">
+          <div className="overflow-x-auto" tabIndex={0}><table className="data">
             <thead><tr><th>Credit</th><th className="n">Catalogue default</th><th className="n">In use</th><th>Rate</th><th className="n">1,000 credits</th><th><span className="sr-only">Reset</span></th></tr></thead>
             <tbody>
               {([["AI credit", ai, "aiCreditCad"], ["Platform credit", platform, "platformCreditCad"]] as const).map(([label, r, key]) => (
@@ -100,7 +100,7 @@ export default function Settings() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
           <p className="mt-1.5 text-xs text-muted">Worked example: 1,000 AI credits = {cad(1000 * ai.cad, 2)}; 1,000 platform credits = {cad(1000 * platform.cad, 2)}. Every Snowflake line shows its credits and this rate.</p>
         </div>
         <p className="px-3.5 pb-3.5 text-xs text-muted">AI credits cover Cortex AI functions, Search, Agents and the REST API. Platform credits cover warehouses, Cortex Analyst and fine-tuning. Claude and Gemini are not served under AZURE_US or AZURE_EU routing; requests go to AWS or Google over the public internet.</p>

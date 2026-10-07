@@ -31,7 +31,7 @@ export default function Capacity() {
             <Field label="Peak ÷ average load" help="peakFactor"><NumberInput value={peak} min={1} max={20} step={0.5} onChange={setPeak} /></Field>
           </div>
         </CardHead>
-        <div className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">
+        <div tabIndex={0} role="region" aria-label="Capacity planning" className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">
           <div data-testid="capacity-mode" className="mb-3 rounded-r-md border-l-[3px] border-line bg-surface-2 px-3 py-2 text-[12.5px]">
             {project.settings.pricingModel === "ptu"
               ? <><b>This project is priced on provisioned throughput.</b> Azure OpenAI models reserve PTUs on a 1-month term, sized for peak load, and load above capacity spills over to pay-as-you-go; workloads can opt out on their Run page. The table below prices the same load every way for comparison. Models already on PTU are not repeated in the table. Change this in Settings, Pricing model.</>
