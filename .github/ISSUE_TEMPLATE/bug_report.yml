@@ -1,0 +1,35 @@
+name: Bug report
+description: Something is wrong or broken
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you got.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Set ...
+        3. See ...
+    validations:
+      required: true
+  - type: textarea
+    id: project
+    attributes:
+      label: Project file or numbers
+      description: An exported project file (remove anything private), or the inputs and the total you saw.
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Firefox 130 on Ubuntu 24.04
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
