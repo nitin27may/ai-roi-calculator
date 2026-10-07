@@ -82,3 +82,27 @@ export const writeProjectMenuOpen = (storage: PrefStorage, projectId: string, op
     storage.setItem(PROJECT_MENU_STATE_KEY, JSON.stringify({ ...readChoices(storage), [projectId]: open }));
   } catch { /* storage blocked */ }
 };
+
+/**
+ * Portfolio view on /projects: how the cards are grouped and which type chips are on. Nothing is stored until the
+ * user chooses; no filter and no grouping is the default. Unknown values are dropped on read.
+ */
+export const PORTFOLIO_KEY = "roi-calculator:portfolio";
+export const PORTFOLIO_FILTER_KEYS = ["newApp", "enhancement", "automation", "replatform", "saas", "ai", "notSet"] as const;
+export type PortfolioKey = (typeof PORTFOLIO_FILTER_KEYS)[number];
+export type PortfolioGroupBy = "none" | "type";
+export interface PortfolioPrefs { groupBy: PortfolioGroupBy; filter: PortfolioKey[] }
+export const DEFAULT_PORTFOLIO: PortfolioPrefs = { groupBy: "none", filter: [] };
+
+export function readPortfolio(storage: PrefStorage): PortfolioPrefs {
+  try {
+    const v: unknown = JSON.parse(storage.getItem(PORTFOLIO_KEY) ?? "null");
+    if (!v || typeof v !== "object") return DEFAULT_PORTFOLIO;
+    const o = v as { groupBy?: unknown; filter?: unknown };
+    const filter = Array.isArray(o.filter) ? PORTFOLIO_FILTER_KEYS.filter((k) => (o.filter as unknown[]).includes(k)) : [];
+    return { groupBy: o.groupBy === "type" ? "type" : "none", filter };
+  } catch { return DEFAULT_PORTFOLIO; }
+}
+export function writePortfolio(storage: PrefStorage, prefs: PortfolioPrefs): void {
+  try { storage.setItem(PORTFOLIO_KEY, JSON.stringify(prefs)); } catch { /* storage blocked: applies for this visit only */ }
+}
