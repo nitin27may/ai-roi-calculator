@@ -1,6 +1,7 @@
 import type { Ledger } from "./ledger.js";
 import type { Capability, DevActivity, Feature, Project, Workload } from "./project.js";
 import { sum } from "./lines.js";
+import { currentLines } from "./currentstate.js";
 
 /** Id of the feature a migrated v2 project's items are put in. */
 export const DEFAULT_FEATURE_ID = "feature-1";
@@ -69,7 +70,7 @@ export const SHARED_FEATURE_ID = "";
 
 /**
  * Cost and benefit per feature over the horizon. Run cost follows the workload's feature; build cost follows the
- * workstream's (or the activity's own) feature. Maintenance, transition costs, project-wide labour, avoided costs
+ * workstream's (or the activity's own) feature; a current-state saving follows its line's feature. Maintenance, transition costs, project-wide labour, avoided costs
  * and one-off benefits belong to the project and sit in the shared row. Rows add up to the ledger's totals.
  */
 export function featureBreakdown(p: Project, ledger: Ledger): FeatureRow[] {
@@ -93,6 +94,7 @@ export function featureBreakdown(p: Project, ledger: Ledger): FeatureRow[] {
     }
     for (const c of p.benefits.capabilities) row(c.featureId ?? SHARED_FEATURE_ID).benefit += mo.benefitBy.capabilities[c.id] ?? 0;
     row(SHARED_FEATURE_ID).benefit += mo.benefitBy.avoided + mo.benefitBy.oneOff;
+    for (const c of currentLines(p)) row(c.featureId ?? SHARED_FEATURE_ID).benefit += mo.benefitBy.currentState[c.id] ?? 0;
   }
   for (const r of rows.values()) r.net = r.benefit - r.run - r.build;
   const all = [...rows.values()].filter((r) => r.id !== SHARED_FEATURE_ID || r.run + r.build + r.benefit > 0 || r.workloads > 0);

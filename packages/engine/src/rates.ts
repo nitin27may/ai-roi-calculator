@@ -9,7 +9,8 @@ export function roleUsage(p: Project, roleId: string): number {
   const maint = p.maintenance.mode === "team" ? p.maintenance.team.filter((t) => t.roleId === roleId).length : 0;
   return p.build.team.filter((t) => t.roleId === roleId).length + maint
     + p.benefits.capabilities.filter((c) => c.roleId === roleId).length
-    + p.benefits.avoidedCosts.filter((a) => a.roleId === roleId).length;
+    + p.benefits.avoidedCosts.filter((a) => a.roleId === roleId).length
+    + (p.currentState?.lines ?? []).filter((c) => c.basis.kind === "fte" && c.basis.roleId === roleId).length;
 }
 
 /** A role id for a new label that does not clash with an existing one ("Data engineer" -> "dataEngineer", then "dataEngineer2"). */

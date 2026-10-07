@@ -418,6 +418,32 @@ export const ResourceSchema = z.object({
 });
 export type Resource = z.infer<typeof ResourceSchema>;
 
+/**
+ * One line of what the work costs today. Each can be kept, reduced or retired; the saving is the part that goes away.
+ * `basis`: a monthly amount, people (FTE x hours x the role's rate, escalating with pay) or a per-transaction cost x volume.
+ * `change.fromMonth` is a plan month (1 is the first build month); absent means go-live.
+ * `decommission`: a saving that depends on something happening (a lease ended, a system switched off). Counted only when `assumed` is true.
+ */
+export const CurrentLineSchema = z.object({
+  id, label: z.string(),
+  category: z.enum(["people", "licence", "infrastructure", "transaction", "contract", "other"]),
+  featureId: id.optional(),
+  /** How sure you are of the cost and the saving, in percent; absent means 100. */
+  confidencePct: pct.optional(),
+  basis: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("monthly"), amountCad: n0 }),
+    z.object({ kind: z.literal("fte"), roleId: id, fte: n0, hoursPerMonth: n0 }),
+    z.object({ kind: z.literal("perTransaction"), unitCostCad: n0, volumePerMonth: n0.optional(), volumeFrom: id.optional() }),
+  ]),
+  change: z.discriminatedUnion("mode", [
+    z.object({ mode: z.literal("keep") }),
+    z.object({ mode: z.literal("reduce"), pct, fromMonth: z.number().int().positive().optional(), followsAdoption: z.boolean() }),
+    z.object({ mode: z.literal("retire"), fromMonth: z.number().int().positive().optional() }),
+  ]),
+  decommission: z.object({ conditional: z.literal(true), condition: z.string(), assumed: z.boolean() }).optional(),
+});
+export type CurrentLine = z.infer<typeof CurrentLineSchema>;
+
 const ProjectObject = z.object({
   schema: z.literal(PROJECT_SCHEMA_ID),
   version: z.literal(CURRENT_PROJECT_VERSION),
@@ -531,6 +557,8 @@ const ProjectObject = z.object({
     amortiseMonths: z.number().int().min(1).max(120).optional(),
   }),
   scenarios: z.array(ScenarioSchema).default([]),
+  /** What the work costs today, itemised. Absent or empty means no current-state savings (see currentstate.ts). */
+  currentState: z.object({ lines: z.array(CurrentLineSchema).default([]) }).optional(),
 });
 
 /** Referential problems a saved project can have: ids that point at nothing. Empty when the project is consistent. */
@@ -548,6 +576,10 @@ export function projectIssues(p: z.infer<typeof ProjectObject>): { path: (string
     feat(["benefits", "capabilities", i, "featureId"], c.featureId);
     c.workloadIds.forEach((x, k) => { if (!workloads.has(x)) out.push({ path: ["benefits", "capabilities", i, "workloadIds", k], message: `Unknown workload "${x}"` }); });
     c.workstreamIds.forEach((x, k) => { if (!workstreams.has(x)) out.push({ path: ["benefits", "capabilities", i, "workstreamIds", k], message: `Unknown workstream "${x}"` }); });
+  });
+  (p.currentState?.lines ?? []).forEach((c, i) => {
+    feat(["currentState", "lines", i, "featureId"], c.featureId);
+    if (c.basis.kind === "perTransaction" && c.basis.volumeFrom !== undefined && !workloads.has(c.basis.volumeFrom)) out.push({ path: ["currentState", "lines", i, "basis", "volumeFrom"], message: `Unknown workload "${c.basis.volumeFrom}"` });
   });
   return out;
 }

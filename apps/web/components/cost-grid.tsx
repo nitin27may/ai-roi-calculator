@@ -12,11 +12,11 @@ import { cellLabel, parseOverrideInput } from "@/lib/overrides";
 const btn = "inline-flex min-h-6 items-center whitespace-nowrap rounded-md border border-line px-2 py-0.5 text-xs font-medium hover:bg-surface-2";
 
 /** Inline confirmation: no browser dialog. It says exactly what is lost and puts focus on Cancel. */
-export function InlineConfirm({ message, confirmLabel, onConfirm, onCancel, id }: { message: string; confirmLabel: string; onConfirm: () => void; onCancel: () => void; id?: string }) {
+export function InlineConfirm({ message, confirmLabel, onConfirm, onCancel, id, groupLabel = "Confirm reset" }: { message: string; confirmLabel: string; onConfirm: () => void; onCancel: () => void; id?: string; groupLabel?: string }) {
   const cancel = useRef<HTMLButtonElement>(null);
   useEffect(() => cancel.current?.focus(), []);
   return (
-    <div id={id} role="group" aria-label="Confirm reset" className="flex flex-wrap items-center gap-2 rounded-md border border-crit bg-crit-soft px-2.5 py-1.5 text-xs text-ink" onKeyDown={(e) => { if (e.key === "Escape") onCancel(); }}>
+    <div id={id} role="group" aria-label={groupLabel} className="flex flex-wrap items-center gap-2 rounded-md border border-crit bg-crit-soft px-2.5 py-1.5 text-xs text-ink" onKeyDown={(e) => { if (e.key === "Escape") onCancel(); }}>
       <span>{message}</span>
       <button type="button" className={`${btn} border-crit text-crit`} onClick={onConfirm}>{confirmLabel}</button>
       <button type="button" ref={cancel} className={btn} onClick={onCancel}>Cancel</button>
