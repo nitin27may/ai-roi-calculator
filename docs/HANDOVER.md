@@ -268,6 +268,7 @@ Gotchas:
 - Authenticate with `wrangler login`. Never put a Cloudflare token or account id in the repo.
 - Adding a server route, middleware or `cookies()`/`headers()` call breaks the export. Build will fail; do not remove `output: "export"` to get around it.
 
+- Hydration (React error #418): never put a clock value (`Date.now()`, `new Date()`, `Math.random()`) into state that renders on the first pass. The export is built on one day and opened on another, and a timezone can shift the date. The store seeds `INITIAL_UPDATED_AT` and `hydrate()` stamps the real time; stored state is read after mount. A date-only mismatch shows up only in some timezones, so test with `timezoneId` set (for example Pacific/Auckland).
 ## Batch and processing tiers
 
 - `ProcessingTier` (`packages/catalog/src/schema.ts`) is `"standard" | "batch"` today; the enum stays open for `priority` and `flex`.

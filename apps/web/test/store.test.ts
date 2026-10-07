@@ -7,7 +7,7 @@ const mem = new Map<string, string>();
 const storage = { getItem: (k: string) => mem.get(k) ?? null, setItem: (k: string, v: string) => void mem.set(k, v), removeItem: (k: string) => void mem.delete(k) };
 vi.stubGlobal("localStorage", storage);
 
-const { useStudio } = await import("../lib/store");
+const { useStudio, INITIAL_UPDATED_AT } = await import("../lib/store");
 const fresh = () => { mem.clear(); useStudio.setState({ ...useStudio.getInitialState(), hydrated: false }, true); };
 const saved = () => JSON.parse(mem.get("roi-calculator:library")!) as { library: { id: string }[]; activeId: string };
 
@@ -143,5 +143,21 @@ describe("a library saved under the pre-rename keys", () => {
     expect(s.project.name).toBe("Saved before the rename");
     expect(s.project.schema).toBe("roi-calculator/project");
     expect(s.unreadableCount).toBe(0);
+  });
+});
+
+describe("first render state is clock-free (hydration)", () => {
+  beforeEach(fresh);
+
+  it("the initial library entry carries a fixed timestamp, so server HTML and first client render match", () => {
+    expect(useStudio.getState().library.map((e) => e.updatedAt)).toEqual([INITIAL_UPDATED_AT]);
+    expect(useStudio.getInitialState().library[0]?.updatedAt).toBe(INITIAL_UPDATED_AT);
+  });
+
+  it("hydrate stamps the real time on an unsaved sample", () => {
+    useStudio.getState().hydrate();
+    const stamp = useStudio.getState().library[0]!.updatedAt;
+    expect(stamp).not.toBe(INITIAL_UPDATED_AT);
+    expect(Number.isNaN(Date.parse(stamp))).toBe(false);
   });
 });
