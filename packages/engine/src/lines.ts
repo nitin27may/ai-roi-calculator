@@ -1,4 +1,4 @@
-import type { ProcessingTier } from "@studio/catalog";
+import type { ProcessingTier } from "@roi-calculator/catalog";
 
 /** Which part of the lifecycle a cost belongs to. */
 export type Stream = "labour" | "devlab" | "devenv" | "run" | "platform" | "maint" | "transition";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
+import { loadCatalog } from "@roi-calculator/catalog";
 import {
   PROJECT_TEMPLATES, ProjectSchema, agentAddedFor, blankProject, buildLedger, computeAllocation, featureBreakdown, featureTotals,
   linkCapabilityToFeature, meetingIntelligence, newActivity, newFeature, newWorkload, projectIssues, removeFeature, removeWorkload,

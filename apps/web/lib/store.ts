@@ -1,10 +1,12 @@
 "use client";
 import { create } from "zustand";
 import { humanizeIssue } from "./validation";
-import { PROJECT_TEMPLATES, ProjectSchema, meetingIntelligence, migrateProject, type Percentile, type Project } from "@studio/engine";
+import { PROJECT_TEMPLATES, ProjectSchema, meetingIntelligence, migrateProject, type Percentile, type Project } from "@roi-calculator/engine";
+import { ensureStorageMigrated } from "./storage-migrate";
+ensureStorageMigrated();
 
-const LIBRARY_KEY = "ai-cost-roi-studio:library";
-const LEGACY_KEY = "ai-cost-roi-studio:project";
+const LIBRARY_KEY = "roi-calculator:library";
+const LEGACY_KEY = "roi-calculator:project";
 
 export interface LibraryEntry { id: string; project: Project; updatedAt: string }
 

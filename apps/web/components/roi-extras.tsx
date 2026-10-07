@@ -1,6 +1,6 @@
 "use client";
 import { Plus } from "lucide-react";
-import { workloadVolume, valueItemMonthly, type ValueItem } from "@studio/engine";
+import { workloadVolume, valueItemMonthly, type ValueItem } from "@roi-calculator/engine";
 import { Field, NumberInput, Seg, Select, TrashButton } from "@/components/ui";
 import { useStudio } from "@/lib/store";
 import { cad, cn } from "@/lib/format";

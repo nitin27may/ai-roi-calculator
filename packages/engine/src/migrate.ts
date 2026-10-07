@@ -1,4 +1,4 @@
-import { CURRENT_PROJECT_VERSION } from "./project.js";
+import { CURRENT_PROJECT_VERSION, LEGACY_PROJECT_SCHEMA_ID, PROJECT_SCHEMA_ID } from "./project.js";
 import { DEFAULT_FEATURE_ID } from "./features.js";
 
 /** A step upgrades a project one version forward; its output's `version` must be the input's plus one. */
@@ -58,6 +58,12 @@ const steps: Record<number, Step> = {
 export function migrateProject(raw: unknown): unknown {
   if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return raw;
   let project = raw as Record<string, unknown>;
+  /*
+   * The rename from "ai-cost-roi-studio/project" to "roi-calculator/project" is an id alias, not a version bump:
+   * the project shape did not change, so CURRENT_PROJECT_VERSION stays put and a file at any version with the old id
+   * is read as the new id before the version steps run. Files are always written with the new id.
+   */
+  if (project.schema === LEGACY_PROJECT_SCHEMA_ID) project = { ...project, schema: PROJECT_SCHEMA_ID };
   const version = project.version;
   if (typeof version !== "number") return raw;
   if (version > CURRENT_PROJECT_VERSION) {

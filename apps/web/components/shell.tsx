@@ -7,7 +7,7 @@ import {
   ChevronDown, Printer, Redo2, RotateCcw, Settings, Sparkles, TrendingUp, Undo2, Upload, X, ChartColumn, type LucideIcon,
 } from "lucide-react";
 import { exportCsv, exportXlsx } from "@/lib/export";
-import { DEPLOYMENT_LABEL, ProjectSchema, labourExcluded, labourPartialText, meetingIntelligence, migrateProject } from "@studio/engine";
+import { DEPLOYMENT_LABEL, ProjectSchema, labourExcluded, labourPartialText, meetingIntelligence, migrateProject } from "@roi-calculator/engine";
 import { useStudio } from "@/lib/store";
 import { describeIssue } from "@/lib/validation";
 import { HelpMenu } from "@/components/help-menu";
@@ -146,7 +146,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2 font-display text-base font-bold">
             <span aria-hidden className="relative h-5 w-5 flex-none rounded-[5px] bg-accent after:absolute after:inset-x-1 after:inset-y-[5px] after:border-b-2 after:border-l-2 after:border-accent-ink" />
-            <span className="nav-label">AI Cost &amp; ROI Studio</span>
+            <span className="nav-label">ROI Calculator</span>
           </div>
           <button type="button" aria-label="Close menu" onClick={() => closeDrawer(true)} className="grid h-7 w-7 flex-none place-items-center rounded-md text-ink-2 hover:bg-surface-2 lg:hidden"><X size={16} aria-hidden /></button>
         </div>

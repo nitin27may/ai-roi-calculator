@@ -1,4 +1,4 @@
-import type { Catalog } from "@studio/catalog";
+import type { Catalog } from "@roi-calculator/catalog";
 import { steadyState, type Ledger } from "./ledger.js";
 import type { Project } from "./project.js";
 import { HOURS_PER_MONTH, MINUTES_PER_MONTH, sizePtu, type PtuDeployment, type TokensPerMinute } from "./ptu-size.js";

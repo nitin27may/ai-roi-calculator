@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ProcessingTier } from "@studio/catalog";
+import { ProcessingTier } from "@roi-calculator/catalog";
 
 /** Project file schema (`*.aicost.json`). All money is CAD. */
 
@@ -395,8 +395,13 @@ export const CURRENT_PROJECT_VERSION = 5;
 export const FeatureSchema = z.object({ id, label: z.string(), description: z.string().optional() });
 export type Feature = z.infer<typeof FeatureSchema>;
 
+/** Schema id written into every project file. The product was renamed from "AI Cost & ROI Studio" on 2026-10-06. */
+export const PROJECT_SCHEMA_ID = "roi-calculator/project";
+/** The id files carried before the rename. Accepted on load (see migrate.ts) and never written. */
+export const LEGACY_PROJECT_SCHEMA_ID = "ai-cost-roi-studio/project";
+
 const ProjectObject = z.object({
-  schema: z.literal("ai-cost-roi-studio/project"),
+  schema: z.literal(PROJECT_SCHEMA_ID),
   version: z.literal(CURRENT_PROJECT_VERSION),
   name: z.string(),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),

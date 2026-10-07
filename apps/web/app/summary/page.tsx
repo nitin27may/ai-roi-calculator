@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useMemo } from "react";
-import { WIDE_RANGE_TEXT, buildLabel, compareScenarios, moneyBand } from "@studio/engine";
+import { WIDE_RANGE_TEXT, buildLabel, compareScenarios, moneyBand } from "@roi-calculator/engine";
 import { Card, CardHead } from "@/components/ui";
 import { BulletBar, CumulativeLine, RangeBar, RankedBars, ViewToggle, Waterfall } from "@/components/charts";
 import { Story } from "@/components/story";

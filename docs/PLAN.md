@@ -1,6 +1,6 @@
 # AI Token & Cost Calculator — Research Summary and Build Plan
 
-> **Update 2026-10-06:** the repository is now `ai-roi-calculator`. The token calculator is one feature of the ROI calculator, not the product. This plan keeps its original wording for the history.
+> **Update 2026-10-06:** the product is now "ROI Calculator" (formerly "AI Cost & ROI Studio"), and the packages are `@roi-calculator/*` (formerly `@studio/*`). The repository, formerly `ai-roi-calculator`, becomes `roi-calculator` once the rename change merges. The token calculator is one feature of the ROI calculator, not the product. This plan keeps its original wording for the history.
 
 > **Update 2026-10-02:** the token calculator and the ROI calculator are now **one consolidated app**, running locally and offline, CAD only, with Azure and Snowflake as the only providers and no discounts. The structure is in [DESIGN.md](./DESIGN.md), and §9 decisions are resolved there. Where this plan conflicts with DESIGN.md, DESIGN.md wins.
 

@@ -1,8 +1,8 @@
-import { CURRENT_PROJECT_VERSION, type Project } from "../project.js";
+import { CURRENT_PROJECT_VERSION, PROJECT_SCHEMA_ID, type Project } from "../project.js";
 
 /** Sample project used by the mockup, the tests and the app's "Start from a sample". */
 export const meetingIntelligence: Project = {
-  schema: "ai-cost-roi-studio/project",
+  schema: PROJECT_SCHEMA_ID,
   version: CURRENT_PROJECT_VERSION,
   name: "Meeting Intelligence Agent",
   startDate: "2026-11-01",

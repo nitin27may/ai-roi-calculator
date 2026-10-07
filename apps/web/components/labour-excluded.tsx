@@ -1,5 +1,5 @@
 "use client";
-import { LABOUR_EXCLUDED_TEXT, labourExcluded, labourPartialText } from "@studio/engine";
+import { LABOUR_EXCLUDED_TEXT, labourExcluded, labourPartialText } from "@roi-calculator/engine";
 import { HelpTip } from "@/components/help-tip";
 import { useStudio } from "@/lib/store";
 

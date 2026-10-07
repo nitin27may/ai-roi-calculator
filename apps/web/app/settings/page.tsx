@@ -7,7 +7,7 @@ import { Card, CardHead, Field, NumberInput, Pill, Select, TextInput } from "@/c
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad } from "@/lib/format";
-import { COST_BASES, PriceBook, allowanceActive, clearAllOverrides, overriddenCells, DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, resolveAssumptions, type AzureDeployment, type CostBasis, type ProcessingTier } from "@studio/engine";
+import { COST_BASES, PriceBook, allowanceActive, clearAllOverrides, overriddenCells, DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, resolveAssumptions, type AzureDeployment, type CostBasis, type ProcessingTier } from "@roi-calculator/engine";
 
 /** heuristics.tokens.language keys, with display names. */
 const LANGUAGE_OPTIONS = [
@@ -75,7 +75,7 @@ export default function Settings() {
           <Field label="Voice function-call output tokens per turn" help="assumpVoiceOut"><NumberInput value={A.voiceFunctionCallOutputTokens} onChange={(v) => setA("voiceFunctionCallOutputTokens", v)} /></Field>
           <Field label="Peak minute vs average minute" help="assumpPeak"><NumberInput value={A.peakToAverage} min={1} max={50} step={0.5} onChange={(v) => setA("peakToAverage", v)} /></Field>
         </div>
-        <p className="px-3.5 pb-3.5 text-xs text-muted">The planner and red-team defaults are the figures the studio always used, so nothing moves until you change them. Voice function calls default to zero because earlier versions did not price them. The peak factor feeds the PTU sizing and the TPM quota check.</p>
+        <p className="px-3.5 pb-3.5 text-xs text-muted">The planner and red-team defaults are the figures the ROI Calculator always used, so nothing moves until you change them. Voice function calls default to zero because earlier versions did not price them. The peak factor feeds the PTU sizing and the TPM quota check.</p>
       </Card>
       <Card>
         <CardHead title="Snowflake" sub="Credit prices in CAD" />

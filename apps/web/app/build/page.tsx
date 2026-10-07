@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { ACTIVITY_KINDS, ALLOWANCE_ID, MANUAL_METER, allowanceActive, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, labourExcluded, labourPartialText, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, addAllocationPeriod, allocationPeriods, overlappingPeriods, peakAllocation, removeAllocationPeriod, removeWorkstream, setAllocation, updateAllocationPeriod, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@studio/engine";
+import { ACTIVITY_KINDS, ALLOWANCE_ID, MANUAL_METER, allowanceActive, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, labourExcluded, labourPartialText, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, addAllocationPeriod, allocationPeriods, overlappingPeriods, peakAllocation, removeAllocationPeriod, removeWorkstream, setAllocation, updateAllocationPeriod, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@roi-calculator/engine";
 import { RateCardEditor } from "@/components/rate-card";
 import { HelpTip } from "@/components/help-tip";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";

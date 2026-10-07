@@ -1,8 +1,11 @@
 /** First-run product tour: step data and seen-state logic. Pure, so it can be tested without a browser. */
 
+import { ensureStorageMigrated } from "./storage-migrate";
+ensureStorageMigrated();
+
 /** Bump to show the tour again to everyone who has already finished or skipped it. */
 export const TOUR_VERSION = 1;
-export const TOUR_KEY = `studio.tour.v${TOUR_VERSION}`;
+export const TOUR_KEY = `roi-calculator:tour.v${TOUR_VERSION}`;
 export const TOUR_START_EVENT = "studio:tour-start";
 
 export type TourState = "finished" | "skipped";
@@ -18,8 +21,8 @@ export interface TourStep {
 }
 
 export const TOUR_STEPS: readonly TourStep[] = [
-  { id: "welcome", title: "Welcome to the AI Cost & ROI Studio",
-    body: "The studio estimates what an AI project costs to build and to run, what it is worth, and when it pays back. Every figure is in CAD and every input can be changed. This tour takes about a minute." },
+  { id: "welcome", title: "Welcome to the ROI Calculator",
+    body: "The ROI Calculator estimates what an AI project costs to build and to run, what it is worth, and when it pays back. Every figure is in CAD and every input can be changed. This tour takes about a minute." },
   { id: "projects", route: "/projects", target: "projects-list", title: "Projects and the sample",
     body: "Each estimate is a project, saved in this browser. The sample project is a worked example: open it, change things, or use New copy of the sample in the sidebar to start again." },
   { id: "summary-tiles", route: "/summary", target: "summary-tiles", title: "The headline numbers",

@@ -1,5 +1,5 @@
 {
-  "name": "@studio/web",
+  "name": "@roi-calculator/web",
   "version": "0.1.0",
   "license": "MIT",
   "private": true,
@@ -13,8 +13,8 @@
     "@fontsource-variable/bricolage-grotesque": "^5.1.0",
     "@fontsource/ibm-plex-mono": "^5.1.0",
     "@fontsource/ibm-plex-sans": "^5.1.0",
-    "@studio/catalog": "workspace:*",
-    "@studio/engine": "workspace:*",
+    "@roi-calculator/catalog": "workspace:*",
+    "@roi-calculator/engine": "workspace:*",
     "clsx": "^2.1.1",
     "exceljs": "^4.4.0",
     "gpt-tokenizer": "^3.4.0",

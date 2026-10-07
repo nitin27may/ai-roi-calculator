@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
-import { PriceBook, blankProject } from "@studio/engine";
+import { loadCatalog } from "@roi-calculator/catalog";
+import { PriceBook, blankProject } from "@roi-calculator/engine";
 import { GLOSSARY } from "../lib/glossary";
 import { HELP } from "../lib/help";
 import { INTROS } from "../lib/intros";

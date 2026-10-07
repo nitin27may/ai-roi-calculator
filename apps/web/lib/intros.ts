@@ -11,5 +11,8 @@ export const INTROS: Record<string, string> = {
   "/settings": "What do the defaults assume? Language, deployment type, processing tier, timeline and the Snowflake options live here. Changing one updates every page that did not set its own value.",
 };
 
-export const introKey = (path: string) => `ai-cost-roi-studio:intro:${path}`;
+import { ensureStorageMigrated } from "./storage-migrate";
+ensureStorageMigrated();
+
+export const introKey = (path: string) => `roi-calculator:intro:${path}`;
 export const INTRO_RESET_EVENT = "studio:intro-reset";

@@ -1,7 +1,12 @@
 /** Display preferences kept in localStorage: colour theme and sidebar width. Pure helpers, so they can be tested without a browser. */
 
-export const THEME_KEY = "studio.theme";
-export const SIDEBAR_KEY = "studio.sidebar";
+import { ensureStorageMigrated } from "./storage-migrate";
+ensureStorageMigrated();
+
+export const THEME_KEY = "roi-calculator:theme";
+/** Pre-rename key, read once by the init script because it runs before the storage migration. */
+const LEGACY_THEME_KEY = "studio.theme";
+export const SIDEBAR_KEY = "roi-calculator:sidebar";
 /** The product tour opens the sidebar drawer on narrow screens when a step points into it, and closes it again afterwards. */
 export const DRAWER_OPEN_EVENT = "studio:drawer-open";
 export const DRAWER_CLOSE_EVENT = "studio:drawer-close";
@@ -41,7 +46,7 @@ export function applyTheme(root: { setAttribute(k: string, v: string): void; rem
  * Runs in the document head before first paint, so a saved theme never flashes the other one. It must stay
  * self-contained (no imports) and match THEME_KEY; a test keeps the two in step.
  */
-export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem("${THEME_KEY}");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}`;
+export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem("${THEME_KEY}")||localStorage.getItem("${LEGACY_THEME_KEY}");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}`;
 
 export const readSidebarCollapsed = (storage: PrefStorage): boolean => {
   try { return storage.getItem(SIDEBAR_KEY) === "collapsed"; } catch { return false; }
@@ -54,8 +59,8 @@ export const writeSidebarCollapsed = (storage: PrefStorage, collapsed: boolean):
  * Per-project sidebar fold state. Only explicit choices are stored (id -> open); a project with no choice is
  * open when it is the active one and folded otherwise. Older versions stored a plain list of folded ids.
  */
-export const PROJECT_MENU_KEY = "studio.projectMenu";
-export const PROJECT_MENU_STATE_KEY = "studio.projectMenuState";
+export const PROJECT_MENU_KEY = "roi-calculator:projectMenu";
+export const PROJECT_MENU_STATE_KEY = "roi-calculator:projectMenuState";
 const readChoices = (storage: PrefStorage): Record<string, boolean> => {
   const out: Record<string, boolean> = {};
   try {

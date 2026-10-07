@@ -1,5 +1,5 @@
 "use client";
-import { lineItemRows, toCsv, type Ledger, type Project, type RoiResult } from "@studio/engine";
+import { lineItemRows, toCsv, type Ledger, type Project, type RoiResult } from "@roi-calculator/engine";
 import { catalog } from "./compute";
 import { buildWorkbook, chartMonths } from "./workbook";
 import { renderMonthlyChartPng } from "./xlsx-chart";

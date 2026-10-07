@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { creditSummary, DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, availableIn, resolveAssumptions, type AzureDeployment, cascadeCall, agentAddedFor, featureBreakdown, harnessUsage, newFeature, newHarness, newWorkload, removeFeature, removeWorkload, simulateHarness, sizeSearch, steadyState, voiceCall, workloadRange, type Workload } from "@studio/engine";
+import { creditSummary, DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, availableIn, resolveAssumptions, type AzureDeployment, cascadeCall, agentAddedFor, featureBreakdown, harnessUsage, newFeature, newHarness, newWorkload, removeFeature, removeWorkload, simulateHarness, sizeSearch, steadyState, voiceCall, workloadRange, type Workload } from "@roi-calculator/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Pill, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
 import { Plus } from "lucide-react";
 import { RangeBar } from "@/components/charts";

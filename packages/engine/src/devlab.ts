@@ -1,4 +1,4 @@
-import { heuristics } from "@studio/catalog";
+import { heuristics } from "@roi-calculator/catalog";
 import type { PriceBook } from "./pricing.js";
 import type { DevActivity, Harness, Project } from "./project.js";
 import { simulateHarness, reasoningTokens, type ReasoningEffort } from "./harness.js";

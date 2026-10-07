@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
+import { loadCatalog } from "@roi-calculator/catalog";
 import {
   ProjectSchema, addRole, buildLabel, buildLedger, computeRoi, developerBreakdown, developers, labourExcluded, labourPartialText, lineRate, meetingIntelligence,
   rateEscalationNote, removeRole, roiOptions, roleUsage, sensitivity, summarize, summaryRows, type Project,

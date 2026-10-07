@@ -1,4 +1,4 @@
-import type { Catalog } from "@studio/catalog";
+import type { Catalog } from "@roi-calculator/catalog";
 import { PriceBook } from "./pricing.js";
 import type { Percentile } from "./harness.js";
 import { buildLedger, type Ledger } from "./ledger.js";

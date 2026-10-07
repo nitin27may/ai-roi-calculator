@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { DEPLOYMENT_LABEL, HOSTING_PRESETS, IMAGE_SIZES, PriceBook, hostingItemMeta, imageCost, requestVolumes, steadyState, type HostingItem, type Workload } from "@studio/engine";
+import { DEPLOYMENT_LABEL, HOSTING_PRESETS, IMAGE_SIZES, PriceBook, hostingItemMeta, imageCost, requestVolumes, steadyState, type HostingItem, type Workload } from "@roi-calculator/engine";
 import { Field, NumberInput, Pill, Select, TextInput, TrashButton } from "@/components/ui";
 import { catalog, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";

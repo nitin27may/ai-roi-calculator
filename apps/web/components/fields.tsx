@@ -1,6 +1,6 @@
 "use client";
 import { BlurInput, Field, HelpScope, NumberInput, Select } from "@/components/ui";
-import { DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, type AzureDeployment } from "@studio/engine";
+import { DEPLOYMENT_LABEL, DEPLOYMENTS, TIER_LABEL, TIERS, type AzureDeployment } from "@roi-calculator/engine";
 import { catalog, deploymentOptions, modelOptions } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 

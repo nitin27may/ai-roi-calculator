@@ -1,6 +1,6 @@
-# AI Cost & ROI Studio
+# ROI Calculator
 
-A local, offline ROI calculator for AI use cases: what one costs to **build** and to **run**, and whether it pays back. It includes a token calculator for quick estimates with no project. Everything is priced in **CAD**, and the only providers are **Azure** (Foundry models including Claude on Foundry, Speech, Document Intelligence, Content Understanding, AI Search, Content Safety, evaluation) and **Snowflake Cortex**.
+A local, offline cost and ROI calculator for technology projects, in CAD: what one costs to **build** and to **run**, and whether it pays back. It includes a token calculator for AI workloads and quick estimates with no project. Everything is priced in **CAD**, and the only providers are **Azure** (Foundry models including Claude on Foundry, Speech, Document Intelligence, Content Understanding, AI Search, Content Safety, evaluation) and **Snowflake Cortex**.
 
 > **Setting up or maintaining the project?** Start with [docs/HANDOVER.md](docs/HANDOVER.md): setup, price refresh, code map and open items.
 
@@ -55,7 +55,7 @@ Requires Node 20+ and pnpm 10.
 ```bash
 pnpm install
 pnpm build      # builds the web app
-pnpm --filter @studio/web start   # http://localhost:3000
+pnpm --filter @roi-calculator/web start   # http://localhost:3000
 # or, while developing:
 pnpm dev
 ```

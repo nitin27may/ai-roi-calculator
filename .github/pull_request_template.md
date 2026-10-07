@@ -5,7 +5,7 @@
 ## Checklist
 
 - [ ] Tests added or updated for this change
-- [ ] Ran `pnpm test`, `pnpm typecheck`, `pnpm --filter @studio/web exec tsc --noEmit`, `pnpm validate` and `pnpm --filter @studio/web build`
+- [ ] Ran `pnpm test`, `pnpm typecheck`, `pnpm --filter @roi-calculator/web exec tsc --noEmit`, `pnpm validate` and `pnpm --filter @roi-calculator/web build`
 - [ ] Golden totals are unchanged, or I explain below why they moved
 - [ ] `docs/PROGRESS.md` updated if this completes a phase
 - [ ] Screenshots attached for UI changes

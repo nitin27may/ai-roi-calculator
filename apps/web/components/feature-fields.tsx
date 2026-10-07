@@ -1,5 +1,5 @@
 "use client";
-import { isCashItem, oneTimeKey, workloadWindow, type FixedItem, type Project, type Workload } from "@studio/engine";
+import { isCashItem, oneTimeKey, workloadWindow, type FixedItem, type Project, type Workload } from "@roi-calculator/engine";
 import { Field, NumberInput, Select, TrashButton } from "@/components/ui";
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";

@@ -1,6 +1,6 @@
 import type { Workbook } from "exceljs";
-import { WIDE_RANGE_TEXT, avoidedMonthly, buildLabel, labourExcluded, capabilityHours, computeAllocation, irrBand, lineItemRows, moneyBand, monthRows, pricesUsedRows, summarize, summaryRows, type Ledger, type Project, type RoiResult, type Row } from "@studio/engine";
-import type { Catalog } from "@studio/catalog";
+import { WIDE_RANGE_TEXT, avoidedMonthly, buildLabel, labourExcluded, capabilityHours, computeAllocation, irrBand, lineItemRows, moneyBand, monthRows, pricesUsedRows, summarize, summaryRows, type Ledger, type Project, type RoiResult, type Row } from "@roi-calculator/engine";
+import type { Catalog } from "@roi-calculator/catalog";
 import type { ChartMonth } from "./xlsx-chart";
 
 const MONEY = '"C$"#,##0.00';
@@ -42,7 +42,7 @@ export interface WorkbookOptions {
 export async function buildWorkbook(p: Project, ledger: Ledger, roi: RoiResult, cat: Catalog, opts: WorkbookOptions = {}): Promise<Workbook> {
   const { default: ExcelJS } = await import("exceljs");
   const wb = new ExcelJS.Workbook();
-  wb.creator = "AI Cost & ROI Studio";
+  wb.creator = "ROI Calculator";
   const sheet = (name: string, rows: Row[], money: string[] = []) => {
     const ws = wb.addWorksheet(name);
     if (!rows.length) return ws;

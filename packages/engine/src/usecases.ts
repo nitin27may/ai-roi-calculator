@@ -1,4 +1,4 @@
-import type { Catalog, ChatModel, ProcessingTier } from "@studio/catalog";
+import type { Catalog, ChatModel, ProcessingTier } from "@roi-calculator/catalog";
 import { DEPLOYMENT_LABEL, PriceBook, availableIn, type AzureDeployment } from "./pricing.js";
 import {
   ProjectSchema, type Capability, type DevActivity, type Feature, type Harness, type Project, type ValueItem, type Workload, type Workstream,

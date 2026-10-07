@@ -2,11 +2,11 @@
  * Content for the "How this is calculated" stepper on /tokens. Pure functions over the engine, so the numbers on screen are the
  * same numbers the Run page uses and the tests can reproduce them. Each step has a title, a plain sentence and the sums behind it.
  */
-import type { Catalog } from "@studio/catalog";
+import type { Catalog } from "@roi-calculator/catalog";
 import {
   FILE_TYPES, IMAGE_SIZES, PriceBook, buildWizardProject, deriveSpreadsheet, fileTokens, recipeById, simulateHarness, withDefaults,
   type FileInput, type RunResult, type StopReason, type Values,
-} from "@studio/engine";
+} from "@roi-calculator/engine";
 
 export interface GuideRow { label: string; value: string; note?: string }
 export interface GuideStep { id: string; title: string; plain: string; rows: GuideRow[]; formula?: string }

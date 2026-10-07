@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { defaultConfidence, projectIssues, recommendModel, recipeById } from "@studio/engine";
-import { loadCatalog } from "@studio/catalog";
+import { defaultConfidence, projectIssues, recommendModel, recipeById } from "@roi-calculator/engine";
+import { loadCatalog } from "@roi-calculator/catalog";
 import {
   STEPS, blocker, buildFromState, initialState, missingFor, recipeDeployment, setBenefit, setBuild, setDeployment, setEdit, setModel, setValue, toggleDevKind, togglePick,
 } from "../lib/wizard";

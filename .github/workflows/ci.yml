@@ -29,4 +29,4 @@ jobs:
       - run: pnpm test
       # typecheck does not cover apps/web; the Next.js build does.
       - run: pnpm typecheck
-      - run: pnpm --filter @studio/web build
+      - run: pnpm --filter @roi-calculator/web build

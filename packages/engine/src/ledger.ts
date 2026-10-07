@@ -1,4 +1,4 @@
-import type { Catalog } from "@studio/catalog";
+import type { Catalog } from "@roi-calculator/catalog";
 import { resolveAssumptions } from "./assumptions.js";
 import { requestVolumes } from "./hosting.js";
 import { PriceBook, monthDate, type PriceNote } from "./pricing.js";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
+import { loadCatalog } from "@roi-calculator/catalog";
 import { blankProject, buildLedger, developerBreakdown, newActivity, seatEffort, workstreamBreakdown, type Project } from "../src/index.js";
 
 const cat = loadCatalog();

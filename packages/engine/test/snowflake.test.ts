@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
+import { loadCatalog } from "@roi-calculator/catalog";
 import { PriceBook, creditSummary, newWorkload, meetingIntelligence, warehouseLine, workloadLines, type Workload } from "../src/index.js";
 
 const cat = loadCatalog();

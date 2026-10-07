@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
+import { loadCatalog } from "@roi-calculator/catalog";
 import {
   FILE_TYPES, MissingChoice, PriceBook, ProjectSchema, SHEET, buildLedger, buildWizardProject, deriveSpreadsheet, fileTokens, projectIssues, recipeById, simulateHarness,
   withDefaults, workloadLines, type HarnessDef, type RunOptions,

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { loadCatalog } from "@studio/catalog";
-import { buildLedger, computeRoi, meetingIntelligence, roiOptions, type Project } from "@studio/engine";
+import { loadCatalog } from "@roi-calculator/catalog";
+import { buildLedger, computeRoi, meetingIntelligence, roiOptions, type Project } from "@roi-calculator/engine";
 import { buildWorkbook } from "../lib/workbook";
 
 const mem = new Map<string, string>();

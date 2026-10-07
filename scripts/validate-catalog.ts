@@ -5,7 +5,7 @@
  *
  *   pnpm validate
  */
-import { loadCatalog } from "@studio/catalog";
+import { loadCatalog } from "@roi-calculator/catalog";
 
 const cat = loadCatalog(); // throws with path-based messages when invalid
 const entries = [

@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { DEPLOYMENT_LABEL, ptuAnalysis, resolveAssumptions, sizePtu, type PtuDeployment } from "@studio/engine";
+import { DEPLOYMENT_LABEL, ptuAnalysis, resolveAssumptions, sizePtu, type PtuDeployment } from "@roi-calculator/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Select } from "@/components/ui";
 import { catalog, useLedger } from "@/lib/compute";
 import { cad, fmt } from "@/lib/format";

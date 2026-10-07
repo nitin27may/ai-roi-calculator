@@ -1,8 +1,9 @@
-# Maintainer notes: AI Cost & ROI Studio
+# Maintainer notes: ROI Calculator
 
 How to set the project up, run the app, refresh prices, and continue development.
 
-- **Repository:** https://github.com/nitin27may/ai-roi-calculator
+- **Repository:** https://github.com/nitin27may/roi-calculator
+- **Rename note, 2026-10-06: the product is now "ROI Calculator" (formerly "AI Cost & ROI Studio"). Workspace packages are `@roi-calculator/engine|catalog|web` (formerly `@studio/*`), the root package is `roi-calculator`, the project file schema id is `roi-calculator/project`, and browser storage keys use the `roi-calculator:` prefix. Old project files (`ai-cost-roi-studio/project`) and old storage keys are still read. The GitHub repository and local folder were `ai-roi-calculator` and are renamed to `roi-calculator` after this change merges (repo rename pending).
 
 ---
 
@@ -15,8 +16,8 @@ How to set the project up, run the app, refresh prices, and continue development
 - **Git.**
 
 ```bash
-git clone https://github.com/nitin27may/ai-roi-calculator.git
-cd ai-roi-calculator
+git clone https://github.com/nitin27may/roi-calculator.git
+cd roi-calculator
 corepack enable          # once per machine
 pnpm install
 pnpm test                # expect: 121 passed
@@ -26,15 +27,15 @@ pnpm dev                 # http://localhost:3000
 
 **First run in the browser:**
 
-1. Projects are saved in the browser, under `localStorage` key `ai-cost-roi-studio:library`, so a new machine or browser starts with the sample project.
+1. Projects are saved in the browser, under `localStorage` key `roi-calculator:library`. Browsers that saved projects before the rename have them under `ai-cost-roi-studio:library`; on first load `apps/web/lib/storage-migrate.ts` copies old keys (`ai-cost-roi-studio:*` and `studio.*`) to the new `roi-calculator:` names once, and leaves the old keys in place, so a new machine or browser starts with the sample project.
 2. To move projects between machines, use **Save to file** (`*.aicost.json`) on the old machine and **Open file as new project** on the new one.
 3. If a browser has an older copy of the sample, use **New copy of the sample** to get the current one: workstreams, named developers, benchmark-based capability.
 
 **Production build** (faster to click through):
 
 ```bash
-pnpm --filter @studio/web build
-pnpm --filter @studio/web start     # http://localhost:3000
+pnpm --filter @roi-calculator/web build
+pnpm --filter @roi-calculator/web start     # http://localhost:3000
 ```
 
 **Sharing a URL for a demo** (the app stays on your machine):
@@ -215,7 +216,7 @@ docs/PLAN.md, DESIGN.md  plan and design decisions (DESIGN.md wins where they di
 ## 4. Checks before every push
 
 ```bash
-pnpm test && pnpm typecheck && pnpm --filter @studio/web build
+pnpm test && pnpm typecheck && pnpm --filter @roi-calculator/web build
 ```
 
 - `pnpm typecheck` does **not** cover `apps/web`; the Next.js build does. Run both.
@@ -255,7 +256,7 @@ CI (`.github/workflows/ci.yml`) runs the same three on every pull request and on
 
 ## Hosting (Cloudflare Pages)
 
-The web app is a static export (`output: "export"` in `apps/web/next.config.ts`; all state is in the browser, no server routes). It is published to the Pages project `token-calculator` at https://token-calculator-532.pages.dev. The Pages project keeps its original name because Cloudflare cannot rename a project, so the live URL did not change with the repository rename. Deploy with `pnpm run deploy` from the repo root.
+The web app is a static export (`output: "export"` in `apps/web/next.config.ts`; all state is in the browser, no server routes). It is published to the Pages project `token-calculator` at https://token-calculator-532.pages.dev. The Pages project keeps its original name because Cloudflare cannot rename a project, so the live URL did not change with the repository or product rename. A new site name is deferred; the deploy script keeps `--project-name token-calculator`. Deploy with `pnpm run deploy` from the repo root.
 
 Gotchas:
 - Use wrangler 3 for Pages. Wrangler 4 delegates `pages` commands to Workers auto-configuration and will not create or deploy a Pages project from this workspace.

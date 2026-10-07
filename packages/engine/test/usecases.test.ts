@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
+import { loadCatalog } from "@roi-calculator/catalog";
 import {
   MissingChoice, RECIPES, applyAssumption, applicableDevKinds, buildLedger, buildWizardProject, defaultDevKinds, missingModels, modelOptions,
   defaultConfidence, projectIssues, recipeById, recommendModel, valueItemMonthly, withDefaults, type AzureDeployment, type Quality, type WizardSelection,

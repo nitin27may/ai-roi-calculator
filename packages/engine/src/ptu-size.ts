@@ -1,4 +1,4 @@
-import type { Catalog } from "@studio/catalog";
+import type { Catalog } from "@roi-calculator/catalog";
 
 /** PTU sizing arithmetic, kept apart from the ledger so workload lines can size PTUs without a circular import. */
 export type PtuDeployment = "global" | "dataZone" | "regional";

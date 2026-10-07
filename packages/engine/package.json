@@ -1,10 +1,10 @@
 {
-  "name": "@studio/engine",
+  "name": "@roi-calculator/engine",
   "version": "0.1.0",
   "license": "MIT",
   "private": true,
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
-  "dependencies": { "@studio/catalog": "workspace:*", "zod": "^3.24.0" }
+  "dependencies": { "@roi-calculator/catalog": "workspace:*", "zod": "^3.24.0" }
 }

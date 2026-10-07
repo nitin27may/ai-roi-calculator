@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { heuristics } from "@studio/catalog";
-import { creditSummary, DEFAULT_HARNESS, FILE_TYPES, IMAGE_SIZES, PriceBook, fileTokens, fileType, simulateHarness, uniqueId, workloadLines, type FileInput, type HarnessDef, type Workload } from "@studio/engine";
+import { heuristics } from "@roi-calculator/catalog";
+import { creditSummary, DEFAULT_HARNESS, FILE_TYPES, IMAGE_SIZES, PriceBook, fileTokens, fileType, simulateHarness, uniqueId, workloadLines, type FileInput, type HarnessDef, type Workload } from "@roi-calculator/engine";
 import { useRouter } from "next/navigation";
 import { Bar, Card, CardHead, Field, NumberInput, Pill, Seg, Select } from "@/components/ui";
 import { catalog, modelOptions } from "@/lib/compute";
