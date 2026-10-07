@@ -1,7 +1,7 @@
 "use client";
 import { create } from "zustand";
 import { humanizeIssue } from "./validation";
-import { PROJECT_TEMPLATES, ProjectSchema, meetingIntelligence, migrateProject, type Percentile, type Project } from "@roi-calculator/engine";
+import { ALL_PROJECT_TEMPLATES, ProjectSchema, meetingIntelligence, migrateProject, type Percentile, type Project } from "@roi-calculator/engine";
 import { ensureStorageMigrated } from "./storage-migrate";
 ensureStorageMigrated();
 
@@ -150,7 +150,7 @@ export const useStudio = create<State>((set, get) => {
     },
     setPercentile: (percentile) => set({ percentile }),
     create: (templateId, name) => {
-      const t = PROJECT_TEMPLATES.find((x) => x.id === templateId) ?? PROJECT_TEMPLATES.at(-1)!;
+      const t = ALL_PROJECT_TEMPLATES.find((x) => x.id === templateId) ?? ALL_PROJECT_TEMPLATES.at(-1)!;
       return get().add(t.make(name));
     },
     add: (p) => {
