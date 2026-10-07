@@ -104,10 +104,13 @@ Asked one question at a time, per CLAUDE.md:
 7. **Dev Lab:** confirm the rename, and how the AI-assisted productivity factor is set (per role, as a %), and whether it reduces build effort or only reports a saving.
 8. **Cheque-to-online example:** which numbers to seed as the reference template (volumes, unit costs)?
 
-## Next
+## Decisions (brainstorm, 2026-10-07)
+1. **Project types:** six: new application or process, enhancement to an existing application, automation, replatform or migration, replace with SaaS, and AI. The type is set per feature, so one project can mix types. Nothing is preselected.
+2. **Environments:** resources are defined once (production). Each environment (user-defined: dev, test, UAT, production, DR) has a size factor, hours per month (a schedule such as 10 h x 22 days), and a start and end month.
+3. **Infrastructure pricing options in the first release:** pay-as-you-go, 1- and 3-year reserved, Azure Hybrid Benefit and dev/test rates. Savings plan is deferred.
+4. **Current state:** itemised lines (people, licences, infrastructure, per-transaction costs). Each line can be kept, reduced or retired from a month, with dual running and conditional decommissioning. Savings are the difference between current and target.
+5. **Non-financial benefits:** a scorecard with optional monetisation. Only monetised items enter NPV and payback.
+6. **AI-assisted development:** a per-role productivity percentage that lowers build hours, plus the tool seat and token cost, with the net saving shown. The Dev Lab becomes "Engineering tools & lab", and AI experiments become an optional section.
+7. **Reference template:** "cheques to online payments", seeded with illustrative numbers, each labelled as an assumption to replace.
 
-Run the brainstorm one question at a time, record the decisions here, then write the phased build plan in `docs/plan/` for review before any code.
-
-## Decisions
-
-None yet.
+The phased build plan is in [50-any-project-build-plan.md](50-any-project-build-plan.md).

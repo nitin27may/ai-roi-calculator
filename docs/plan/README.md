@@ -73,3 +73,4 @@ The tool then helps pick resources and configuration.
 9. **CAD everywhere,** shown as C$, with the FX date stated on every export.
 - [30-any-project-gaps.md](30-any-project-gaps.md): moving from AI-only to any project type (automation, migration, new process, enhancement, AI); gaps and brainstorm agenda.
 - [40-roi-calculator-open-source.md](40-roi-calculator-open-source.md): next phase; rename to roi-calculator and bring the repo to open-source standard.
+- [50-any-project-build-plan.md](50-any-project-build-plan.md): phased build plan A0 to A15 for the any-project scope, with data model, catalogue design, tests and a worked example.
