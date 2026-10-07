@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Copy, Download, Trash2, Wand2 } from "lucide-react";
 import type { Project } from "@roi-calculator/engine";
-import { PROJECT_TEMPLATES, PROJECT_TYPE_INFO, buildLedger, compareFigures, computeRoi, costSplit, projectTypes, roiOptions, verdictFor } from "@roi-calculator/engine";
+import { ALL_PROJECT_TEMPLATES, PROJECT_TYPE_INFO, buildLedger, compareFigures, computeRoi, costSplit, projectTypes, roiOptions, verdictFor } from "@roi-calculator/engine";
 import { Card, CardHead, Field, TextInput } from "@/components/ui";
 import { CompareBars, COMPARE_COLORS, MiniSplit } from "@/components/charts-compare";
 import { VerdictChip } from "@/components/summary-parts";
@@ -129,11 +129,11 @@ export default function Projects() {
           <Link href="/wizard" className="flex items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-ink"><Wand2 size={14} aria-hidden />New estimate with the wizard</Link>
           <p className="mt-2 text-xs text-muted">Or start from a preset. Pick one; none is chosen for you.</p>
         </div>
-        <form className="flex flex-col gap-3 px-3.5 pb-3.5" onSubmit={(ev) => { ev.preventDefault(); const t = PROJECT_TEMPLATES.find((x) => x.id === template); if (!t) return; create(template, name.trim() || t.label); setName(""); router.push("/summary"); }}>
+        <form className="flex flex-col gap-3 px-3.5 pb-3.5" onSubmit={(ev) => { ev.preventDefault(); const t = ALL_PROJECT_TEMPLATES.find((x) => x.id === template); if (!t) return; create(template, name.trim() || t.label); setName(""); router.push("/summary"); }}>
           <Field label="Project name" help="projectName"><TextInput value={name} placeholder="e.g. Claims assistant" onChange={setName} /></Field>
           <fieldset className="flex flex-col gap-1.5">
             <legend className="mb-1 text-xs text-muted">Preset</legend>
-            {PROJECT_TEMPLATES.map((t) => (
+            {ALL_PROJECT_TEMPLATES.map((t) => (
               <label key={t.id} className={cn("grid cursor-pointer grid-cols-[auto_1fr] gap-2 rounded-md border px-2.5 py-2 text-[12.5px]", template === t.id ? "border-accent bg-accent-soft" : "border-line")}>
                 <input type="radio" name="template" checked={template === t.id} onChange={() => setTemplate(t.id)} />
                 <span>{t.label}<small className="block text-muted">{t.detail}</small></span>

@@ -1,4 +1,4 @@
-import { RECIPES } from "@roi-calculator/engine";
+import { ALL_RECIPES } from "@roi-calculator/engine";
 
 /**
  * Field help, keyed by field id. One entry per input in the ROI Calculator.
@@ -391,7 +391,7 @@ export type HelpId = keyof typeof HELP;
 
 /** Help for the wizard's recipe questions, built from the recipes so the two cannot drift. Ids look like `wiz.rag.users`. */
 const WIZARD_HELP: Record<string, HelpEntry> = Object.fromEntries(
-  RECIPES.flatMap((r) => r.questions.map((q) => [`wiz.${r.id}.${q.id}`, e(q.help.meaning, "unit" in q ? q.unit : q.kind === "toggle" ? "Yes or no" : "A choice", q.help.example, q.help.source)] as const)),
+  ALL_RECIPES.flatMap((r) => r.questions.map((q) => [`wiz.${r.id}.${q.id}`, e(q.help.meaning, "unit" in q ? q.unit : q.kind === "toggle" ? "Yes or no" : q.kind === "multi" ? "Any of the options, or none" : "A choice", q.help.example, q.help.source)] as const)),
 );
 export const wizardHelpId = (recipeId: string, questionId: string): HelpId => `wiz.${recipeId}.${questionId}` as HelpId;
 export const helpFor = (id: string): HelpEntry | undefined => (HELP as Record<string, HelpEntry>)[id] ?? WIZARD_HELP[id];

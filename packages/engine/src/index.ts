@@ -25,6 +25,7 @@ export * from "./images.js";
 export * from "./assumptions.js";
 export { meetingIntelligence } from "./samples/meeting-intelligence.js";
 export { PROJECT_TEMPLATES, blankProject } from "./samples/templates.js";
+export { ALL_PROJECT_TEMPLATES, chequesTemplate } from "./samples/all-templates.js";
 export * from "./plan.js";
 export * from "./workstreams.js";
 export * from "./benefits.js";

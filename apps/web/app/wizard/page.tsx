@@ -3,8 +3,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import {
-  DEPLOYMENT_LABEL, TIER_LABEL, applicableDevKinds, batchOfferedUnder, buildLedger, computeRoi, defaultConfidence, modelOptions, recipeById, recommendModel,
-  type Assumption, type AzureDeployment, type BenefitInput, type BenefitType, type ModelRole, type Question, type Quality, type Recipe,
+  DEPLOYMENT_LABEL, PROJECT_TYPE_LIST, TIER_LABEL, applicableDevKinds, batchOfferedUnder, buildLedger, computeRoi, defaultConfidence, modelOptions, recipeById, recipeTypes, recommendModel,
+  type Assumption, type AzureDeployment, type BenefitInput, type BenefitType, type ModelRole, type ProjectType, type Question, type Quality, type Recipe,
 } from "@roi-calculator/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Select, Seg, TextInput } from "@/components/ui";
 import { HelpTip } from "@/components/help-tip";
@@ -13,8 +13,8 @@ import { cad, cn, fmt } from "@/lib/format";
 import { wizardHelpId } from "@/lib/help";
 import { useStudio } from "@/lib/store";
 import {
-  RECIPES, STEPS, blocker, buildFromState, initialState, missingFor, recipeDeployment, recipeValues, setBatchAllowed, setBenefit, setBuild, setDeployment, setEdit, setModel, setQuality,
-  setTier, setValue, toggleDevKind, togglePick, type WizardState,
+  blocker, buildFromState, featureTypes, initialState, missingFor, recipeDeployment, recipeValues, recipesFor, setBatchAllowed, setBenefit, setBuild, setDeployment, setEdit, setModel, setQuality,
+  setTier, setValue, stepIdOf, stepsFor, toggleDevKind, togglePick, toggleType, type WizardState,
 } from "@/lib/wizard";
 
 const DEPLOYMENTS: AzureDeployment[] = ["global", "dataZone", "regional"];
@@ -46,11 +46,13 @@ export default function Wizard() {
     if (first.current) { first.current = false; return; }
     heading.current?.focus({ preventScroll: true });
   }, [step]);
-  const built = useMemo(() => (state && state.step === 5 ? buildFromState(catalog, state) : null), [state]);
+  const built = useMemo(() => (state && stepIdOf(state) === "review" ? buildFromState(catalog, state) : null), [state]);
 
   if (!state) return null;
+  const STEPS = stepsFor(state);
+  const stepId = stepIdOf(state);
   const update = (f: (s: WizardState) => WizardState) => setState((s) => (s ? f(s) : s));
-  const go = (n: number) => { update((s) => ({ ...s, step: n })); setReached((r) => Math.max(r, n)); };
+  const go = (n: number) => { update((s) => ({ ...s, step: Math.min(n, stepsFor(s).length - 1) })); setReached((r) => Math.max(r, n)); };
   const stop = blocker(state);
   const last = state.step === STEPS.length - 1;
 
@@ -91,12 +93,12 @@ export default function Wizard() {
           <div>
             <h2 ref={heading} tabIndex={-1} className="font-display text-[17px] font-bold outline-none">Step {state.step + 1} of {STEPS.length}: {STEPS[state.step]!.label}</h2>
           </div>
-          {state.step === 0 && <WhatStep state={state} update={update} />}
-          {state.step === 1 && <VolumeStep state={state} update={update} />}
-          {state.step === 2 && <RunStep state={state} update={update} />}
-          {state.step === 3 && <BuildStep state={state} update={update} />}
-          {state.step === 4 && <WorthStep state={state} update={update} />}
-          {state.step === 5 && <ReviewStep state={state} update={update} built={built} />}
+          {stepId === "what" && <WhatStep state={state} update={update} />}
+          {stepId === "volume" && <VolumeStep state={state} update={update} />}
+          {stepId === "run" && <RunStep state={state} update={update} />}
+          {stepId === "build" && <BuildStep state={state} update={update} />}
+          {stepId === "worth" && <WorthStep state={state} update={update} />}
+          {stepId === "review" && <ReviewStep state={state} update={update} built={built} />}
         </div>
       </div>
 
@@ -115,25 +117,53 @@ type StepProps = { state: WizardState; update: (f: (s: WizardState) => WizardSta
 const picked = (s: WizardState): Recipe[] => s.picks.map((id) => recipeById(id)!);
 
 function WhatStep({ state, update }: StepProps) {
+  const offered = recipesFor(state);
   return (
     <>
-      <p className="max-w-3xl text-[13px] text-ink-2">Pick everything this project does. Each one becomes a feature with its own workloads, so you can see what each costs. Start with one if you are unsure; you can add more later on the Run page.</p>
-      <div role="group" aria-label="What are you building" className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2.5">
-        {RECIPES.map((r) => {
-          const on = state.picks.includes(r.id);
+      <p className="max-w-3xl text-[13px] text-ink-2">Choose the kind of change this project is. Pick more than one if it mixes kinds: for example automating a process and moving its hosting to a new platform. Nothing is chosen for you.</p>
+      <div role="group" aria-label="What kind of change" className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2.5">
+        {PROJECT_TYPE_LIST.map((t) => {
+          const on = state.types.includes(t.type);
           return (
-            <button key={r.id} type="button" aria-pressed={on} onClick={() => update((s) => togglePick(s, r.id))}
+            <button key={t.type} type="button" aria-pressed={on} onClick={() => update((s) => toggleType(s, t.type))}
               className={cn("flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors motion-reduce:transition-none", on ? "border-accent bg-accent-soft" : "border-line bg-surface hover:bg-surface-2")}>
               <span className="flex items-start justify-between gap-2">
-                <span className="text-[13.5px] font-semibold">{r.label}</span>
+                <span className="text-[13.5px] font-semibold">{t.label}</span>
                 <span aria-hidden className={cn("flex h-4 w-4 flex-none items-center justify-center rounded border", on ? "border-accent bg-accent text-accent-ink" : "border-line")}>{on && <Check size={11} />}</span>
               </span>
-              <span className="text-[12px] leading-snug text-muted">{r.description}</span>
-              {r.needsHarness && <span className="text-xs text-ink-2">Adds an agent harness.</span>}
+              <span className="text-[12px] leading-snug text-muted">{t.detail}</span>
             </button>
           );
         })}
       </div>
+      <div>
+        <h3 className="font-display text-[14px] font-bold">What are you doing?</h3>
+        <p className="max-w-3xl text-[13px] text-ink-2">
+          {state.types.length === 0
+            ? "Choose a kind of change above and the things you can build with it appear here."
+            : "Pick everything this project does. Each one becomes a feature that carries the kinds of change it belongs to, so you can see what each costs. Start with one if you are unsure; you can add more later."}
+        </p>
+      </div>
+      {state.types.length > 0 && (
+        <div role="group" aria-label="What are you doing" className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2.5">
+          {offered.map((r) => {
+            const on = state.picks.includes(r.id);
+            const kinds = featureTypes(state, r);
+            return (
+              <button key={r.id} type="button" aria-pressed={on} onClick={() => update((s) => togglePick(s, r.id))}
+                className={cn("flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors motion-reduce:transition-none", on ? "border-accent bg-accent-soft" : "border-line bg-surface hover:bg-surface-2")}>
+                <span className="flex items-start justify-between gap-2">
+                  <span className="text-[13.5px] font-semibold">{r.label}</span>
+                  <span aria-hidden className={cn("flex h-4 w-4 flex-none items-center justify-center rounded border", on ? "border-accent bg-accent text-accent-ink" : "border-line")}>{on && <Check size={11} />}</span>
+                </span>
+                <span className="text-[12px] leading-snug text-muted">{r.description}</span>
+                {r.needsHarness && <span className="text-xs text-ink-2">Adds an agent harness.</span>}
+                {state.types.length > 1 && <span className="text-xs text-ink-2">Counts as: {kinds.map((k) => PROJECT_TYPE_LIST.find((x) => x.type === k)!.label).join(", ")}.</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </>
   );
 }
@@ -146,14 +176,28 @@ function QuestionField({ recipe, q, state, update }: { recipe: Recipe; q: Questi
       {q.kind === "number" && <NumberInput value={Number(v)} min={q.min} max={q.max} step={q.step ?? (q.default < 1 ? 0.005 : 1)} suffix={q.unit} onChange={(n) => update((s) => setValue(s, recipe.id, q.id, n))} />}
       {q.kind === "choice" && <Select value={String(v)} options={q.options} onChange={(x) => update((s) => setValue(s, recipe.id, q.id, x))} />}
       {q.kind === "toggle" && <Select value={v ? "yes" : "no"} options={[{ value: "yes", label: "Yes" }, { value: "no", label: "No" }]} onChange={(x) => update((s) => setValue(s, recipe.id, q.id, x === "yes"))} />}
+      {q.kind === "multi" && (
+        <div role="group" aria-label={q.label} className="flex flex-wrap gap-x-4 gap-y-1">
+          {q.options.map((o) => {
+            const picked = String(v).split(",").filter(Boolean);
+            return (
+              <label key={o.value} className="flex items-center gap-1.5 text-[13px] text-ink">
+                <input type="checkbox" checked={picked.includes(o.value)} onChange={(e) => update((s) => setValue(s, recipe.id, q.id, q.options.map((x) => x.value).filter((x) => (x === o.value ? e.target.checked : picked.includes(x))).join(",")))} />
+                {o.label}
+              </label>
+            );
+          })}
+        </div>
+      )}
     </Field>
   );
 }
 
 function VolumeStep({ state, update }: StepProps) {
+  const plan = picked(state).some((r) => r.plan);
   return (
     <>
-      <p className="max-w-3xl text-[13px] text-ink-2">Answer in the units you think in: documents, calls, users. The wizard turns them into tokens, pages and requests on the last step, and shows how.</p>
+      <p className="max-w-3xl text-[13px] text-ink-2">Answer in the units you think in: documents, calls, users, payments.{plan ? " Every figure is a starting assumption: replace it with yours. Each answer is listed with its source on the last step." : " The wizard turns them into tokens, pages and requests on the last step, and shows how."}</p>
       {picked(state).map((r) => (
         <Card key={r.id}>
           <CardHead title={r.label} sub={r.description} />
@@ -349,7 +393,7 @@ function BenefitCard({ recipe, state, update }: { recipe: Recipe; state: WizardS
         {b.type === "quality" && (
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label="Error rate today" help="valueErrBefore"><NumberInput value={b.errorRateBeforePct ?? 0} min={0} max={100} step={0.1} suffix="%" onChange={(n) => setPct("errorRateBeforePct", n)} /></Field>
-            <Field label="Error rate with AI" help="valueErrAfter"><NumberInput value={b.errorRateAfterPct ?? 0} min={0} max={100} step={0.1} suffix="%" onChange={(n) => setPct("errorRateAfterPct", n)} /></Field>
+            <Field label={recipe.plan ? "Error rate after" : "Error rate with AI"} help="valueErrAfter"><NumberInput value={b.errorRateAfterPct ?? 0} min={0} max={100} step={0.1} suffix="%" onChange={(n) => setPct("errorRateAfterPct", n)} /></Field>
             <Field label="Cost of one error" help="valueCostPerError"><NumberInput value={b.costPerError ?? 0} min={0} max={1_000_000_000} step={5} suffix="C$" onChange={(n) => set({ ...b, costPerError: n })} /></Field>
             <p className="text-[12px] text-muted sm:col-span-3">Items checked per month come from this feature's volume on How much, so the two stay in step.</p>
           </div>
@@ -399,13 +443,13 @@ function ReviewStep({ state, update, built }: StepProps & { built: ReturnType<ty
       </Card>
       {byFeature.map(({ f, rows, workloads }) => (
         <Card key={f.id}>
-          <CardHead title={f.label} sub={`${workloads.length} workload${workloads.length === 1 ? "" : "s"}: ${workloads.map((w) => w.label).join(", ") || "none"}`} />
+          <CardHead title={f.label} sub={`${workloads.length} workload${workloads.length === 1 ? "" : "s"}: ${workloads.map((w) => w.label).join(", ") || "none"}${(p.resources ?? []).some((r) => r.featureId === f.id) ? `. ${(p.resources ?? []).filter((r) => r.featureId === f.id).length} catalogue resource(s), ${(p.currentState?.lines ?? []).filter((l) => l.featureId === f.id).length} current-state line(s).` : ""}`} />
           <AssumptionTable rows={rows} state={state} update={update} />
         </Card>
       ))}
       {general.length > 0 && (
         <Card>
-          <CardHead title="Build" sub="Team, length and Dev Lab" />
+          <CardHead title="Project" sub="Team, length and plan" />
           <AssumptionTable rows={general} state={state} update={update} />
         </Card>
       )}
