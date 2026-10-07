@@ -12,8 +12,8 @@ export const PROJECT_TYPE_INFO: Record<ProjectType, { label: string; detail: str
 /** The six types in display order, with their labels. */
 export const PROJECT_TYPE_LIST: { type: ProjectType; label: string; detail: string }[] = PROJECT_TYPES.map((type) => ({ type, ...PROJECT_TYPE_INFO[type] }));
 
-/** Workload kinds that are not AI: fixed platform costs and hosting stacks. */
-const NON_AI_WORKLOADS: readonly string[] = ["fixed", "hosting"];
+/** Workload kinds that are not AI: fixed platform costs, hosting stacks, seats, contracts and per-transaction fees. */
+const NON_AI_WORKLOADS: readonly string[] = ["fixed", "hosting", "seats", "contract", "transactionFee"];
 export const isAiWorkloadKind = (kind: string): boolean => !NON_AI_WORKLOADS.includes(kind);
 /** Every Dev Lab activity is AI work except AI coding tools, which any project can use. */
 export const isAiActivityKind = (kind: string): boolean => kind !== "tooling";

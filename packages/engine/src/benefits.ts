@@ -24,13 +24,13 @@ export interface CapabilityHours {
 const r1 = (x: number) => Math.round(x * 10) / 10;
 
 /** Monthly volume fields a capability can take its items from, in order of preference. */
-const ITEM_KEYS = ["tasksPerMonth", "callsPerMonth", "emailsPerMonth", "queriesPerMonth", "interactionsPerMonth", "requestsPerMonth", "pagesPerMonth", "hoursPerMonth", "rowsPerMonth", "rows", "tokensPerMonth", "chunks"] as const;
+const ITEM_KEYS = ["tasksPerMonth", "callsPerMonth", "emailsPerMonth", "queriesPerMonth", "interactionsPerMonth", "requestsPerMonth", "pagesPerMonth", "hoursPerMonth", "rowsPerMonth", "rows", "tokensPerMonth", "chunks", "volumePerMonth"] as const;
 
 /** What a workload offers as a capability's volume: its users, and its main monthly item count. */
 export function workloadVolume(w: Project["workloads"][number]): { users?: number; items?: number; itemsKey?: string } {
   const o = w as unknown as Record<string, unknown>;
   const key = ITEM_KEYS.find((k) => typeof o[k] === "number");
-  return { users: typeof o.users === "number" ? (o.users as number) : undefined, items: key ? (o[key] as number) : undefined, itemsKey: key };
+  return { users: typeof o.users === "number" ? (o.users as number) : w.kind === "seats" ? w.seats : undefined, items: key ? (o[key] as number) : undefined, itemsKey: key };
 }
 
 /** Users and items for a capability, from its linked workload when it has one. */

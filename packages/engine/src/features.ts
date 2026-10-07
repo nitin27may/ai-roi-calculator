@@ -13,7 +13,7 @@ export const capabilityLinks = (c: Pick<Capability, "workloadIds" | "workstreamI
 const ONE_TIME_KEY: Partial<Record<Workload["kind"], string>> = {
   transcription: "hoursPerMonth", documents: "pagesPerMonth", email: "emailsPerMonth", embeddings: "tokensPerMonth",
   retrieval: "queriesPerMonth", agent: "tasksPerMonth", continuousEval: "interactionsPerMonth", contentSafety: "requestsPerMonth",
-  llm: "callsPerMonth", voiceAgent: "callsPerMonth", snowflakeComplete: "rowsPerMonth", snowflakeFunction: "rowsPerMonth",
+  llm: "callsPerMonth", transactionFee: "volumePerMonth", voiceAgent: "callsPerMonth", snowflakeComplete: "rowsPerMonth", snowflakeFunction: "rowsPerMonth",
 };
 export const oneTimeKey = (w: Workload): string | undefined => ONE_TIME_KEY[w.kind];
 
