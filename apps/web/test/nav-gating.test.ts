@@ -18,7 +18,7 @@ describe("Capacity (PTU) nav gating", () => {
     expect(hrefs(typed(blank(), ["automation", "ai"]))).toContain("/capacity");
   });
   it("keeps the other pages in order", () => {
-    expect(hrefs(typed(blank(), ["automation"]))).toEqual(["/summary", "/overview", "/build", "/run", "/roi", "/report", "/settings"]);
+    expect(hrefs(typed(blank(), ["automation"]))).toEqual(["/summary", "/overview", "/build", "/infrastructure", "/run", "/roi", "/report", "/settings"]);
   });
 });
 

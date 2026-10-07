@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { ACTIVITY_KINDS, ALLOWANCE_ID, MANUAL_METER, allowanceActive, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, labourExcluded, labourPartialText, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, addAllocationPeriod, allocationPeriods, overlappingPeriods, peakAllocation, removeAllocationPeriod, removeWorkstream, setAllocation, updateAllocationPeriod, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@roi-calculator/engine";
+import { envCost, ACTIVITY_KINDS, ALLOWANCE_ID, MANUAL_METER, allowanceActive, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, labourExcluded, labourPartialText, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, addAllocationPeriod, allocationPeriods, overlappingPeriods, peakAllocation, removeAllocationPeriod, removeWorkstream, setAllocation, updateAllocationPeriod, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@roi-calculator/engine";
 import { RateCardEditor } from "@/components/rate-card";
 import { HelpTip } from "@/components/help-tip";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
@@ -29,6 +29,7 @@ export default function Build() {
   const acts = project.build.activities;
   const series = (id: string) => buildMonths.map((m) => m.lines.filter((l) => l.componentId === id && l.stream === "devlab").reduce((s, l) => s + l.cost, 0));
   const devEnv = buildMonths.map((m) => m.byStream.devenv);
+  const envNote = buildMonths.some((m) => envCost(m) > 0) ? ` and environments (${cad(buildMonths.reduce((t, m) => t + envCost(m), 0))}, see Infrastructure)` : "";
   const devTotal = ledger.totals.devLab, labTotal = ledger.totals.buildLabour;
   const allDev = buildMonths.map((m) => m.byStream.devlab);
   const edit = useStudio((s) => s.edit);
@@ -38,7 +39,7 @@ export default function Build() {
   return (
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Card>
-        <CardHead title={`Build, months 1–${B}`} sub={labourExcluded(project) ? "AI Dev Lab and dev environment. Build labour excluded" : labourPartialText(project) ? `Labour, AI Dev Lab and dev environment. ${labourPartialText(project)}` : "Labour, AI Dev Lab and dev environment"}><span className="num text-sm">{cad(ledger.totals.build)}</span></CardHead>
+        <CardHead title={`Build, months 1–${B}`} sub={labourExcluded(project) ? `AI Dev Lab and dev environment${envNote}. Build labour excluded` : labourPartialText(project) ? `Labour, AI Dev Lab and dev environment${envNote}. ${labourPartialText(project)}` : `Labour, AI Dev Lab and dev environment${envNote}`}><span className="num text-sm">{cad(ledger.totals.build)}</span></CardHead>
         <div data-tour="build-list" role="listbox" aria-label="Build cost items" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
           <ListRow selected={sel === "all"} onClick={() => setSel("all")} title="AI Dev Lab, all activities" sub="tokens and AI services while building" aside={<Spark values={allDev} color="var(--s2)" />} value={cad(devTotal)} />
           <GroupHead>Labour</GroupHead>

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import type { Month } from "@roi-calculator/engine";
+import { envCost, type Month } from "@roi-calculator/engine";
 import { Card, CardHead, Pill, Seg } from "@/components/ui";
 import { Legend, useSize } from "@/components/charts";
 import { Story } from "@/components/story";
@@ -62,14 +62,18 @@ function LifecycleCanvas() {
   const B = project.timeline.buildMonths, Hm = project.timeline.horizonMonths, months = ledger.months;
   const comp = (m: Month, ids: string[]) => m.lines.filter((l) => l.stream === "devlab" && ids.includes(l.componentId)).reduce((s, l) => s + l.cost, 0);
   const kinds = (k: string[]) => project.build.activities.filter((a) => k.includes(a.kind)).map((a) => a.id);
+  // Production resource lines sit in the run stream; they are infrastructure, not AI usage.
+  const prodRes = (m: Month) => m.lines.filter((l) => l.stream === "run" && l.componentId.startsWith("resource:")).reduce((s, l) => s + l.cost, 0);
+  const hasEnv = months.some((m) => envCost(m) > 0);
   const lanes: [string, string, number[]][] = [
     ["Build labour", "var(--build-2)", months.map((m) => m.byStream.labour)],
     ["Model bake-off", "var(--build)", months.map((m) => comp(m, kinds(["bakeoff"])))],
     ["Harness iterations", "var(--build)", months.map((m) => comp(m, kinds(["iterations"])))],
     ["Regression, eval & red team", "var(--build)", months.map((m) => comp(m, kinds(["regression", "evaluation", "redteam"])))],
     ["Tools & dev environment", "var(--build)", months.map((m) => comp(m, kinds(["playground", "tooling"])) + m.byStream.devenv)],
-    ["Production AI usage", "var(--run)", months.map((m) => m.byStream.run)],
-    ["Platform & infrastructure", "var(--platform)", months.map((m) => m.byStream.platform)],
+    ["Production AI usage", "var(--run)", months.map((m) => m.byStream.run - prodRes(m))],
+    ["Platform & infrastructure", "var(--platform)", months.map((m) => m.byStream.platform + prodRes(m))],
+    ...(hasEnv ? [["Environments", "var(--build)", months.map((m) => envCost(m))] as [string, string, number[]]] : []),
     ["Maintenance", "var(--maint)", months.map((m) => m.byStream.maint)],
     ["Benefit", "var(--benefit)", months.map((m) => m.benefit)],
   ];

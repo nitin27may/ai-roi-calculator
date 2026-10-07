@@ -89,7 +89,7 @@ describe("page intros", () => {
   it("covers every project page in the shell", () => {
     const shell = read("lib/nav.ts");
     const views = [...shell.matchAll(/\{ href: "(\/\w+)", label/g)].map((m) => m[1]!);
-    expect(views.length).toBe(8);
+    expect(views.length).toBe(9);
     expect(views.filter((v) => !INTROS[v])).toEqual([]);
   });
 });
