@@ -2,6 +2,7 @@ import type { Catalog } from "@roi-calculator/catalog";
 import type { PriceNote } from "./pricing.js";
 import { steadyState, type Ledger, type Month } from "./ledger.js";
 import type { Project } from "./project.js";
+import { showsAiPages } from "./types.js";
 import type { RoiResult } from "./roi.js";
 import { basisCost, basisLabel } from "./roi.js";
 import { sum, type Stream } from "./lines.js";
@@ -344,7 +345,7 @@ export function summaryRows(p: Project, ledger: Ledger, roi: RoiResult, cat: Cat
     { Item: "Plan length (months)", Value: s.horizonMonths },
     { Item: buildLabel(p, "Build cost"), Value: r2(s.build) },
     { Item: "  of which labour", Value: s.labourExcluded ? "Excluded" : r2(t.buildLabour) },
-    { Item: "  of which AI Dev Lab", Value: r2(t.devLab) },
+    { Item: showsAiPages(p) ? "  of which AI Dev Lab" : "  of which engineering tools & lab", Value: r2(t.devLab) },
     { Item: "Year-1 run cost", Value: r2(s.year1Run) },
     { Item: "Steady-state annual run (run + platform + maintenance)", Value: r2(s.steadyStateAnnualRun) },
     { Item: "Benefit per year (full adoption)", Value: r2(s.benefitPerYear) },

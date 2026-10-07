@@ -81,8 +81,8 @@ function TextCount({ top }: { top: ReactNode }) {
     <Split top={top} inputs={<textarea aria-label="Text to count" className="min-h-[220px] w-full rounded-md border border-line bg-surface-2 p-2 text-[13px]" value={text} onChange={(e) => setText(e.target.value)} />}>
       <h2 className="text-base font-bold">Count tokens</h2>
       <div className="text-xs text-muted">{fmt(text.length)} characters · o200k count is {count ? "exact (in-browser tokenizer)" : "estimated while the tokenizer loads"}; other families apply a multiplier.</div>
-      <table className="data">
-        <thead><tr><th>Model</th><th>Tokenizer</th><th className="n">Tokens</th><th className="n">CAD per 1,000 calls (input)</th><th /></tr></thead>
+      <div className="overflow-x-auto" tabIndex={0}><table className="data">
+        <thead><tr><th>Model</th><th>Tokenizer</th><th className="n">Tokens</th><th className="n">CAD per 1,000 calls (input)</th><th><span className="sr-only">Actions</span></th></tr></thead>
         <tbody>
           {models.map((id) => {
             const m = book.chatModel(id), t = Math.round(base * book.tokenizerMultiplier(id));
@@ -91,7 +91,7 @@ function TextCount({ top }: { top: ReactNode }) {
               : { kind: "llm", label: `LLM calls on ${m.label}`, callsPerMonth: 10000, modelId: id, inputTokens: base, cachedInputTokens: 0, outputTokens: 300, batchShare: 0, reasoning: "none" })} /></td></tr>;
           })}
         </tbody>
-      </table>
+      </table></div>
     </Split>
   );
 }
@@ -145,16 +145,16 @@ function Docs({ top }: { top: ReactNode }) {
       </>}>
       <div><h2 className="text-base font-bold">Read and summarize {fmt(pages)} {unitName}{pages === 1 ? "" : "s"}</h2><div className="text-xs text-muted">{ft.note} Cheapest first.</div></div>
       <h3 className="text-sm font-semibold">Tokens in one file, text and pictures counted separately</h3>
-      <table className="data">
+      <div className="overflow-x-auto" tabIndex={0}><table className="data">
         <thead><tr><th>Model</th><th className="n">Text tokens</th><th className="n">Picture tokens</th><th className="n">Total</th></tr></thead>
         <tbody>{breakdown.map(({ id, m, t }) => (
           <tr key={id}><td>{m.label} {t.imagesTotal > 0 && !t.imageSupported && <Pill>unverified</Pill>}<div className="text-xs text-muted">{t.imagesTotal > 0 ? t.imageFormula : "No pictures entered"}</div></td><td className="n">{fmt(t.textTokens)}</td><td className="n">{t.imagesTotal > 0 && !t.imageSupported ? "no formula" : fmt(t.imageTokens)}</td><td className="n">{fmt(t.total)}</td></tr>
         ))}</tbody>
-      </table>
-      <table className="data">
-        <thead><tr><th>Route</th><th>Via</th><th className="n">CAD</th><th className="w-[28%]" /><th /></tr></thead>
+      </table></div>
+      <div className="overflow-x-auto" tabIndex={0}><table className="data">
+        <thead><tr><th>Route</th><th>Via</th><th className="n">CAD</th><th className="w-[28%]"><span className="sr-only">Share of the dearest</span></th><th><span className="sr-only">Actions</span></th></tr></thead>
         <tbody>{routes.map((r) => <tr key={r.route}><td>{r.route} {r.tag === "unverified" && <Pill>unverified</Pill>}{r.tag === "plus warehouse time" && <Pill>+ warehouse</Pill>}</td><td>{r.via}</td><td className="n">{cad(r.cost, 2)}{creditSummary(r.lines).map((t) => <div key={t.type} className="text-xs text-muted">{fmt(t.credits)} {t.type === "ai" ? "AI" : "platform"} credits at {cad(t.cadPerCredit, 2)}</div>)}</td><td><div className="pt-1.5"><Bar ratio={r.cost / max} /></div></td><td><AddButton onClick={() => { const { id: _id, ...w } = r.make(); add(w as NewWorkload); }} /></td></tr>)}</tbody>
-      </table>
+      </table></div>
       <p className="text-xs text-muted">Cheapest here: <b className="text-ink-2">{cheapest.route}</b>. Sending a PDF straight to a model bills extracted text plus an image of every page{images ? `, plus the ${fmt(file.imagesPerPage)} embedded picture${file.imagesPerPage === 1 ? "" : "s"} on each page` : ""}. Extracting first costs more per page on small models but keeps the text reusable for search and for repeated questions. Routes that extract text first do not send the pictures to the model.</p>
       <Explain title="How the cheapest route reads the file" lines={cheapest.lines} months={1} digits={4} />
       <TokenGuide guide={guide} />
@@ -176,10 +176,10 @@ function Audio({ top }: { top: ReactNode }) {
         <Field label="Speaker diarization" help="diarize"><Select value={diarize ? "y" : "n"} options={[{ value: "y", label: "Yes" }, { value: "n", label: "No" }]} onChange={(v) => setDiarize(v === "y")} /></Field>
       </>}>
       <div><h2 className="text-base font-bold">Transcribe {fmt(hours, 1)} hour{hours === 1 ? "" : "s"} of audio</h2><div className="text-xs text-muted">About {fmt(hours * heuristics.speech.wordsPerMinute * 60)} words, or {fmt(hours * heuristics.speech.wordsPerMinute * 60 * heuristics.tokens.perWord)} transcript tokens. Prices as of {date}.</div></div>
-      <table className="data">
-        <thead><tr><th>Engine</th><th>Via</th><th className="n">CAD</th><th className="w-[28%]" /><th /></tr></thead>
+      <div className="overflow-x-auto" tabIndex={0}><table className="data">
+        <thead><tr><th>Engine</th><th>Via</th><th className="n">CAD</th><th className="w-[28%]"><span className="sr-only">Share of the dearest</span></th><th><span className="sr-only">Actions</span></th></tr></thead>
         <tbody>{rows.map(({ e, rate }) => <tr key={e.id}><td>{e.label} {e.diarization === "none" && diarize && <Pill>no diarization</Pill>} {e.lifecycle.retiresOn && <Pill tone="crit">retires {e.lifecycle.retiresOn}</Pill>} {e.promo && <Pill tone="warn">promo to {e.promo.until}</Pill>}</td><td>{e.via}</td><td className="n">{cad(rate * hours, 2)}</td><td><div className="pt-1.5"><Bar ratio={rate / max} /></div></td><td><AddButton onClick={() => add({ kind: "transcription", label: `Transcription: ${e.label}`, hoursPerMonth: hours, engineId: e.id, diarize })} /></td></tr>)}</tbody>
-      </table>
+      </table></div>
     </Split>
   );
 }
@@ -223,10 +223,10 @@ function AgentRun({ top }: { top: ReactNode }) {
         <Field label="Cache hit" help="cacheHit"><NumberInput value={cacheHit} max={100} suffix="%" onChange={setCacheHit} /></Field>
       </>}>
       <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-base font-bold">One run of {h.label}</h2><AddButton onClick={() => add(workload, useProject ? undefined : h)} /></div>
-      <table className="data">
+      <div className="overflow-x-auto" tabIndex={0}><table className="data">
         <thead><tr><th>Estimate</th><th className="n">Steps</th><th className="n">Input</th><th className="n">Cached</th><th className="n">Output</th><th className="n">CAD</th><th>Stopped by</th></tr></thead>
         <tbody>{rows.map(({ p, r }) => <tr key={p}><td>{{ p50: "Typical (P50)", p90: "P90", worst: "Worst under caps" }[p]}</td><td className="n">{r.steps}</td><td className="n">{fmt(r.inputTokens)}</td><td className="n">{fmt(r.cachedTokens)}</td><td className="n">{fmt(r.outputTokens)}</td><td className="n">{cad(r.cost + fee.reduce((x) => x + book.unitPrice("code-interpreter"), 0), 3)}</td><td className="text-xs text-ink-2" title={STOP_TEXT[r.stopReason]}>{{ finished: "Finished", maxTurns: "Step cap", tokenBudget: "Token budget", contextWindow: "Context window" }[r.stopReason]}</td></tr>)}</tbody>
-      </table>
+      </table></div>
       {fee.length > 0 && <p className="text-xs text-muted">CAD includes one code-interpreter session ({cad(book.unitPrice("code-interpreter"), 4)}). {STOP_TEXT[rows[0]!.r.stopReason]}</p>}
       <h3 className="text-sm font-semibold">Prompt size by step (P50)</h3>
       <div className="flex flex-col gap-1">

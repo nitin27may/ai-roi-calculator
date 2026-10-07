@@ -56,7 +56,7 @@ export default function Run() {
         <CardHead title="Production, per month" sub="At full adoption">
           <Seg label="Usage estimate" value={percentile} onChange={setPercentile} options={[{ value: "p10", label: "P10" }, { value: "p50", label: "P50" }, { value: "p90", label: "P90" }, { value: "worst", label: "Worst" }]} />
         </CardHead>
-        <div data-tour="run-workloads" role="listbox" aria-label="Production workloads" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
+        <div data-tour="run-workloads" role="group" aria-label="Production workloads" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
           {sections.filter((sec) => !hasFeatures || sec.id !== "" || sec.ws.length > 0).map((sec) => (
             <div key={sec.id || "shared"}>
               {hasFeatures && sec.id !== "" && (
@@ -218,7 +218,7 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
         {project.maintenance.mode === "pctOfBuild" && <Field label="Per year, as a share of build cost" help="maintenancePct"><NumberInput value={project.maintenance.pctPerYear} max={100} suffix="%" onChange={(v) => edit((d) => { if (d.maintenance.mode === "pctOfBuild") d.maintenance.pctPerYear = v; })} /></Field>}
         {project.maintenance.mode === "team" && (
           <table className="data">
-            <thead><tr><th>Role</th><th className="n">People</th><th className="n">Hours / month</th><th /></tr></thead>
+            <thead><tr><th>Role</th><th className="n">People</th><th className="n">Hours / month</th><th><span className="sr-only">Actions</span></th></tr></thead>
             <tbody>
               {project.maintenance.team.map((t, i) => (
                 <tr key={i}>
@@ -335,7 +335,7 @@ function VoiceCompare({ id }: { id: string }) {
     <div>
       <h3 className="mb-1.5 text-sm font-semibold">The same {fmt(w.callsPerMonth)} calls, speech-to-speech or cascaded</h3>
       <table className="data">
-        <thead><tr><th>Option</th><th className="n">CAD / call</th><th className="n">CAD / minute</th><th className="n">CAD / month</th><th /></tr></thead>
+        <thead><tr><th>Option</th><th className="n">CAD / call</th><th className="n">CAD / minute</th><th className="n">CAD / month</th><th><span className="sr-only">Actions</span></th></tr></thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.key} style={r.current ? { background: "var(--accent-soft)" } : undefined}>
@@ -394,7 +394,7 @@ function SpeechCompare({ hours, current, id, diarize, deployment }: { hours: num
       <h3 className="mb-1.5 text-sm font-semibold">Every engine for the same {fmt(hours)} hours, priced at month {ledger.months.length} (end of plan)</h3>
       <p className="mb-1.5 text-xs text-muted">This workload uses {DEPLOYMENT_LABEL[d]}. Engines it does not offer show where they are offered; &quot;Use&quot; switches the engine and, if needed, the workload&apos;s deployment.</p>
       <table className="data">
-        <thead><tr><th>Engine</th><th>Via</th><th className="n">CAD / hour</th><th className="n">CAD / month</th><th /></tr></thead>
+        <thead><tr><th>Engine</th><th>Via</th><th className="n">CAD / hour</th><th className="n">CAD / month</th><th><span className="sr-only">Actions</span></th></tr></thead>
         <tbody>
           {rows.map(({ e, rate }) => (
             <tr key={e.id} style={e.id === current ? { background: "var(--accent-soft)" } : undefined}>

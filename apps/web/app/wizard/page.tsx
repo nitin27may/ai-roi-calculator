@@ -460,7 +460,7 @@ function ReviewStep({ state, update, built }: StepProps & { built: ReturnType<ty
 function AssumptionTable({ rows, state, update }: { rows: Assumption[]; state: WizardState; update: StepProps["update"] }) {
   if (!rows.length) return <p className="px-3.5 pb-3.5 text-[12.5px] text-muted">Nothing derived for this feature.</p>;
   return (
-    <div className="overflow-x-auto px-3.5 pb-3.5">
+    <div tabIndex={0} className="overflow-x-auto px-3.5 pb-3.5">
       <table className="data">
         <thead><tr><th>Assumption</th><th>Value</th><th>Where it comes from</th></tr></thead>
         <tbody>

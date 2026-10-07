@@ -12,7 +12,7 @@ export function Card({ children, className, id }: { children: ReactNode; classNa
 
 export function CardHead({ title, sub, children }: { title: ReactNode; sub?: ReactNode; children?: ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2.5 px-3.5 pb-2 pt-3">
+    <div className="flex flex-wrap items-center justify-between gap-2.5 px-3.5 pb-2 pt-3 [&>*]:min-w-0 [&>*]:max-w-full">
       <div className="min-w-0">
         <h2 className="text-base font-bold">{title}</h2>
         {sub && <div className="text-xs text-muted">{sub}</div>}
@@ -22,12 +22,13 @@ export function CardHead({ title, sub, children }: { title: ReactNode; sub?: Rea
   );
 }
 
-export function Seg<T extends string>({ value, options, onChange, label }: { value: T; options: { value: T; label: ReactNode }[]; onChange: (v: T) => void; label: string }) {
+/** `wrap` lays the options out as separate buttons on as many lines as needed (for long strips such as the Value & ROI views) instead of one scrolling strip. */
+export function Seg<T extends string>({ value, options, onChange, label, wrap = false }: { value: T; options: { value: T; label: ReactNode }[]; onChange: (v: T) => void; label: string; wrap?: boolean }) {
   return (
-    <div role="group" aria-label={label} className="inline-flex overflow-hidden rounded-md border border-line bg-surface">
+    <div role="group" aria-label={label} className={cn("inline-flex max-w-full", wrap ? "flex-wrap gap-1" : "overflow-x-auto rounded-md border border-line bg-surface")}>
       {options.map((o) => (
         <button key={o.value} type="button" aria-pressed={o.value === value} onClick={() => onChange(o.value)}
-          className={cn("border-r border-line px-2.5 py-1 text-xs font-medium last:border-r-0", o.value === value ? "bg-accent text-accent-ink" : "text-ink-2 hover:bg-surface-2")}>
+          className={cn("min-h-6 flex-none whitespace-nowrap px-2.5 py-1 text-xs font-medium", wrap ? "rounded-md border border-line" : "border-r border-line last:border-r-0", o.value === value ? "bg-accent text-accent-ink" : "text-ink-2 hover:bg-surface-2")}>
           {o.label}
         </button>
       ))}
@@ -111,7 +112,7 @@ export function NumberInput({ value, onChange, min = 0, max, step, suffix, label
 export function Select({ value, options, onChange, label }: { value: string; options: { value: string; label: string }[]; onChange: (v: string) => void; label?: string }) {
   const ctx = useContext(FieldContext);
   return (
-    <select id={ctx?.id} aria-label={ctx ? undefined : label} className={cn(inputCls, "w-full")} value={value} onChange={(e) => onChange(e.target.value)}>
+    <select id={ctx?.id} aria-label={ctx ? undefined : label} title={options.find((o) => o.value === value)?.label} className={cn(inputCls, "w-full")} value={value} onChange={(e) => onChange(e.target.value)}>
       {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
   );
@@ -127,11 +128,11 @@ export function TrashButton({ label, onClick, className }: { label: string; onCl
   );
 }
 
-/** Arrow, Home and End keys move between the options of a listbox. Attach to the element with role="listbox". */
+/** Arrow, Home and End keys move between the rows of a list of selectable rows. Attach to the wrapping element (role="group"; a listbox would be wrong because the list also holds headings and add buttons). */
 export function listboxKeys(e: KeyboardEvent<HTMLElement>) {
   const keys = ["ArrowDown", "ArrowUp", "Home", "End"];
   if (!keys.includes(e.key)) return;
-  const items = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="option"]')];
+  const items = [...e.currentTarget.querySelectorAll<HTMLElement>("[data-list-row]")];
   if (!items.length) return;
   const i = items.indexOf(document.activeElement as HTMLElement);
   const next = e.key === "Home" ? 0 : e.key === "End" ? items.length - 1 : e.key === "ArrowDown" ? Math.min(items.length - 1, i + 1) : Math.max(0, i < 0 ? 0 : i - 1);
@@ -145,12 +146,12 @@ export function Formula({ children }: { children: ReactNode }) {
 
 export function ListRow({ selected, onClick, title, sub, aside, value }: { selected: boolean; onClick: () => void; title: ReactNode; sub?: ReactNode; aside?: ReactNode; value: ReactNode }) {
   return (
-    <button type="button" role="option" aria-selected={selected} onClick={onClick}
+    <button type="button" data-list-row aria-pressed={selected} onClick={onClick}
       className={cn("grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2.5 border-b border-l-[3px] border-b-line px-3.5 py-2 text-left",
         selected ? "border-l-accent bg-accent-soft" : "border-l-transparent hover:bg-surface-2")}>
       <span className="min-w-0">
-        <span className="block truncate font-medium">{title}</span>
-        {sub && <span className="block truncate text-xs text-muted">{sub}</span>}
+        <span className="line-clamp-2 break-words font-medium" title={typeof title === "string" ? title : undefined}>{title}</span>
+        {sub && <span className="line-clamp-2 break-words text-xs text-muted" title={typeof sub === "string" ? sub : undefined}>{sub}</span>}
       </span>
       <span>{aside}</span>
       <span className="num whitespace-nowrap text-right text-[12.5px]">{value}</span>

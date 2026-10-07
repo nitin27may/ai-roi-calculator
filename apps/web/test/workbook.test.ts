@@ -98,3 +98,34 @@ describe("current state in the workbook", () => {
     expect(plain.worksheets.map((w) => w.name)).not.toContain("Current state");
   });
 });
+
+describe("Summary sheet number formats (QA)", () => {
+  it("formats money rows as C$ and leaves counts, months and percentages alone", async () => {
+    const { ALL_PROJECT_TEMPLATES } = await import("@roi-calculator/engine");
+    const cheques = ALL_PROJECT_TEMPLATES.find((t) => t.id === "cheques")!.make("Cheques");
+    const L = buildLedger(cheques, catalog, "p50");
+    const R = computeRoi(L, cheques.roi.basis, cheques.roi.discountRatePct, roiOptions(cheques));
+    const wb = await buildWorkbook(cheques, L, R, catalog);
+    const ws = wb.getWorksheet("Summary")!;
+    const fmt = new Map<string, string | undefined>();
+    ws.eachRow((row) => { if (typeof row.getCell(2).value === "number") fmt.set(String(row.getCell(1).value), row.getCell(2).numFmt); });
+    const money = [...fmt].filter(([k]) => /cost|benefit|NPV|saving|labour/i.test(k) && !/months|^Payback/i.test(k));
+    expect(money.length).toBeGreaterThan(5);
+    for (const [k, f] of money) expect(f, k).toBe('"C$"#,##0.00');
+    expect(fmt.get("Build months")).not.toBe('"C$"#,##0.00');
+    expect(fmt.get("Plan length (months)")).not.toBe('"C$"#,##0.00');
+    expect([...fmt.keys()].find((k) => k.startsWith("Payback month"))).toBeDefined();
+    for (const [k, f] of fmt) if (/^Payback/.test(k)) expect(f).not.toBe('"C$"#,##0.00');
+  });
+
+  it("names the lab row by what it is in a project with no AI", async () => {
+    const { ALL_PROJECT_TEMPLATES, summaryRows } = await import("@roi-calculator/engine");
+    const cheques = ALL_PROJECT_TEMPLATES.find((t) => t.id === "cheques")!.make("Cheques");
+    const L = buildLedger(cheques, catalog, "p50");
+    const R = computeRoi(L, cheques.roi.basis, cheques.roi.discountRatePct, roiOptions(cheques));
+    const items = summaryRows(cheques, L, R, catalog).map((r) => r.Item);
+    expect(items).toContain("  of which engineering tools & lab");
+    expect(items).not.toContain("  of which AI Dev Lab");
+    expect(summaryRows(p, ledger, roi, catalog).map((r) => r.Item)).toContain("  of which AI Dev Lab");
+  });
+});

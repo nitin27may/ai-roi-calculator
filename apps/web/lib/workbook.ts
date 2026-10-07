@@ -5,6 +5,10 @@ import type { ChartMonth } from "./xlsx-chart";
 
 const MONEY = '"C$"#,##0.00';
 
+/** Summary rows whose value is an amount of money (the rest are counts, months, percentages or text). */
+export const isMoneySummaryRow = (label: string): boolean =>
+  /cost|benefit|^net\b|npv|saving|labour|lab\b|run\b|tools/i.test(label) && !/^payback|months|irr|^roi|rate|length|hours/i.test(label);
+
 /** Monthly figures for the picture on the Summary sheet. */
 export const chartMonths = (ledger: Ledger): ChartMonth[] =>
   ledger.months.map((m) => ({ build: m.byStream.labour + (m.byStream.delivery ?? 0), devlab: m.byStream.devlab + m.byStream.devenv, run: m.byStream.run, platform: m.byStream.platform + (m.byStream.env ?? 0), maint: m.byStream.maint + m.byStream.transition, benefit: m.benefit }));
@@ -57,6 +61,10 @@ export async function buildWorkbook(p: Project, ledger: Ledger, roi: RoiResult, 
 
   const summary = sheet("Summary", summaryRows(p, ledger, roi, cat));
   const lastRow = summary.rowCount;
+  for (let r = 2; r <= lastRow; r++) {
+    const cell = summary.getCell(r, 2);
+    if (typeof cell.value === "number" && isMoneySummaryRow(String(summary.getCell(r, 1).value ?? ""))) cell.numFmt = MONEY;
+  }
   summary.getColumn(2).width = Math.max(summary.getColumn(2).width ?? 10, 18);
   const head = lastRow + 3;
   summary.getCell(head - 1, 1).value = "How sure are we: the three cases, in full numbers";

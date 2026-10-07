@@ -48,7 +48,7 @@ export default function Build() {
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Card>
         <CardHead title={`Build, months 1–${B}`} sub={labourExcluded(project) ? `Engineering tools & lab, dev environment and delivery costs${envNote}. Build labour excluded` : labourPartialText(project) ? `Labour, engineering tools & lab, dev environment and delivery costs${envNote}. ${labourPartialText(project)}` : `Labour, engineering tools & lab, dev environment and delivery costs${envNote}`}><span className="num text-sm">{cad(ledger.totals.build)}</span></CardHead>
-        <div data-tour="build-list" role="listbox" aria-label="Build cost items" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
+        <div data-tour="build-list" role="group" aria-label="Build cost items" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
           <ListRow selected={sel === "all"} onClick={() => setSel("all")} title="Engineering tools & lab, by month" sub="tools, AI-assisted development and AI experiments while building" aside={<Spark values={allDev} color="var(--s2)" />} value={cad(devTotal)} />
           <GroupHead>Labour</GroupHead>
           <ListRow selected={sel === "team"} onClick={() => setSel("team")} title="Team & rate card" sub={!labourExcluded(project) ? project.build.team.map((t) => t.name ?? `${t.people} ${project.rateCard.find((r) => r.id === t.roleId)?.label ?? t.roleId}`).join(" · ") : "Build labour excluded: the team only drives lab volumes"} value={labourExcluded(project) ? "Excluded" : cad(labTotal)} />
@@ -304,7 +304,7 @@ function WorkstreamPanel({ id, onRemoved, onOpen }: { id: string; onRemoved: () 
       <div>
         <h3 className="mb-1.5 text-sm font-semibold">People</h3>
         <table className="data">
-          <thead><tr><th>Team line</th><th className="n">Share of their time</th><th className="n">From month</th><th className="n">To month</th><th /></tr></thead>
+          <thead><tr><th>Team line</th><th className="n">Share of their time</th><th className="n">From month</th><th className="n">To month</th><th><span className="sr-only">Actions</span></th></tr></thead>
           <tbody>
             {project.build.team.flatMap((t, seat) => {
               const B = project.timeline.buildMonths;
@@ -412,7 +412,7 @@ function Team() {
       {!project.build.includeLabour && <p className="rounded-md bg-warn-soft px-2.5 py-1.5 text-xs text-warn">Build labour excluded: nothing below is costed. People and experiment ticks still set the engineering tools & lab volumes, and the rates still value time saved and maintenance.</p>}
       <div className="flex-none overflow-x-auto">
       <table className="data">
-        <thead><tr><th><span className="inline-flex items-center gap-0.5">Costed<HelpTip id="teamCosted" label="Costed" /></span></th><th>Name</th><th><span className="inline-flex items-center gap-0.5">Phase<HelpTip id="teamPhase" label="Phase" /></span></th><th>Role</th><th className="n">People</th><th className="n"><span className="inline-flex items-center gap-0.5">Effort<HelpTip id="teamEffortMode" label="Effort" /></span></th><th className="n">From</th><th className="n">To</th><th>Experiments</th><th className="n"><span className="inline-flex items-center gap-0.5">Manual rate (CAD/h)<HelpTip id="rateOverride" label="Manual rate" /></span></th><th className="n">Build cost</th><th /></tr></thead>
+        <thead><tr><th><span className="inline-flex items-center gap-0.5">Costed<HelpTip id="teamCosted" label="Costed" /></span></th><th>Name</th><th><span className="inline-flex items-center gap-0.5">Phase<HelpTip id="teamPhase" label="Phase" /></span></th><th>Role</th><th className="n">People</th><th className="n"><span className="inline-flex items-center gap-0.5">Effort<HelpTip id="teamEffortMode" label="Effort" /></span></th><th className="n">From</th><th className="n">To</th><th>Experiments</th><th className="n"><span className="inline-flex items-center gap-0.5">Manual rate (CAD/h)<HelpTip id="rateOverride" label="Manual rate" /></span></th><th className="n">Build cost</th><th><span className="sr-only">Actions</span></th></tr></thead>
         <tbody>
           {project.build.team.map((t, i) => (
             <tr key={i}>
@@ -544,7 +544,7 @@ function Activity({ id, onRemoved }: { id: string; onRemoved: () => void }) {
         <div>
           <h3 className="mb-1.5 text-sm font-semibold">Candidate models and the months they run</h3>
           <table className="data">
-            <thead><tr><th>Model</th><th className="n">From</th><th className="n">To</th><th /></tr></thead>
+            <thead><tr><th>Model</th><th className="n">From</th><th className="n">To</th><th><span className="sr-only">Actions</span></th></tr></thead>
             <tbody>
               {a.candidates.map((c, ci) => (
                 <tr key={ci}>

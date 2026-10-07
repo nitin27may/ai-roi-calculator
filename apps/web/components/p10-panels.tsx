@@ -63,7 +63,7 @@ export function HostingPanel({ w }: { w: Of<"hosting"> }) {
         <h3 className="mb-1.5 text-sm font-semibold">Items</h3>
         {w.items.length === 0 ? <p className="text-xs text-muted">No items yet. Add a preset above.</p> : (
           <table className="data">
-            <thead><tr><th>Item</th><th>Billed</th><th className="n">Amount</th><th>Source</th><th className="n">C$ / month</th><th /></tr></thead>
+            <thead><tr><th>Item</th><th>Billed</th><th className="n">Amount</th><th>Source</th><th className="n">C$ / month</th><th><span className="sr-only">Actions</span></th></tr></thead>
             <tbody>
               {w.items.map((it, i) => {
                 const m = hostingItemMeta(it, catalog);
@@ -112,7 +112,7 @@ export function ToolFeesPanel({ w }: { w: Of<"chat"> | Of<"agent"> }) {
       <h3 className="mb-1.5 text-sm font-semibold">Built-in tool fees</h3>
       {fees.length > 0 && (
         <table className="data">
-          <thead><tr><th>Tool</th><th className="n">Calls {per}</th><th className="n">CAD per 1,000 calls</th><th /></tr></thead>
+          <thead><tr><th>Tool</th><th className="n">Calls {per}</th><th className="n">CAD per 1,000 calls</th><th><span className="sr-only">Actions</span></th></tr></thead>
           <tbody>
             {fees.map((f, i) => (
               <tr key={i}>

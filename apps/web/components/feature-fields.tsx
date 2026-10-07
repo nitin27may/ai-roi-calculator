@@ -76,7 +76,7 @@ export function CostItems({ items, locate, idPrefix, firstMonthLabel }: { items:
     <div className="flex flex-col gap-2">
       <div className="flex-none overflow-x-auto">
         <table className="data">
-          <thead><tr><th>Item</th><th>Priced as</th><th className="n">Amount</th><th /></tr></thead>
+          <thead><tr><th>Item</th><th>Priced as</th><th className="n">Amount</th><th><span className="sr-only">Actions</span></th></tr></thead>
           <tbody>
             {items.map((it, i) => (
               <tr key={it.id}>

@@ -27,10 +27,10 @@ export default function Roi() {
       <Card className="order-first lg:order-none">
         <CardHead title={{ cash: "Cumulative cash position", years: "By year", capabilities: "ROI by capability", beforeAfter: "Today vs after the change", current: "Current state and savings", scorecard: "Non-financial scorecard", sensitivity: "What moves NPV most", scenarios: "Scenarios" }[tab]}
           sub={tab === "scenarios" ? "What-ifs compared with the baseline on the selected cost basis" : `Benefit minus ${BASES.find((b) => b.value === project.roi.basis)!.label.toLowerCase()} · NPV at ${project.roi.discountRatePct}%: ${cad(roi.npv)}`}>
-          <div data-tour="roi-views"><Seg label="View" value={tab} onChange={setTab} options={[{ value: "cash", label: "Cash" }, { value: "years", label: "By year" }, { value: "capabilities", label: "By capability" }, { value: "beforeAfter", label: "Before / after" }, { value: "current", label: "Current state" }, { value: "scorecard", label: "Scorecard" }, { value: "sensitivity", label: "Sensitivity" }, { value: "scenarios", label: "Scenarios" }]} /></div>
+          <div data-tour="roi-views"><Seg wrap label="View" value={tab} onChange={setTab} options={[{ value: "cash", label: "Cash" }, { value: "years", label: "By year" }, { value: "capabilities", label: "By capability" }, { value: "beforeAfter", label: "Before / after" }, { value: "current", label: "Current state" }, { value: "scorecard", label: "Scorecard" }, { value: "sensitivity", label: "Sensitivity" }, { value: "scenarios", label: "Scenarios" }]} /></div>
         </CardHead>
         {tab === "cash" ? <><div className="flex min-h-0 flex-1 px-1.5 pb-1.5"><CumulativeLine values={roi.cumulative} payback={roi.paybackMonth} /></div><MonthLegend className="px-3.5 pb-3" /></>
-          : <div className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">{tab === "years" ? <Years /> : tab === "capabilities" ? <Capabilities /> : tab === "beforeAfter" ? <BeforeAfterView /> : tab === "current" ? <CurrentState /> : tab === "scorecard" ? <Scorecard /> : tab === "sensitivity" ? <Tornado /> : <Scenarios />}</div>}
+          : <div tabIndex={0} role="region" aria-label="Value and ROI view" className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">{tab === "years" ? <Years /> : tab === "capabilities" ? <Capabilities /> : tab === "beforeAfter" ? <BeforeAfterView /> : tab === "current" ? <CurrentState /> : tab === "scorecard" ? <Scorecard /> : tab === "sensitivity" ? <Tornado /> : <Scenarios />}</div>}
       </Card>
     </div>
   );
@@ -154,24 +154,24 @@ function Tornado() {
         NPV is <b>{cad(base)}</b>. Each bar moves one input to a low and a high value with everything else held. {top && <>The biggest lever is <b>{top.label.toLowerCase()}</b>: NPV runs from {cad(Math.min(top.low, top.high))} to {cad(Math.max(top.low, top.high))}.</>}
         {rows.some((r) => Math.min(r.low, r.high) < 0) && <> Inputs whose bar crosses zero can turn the case negative on their own.</>}
       </div>
-      <div className="grid grid-cols-[minmax(150px,240px)_1fr] gap-x-3 gap-y-1.5 text-[12px]">
-        <span />
+      <div className="grid grid-cols-1 gap-x-3 gap-y-0.5 text-[12px] sm:grid-cols-[minmax(150px,240px)_1fr] sm:gap-y-1.5">
+        <span className="hidden sm:block" />
         <div className="relative h-4 text-xs text-muted">
-          <span className="absolute -translate-x-1/2" style={{ left: `${x(base)}%` }}>base {cad(base)}</span>
+          <span className="absolute -translate-x-1/2 whitespace-nowrap" style={{ left: `${x(base)}%` }}>base {cad(base)}</span>
           {lo < 0 && <span className="absolute -translate-x-1/2" style={{ left: `${x(0)}%`, top: 0 }}>{x(base) - x(0) > 12 ? "0" : ""}</span>}
         </div>
         {rows.map((r) => {
           const down = Math.min(r.low, r.high), up = Math.max(r.low, r.high);
           return (
             <div key={r.id} className="contents">
-              <span className="truncate py-1 text-ink-2" title={r.label}>{r.label}</span>
+              <span className="pt-1.5 text-ink-2 sm:truncate sm:py-1" title={r.label}>{r.label}</span>
               <div className="relative h-7" title={`${r.lowLabel}: ${cad(r.low)} · ${r.highLabel}: ${cad(r.high)}`}>
                 <div className="absolute inset-y-0 w-px bg-line" style={{ left: `${x(0)}%` }} />
                 <div className="absolute top-1 bottom-1 rounded-l" style={{ left: `${x(down)}%`, width: `${Math.max(0.3, x(Math.min(base, up)) - x(down))}%`, background: "var(--crit)", opacity: 0.75 }} />
                 <div className="absolute top-1 bottom-1 rounded-r" style={{ left: `${x(Math.max(base, down))}%`, width: `${Math.max(0.3, x(up) - x(Math.max(base, down)))}%`, background: "var(--good)", opacity: 0.75 }} />
                 <div className="absolute inset-y-0 w-0.5 bg-ink" style={{ left: `${x(base)}%` }} />
-                <span className="num absolute top-1.5 -translate-x-full pr-1 text-xs text-ink-2" style={{ left: `${x(down)}%` }}>{r.low <= r.high ? r.lowLabel : r.highLabel}</span>
-                <span className="num absolute top-1.5 pl-1 text-xs text-ink-2" style={{ left: `${x(up)}%` }}>{r.low <= r.high ? r.highLabel : r.lowLabel}</span>
+                <span className="num absolute top-1.5 -translate-x-full whitespace-nowrap pr-1 text-xs text-ink-2" style={{ left: `${x(down)}%` }}>{r.low <= r.high ? r.lowLabel : r.highLabel}</span>
+                <span className="num absolute top-1.5 whitespace-nowrap pl-1 text-xs text-ink-2" style={{ left: `${x(up)}%` }}>{r.low <= r.high ? r.highLabel : r.lowLabel}</span>
               </div>
             </div>
           );
@@ -351,7 +351,7 @@ function CapabilityCard({ c, i }: { c: Capability; i: number }) {
       )}
       {driver !== "hours" && (
         <details className="text-xs">
-          <summary className="cursor-pointer text-ink-2">Adoption, realisation and timing for this capability</summary>
+          <summary className="cursor-pointer py-1 text-ink-2">Adoption, realisation and timing for this capability</summary>
           <div className="mt-1.5 grid grid-cols-2 gap-2">
             {driver !== "perVolume" && num("Adoption", "adoption", h.adoptionPct, (x, v) => { x.adoptionPct = v; }, { max: 100, suffix: "%" })}
             {num("Realisation", "realisation", h.realisationPct, (x, v) => { x.realisationPct = v; }, { max: 100, suffix: "%" })}
@@ -370,7 +370,7 @@ function CapabilityCard({ c, i }: { c: Capability; i: number }) {
         </Field>
       )}
       <details className="text-xs">
-        <summary className="cursor-pointer text-ink-2">Uses {c.workloadIds.length + c.workstreamIds.length} workload{c.workloadIds.length + c.workstreamIds.length === 1 ? "" : "s"} or workstream{c.workloadIds.length + c.workstreamIds.length === 1 ? "" : "s"} (for ROI by capability)</summary>
+        <summary className="cursor-pointer py-1 text-ink-2">Uses {c.workloadIds.length + c.workstreamIds.length} workload{c.workloadIds.length + c.workstreamIds.length === 1 ? "" : "s"} or workstream{c.workloadIds.length + c.workstreamIds.length === 1 ? "" : "s"} (for ROI by capability)</summary>
         <div className="mt-1.5 grid grid-cols-2 gap-1">
           {project.workloads.filter((w) => w.kind !== "fixed").map((w) => (
             <label key={w.id} className="flex items-center gap-1.5">
@@ -516,7 +516,7 @@ function Scenarios() {
     <div className="flex flex-col gap-4">
       <div className="overflow-auto">
         <table className="data">
-          <thead><tr><th>Scenario</th><th className="n">{buildLabel(project)}</th><th className="n">Run / month</th><th className="n">Payback</th><th className="n">ROI</th><th className="n">NPV</th><th /></tr></thead>
+          <thead><tr><th>Scenario</th><th className="n">{buildLabel(project)}</th><th className="n">Run / month</th><th className="n">Payback</th><th className="n">ROI</th><th className="n">NPV</th><th><span className="sr-only">Actions</span></th></tr></thead>
           <tbody>
             {results.map((r, i) => (
               <tr key={r.id} style={i === 0 ? { background: "var(--surface-2)" } : undefined}>

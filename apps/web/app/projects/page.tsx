@@ -237,9 +237,9 @@ function PortfolioControls({ groupBy, setGroupBy, filter, toggleKey, clear }: { 
           <span className="flex items-center gap-0.5 text-xs text-muted">Filter<HelpTip id="portfolioFilter" label="Filter by type" /></span>
           {PORTFOLIO_KEYS.map((k) => (
             <button key={k} type="button" aria-pressed={filter.includes(k)} onClick={() => toggleKey(k)}
-              className={cn("rounded-full border px-2.5 py-px text-xs", filter.includes(k) ? "border-accent bg-accent-soft font-medium text-ink" : "border-line text-ink-2 hover:bg-surface-2")}>{portfolioLabel(k)}</button>
+              className={cn("min-h-6 rounded-full border px-2.5 py-px text-xs", filter.includes(k) ? "border-accent bg-accent-soft font-medium text-ink" : "border-line text-ink-2 hover:bg-surface-2")}>{portfolioLabel(k)}</button>
           ))}
-          {filter.length > 0 && <button type="button" className="rounded-md border border-line px-2 py-px text-xs hover:bg-surface-2" onClick={clear}>Clear filter</button>}
+          {filter.length > 0 && <button type="button" className="min-h-6 rounded-md border border-line px-2 py-px text-xs hover:bg-surface-2" onClick={clear}>Clear filter</button>}
         </div>
       </div>
       <p className="text-xs text-muted">A project with several types appears in each group. It counts once in the totals.</p>

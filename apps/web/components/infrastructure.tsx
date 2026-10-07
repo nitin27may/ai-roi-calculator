@@ -67,7 +67,7 @@ export function EnvironmentsGrid() {
       {envs.length === 0 ? (
         <p className="rounded-md border border-dashed border-line px-3 py-4 text-sm text-ink-2">{ENV_DEFAULT_NOTE}</p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Environments, scrolls sideways on a narrow screen">
           <table className="data min-w-[1100px]">
             <thead>
               <tr>
@@ -264,7 +264,7 @@ function ResourceCard({ r }: { r: Resource }) {
       </div>
 
       {row && row.perEnv.length > 0 && (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={`Cost by environment for ${r.label || "resource"}, scrolls sideways on a narrow screen`}>
           <table className="data min-w-[640px]">
             <thead><tr><th>Environment</th><th className="n">Month read</th><th className="n">Cost / month</th><th>How it is calculated</th></tr></thead>
             <tbody>
