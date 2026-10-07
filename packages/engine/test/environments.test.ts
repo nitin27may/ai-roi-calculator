@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog, type Catalog } from "@roi-calculator/catalog";
+import { type Catalog } from "@roi-calculator/catalog";
+import { resourceFixtureCatalog } from "./fixtures/resource-catalog.js";
 import { COST_BASES, ProjectSchema, basisCost, buildLedger, computeAllocation, costSplit, meetingIntelligence, monthRows, type Project } from "../src/index.js";
 
-const cat = loadCatalog();
+const cat = resourceFixtureCatalog();
 const B = meetingIntelligence.timeline.buildMonths;
 const vm = (extra: object = {}) => ({ id: "r1", label: "App servers", typeId: "vm", skuId: "d4s-v5-linux", inputs: { count: 3 }, ...extra });
 const prod = { id: "prod", label: "Production", production: true };
@@ -42,7 +43,7 @@ describe("environments", () => {
     const withDt: Catalog = {
       ...cat,
       resourceTypes: cat.resourceTypes.map((t) => (t.id === "vm" ? { ...t, options: [...t.options, "devtest" as const] } : t)),
-      unitPrices: cat.unitPrices.map((u) => (u.id === "seed-vm-d4sv5-linux" ? { ...u, options: { ...u.options, devtest: { price: 120, source: u.source } } } : u)),
+      unitPrices: cat.unitPrices.map((u) => (u.id === "fx-vm-linux" ? { ...u, options: { ...u.options, devtest: { price: 120, source: u.source } } } : u)),
     };
     const env = { ...dev, pricing: "devtest" };
     const hit = setup([vm()], [prod, env], withDt);

@@ -1,0 +1,3223 @@
+{
+  "category": "storage",
+  "note": "Part 1 of the catalogue: Blob, Data Lake Gen2, Files, Queue and Table storage.",
+  "types": [
+    {
+      "id": "blob-storage",
+      "label": "Blob Storage (block blob)",
+      "category": "storage",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/storage/blobs/",
+      "note": "Capacity, write and read operations and data retrieval per tier and redundancy. Early-deletion fees, index tags, lifecycle management, inventory, priority retrieval and archive rehydration are not included.",
+      "inputs": [
+        {
+          "id": "storageGB",
+          "label": "Capacity",
+          "unit": "GB",
+          "help": "Data stored per month."
+        },
+        {
+          "id": "writeOps10k",
+          "label": "Write operations",
+          "unit": "10K operations",
+          "help": "Write operations per month, in tens of thousands."
+        },
+        {
+          "id": "readOps10k",
+          "label": "Read operations",
+          "unit": "10K operations",
+          "help": "Read operations per month, in tens of thousands."
+        },
+        {
+          "id": "retrievalGB",
+          "label": "Data retrieval",
+          "unit": "GB",
+          "help": "Data read back from Cool, Cold or Archive per month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "capacity",
+          "label": "Capacity",
+          "quantity": {
+            "input": "storageGB"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        },
+        {
+          "id": "writes",
+          "label": "Write operations",
+          "quantity": {
+            "input": "writeOps10k"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "reads",
+          "label": "Read operations",
+          "quantity": {
+            "input": "readOps10k"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "retrieval",
+          "label": "Data retrieval",
+          "quantity": {
+            "input": "retrievalGB"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Storage' and armRegionName eq '{region}' and productName eq 'General Block Blob v2'",
+        "productName": "^General Block Blob v2$",
+        "skuName": "^{armSku}$",
+        "meters": {
+          "capacity": {
+            "meterName": "Data Stored$",
+            "unit": "GB-month"
+          },
+          "writes": {
+            "meterName": "^(?!.*(Priority|List and Create)).*Write Operations$",
+            "unit": "10K operations"
+          },
+          "reads": {
+            "meterName": "^(?!.*Priority).*Read Operations$",
+            "unit": "10K operations"
+          },
+          "retrieval": {
+            "meterName": "^(?!.*(Priority|Query Acceleration)).*Data Retrieval$",
+            "unit": "GB"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "hot-lrs",
+          "label": "Hot, LRS",
+          "attrs": {
+            "tier": "Hot",
+            "redundancy": "LRS"
+          },
+          "armSku": "Hot LRS",
+          "retail": {
+            "retrieval": {
+              "free": "No data retrieval charge on the Hot tier.",
+              "unit": "GB"
+            }
+          },
+          "prices": {
+            "capacity": "blob-storage-hot-lrs-capacity",
+            "writes": "blob-storage-hot-lrs-writes",
+            "reads": "blob-storage-hot-lrs-reads",
+            "retrieval": "blob-storage-free-retrieval"
+          }
+        },
+        {
+          "id": "hot-zrs",
+          "label": "Hot, ZRS",
+          "attrs": {
+            "tier": "Hot",
+            "redundancy": "ZRS"
+          },
+          "armSku": "Hot ZRS",
+          "retail": {
+            "retrieval": {
+              "free": "No data retrieval charge on the Hot tier.",
+              "unit": "GB"
+            }
+          },
+          "prices": {
+            "capacity": "blob-storage-hot-zrs-capacity",
+            "writes": "blob-storage-hot-zrs-writes",
+            "reads": "blob-storage-hot-zrs-reads",
+            "retrieval": "blob-storage-free-retrieval"
+          }
+        },
+        {
+          "id": "hot-grs",
+          "label": "Hot, GRS",
+          "attrs": {
+            "tier": "Hot",
+            "redundancy": "GRS"
+          },
+          "armSku": "Hot GRS",
+          "retail": {
+            "retrieval": {
+              "free": "No data retrieval charge on the Hot tier.",
+              "unit": "GB"
+            }
+          },
+          "prices": {
+            "capacity": "blob-storage-hot-grs-capacity",
+            "writes": "blob-storage-hot-grs-writes",
+            "reads": "blob-storage-hot-grs-reads",
+            "retrieval": "blob-storage-free-retrieval"
+          }
+        },
+        {
+          "id": "hot-ra-grs",
+          "label": "Hot, RA-GRS",
+          "attrs": {
+            "tier": "Hot",
+            "redundancy": "RA-GRS"
+          },
+          "armSku": "Hot RA-GRS",
+          "retail": {
+            "retrieval": {
+              "free": "No data retrieval charge on the Hot tier.",
+              "unit": "GB"
+            }
+          },
+          "prices": {
+            "capacity": "blob-storage-hot-ra-grs-capacity",
+            "writes": "blob-storage-hot-ra-grs-writes",
+            "reads": "blob-storage-hot-ra-grs-reads",
+            "retrieval": "blob-storage-free-retrieval"
+          }
+        },
+        {
+          "id": "cool-lrs",
+          "label": "Cool, LRS",
+          "attrs": {
+            "tier": "Cool",
+            "redundancy": "LRS"
+          },
+          "armSku": "Cool LRS",
+          "prices": {
+            "capacity": "blob-storage-cool-lrs-capacity",
+            "writes": "blob-storage-cool-lrs-writes",
+            "reads": "blob-storage-cool-lrs-reads",
+            "retrieval": "blob-storage-cool-lrs-retrieval"
+          }
+        },
+        {
+          "id": "cool-zrs",
+          "label": "Cool, ZRS",
+          "attrs": {
+            "tier": "Cool",
+            "redundancy": "ZRS"
+          },
+          "armSku": "Cool ZRS",
+          "prices": {
+            "capacity": "blob-storage-cool-zrs-capacity",
+            "writes": "blob-storage-cool-zrs-writes",
+            "reads": "blob-storage-cool-zrs-reads",
+            "retrieval": "blob-storage-cool-zrs-retrieval"
+          }
+        },
+        {
+          "id": "cool-grs",
+          "label": "Cool, GRS",
+          "attrs": {
+            "tier": "Cool",
+            "redundancy": "GRS"
+          },
+          "armSku": "Cool GRS",
+          "prices": {
+            "capacity": "blob-storage-cool-grs-capacity",
+            "writes": "blob-storage-cool-grs-writes",
+            "reads": "blob-storage-cool-grs-reads",
+            "retrieval": "blob-storage-cool-grs-retrieval"
+          }
+        },
+        {
+          "id": "cool-ra-grs",
+          "label": "Cool, RA-GRS",
+          "attrs": {
+            "tier": "Cool",
+            "redundancy": "RA-GRS"
+          },
+          "armSku": "Cool RA-GRS",
+          "prices": {
+            "capacity": "blob-storage-cool-ra-grs-capacity",
+            "writes": "blob-storage-cool-ra-grs-writes",
+            "reads": "blob-storage-cool-ra-grs-reads",
+            "retrieval": "blob-storage-cool-ra-grs-retrieval"
+          }
+        },
+        {
+          "id": "cold-lrs",
+          "label": "Cold, LRS",
+          "attrs": {
+            "tier": "Cold",
+            "redundancy": "LRS"
+          },
+          "armSku": "Cold LRS",
+          "prices": {
+            "capacity": "blob-storage-cold-lrs-capacity",
+            "writes": "blob-storage-cold-lrs-writes",
+            "reads": "blob-storage-cold-lrs-reads",
+            "retrieval": "blob-storage-cold-lrs-retrieval"
+          }
+        },
+        {
+          "id": "cold-zrs",
+          "label": "Cold, ZRS",
+          "attrs": {
+            "tier": "Cold",
+            "redundancy": "ZRS"
+          },
+          "armSku": "Cold ZRS",
+          "prices": {
+            "capacity": "blob-storage-cold-zrs-capacity",
+            "writes": "blob-storage-cold-zrs-writes",
+            "reads": "blob-storage-cold-zrs-reads",
+            "retrieval": "blob-storage-cold-zrs-retrieval"
+          }
+        },
+        {
+          "id": "cold-grs",
+          "label": "Cold, GRS",
+          "attrs": {
+            "tier": "Cold",
+            "redundancy": "GRS"
+          },
+          "armSku": "Cold GRS",
+          "prices": {
+            "capacity": "blob-storage-cold-grs-capacity",
+            "writes": "blob-storage-cold-grs-writes",
+            "reads": "blob-storage-cold-grs-reads",
+            "retrieval": "blob-storage-cold-grs-retrieval"
+          }
+        },
+        {
+          "id": "cold-ra-grs",
+          "label": "Cold, RA-GRS",
+          "attrs": {
+            "tier": "Cold",
+            "redundancy": "RA-GRS"
+          },
+          "armSku": "Cold RA-GRS",
+          "prices": {
+            "capacity": "blob-storage-cold-ra-grs-capacity",
+            "writes": "blob-storage-cold-ra-grs-writes",
+            "reads": "blob-storage-cold-ra-grs-reads",
+            "retrieval": "blob-storage-cold-ra-grs-retrieval"
+          }
+        },
+        {
+          "id": "archive-lrs",
+          "label": "Archive, LRS",
+          "attrs": {
+            "tier": "Archive",
+            "redundancy": "LRS"
+          },
+          "armSku": "Archive LRS",
+          "prices": {
+            "capacity": "blob-storage-archive-lrs-capacity",
+            "writes": "blob-storage-archive-lrs-writes",
+            "reads": "blob-storage-archive-lrs-reads",
+            "retrieval": "blob-storage-archive-lrs-retrieval"
+          }
+        },
+        {
+          "id": "archive-grs",
+          "label": "Archive, GRS",
+          "attrs": {
+            "tier": "Archive",
+            "redundancy": "GRS"
+          },
+          "armSku": "Archive GRS",
+          "prices": {
+            "capacity": "blob-storage-archive-grs-capacity",
+            "writes": "blob-storage-archive-grs-writes",
+            "reads": "blob-storage-archive-grs-reads",
+            "retrieval": "blob-storage-archive-grs-retrieval"
+          }
+        },
+        {
+          "id": "archive-ra-grs",
+          "label": "Archive, RA-GRS",
+          "attrs": {
+            "tier": "Archive",
+            "redundancy": "RA-GRS"
+          },
+          "armSku": "Archive RA-GRS",
+          "prices": {
+            "capacity": "blob-storage-archive-ra-grs-capacity",
+            "writes": "blob-storage-archive-ra-grs-writes",
+            "reads": "blob-storage-archive-ra-grs-reads",
+            "retrieval": "blob-storage-archive-ra-grs-retrieval"
+          }
+        }
+      ]
+    },
+    {
+      "id": "data-lake-gen2",
+      "label": "Data Lake Storage Gen2 (hierarchical namespace)",
+      "category": "storage",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/storage/data-lake/",
+      "note": "Block blob storage with a hierarchical namespace. Capacity, write and read operations and data retrieval; iterative operations, query acceleration, metadata index and early-deletion fees are not included.",
+      "inputs": [
+        {
+          "id": "storageGB",
+          "label": "Capacity",
+          "unit": "GB",
+          "help": "Data stored per month."
+        },
+        {
+          "id": "writeOps10k",
+          "label": "Write operations",
+          "unit": "10K operations",
+          "help": "Write operations per month, in tens of thousands."
+        },
+        {
+          "id": "readOps10k",
+          "label": "Read operations",
+          "unit": "10K operations",
+          "help": "Read operations per month, in tens of thousands."
+        },
+        {
+          "id": "retrievalGB",
+          "label": "Data retrieval",
+          "unit": "GB",
+          "help": "Data read back from Cool, Cold or Archive per month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "capacity",
+          "label": "Capacity",
+          "quantity": {
+            "input": "storageGB"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        },
+        {
+          "id": "writes",
+          "label": "Write operations",
+          "quantity": {
+            "input": "writeOps10k"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "reads",
+          "label": "Read operations",
+          "quantity": {
+            "input": "readOps10k"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "retrieval",
+          "label": "Data retrieval",
+          "quantity": {
+            "input": "retrievalGB"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Storage' and armRegionName eq '{region}' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "productName": "^General Block Blob v2 Hierarchical Namespace$",
+        "skuName": "^{armSku}$",
+        "meters": {
+          "capacity": {
+            "meterName": "Data Stored$",
+            "unit": "GB-month"
+          },
+          "writes": {
+            "meterName": "^(?!.*(Iterative|Priority)).*Write Operations$",
+            "unit": "10K operations"
+          },
+          "reads": {
+            "meterName": "^(?!.*(Iterative|Priority)).*Read Operations$",
+            "unit": "10K operations"
+          },
+          "retrieval": {
+            "meterName": "^(?!.*(Priority|Query Acceleration)).*Data Retrieval$",
+            "unit": "GB"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "hot-lrs",
+          "label": "Hot, LRS",
+          "attrs": {
+            "tier": "Hot",
+            "redundancy": "LRS"
+          },
+          "armSku": "Hot LRS",
+          "retail": {
+            "retrieval": {
+              "free": "No data retrieval charge on the Hot tier.",
+              "unit": "GB"
+            }
+          },
+          "prices": {
+            "capacity": "data-lake-gen2-hot-lrs-capacity",
+            "writes": "data-lake-gen2-hot-lrs-writes",
+            "reads": "data-lake-gen2-hot-lrs-reads",
+            "retrieval": "data-lake-gen2-free-retrieval"
+          }
+        },
+        {
+          "id": "hot-zrs",
+          "label": "Hot, ZRS",
+          "attrs": {
+            "tier": "Hot",
+            "redundancy": "ZRS"
+          },
+          "armSku": "Hot ZRS",
+          "retail": {
+            "retrieval": {
+              "free": "No data retrieval charge on the Hot tier.",
+              "unit": "GB"
+            }
+          },
+          "prices": {
+            "capacity": "data-lake-gen2-hot-zrs-capacity",
+            "writes": "data-lake-gen2-hot-zrs-writes",
+            "reads": "data-lake-gen2-hot-zrs-reads",
+            "retrieval": "data-lake-gen2-free-retrieval"
+          }
+        },
+        {
+          "id": "hot-grs",
+          "label": "Hot, GRS",
+          "attrs": {
+            "tier": "Hot",
+            "redundancy": "GRS"
+          },
+          "armSku": "Hot GRS",
+          "retail": {
+            "retrieval": {
+              "free": "No data retrieval charge on the Hot tier.",
+              "unit": "GB"
+            }
+          },
+          "prices": {
+            "capacity": "data-lake-gen2-hot-grs-capacity",
+            "writes": "data-lake-gen2-hot-grs-writes",
+            "reads": "data-lake-gen2-hot-grs-reads",
+            "retrieval": "data-lake-gen2-free-retrieval"
+          }
+        },
+        {
+          "id": "cool-lrs",
+          "label": "Cool, LRS",
+          "attrs": {
+            "tier": "Cool",
+            "redundancy": "LRS"
+          },
+          "armSku": "Cool LRS",
+          "prices": {
+            "capacity": "data-lake-gen2-cool-lrs-capacity",
+            "writes": "data-lake-gen2-cool-lrs-writes",
+            "reads": "data-lake-gen2-cool-lrs-reads",
+            "retrieval": "data-lake-gen2-cool-lrs-retrieval"
+          }
+        },
+        {
+          "id": "cool-zrs",
+          "label": "Cool, ZRS",
+          "attrs": {
+            "tier": "Cool",
+            "redundancy": "ZRS"
+          },
+          "armSku": "Cool ZRS",
+          "prices": {
+            "capacity": "data-lake-gen2-cool-zrs-capacity",
+            "writes": "data-lake-gen2-cool-zrs-writes",
+            "reads": "data-lake-gen2-cool-zrs-reads",
+            "retrieval": "data-lake-gen2-cool-zrs-retrieval"
+          }
+        },
+        {
+          "id": "cool-grs",
+          "label": "Cool, GRS",
+          "attrs": {
+            "tier": "Cool",
+            "redundancy": "GRS"
+          },
+          "armSku": "Cool GRS",
+          "prices": {
+            "capacity": "data-lake-gen2-cool-grs-capacity",
+            "writes": "data-lake-gen2-cool-grs-writes",
+            "reads": "data-lake-gen2-cool-grs-reads",
+            "retrieval": "data-lake-gen2-cool-grs-retrieval"
+          }
+        },
+        {
+          "id": "cold-lrs",
+          "label": "Cold, LRS",
+          "attrs": {
+            "tier": "Cold",
+            "redundancy": "LRS"
+          },
+          "armSku": "Cold LRS",
+          "prices": {
+            "capacity": "data-lake-gen2-cold-lrs-capacity",
+            "writes": "data-lake-gen2-cold-lrs-writes",
+            "reads": "data-lake-gen2-cold-lrs-reads",
+            "retrieval": "data-lake-gen2-cold-lrs-retrieval"
+          }
+        },
+        {
+          "id": "cold-zrs",
+          "label": "Cold, ZRS",
+          "attrs": {
+            "tier": "Cold",
+            "redundancy": "ZRS"
+          },
+          "armSku": "Cold ZRS",
+          "prices": {
+            "capacity": "data-lake-gen2-cold-zrs-capacity",
+            "writes": "data-lake-gen2-cold-zrs-writes",
+            "reads": "data-lake-gen2-cold-zrs-reads",
+            "retrieval": "data-lake-gen2-cold-zrs-retrieval"
+          }
+        },
+        {
+          "id": "cold-grs",
+          "label": "Cold, GRS",
+          "attrs": {
+            "tier": "Cold",
+            "redundancy": "GRS"
+          },
+          "armSku": "Cold GRS",
+          "prices": {
+            "capacity": "data-lake-gen2-cold-grs-capacity",
+            "writes": "data-lake-gen2-cold-grs-writes",
+            "reads": "data-lake-gen2-cold-grs-reads",
+            "retrieval": "data-lake-gen2-cold-grs-retrieval"
+          }
+        },
+        {
+          "id": "archive-lrs",
+          "label": "Archive, LRS",
+          "attrs": {
+            "tier": "Archive",
+            "redundancy": "LRS"
+          },
+          "armSku": "Archive LRS",
+          "prices": {
+            "capacity": "data-lake-gen2-archive-lrs-capacity",
+            "writes": "data-lake-gen2-archive-lrs-writes",
+            "reads": "data-lake-gen2-archive-lrs-reads",
+            "retrieval": "data-lake-gen2-archive-lrs-retrieval"
+          }
+        }
+      ]
+    },
+    {
+      "id": "files-pay-as-you-go",
+      "label": "Azure Files (pay-as-you-go)",
+      "category": "storage",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/storage/files/",
+      "note": "Standard file shares billed on used capacity and transactions. Snapshots, metadata and list operations, Azure File Sync and geo-redundant shares are not included.",
+      "inputs": [
+        {
+          "id": "storageGB",
+          "label": "Capacity",
+          "unit": "GB",
+          "help": "Data stored per month."
+        },
+        {
+          "id": "writeOps10k",
+          "label": "Write operations",
+          "unit": "10K operations",
+          "help": "Write operations per month, in tens of thousands."
+        },
+        {
+          "id": "readOps10k",
+          "label": "Read operations",
+          "unit": "10K operations",
+          "help": "Read operations per month, in tens of thousands."
+        },
+        {
+          "id": "retrievalGB",
+          "label": "Data retrieval",
+          "unit": "GB",
+          "help": "Data read back from Cool, Cold or Archive per month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "capacity",
+          "label": "Capacity",
+          "quantity": {
+            "input": "storageGB"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        },
+        {
+          "id": "writes",
+          "label": "Write operations",
+          "quantity": {
+            "input": "writeOps10k"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "reads",
+          "label": "Read operations",
+          "quantity": {
+            "input": "readOps10k"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "retrieval",
+          "label": "Data retrieval",
+          "quantity": {
+            "input": "retrievalGB"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Storage' and armRegionName eq '{region}' and productName eq 'Files v2'",
+        "productName": "^Files v2$",
+        "skuName": "^{armSku}$",
+        "meters": {
+          "capacity": {
+            "meterName": "Data Stored$",
+            "unit": "GB-month"
+          },
+          "writes": {
+            "meterName": "^(?!.*(List|Soft)).*Write Operations$",
+            "unit": "10K operations"
+          },
+          "reads": {
+            "meterName": "^(?!.*(Protocol|Soft)).*Read Operations$",
+            "unit": "10K operations"
+          },
+          "retrieval": {
+            "meterName": "Data Retrieval$",
+            "unit": "GB"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "standard-lrs",
+          "label": "Transaction optimized, LRS",
+          "attrs": {
+            "tier": "Transaction optimized",
+            "redundancy": "LRS"
+          },
+          "armSku": "Standard LRS",
+          "retail": {
+            "retrieval": {
+              "free": "No data retrieval charge on this tier.",
+              "unit": "GB"
+            }
+          },
+          "prices": {
+            "capacity": "files-pay-as-you-go-standard-lrs-capacity",
+            "writes": "files-pay-as-you-go-standard-lrs-writes",
+            "reads": "files-pay-as-you-go-standard-lrs-reads",
+            "retrieval": "files-pay-as-you-go-free-retrieval"
+          }
+        },
+        {
+          "id": "standard-zrs",
+          "label": "Transaction optimized, ZRS",
+          "attrs": {
+            "tier": "Transaction optimized",
+            "redundancy": "ZRS"
+          },
+          "armSku": "Standard ZRS",
+          "retail": {
+            "retrieval": {
+              "free": "No data retrieval charge on this tier.",
+              "unit": "GB"
+            }
+          },
+          "prices": {
+            "capacity": "files-pay-as-you-go-standard-zrs-capacity",
+            "writes": "files-pay-as-you-go-standard-zrs-writes",
+            "reads": "files-pay-as-you-go-standard-zrs-reads",
+            "retrieval": "files-pay-as-you-go-free-retrieval"
+          }
+        },
+        {
+          "id": "hot-lrs",
+          "label": "Hot, LRS",
+          "attrs": {
+            "tier": "Hot",
+            "redundancy": "LRS"
+          },
+          "armSku": "Hot LRS",
+          "retail": {
+            "retrieval": {
+              "free": "No data retrieval charge on this tier.",
+              "unit": "GB"
+            }
+          },
+          "prices": {
+            "capacity": "files-pay-as-you-go-hot-lrs-capacity",
+            "writes": "files-pay-as-you-go-hot-lrs-writes",
+            "reads": "files-pay-as-you-go-hot-lrs-reads",
+            "retrieval": "files-pay-as-you-go-free-retrieval"
+          }
+        },
+        {
+          "id": "hot-zrs",
+          "label": "Hot, ZRS",
+          "attrs": {
+            "tier": "Hot",
+            "redundancy": "ZRS"
+          },
+          "armSku": "Hot ZRS",
+          "retail": {
+            "retrieval": {
+              "free": "No data retrieval charge on this tier.",
+              "unit": "GB"
+            }
+          },
+          "prices": {
+            "capacity": "files-pay-as-you-go-hot-zrs-capacity",
+            "writes": "files-pay-as-you-go-hot-zrs-writes",
+            "reads": "files-pay-as-you-go-hot-zrs-reads",
+            "retrieval": "files-pay-as-you-go-free-retrieval"
+          }
+        },
+        {
+          "id": "cool-lrs",
+          "label": "Cool, LRS",
+          "attrs": {
+            "tier": "Cool",
+            "redundancy": "LRS"
+          },
+          "armSku": "Cool LRS",
+          "prices": {
+            "capacity": "files-pay-as-you-go-cool-lrs-capacity",
+            "writes": "files-pay-as-you-go-cool-lrs-writes",
+            "reads": "files-pay-as-you-go-cool-lrs-reads",
+            "retrieval": "files-pay-as-you-go-cool-lrs-retrieval"
+          }
+        },
+        {
+          "id": "cool-zrs",
+          "label": "Cool, ZRS",
+          "attrs": {
+            "tier": "Cool",
+            "redundancy": "ZRS"
+          },
+          "armSku": "Cool ZRS",
+          "prices": {
+            "capacity": "files-pay-as-you-go-cool-zrs-capacity",
+            "writes": "files-pay-as-you-go-cool-zrs-writes",
+            "reads": "files-pay-as-you-go-cool-zrs-reads",
+            "retrieval": "files-pay-as-you-go-cool-zrs-retrieval"
+          }
+        }
+      ]
+    },
+    {
+      "id": "files-provisioned-v2",
+      "label": "Azure Files (provisioned v2)",
+      "category": "storage",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/storage/files/",
+      "note": "You provision storage, IOPS and throughput for the share. A formula adds a free IOPS and throughput amount to the provisioned storage: enter only IOPS and MiB/s you provision above that.",
+      "inputs": [
+        {
+          "id": "storageGiB",
+          "label": "Provisioned storage",
+          "unit": "GiB",
+          "help": "Provisioned share size."
+        },
+        {
+          "id": "iops",
+          "label": "Extra IOPS",
+          "unit": "IOPS",
+          "help": "Provisioned IOPS above the included amount."
+        },
+        {
+          "id": "mibps",
+          "label": "Extra throughput",
+          "unit": "MiB/s",
+          "help": "Provisioned throughput above the included amount."
+        }
+      ],
+      "meters": [
+        {
+          "id": "capacity",
+          "label": "Provisioned storage",
+          "quantity": {
+            "input": "storageGiB"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "iops",
+          "label": "Extra IOPS",
+          "quantity": {
+            "input": "iops"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "throughput",
+          "label": "Extra throughput",
+          "quantity": {
+            "input": "mibps"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Storage' and armRegionName eq '{region}' and productName eq 'Azure Files Provisioned v2'",
+        "productName": "^Azure Files Provisioned v2$",
+        "skuName": "^{armSku}$",
+        "precise": true,
+        "meters": {
+          "capacity": {
+            "meterName": "Provisioned Storage$",
+            "unit": "GiB-month (730 h)"
+          },
+          "iops": {
+            "meterName": "^(?!.*Free).*Provisioned IOPS$",
+            "unit": "IOPS-month (730 h)"
+          },
+          "throughput": {
+            "meterName": "^(?!.*Free).*Provisioned Throughput MiBPS$",
+            "unit": "MiB/s-month (730 h)"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "ssd-lrs",
+          "label": "SSD, LRS",
+          "attrs": {
+            "media": "SSD",
+            "redundancy": "LRS"
+          },
+          "armSku": "SSD LRS",
+          "prices": {
+            "capacity": "files-provisioned-v2-ssd-lrs-capacity",
+            "iops": "files-provisioned-v2-ssd-lrs-iops",
+            "throughput": "files-provisioned-v2-ssd-lrs-throughput"
+          }
+        },
+        {
+          "id": "ssd-zrs",
+          "label": "SSD, ZRS",
+          "attrs": {
+            "media": "SSD",
+            "redundancy": "ZRS"
+          },
+          "armSku": "SSD ZRS",
+          "prices": {
+            "capacity": "files-provisioned-v2-ssd-zrs-capacity",
+            "iops": "files-provisioned-v2-ssd-zrs-iops",
+            "throughput": "files-provisioned-v2-ssd-zrs-throughput"
+          }
+        },
+        {
+          "id": "hdd-lrs",
+          "label": "HDD, LRS",
+          "attrs": {
+            "media": "HDD",
+            "redundancy": "LRS"
+          },
+          "armSku": "HDD LRS",
+          "prices": {
+            "capacity": "files-provisioned-v2-hdd-lrs-capacity",
+            "iops": "files-provisioned-v2-hdd-lrs-iops",
+            "throughput": "files-provisioned-v2-hdd-lrs-throughput"
+          }
+        },
+        {
+          "id": "hdd-zrs",
+          "label": "HDD, ZRS",
+          "attrs": {
+            "media": "HDD",
+            "redundancy": "ZRS"
+          },
+          "armSku": "HDD ZRS",
+          "prices": {
+            "capacity": "files-provisioned-v2-hdd-zrs-capacity",
+            "iops": "files-provisioned-v2-hdd-zrs-iops",
+            "throughput": "files-provisioned-v2-hdd-zrs-throughput"
+          }
+        }
+      ]
+    },
+    {
+      "id": "queue-storage",
+      "label": "Queue Storage",
+      "category": "storage",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/storage/queues/",
+      "note": "Classic Queue Storage pricing (the Retail API also lists a Queues v2 meter set at about ten times the transaction price; it is not used until Microsoft documents which accounts it applies to).",
+      "inputs": [
+        {
+          "id": "storageGB",
+          "label": "Capacity",
+          "unit": "GB",
+          "help": "Data stored per month."
+        },
+        {
+          "id": "ops10k",
+          "label": "Operations",
+          "unit": "10K operations",
+          "help": "Queue operations per month, in tens of thousands."
+        }
+      ],
+      "meters": [
+        {
+          "id": "capacity",
+          "label": "Capacity",
+          "quantity": {
+            "input": "storageGB"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        },
+        {
+          "id": "ops",
+          "label": "Operations",
+          "quantity": {
+            "input": "ops10k"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Storage' and armRegionName eq '{region}' and productName eq 'Queues'",
+        "productName": "^Queues$",
+        "skuName": "^{armSku}$",
+        "precise": true,
+        "meters": {
+          "capacity": {
+            "meterName": "Data Stored$",
+            "unit": "GB-month"
+          },
+          "ops": {
+            "meterName": "Class 1 Operations$",
+            "unit": "10K operations"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "lrs",
+          "label": "Standard, LRS",
+          "attrs": {},
+          "armSku": "Standard LRS",
+          "prices": {
+            "capacity": "queue-storage-lrs-capacity",
+            "ops": "queue-storage-lrs-ops"
+          }
+        },
+        {
+          "id": "grs",
+          "label": "Standard, GRS",
+          "attrs": {},
+          "armSku": "Standard GRS",
+          "prices": {
+            "capacity": "queue-storage-grs-capacity",
+            "ops": "queue-storage-grs-ops"
+          }
+        }
+      ]
+    },
+    {
+      "id": "table-storage",
+      "label": "Table Storage",
+      "category": "storage",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/storage/tables/",
+      "note": "Capacity and read and write transactions. All transaction types carry the same price.",
+      "inputs": [
+        {
+          "id": "storageGB",
+          "label": "Capacity",
+          "unit": "GB",
+          "help": "Data stored per month."
+        },
+        {
+          "id": "ops10k",
+          "label": "Operations",
+          "unit": "10K operations",
+          "help": "Table operations per month, in tens of thousands."
+        }
+      ],
+      "meters": [
+        {
+          "id": "capacity",
+          "label": "Capacity",
+          "quantity": {
+            "input": "storageGB"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        },
+        {
+          "id": "ops",
+          "label": "Operations",
+          "quantity": {
+            "input": "ops10k"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Storage' and armRegionName eq '{region}' and productName eq 'Tables'",
+        "productName": "^Tables$",
+        "skuName": "^{armSku}$",
+        "precise": true,
+        "meters": {
+          "capacity": {
+            "meterName": "Data Stored$",
+            "unit": "GB-month"
+          },
+          "ops": {
+            "meterName": "^Read Operations$",
+            "unit": "10K operations"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "lrs",
+          "label": "Standard, LRS",
+          "attrs": {},
+          "armSku": "Standard LRS",
+          "prices": {
+            "capacity": "table-storage-lrs-capacity",
+            "ops": "table-storage-lrs-ops"
+          }
+        },
+        {
+          "id": "zrs",
+          "label": "Standard, ZRS",
+          "attrs": {},
+          "armSku": "Standard ZRS",
+          "prices": {
+            "capacity": "table-storage-zrs-capacity",
+            "ops": "table-storage-zrs-ops"
+          }
+        },
+        {
+          "id": "grs",
+          "label": "Standard, GRS",
+          "attrs": {},
+          "armSku": "Standard GRS",
+          "prices": {
+            "capacity": "table-storage-grs-capacity",
+            "ops": "table-storage-grs-ops"
+          }
+        }
+      ]
+    }
+  ],
+  "unitPrices": [
+    {
+      "id": "blob-storage-hot-lrs-capacity",
+      "label": "Hot, LRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0283,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot LRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Hot LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-hot-lrs-writes",
+      "label": "Hot, LRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0779,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot LRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Hot LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-hot-lrs-reads",
+      "label": "Hot, LRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0062,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Hot LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-hot-zrs-capacity",
+      "label": "Hot, ZRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0354,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot ZRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Hot ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-hot-zrs-writes",
+      "label": "Hot, ZRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0975,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot ZRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Hot ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-hot-zrs-reads",
+      "label": "Hot, ZRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0062,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot ZRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Hot ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-hot-grs-capacity",
+      "label": "Hot, GRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0567,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot GRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Hot GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-hot-grs-writes",
+      "label": "Hot, GRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1558,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot GRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Hot GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-hot-grs-reads",
+      "label": "Hot, GRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0062,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Hot GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-hot-ra-grs-capacity",
+      "label": "Hot, RA-GRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0708,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot RA-GRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Hot RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-hot-ra-grs-writes",
+      "label": "Hot, RA-GRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1558,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot GRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Hot RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-hot-ra-grs-reads",
+      "label": "Hot, RA-GRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0062,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Hot RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-lrs-capacity",
+      "label": "Cool, LRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0156,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool LRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-lrs-writes",
+      "label": "Cool, LRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1417,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool LRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-lrs-reads",
+      "label": "Cool, LRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-lrs-retrieval",
+      "label": "Cool, LRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-zrs-capacity",
+      "label": "Cool, ZRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0195,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool ZRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-zrs-writes",
+      "label": "Cool, ZRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1417,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool ZRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-zrs-reads",
+      "label": "Cool, ZRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool ZRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-zrs-retrieval",
+      "label": "Cool, ZRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool ZRS Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-grs-capacity",
+      "label": "Cool, GRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0312,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool GRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-grs-writes",
+      "label": "Cool, GRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.2833,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool GRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-grs-reads",
+      "label": "Cool, GRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-grs-retrieval",
+      "label": "Cool, GRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-ra-grs-capacity",
+      "label": "Cool, RA-GRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.039,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool RA-GRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-ra-grs-writes",
+      "label": "Cool, RA-GRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.2833,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool GRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-ra-grs-reads",
+      "label": "Cool, RA-GRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cool-ra-grs-retrieval",
+      "label": "Cool, RA-GRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cool RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-lrs-capacity",
+      "label": "Cold, LRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0064,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold LRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-lrs-writes",
+      "label": "Cold, LRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.255,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold LRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-lrs-reads",
+      "label": "Cold, LRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1417,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold LRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-lrs-retrieval",
+      "label": "Cold, LRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0425,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold LRS Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-zrs-capacity",
+      "label": "Cold, ZRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0071,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold ZRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-zrs-writes",
+      "label": "Cold, ZRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.2833,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold ZRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-zrs-reads",
+      "label": "Cold, ZRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1417,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold ZRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-zrs-retrieval",
+      "label": "Cold, ZRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0425,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold ZRS Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-grs-capacity",
+      "label": "Cold, GRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0127,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold GRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-grs-writes",
+      "label": "Cold, GRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.51,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold GRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-grs-reads",
+      "label": "Cold, GRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1417,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold GRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-grs-retrieval",
+      "label": "Cold, GRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0425,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold GRS Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-ra-grs-capacity",
+      "label": "Cold, RA-GRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.016,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold RA-GRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-ra-grs-writes",
+      "label": "Cold, RA-GRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.51,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold RA-GRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-ra-grs-reads",
+      "label": "Cold, RA-GRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1417,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold RA-GRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-cold-ra-grs-retrieval",
+      "label": "Cold, RA-GRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0425,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold RA-GRS Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Cold RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-archive-lrs-capacity",
+      "label": "Archive, LRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0025,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive LRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Archive LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-archive-lrs-writes",
+      "label": "Archive, LRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1558,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive LRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Archive LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-archive-lrs-reads",
+      "label": "Archive, LRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 7.791,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Archive LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-archive-lrs-retrieval",
+      "label": "Archive, LRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0312,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Archive LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-archive-grs-capacity",
+      "label": "Archive, GRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0059,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive GRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Archive GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-archive-grs-writes",
+      "label": "Archive, GRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.3258,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive GRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Archive GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-archive-grs-reads",
+      "label": "Archive, GRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 7.791,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Archive GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-archive-grs-retrieval",
+      "label": "Archive, GRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0312,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Archive GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-archive-ra-grs-capacity",
+      "label": "Archive, RA-GRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0059,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive RA-GRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Archive RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-archive-ra-grs-writes",
+      "label": "Archive, RA-GRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.3258,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive GRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Archive RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-archive-ra-grs-reads",
+      "label": "Archive, RA-GRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 7.791,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Archive RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-archive-ra-grs-retrieval",
+      "label": "Archive, RA-GRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0312,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2'",
+        "note": "General Block Blob v2 / Archive RA-GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-hot-lrs-capacity",
+      "label": "Hot, LRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0283,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot LRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Hot LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-hot-lrs-writes",
+      "label": "Hot, LRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1105,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot LRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Hot LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-hot-lrs-reads",
+      "label": "Hot, LRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0085,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot LRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Hot LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-hot-zrs-capacity",
+      "label": "Hot, ZRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0354,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot ZRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Hot ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-hot-zrs-writes",
+      "label": "Hot, ZRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1266,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot ZRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Hot ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-hot-zrs-reads",
+      "label": "Hot, ZRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0085,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot ZRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Hot ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-hot-grs-capacity",
+      "label": "Hot, GRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0567,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot GRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Hot GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-hot-grs-writes",
+      "label": "Hot, GRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.221,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot GRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Hot GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-hot-grs-reads",
+      "label": "Hot, GRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0085,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot GRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Hot GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cool-lrs-capacity",
+      "label": "Cool, LRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0156,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool LRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cool LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cool-lrs-writes",
+      "label": "Cool, LRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1842,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool LRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cool LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cool-lrs-reads",
+      "label": "Cool, LRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0184,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool LRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cool LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cool-lrs-retrieval",
+      "label": "Cool, LRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool LRS Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cool LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cool-zrs-capacity",
+      "label": "Cool, ZRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0195,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool ZRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cool ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cool-zrs-writes",
+      "label": "Cool, ZRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1842,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool ZRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cool ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cool-zrs-reads",
+      "label": "Cool, ZRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0184,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool ZRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cool ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cool-zrs-retrieval",
+      "label": "Cool, ZRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool ZRS Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cool ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cool-grs-capacity",
+      "label": "Cool, GRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0312,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool GRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cool GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cool-grs-writes",
+      "label": "Cool, GRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.3683,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool GRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cool GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cool-grs-reads",
+      "label": "Cool, GRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0184,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool GRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cool GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cool-grs-retrieval",
+      "label": "Cool, GRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool GRS Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cool GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cold-lrs-capacity",
+      "label": "Cold, LRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0064,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold LRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cold LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cold-lrs-writes",
+      "label": "Cold, LRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.3315,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold LRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cold LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cold-lrs-reads",
+      "label": "Cold, LRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1842,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold LRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cold LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cold-lrs-retrieval",
+      "label": "Cold, LRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0425,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold LRS Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cold LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cold-zrs-capacity",
+      "label": "Cold, ZRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0071,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold ZRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cold ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cold-zrs-writes",
+      "label": "Cold, ZRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.3683,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold ZRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cold ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cold-zrs-reads",
+      "label": "Cold, ZRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1842,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold ZRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cold ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cold-zrs-retrieval",
+      "label": "Cold, ZRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0425,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold ZRS Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cold ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cold-grs-capacity",
+      "label": "Cold, GRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0127,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold GRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cold GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cold-grs-writes",
+      "label": "Cold, GRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.6629,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold GRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cold GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cold-grs-reads",
+      "label": "Cold, GRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1842,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold GRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cold GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-cold-grs-retrieval",
+      "label": "Cold, GRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0425,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cold GRS Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Cold GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-archive-lrs-capacity",
+      "label": "Archive, LRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0025,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive LRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Archive LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-archive-lrs-writes",
+      "label": "Archive, LRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.2026,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive LRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Archive LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-archive-lrs-reads",
+      "label": "Archive, LRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 10.1283,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive LRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Archive LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-lake-gen2-archive-lrs-retrieval",
+      "label": "Archive, LRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0312,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive LRS Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'General Block Blob v2 Hierarchical Namespace'",
+        "note": "General Block Blob v2 Hierarchical Namespace / Archive LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-standard-lrs-capacity",
+      "label": "Transaction optimized, LRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0935,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "LRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Standard LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-standard-lrs-writes",
+      "label": "Transaction optimized, LRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0212,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "LRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Standard LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-standard-lrs-reads",
+      "label": "Transaction optimized, LRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0021,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Standard LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-standard-zrs-capacity",
+      "label": "Transaction optimized, ZRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1169,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "ZRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Standard ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-standard-zrs-writes",
+      "label": "Transaction optimized, ZRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0266,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "ZRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Standard ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-standard-zrs-reads",
+      "label": "Transaction optimized, ZRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0021,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "ZRS Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Standard ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-hot-lrs-capacity",
+      "label": "Hot, LRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0425,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot LRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Hot LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-hot-lrs-writes",
+      "label": "Hot, LRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1013,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot LRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Hot LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-hot-lrs-reads",
+      "label": "Hot, LRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0081,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Hot LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-hot-zrs-capacity",
+      "label": "Hot, ZRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0531,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot ZRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Hot ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-hot-zrs-writes",
+      "label": "Hot, ZRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1266,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot ZRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Hot ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-hot-zrs-reads",
+      "label": "Hot, ZRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0081,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hot Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Hot ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-cool-lrs-capacity",
+      "label": "Cool, LRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0234,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool LRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Cool LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-cool-lrs-writes",
+      "label": "Cool, LRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1842,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool LRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Cool LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-cool-lrs-reads",
+      "label": "Cool, LRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0184,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Cool LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-cool-lrs-retrieval",
+      "label": "Cool, LRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Cool LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-cool-zrs-capacity",
+      "label": "Cool, ZRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0292,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool ZRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Cool ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-cool-zrs-writes",
+      "label": "Cool, ZRS · Write operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.1842,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool ZRS Write Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Cool ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-cool-zrs-reads",
+      "label": "Cool, ZRS · Read operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.0184,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Cool ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-pay-as-you-go-cool-zrs-retrieval",
+      "label": "Cool, ZRS · Data retrieval",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cool Data Retrieval",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Files v2'",
+        "note": "Files v2 / Cool ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-provisioned-v2-ssd-lrs-capacity",
+      "label": "SSD, LRS · Provisioned storage",
+      "platform": "azure",
+      "unit": "GiB-month (730 h)",
+      "price": 0.1695894,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "SSD LRS Provisioned Storage",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Azure Files Provisioned v2'",
+        "note": "Azure Files Provisioned v2 / SSD LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-provisioned-v2-ssd-lrs-iops",
+      "label": "SSD, LRS · Extra IOPS",
+      "platform": "azure",
+      "unit": "IOPS-month (730 h)",
+      "price": 0.04549959,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "SSD LRS Provisioned IOPS",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Azure Files Provisioned v2'",
+        "note": "Azure Files Provisioned v2 / SSD LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-provisioned-v2-ssd-lrs-throughput",
+      "label": "SSD, LRS · Extra throughput",
+      "platform": "azure",
+      "unit": "MiB/s-month (730 h)",
+      "price": 0.0672153,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "SSD LRS Provisioned Throughput MiBPS",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Azure Files Provisioned v2'",
+        "note": "Azure Files Provisioned v2 / SSD LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-provisioned-v2-ssd-zrs-capacity",
+      "label": "SSD, ZRS · Provisioned storage",
+      "platform": "azure",
+      "unit": "GiB-month (730 h)",
+      "price": 0.2119867,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "SSD ZRS Provisioned Storage",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Azure Files Provisioned v2'",
+        "note": "Azure Files Provisioned v2 / SSD ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-provisioned-v2-ssd-zrs-iops",
+      "label": "SSD, ZRS · Extra IOPS",
+      "platform": "azure",
+      "unit": "IOPS-month (730 h)",
+      "price": 0.05687448,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "SSD ZRS Provisioned IOPS",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Azure Files Provisioned v2'",
+        "note": "Azure Files Provisioned v2 / SSD ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-provisioned-v2-ssd-zrs-throughput",
+      "label": "SSD, ZRS · Extra throughput",
+      "platform": "azure",
+      "unit": "MiB/s-month (730 h)",
+      "price": 0.08479468,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "SSD ZRS Provisioned Throughput MiBPS",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Azure Files Provisioned v2'",
+        "note": "Azure Files Provisioned v2 / SSD ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-provisioned-v2-hdd-lrs-capacity",
+      "label": "HDD, LRS · Provisioned storage",
+      "platform": "azure",
+      "unit": "GiB-month (730 h)",
+      "price": 0.01240898,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "HDD LRS Provisioned Storage",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Azure Files Provisioned v2'",
+        "note": "Azure Files Provisioned v2 / HDD LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-provisioned-v2-hdd-lrs-iops",
+      "label": "HDD, LRS · Extra IOPS",
+      "platform": "azure",
+      "unit": "IOPS-month (730 h)",
+      "price": 0.06824938,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "HDD LRS Provisioned IOPS",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Azure Files Provisioned v2'",
+        "note": "Azure Files Provisioned v2 / HDD LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-provisioned-v2-hdd-lrs-throughput",
+      "label": "HDD, LRS · Extra throughput",
+      "platform": "azure",
+      "unit": "MiB/s-month (730 h)",
+      "price": 0.10134,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "HDD LRS Provisioned Throughput MiBPS",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Azure Files Provisioned v2'",
+        "note": "Azure Files Provisioned v2 / HDD LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-provisioned-v2-hdd-zrs-capacity",
+      "label": "HDD, ZRS · Provisioned storage",
+      "platform": "azure",
+      "unit": "GiB-month (730 h)",
+      "price": 0.01551122,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "HDD ZRS Provisioned Storage",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Azure Files Provisioned v2'",
+        "note": "Azure Files Provisioned v2 / HDD ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-provisioned-v2-hdd-zrs-iops",
+      "label": "HDD, ZRS · Extra IOPS",
+      "platform": "azure",
+      "unit": "IOPS-month (730 h)",
+      "price": 0.08582876,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "HDD ZRS Provisioned IOPS",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Azure Files Provisioned v2'",
+        "note": "Azure Files Provisioned v2 / HDD ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "files-provisioned-v2-hdd-zrs-throughput",
+      "label": "HDD, ZRS · Extra throughput",
+      "platform": "azure",
+      "unit": "MiB/s-month (730 h)",
+      "price": 0.127192,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "HDD ZRS Provisioned Throughput MiBPS",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Azure Files Provisioned v2'",
+        "note": "Azure Files Provisioned v2 / HDD ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "queue-storage-lrs-capacity",
+      "label": "Standard, LRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0701,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "LRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Queues'",
+        "note": "Queues / Standard LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "queue-storage-lrs-ops",
+      "label": "Standard, LRS · Operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.000509958,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "LRS Class 1 Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Queues'",
+        "note": "Queues / Standard LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "queue-storage-grs-capacity",
+      "label": "Standard, GRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0935,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "GRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Queues'",
+        "note": "Queues / Standard GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "queue-storage-grs-ops",
+      "label": "Standard, GRS · Operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.000509958,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "GRS Class 1 Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Queues'",
+        "note": "Queues / Standard GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "table-storage-lrs-capacity",
+      "label": "Standard, LRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0708,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "LRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Tables'",
+        "note": "Tables / Standard LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "table-storage-lrs-ops",
+      "label": "Standard, LRS · Operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.000509958,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Tables'",
+        "note": "Tables / Standard LRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "table-storage-zrs-capacity",
+      "label": "Standard, ZRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0885,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "ZRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Tables'",
+        "note": "Tables / Standard ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "table-storage-zrs-ops",
+      "label": "Standard, ZRS · Operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.000509958,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Tables'",
+        "note": "Tables / Standard ZRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "table-storage-grs-capacity",
+      "label": "Standard, GRS · Capacity",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0935,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "GRS Data Stored",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Tables'",
+        "note": "Tables / Standard GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "table-storage-grs-ops",
+      "label": "Standard, GRS · Operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.000509958,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Read Operations",
+        "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Tables'",
+        "note": "Tables / Standard GRS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "blob-storage-free-retrieval",
+      "label": "Blob Storage (block blob): Data retrieval, no charge",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/storage/blobs/",
+        "note": "No data retrieval charge on the Hot tier.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "data-lake-gen2-free-retrieval",
+      "label": "Data Lake Storage Gen2 (hierarchical namespace): Data retrieval, no charge",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/storage/data-lake/",
+        "note": "No data retrieval charge on the Hot tier.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "files-pay-as-you-go-free-retrieval",
+      "label": "Azure Files (pay-as-you-go): Data retrieval, no charge",
+      "platform": "azure",
+      "unit": "GB",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/storage/files/",
+        "note": "No data retrieval charge on this tier.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    }
+  ]
+}

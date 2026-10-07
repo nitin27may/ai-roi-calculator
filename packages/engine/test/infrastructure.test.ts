@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@roi-calculator/catalog";
+import { resourceFixtureCatalog } from "./fixtures/resource-catalog.js";
 import { ProjectSchema, buildLedger, environmentCostRows, infrastructureSummary, meetingIntelligence, resourceCostRows, type Project } from "../src/index.js";
 
-const cat = loadCatalog();
+const cat = resourceFixtureCatalog();
 const B = meetingIntelligence.timeline.buildMonths;
 const vm = (extra: object = {}) => ({ id: "r1", label: "App servers", typeId: "vm", skuId: "d4s-v5-windows", inputs: { count: 2 }, ...extra });
 const prod = { id: "prod", label: "Production", production: true };

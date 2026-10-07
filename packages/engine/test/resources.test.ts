@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog, type Catalog } from "@roi-calculator/catalog";
+import { type Catalog } from "@roi-calculator/catalog";
+import { resourceFixtureCatalog } from "./fixtures/resource-catalog.js";
 import { ProjectSchema, buildLedger, meetingIntelligence, resourceLines, PriceBook, type Project } from "../src/index.js";
 
-const cat = loadCatalog();
+const cat = resourceFixtureCatalog();
 const B = meetingIntelligence.timeline.buildMonths;
 const withResources = (resources: unknown[], c: Catalog = cat) => {
   const p = ProjectSchema.parse({ ...meetingIntelligence, resources }) as Project;
@@ -42,7 +43,7 @@ describe("resource pricing", () => {
   });
 
   it("falls back to pay-as-you-go with a note when a reserved price is missing", () => {
-    const stripped: Catalog = { ...cat, unitPrices: cat.unitPrices.map((u) => (u.id === "seed-vm-d4sv5-linux" ? { ...u, options: undefined } : u)) };
+    const stripped: Catalog = { ...cat, unitPrices: cat.unitPrices.map((u) => (u.id === "fx-vm-linux" ? { ...u, options: undefined } : u)) };
     const { ledger } = withResources([vm({ term: "ri1" })], stripped);
     const l = lines(ledger)[0]!;
     expect(l.cost).toBeCloseTo(600, 6);
@@ -62,7 +63,7 @@ describe("resource pricing", () => {
   });
 
   it("lets a manual price beat the refreshed one and flags it", () => {
-    const manual: Catalog = { ...cat, unitPrices: cat.unitPrices.map((u) => (u.id === "seed-asp-p1v3-linux" ? { ...u, manual: { price: 100, note: "Enterprise agreement quote", retrievedAt: "2026-10-06" } } : u)) };
+    const manual: Catalog = { ...cat, unitPrices: cat.unitPrices.map((u) => (u.id === "fx-asp-linux" ? { ...u, manual: { price: 100, note: "Enterprise agreement quote", retrievedAt: "2026-10-06" } } : u)) };
     const { ledger } = withResources([{ id: "plan", label: "Plan", typeId: "app-service-plan", skuId: "p1v3-linux", inputs: { instances: 2 } }], manual);
     expect(lines(ledger)[0]!.cost).toBeCloseTo(200, 6);
     expect(ledger.notes.find((n) => n.kind === "manual")?.message).toContain("Enterprise agreement quote");

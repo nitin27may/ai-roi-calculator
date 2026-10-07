@@ -1,0 +1,4722 @@
+{
+  "category": "database",
+  "note": "Part 1 of the catalogue: Azure SQL (vCore, DTU, Managed Instance), SQL Server licences for VMs, PostgreSQL and MySQL flexible servers, Cosmos DB, Azure Cache for Redis and Azure Managed Redis.",
+  "types": [
+    {
+      "id": "sql-db-vcore",
+      "label": "Azure SQL Database (vCore)",
+      "category": "database",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/azure-sql-database/single/",
+      "note": "Single databases on the vCore model, licence included. For serverless enter the average active vCores. Elastic pools, backup storage beyond the free allowance, zone-redundant Business Critical, IO charges and Hybrid Benefit are not priced; see the Hybrid Benefit rule.",
+      "inputs": [
+        {
+          "id": "vcores",
+          "label": "vCores",
+          "unit": "vCores",
+          "help": "vCores per database (for serverless, the average active vCores)."
+        },
+        {
+          "id": "storageGB",
+          "label": "Data storage",
+          "unit": "GB",
+          "help": "Provisioned data storage in GB."
+        }
+      ],
+      "meters": [
+        {
+          "id": "compute",
+          "label": "Compute",
+          "quantity": {
+            "input": "vcores"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "storage",
+          "label": "Data storage",
+          "quantity": {
+            "input": "storageGB"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg",
+        "ri1",
+        "ri3"
+      ],
+      "ahb": {
+        "kind": "unavailable",
+        "note": "The Retail API lists the vCore rate with the SQL licence included and publishes no compute-only meter, so Hybrid Benefit is not priced. Add a manual price if you hold Software Assurance."
+      },
+      "retail": {
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq '{region}'",
+        "meters": {
+          "compute": {
+            "unit": "vCore-month (730 h)"
+          },
+          "storage": {
+            "unit": "GB-month",
+            "options": [
+              "payg"
+            ]
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "gp-gen5",
+          "label": "General Purpose, provisioned (Gen5)",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^SQL Database Single/Elastic Pool General Purpose - Compute Gen5$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^SQL Database Single/Elastic Pool General Purpose - Storage$",
+              "skuName": "^General Purpose$",
+              "meterName": "^General Purpose Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "sql-db-vcore-gp-gen5-compute",
+            "storage": "sql-db-vcore-gp-gen5-storage"
+          }
+        },
+        {
+          "id": "gp-gen5-zr",
+          "label": "General Purpose, provisioned, zone redundant (Gen5)",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^SQL Database Single/Elastic Pool General Purpose - Compute Gen5$",
+              "skuName": "^vCore ZR Zone Redundancy$",
+              "meterName": "^Zone Redundancy vCore$"
+            },
+            "storage": {
+              "productName": "^SQL Database Single/Elastic Pool General Purpose - Storage$",
+              "skuName": "^General Purpose Zone Redundancy$",
+              "meterName": "^General Purpose Zone Redundancy Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "sql-db-vcore-gp-gen5-zr-compute",
+            "storage": "sql-db-vcore-gp-gen5-zr-storage"
+          }
+        },
+        {
+          "id": "gp-serverless",
+          "label": "General Purpose, serverless (Gen5)",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^SQL Database General Purpose - Serverless - Compute Gen5$",
+              "skuName": "^1 vCore$",
+              "meterName": "^vCore$",
+              "options": [
+                "payg"
+              ]
+            },
+            "storage": {
+              "productName": "^SQL Database Single/Elastic Pool General Purpose - Storage$",
+              "skuName": "^General Purpose$",
+              "meterName": "^General Purpose Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "sql-db-vcore-gp-serverless-compute",
+            "storage": "sql-db-vcore-gp-serverless-storage"
+          }
+        },
+        {
+          "id": "bc-gen5",
+          "label": "Business Critical (Gen5)",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^SQL Database Single/Elastic Pool Business Critical - Compute Gen5$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^SQL Database Single/Elastic Pool Business Critical - Storage$",
+              "skuName": "^Business Critical$",
+              "meterName": "^Business Critical Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "sql-db-vcore-bc-gen5-compute",
+            "storage": "sql-db-vcore-bc-gen5-storage"
+          }
+        },
+        {
+          "id": "hyperscale-gen5",
+          "label": "Hyperscale, provisioned (Gen5)",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^SQL Database SingleDB/Elastic Pool Hyperscale - Compute Gen5$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^SQL Database SingleDB Hyperscale - Storage$",
+              "skuName": "^Hyperscale$",
+              "meterName": "^Hyperscale Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "sql-db-vcore-hyperscale-gen5-compute",
+            "storage": "sql-db-vcore-hyperscale-gen5-storage"
+          }
+        },
+        {
+          "id": "hyperscale-serverless",
+          "label": "Hyperscale, serverless (Gen5)",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^SQL Database SingleDB Hyperscale - Serverless - Compute Gen5$",
+              "skuName": "^1 vCore$",
+              "meterName": "^vCore$",
+              "options": [
+                "payg"
+              ]
+            },
+            "storage": {
+              "productName": "^SQL Database SingleDB Hyperscale - Storage$",
+              "skuName": "^Hyperscale$",
+              "meterName": "^Hyperscale Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "sql-db-vcore-hyperscale-serverless-compute",
+            "storage": "sql-db-vcore-hyperscale-serverless-storage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sql-db-dtu",
+      "label": "Azure SQL Database (DTU)",
+      "category": "database",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/azure-sql-database/single/",
+      "note": "Single databases on the DTU model, priced per database per month (daily rate x 30.4). Storage up to the tier's included amount is part of the price. Elastic pools and extra storage are not included.",
+      "inputs": [
+        {
+          "id": "databases",
+          "label": "Databases",
+          "unit": "databases",
+          "help": "Number of databases on this tier."
+        }
+      ],
+      "meters": [
+        {
+          "id": "database",
+          "label": "Database",
+          "quantity": {
+            "input": "databases"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq '{region}'",
+        "productName": "^SQL Database Single (Basic|Standard|Premium)$",
+        "skuName": "^{armSku}$",
+        "meters": {
+          "database": {
+            "meterName": ".",
+            "unit": "database-month (30.4 days)"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "b",
+          "label": "Basic B (5 DTU)",
+          "attrs": {
+            "dtu": 5
+          },
+          "armSku": "B",
+          "prices": {
+            "database": "sql-db-dtu-b-database"
+          }
+        },
+        {
+          "id": "s0",
+          "label": "Standard S0 (10 DTU)",
+          "attrs": {
+            "dtu": 10
+          },
+          "armSku": "S0",
+          "prices": {
+            "database": "sql-db-dtu-s0-database"
+          }
+        },
+        {
+          "id": "s1",
+          "label": "Standard S1 (20 DTU)",
+          "attrs": {
+            "dtu": 20
+          },
+          "armSku": "S1",
+          "prices": {
+            "database": "sql-db-dtu-s1-database"
+          }
+        },
+        {
+          "id": "s2",
+          "label": "Standard S2 (50 DTU)",
+          "attrs": {
+            "dtu": 50
+          },
+          "armSku": "S2",
+          "prices": {
+            "database": "sql-db-dtu-s2-database"
+          }
+        },
+        {
+          "id": "s3",
+          "label": "Standard S3 (100 DTU)",
+          "attrs": {
+            "dtu": 100
+          },
+          "armSku": "S3",
+          "prices": {
+            "database": "sql-db-dtu-s3-database"
+          }
+        },
+        {
+          "id": "p1",
+          "label": "Premium P1 (125 DTU)",
+          "attrs": {
+            "dtu": 125
+          },
+          "armSku": "P1",
+          "prices": {
+            "database": "sql-db-dtu-p1-database"
+          }
+        },
+        {
+          "id": "p2",
+          "label": "Premium P2 (250 DTU)",
+          "attrs": {
+            "dtu": 250
+          },
+          "armSku": "P2",
+          "prices": {
+            "database": "sql-db-dtu-p2-database"
+          }
+        },
+        {
+          "id": "p4",
+          "label": "Premium P4 (500 DTU)",
+          "attrs": {
+            "dtu": 500
+          },
+          "armSku": "P4",
+          "prices": {
+            "database": "sql-db-dtu-p4-database"
+          }
+        },
+        {
+          "id": "p6",
+          "label": "Premium P6 (1000 DTU)",
+          "attrs": {
+            "dtu": 1000
+          },
+          "armSku": "P6",
+          "prices": {
+            "database": "sql-db-dtu-p6-database"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sql-mi",
+      "label": "Azure SQL Managed Instance",
+      "category": "database",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/azure-sql-managed-instance/single/",
+      "note": "vCore compute with the SQL licence included, plus storage. Memory-optimized and zone-redundant instances, backup storage beyond the free allowance, IO charges and Hybrid Benefit are not priced; see the Hybrid Benefit rule.",
+      "inputs": [
+        {
+          "id": "vcores",
+          "label": "vCores",
+          "unit": "vCores",
+          "help": "vCores per instance."
+        },
+        {
+          "id": "storageGB",
+          "label": "Storage",
+          "unit": "GB",
+          "help": "Reserved storage in GB."
+        }
+      ],
+      "meters": [
+        {
+          "id": "compute",
+          "label": "Compute",
+          "quantity": {
+            "input": "vcores"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "storage",
+          "label": "Storage",
+          "quantity": {
+            "input": "storageGB"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg",
+        "ri1",
+        "ri3"
+      ],
+      "ahb": {
+        "kind": "unavailable",
+        "note": "The Retail API lists the vCore rate with the SQL licence included and publishes no compute-only meter, so Hybrid Benefit is not priced. Add a manual price if you hold Software Assurance."
+      },
+      "retail": {
+        "filter": "serviceName eq 'SQL Managed Instance' and armRegionName eq '{region}'",
+        "meters": {
+          "compute": {
+            "unit": "vCore-month (730 h)"
+          },
+          "storage": {
+            "unit": "GB-month",
+            "options": [
+              "payg"
+            ]
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "gp-gen5",
+          "label": "General Purpose (Gen5)",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^SQL Managed Instance General Purpose - Compute Gen5$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^SQL Managed Instance General Purpose - Storage$",
+              "skuName": "^General Purpose$",
+              "meterName": "^General Purpose Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "sql-mi-gp-gen5-compute",
+            "storage": "sql-mi-gp-gen5-storage"
+          }
+        },
+        {
+          "id": "gp-premium",
+          "label": "General Purpose (Premium series)",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^SQL Managed Instance General Purpose - Premium Series Compute$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^SQL Managed Instance General Purpose - Storage$",
+              "skuName": "^General Purpose$",
+              "meterName": "^General Purpose Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "sql-mi-gp-premium-compute",
+            "storage": "sql-mi-gp-premium-storage"
+          }
+        },
+        {
+          "id": "bc-gen5",
+          "label": "Business Critical (Gen5)",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^SQL Managed Instance Business Critical - Compute Gen5$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^SQL Managed Instance Business Critical - Storage$",
+              "skuName": "^Business Critical$",
+              "meterName": "^Business Critical Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "sql-mi-bc-gen5-compute",
+            "storage": "sql-mi-bc-gen5-storage"
+          }
+        },
+        {
+          "id": "bc-premium",
+          "label": "Business Critical (Premium series)",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^SQL Managed Instance Business Critical - Premium Series Compute$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^SQL Managed Instance Business Critical - Storage$",
+              "skuName": "^Business Critical$",
+              "meterName": "^Business Critical Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "sql-mi-bc-premium-compute",
+            "storage": "sql-mi-bc-premium-storage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sql-server-licence",
+      "label": "SQL Server licence on a virtual machine",
+      "category": "database",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/virtual-machines/sql-server/",
+      "note": "The SQL Server licence only, per vCPU. Add the Windows or Linux VM and its disks as separate resources. With Azure Hybrid Benefit you bring your own licence and the licence meter is 0.",
+      "inputs": [
+        {
+          "id": "vcpus",
+          "label": "vCPUs",
+          "unit": "vCPUs",
+          "help": "Total vCPUs of the VMs that run SQL Server."
+        }
+      ],
+      "meters": [
+        {
+          "id": "licence",
+          "label": "SQL Server licence",
+          "quantity": {
+            "input": "vcpus"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg",
+        "ahb",
+        "devtest"
+      ],
+      "ahb": {
+        "kind": "licence-free",
+        "note": "Azure Hybrid Benefit for SQL Server: you bring your own licence with Software Assurance, so Azure bills no licence meter. The Retail API lists its Hybrid Benefit licence meters at 0."
+      },
+      "retail": {
+        "filter": "serviceName eq 'Virtual Machines Licenses' and productName eq '{armSku}'",
+        "productName": "^{armSku}$",
+        "skuName": "^64 vCPU VM$",
+        "meters": {
+          "licence": {
+            "meterName": "^64 vCPU VM License$",
+            "divisor": 64,
+            "unit": "vCPU-month (730 h)"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "standard",
+          "label": "SQL Server Standard",
+          "attrs": {},
+          "armSku": "SQL Server Standard",
+          "prices": {
+            "licence": "sql-server-licence-standard-licence"
+          }
+        },
+        {
+          "id": "enterprise",
+          "label": "SQL Server Enterprise",
+          "attrs": {},
+          "armSku": "SQL Server Enterprise",
+          "prices": {
+            "licence": "sql-server-licence-enterprise-licence"
+          }
+        },
+        {
+          "id": "web",
+          "label": "SQL Server Web",
+          "attrs": {},
+          "armSku": "SQL Server Web",
+          "prices": {
+            "licence": "sql-server-licence-web-licence"
+          }
+        }
+      ]
+    },
+    {
+      "id": "postgres-flexible",
+      "label": "Azure Database for PostgreSQL (flexible server)",
+      "category": "database",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/postgresql/flexible-server/",
+      "note": "General Purpose and Memory Optimized compute per vCore, plus provisioned storage. For high availability enter the vCores of the primary and the standby. Backup storage beyond the included amount, extra IOPS and read replicas are not included.",
+      "inputs": [
+        {
+          "id": "vcores",
+          "label": "vCores",
+          "unit": "vCores",
+          "help": "Total vCores across all servers (double it for zone-redundant high availability)."
+        },
+        {
+          "id": "storageGB",
+          "label": "Storage",
+          "unit": "GB",
+          "help": "Provisioned storage in GB."
+        }
+      ],
+      "meters": [
+        {
+          "id": "compute",
+          "label": "Compute",
+          "quantity": {
+            "input": "vcores"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "storage",
+          "label": "Storage",
+          "quantity": {
+            "input": "storageGB"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg",
+        "ri1",
+        "ri3"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq '{region}'",
+        "meters": {
+          "compute": {
+            "unit": "vCore-month (730 h)"
+          },
+          "storage": {
+            "unit": "GB-month",
+            "options": [
+              "payg"
+            ]
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "gp-ddsv5",
+          "label": "General Purpose, Ddsv5",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^Azure Database for PostgreSQL Flexible Server General Purpose Ddsv5 Series Compute$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^Azure Database for PostgreSQL Flex Server Storage$",
+              "skuName": "^Storage$",
+              "meterName": "^Storage Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "postgres-flexible-gp-ddsv5-compute",
+            "storage": "postgres-flexible-gp-ddsv5-storage"
+          }
+        },
+        {
+          "id": "gp-ddsv6",
+          "label": "General Purpose, Ddsv6",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^Azure Database for PostgreSQL Flexible Server General Purpose Ddsv6 Series Compute$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^Azure Database for PostgreSQL Flex Server Storage$",
+              "skuName": "^Storage$",
+              "meterName": "^Storage Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "postgres-flexible-gp-ddsv6-compute",
+            "storage": "postgres-flexible-gp-ddsv6-storage"
+          }
+        },
+        {
+          "id": "mo-edsv5",
+          "label": "Memory Optimized, Edsv5",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^Azure Database for PostgreSQL Flexible Server Memory Optimized Edsv5 Series Compute$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^Azure Database for PostgreSQL Flex Server Storage$",
+              "skuName": "^Storage$",
+              "meterName": "^Storage Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "postgres-flexible-mo-edsv5-compute",
+            "storage": "postgres-flexible-mo-edsv5-storage"
+          }
+        },
+        {
+          "id": "mo-edsv6",
+          "label": "Memory Optimized, Edsv6",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^Azure Database for PostgreSQL Flexible Server Memory Optimized Edsv6 Series Compute$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^Azure Database for PostgreSQL Flex Server Storage$",
+              "skuName": "^Storage$",
+              "meterName": "^Storage Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "postgres-flexible-mo-edsv6-compute",
+            "storage": "postgres-flexible-mo-edsv6-storage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "postgres-flexible-burstable",
+      "label": "Azure Database for PostgreSQL (flexible server, Burstable)",
+      "category": "database",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/postgresql/flexible-server/",
+      "note": "Burstable servers priced per server, plus provisioned storage. For development, test and light workloads. No reserved pricing for Burstable in the Retail API.",
+      "inputs": [
+        {
+          "id": "servers",
+          "label": "Servers",
+          "unit": "servers",
+          "help": "Number of servers."
+        },
+        {
+          "id": "storageGB",
+          "label": "Storage",
+          "unit": "GB",
+          "help": "Provisioned storage in GB, all servers."
+        }
+      ],
+      "meters": [
+        {
+          "id": "compute",
+          "label": "Compute",
+          "quantity": {
+            "input": "servers"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "storage",
+          "label": "Storage",
+          "quantity": {
+            "input": "storageGB"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq '{region}'",
+        "productName": "^Azure Database for PostgreSQL Flexible Server Burstable BS Series Compute$",
+        "skuName": "^{armSku}$",
+        "meters": {
+          "compute": {
+            "meterName": ".",
+            "unit": "server-month (730 h)"
+          },
+          "storage": {
+            "productName": "^Azure Database for PostgreSQL Flex Server Storage$",
+            "skuName": "^Storage$",
+            "meterName": "^Storage Data Stored$",
+            "unit": "GB-month"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "b1ms",
+          "label": "B1ms (1 vCPU, 2 GiB)",
+          "attrs": {
+            "vcpu": 1,
+            "memoryGiB": 2
+          },
+          "armSku": "B1MS",
+          "prices": {
+            "compute": "postgres-flexible-burstable-b1ms-compute",
+            "storage": "postgres-flexible-burstable-b1ms-storage"
+          }
+        },
+        {
+          "id": "b2s",
+          "label": "B2s (2 vCPU, 4 GiB)",
+          "attrs": {
+            "vcpu": 2,
+            "memoryGiB": 4
+          },
+          "armSku": "B2S",
+          "prices": {
+            "compute": "postgres-flexible-burstable-b2s-compute",
+            "storage": "postgres-flexible-burstable-b2s-storage"
+          }
+        },
+        {
+          "id": "b2ms",
+          "label": "B2ms (2 vCPU, 8 GiB)",
+          "attrs": {
+            "vcpu": 2,
+            "memoryGiB": 8
+          },
+          "armSku": "B2ms",
+          "prices": {
+            "compute": "postgres-flexible-burstable-b2ms-compute",
+            "storage": "postgres-flexible-burstable-b2ms-storage"
+          }
+        },
+        {
+          "id": "b4ms",
+          "label": "B4ms (4 vCPU, 16 GiB)",
+          "attrs": {
+            "vcpu": 4,
+            "memoryGiB": 16
+          },
+          "armSku": "B4ms",
+          "prices": {
+            "compute": "postgres-flexible-burstable-b4ms-compute",
+            "storage": "postgres-flexible-burstable-b4ms-storage"
+          }
+        },
+        {
+          "id": "b8ms",
+          "label": "B8ms (8 vCPU, 32 GiB)",
+          "attrs": {
+            "vcpu": 8,
+            "memoryGiB": 32
+          },
+          "armSku": "B8ms",
+          "prices": {
+            "compute": "postgres-flexible-burstable-b8ms-compute",
+            "storage": "postgres-flexible-burstable-b8ms-storage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mysql-flexible",
+      "label": "Azure Database for MySQL (flexible server)",
+      "category": "database",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/mysql/flexible-server/",
+      "note": "General Purpose and Memory Optimized compute per vCore, plus provisioned storage. For high availability enter the vCores of the primary and the standby. Backup storage beyond the included amount, extra IOPS and read replicas are not included.",
+      "inputs": [
+        {
+          "id": "vcores",
+          "label": "vCores",
+          "unit": "vCores",
+          "help": "Total vCores across all servers (double it for zone-redundant high availability)."
+        },
+        {
+          "id": "storageGB",
+          "label": "Storage",
+          "unit": "GB",
+          "help": "Provisioned storage in GB."
+        }
+      ],
+      "meters": [
+        {
+          "id": "compute",
+          "label": "Compute",
+          "quantity": {
+            "input": "vcores"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "storage",
+          "label": "Storage",
+          "quantity": {
+            "input": "storageGB"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg",
+        "ri1",
+        "ri3"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq '{region}'",
+        "meters": {
+          "compute": {
+            "unit": "vCore-month (730 h)"
+          },
+          "storage": {
+            "unit": "GB-month",
+            "options": [
+              "payg"
+            ]
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "gp-ddsv5",
+          "label": "General Purpose, Ddsv5",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^Azure Database for MySQL Flexible Server General Purpose Ddsv5 Series Compute$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^Azure Database for MySQL Flexible Server Storage$",
+              "skuName": "^Storage$",
+              "meterName": "^Storage Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "mysql-flexible-gp-ddsv5-compute",
+            "storage": "mysql-flexible-gp-ddsv5-storage"
+          }
+        },
+        {
+          "id": "gp-ddsv6",
+          "label": "General Purpose, Ddsv6",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^Azure Database for MySQL Flexible Server General Purpose Ddsv6 Series Compute$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^Azure Database for MySQL Flexible Server Storage$",
+              "skuName": "^Storage$",
+              "meterName": "^Storage Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "mysql-flexible-gp-ddsv6-compute",
+            "storage": "mysql-flexible-gp-ddsv6-storage"
+          }
+        },
+        {
+          "id": "mo-eadsv5",
+          "label": "Memory Optimized, Eadsv5",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^Azure Database for MySQL Flexible Server Memory Optimized Eadsv5 Series Compute$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^Azure Database for MySQL Flexible Server Storage$",
+              "skuName": "^Storage$",
+              "meterName": "^Storage Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "mysql-flexible-mo-eadsv5-compute",
+            "storage": "mysql-flexible-mo-eadsv5-storage"
+          }
+        },
+        {
+          "id": "mo-edsv6",
+          "label": "Memory Optimized, Edsv6",
+          "attrs": {},
+          "retail": {
+            "compute": {
+              "productName": "^Azure Database for MySQL Flexible Server Memory Optimized Edsv6 Series Compute$",
+              "skuName": "^vCore$",
+              "meterName": "^vCore$"
+            },
+            "storage": {
+              "productName": "^Azure Database for MySQL Flexible Server Storage$",
+              "skuName": "^Storage$",
+              "meterName": "^Storage Data Stored$"
+            }
+          },
+          "prices": {
+            "compute": "mysql-flexible-mo-edsv6-compute",
+            "storage": "mysql-flexible-mo-edsv6-storage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mysql-flexible-burstable",
+      "label": "Azure Database for MySQL (flexible server, Burstable)",
+      "category": "database",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/mysql/flexible-server/",
+      "note": "Burstable servers priced per server, plus provisioned storage. For development, test and light workloads. No reserved pricing for Burstable in the Retail API.",
+      "inputs": [
+        {
+          "id": "servers",
+          "label": "Servers",
+          "unit": "servers",
+          "help": "Number of servers."
+        },
+        {
+          "id": "storageGB",
+          "label": "Storage",
+          "unit": "GB",
+          "help": "Provisioned storage in GB, all servers."
+        }
+      ],
+      "meters": [
+        {
+          "id": "compute",
+          "label": "Compute",
+          "quantity": {
+            "input": "servers"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "storage",
+          "label": "Storage",
+          "quantity": {
+            "input": "storageGB"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq '{region}'",
+        "productName": "^Azure Database for MySQL Flexible Server Burstable BS Series Compute$",
+        "skuName": "^{armSku}$",
+        "meters": {
+          "compute": {
+            "meterName": ".",
+            "unit": "server-month (730 h)"
+          },
+          "storage": {
+            "productName": "^Azure Database for MySQL Flexible Server Storage$",
+            "skuName": "^Storage$",
+            "meterName": "^Storage Data Stored$",
+            "unit": "GB-month"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "b1ms",
+          "label": "B1ms (1 vCPU, 2 GiB)",
+          "attrs": {
+            "vcpu": 1,
+            "memoryGiB": 2
+          },
+          "armSku": "B1MS",
+          "prices": {
+            "compute": "mysql-flexible-burstable-b1ms-compute",
+            "storage": "mysql-flexible-burstable-b1ms-storage"
+          }
+        },
+        {
+          "id": "b2s",
+          "label": "B2s (2 vCPU, 4 GiB)",
+          "attrs": {
+            "vcpu": 2,
+            "memoryGiB": 4
+          },
+          "armSku": "B2S",
+          "prices": {
+            "compute": "mysql-flexible-burstable-b2s-compute",
+            "storage": "mysql-flexible-burstable-b2s-storage"
+          }
+        },
+        {
+          "id": "b2ms",
+          "label": "B2ms (2 vCPU, 8 GiB)",
+          "attrs": {
+            "vcpu": 2,
+            "memoryGiB": 8
+          },
+          "armSku": "Standard_B2ms2",
+          "prices": {
+            "compute": "mysql-flexible-burstable-b2ms-compute",
+            "storage": "mysql-flexible-burstable-b2ms-storage"
+          }
+        },
+        {
+          "id": "b4ms",
+          "label": "B4ms (4 vCPU, 16 GiB)",
+          "attrs": {
+            "vcpu": 4,
+            "memoryGiB": 16
+          },
+          "armSku": "Standard_B4ms",
+          "prices": {
+            "compute": "mysql-flexible-burstable-b4ms-compute",
+            "storage": "mysql-flexible-burstable-b4ms-storage"
+          }
+        },
+        {
+          "id": "b8ms",
+          "label": "B8ms (8 vCPU, 32 GiB)",
+          "attrs": {
+            "vcpu": 8,
+            "memoryGiB": 32
+          },
+          "armSku": "Standard_B8ms",
+          "prices": {
+            "compute": "mysql-flexible-burstable-b8ms-compute",
+            "storage": "mysql-flexible-burstable-b8ms-storage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cosmos-db-provisioned",
+      "label": "Azure Cosmos DB (provisioned throughput)",
+      "category": "database",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/cosmos-db/autoscale-provisioned/",
+      "note": "Throughput in units of 100 RU/s, single write region unless the multi-region writes SKU is chosen, plus transactional storage. Each extra region repeats the cost: add one resource per region. Autoscale is priced at the AP1 rate; AP1 to AP4 carry the same per-100-RU/s price. Analytical storage, backup and reserved capacity are not included.",
+      "inputs": [
+        {
+          "id": "ru100",
+          "label": "Throughput",
+          "unit": "100 RU/s",
+          "help": "Provisioned (or autoscale maximum) throughput in units of 100 RU/s; 4,000 RU/s is 40."
+        },
+        {
+          "id": "storageGB",
+          "label": "Storage",
+          "unit": "GB",
+          "help": "Transactional storage in GB."
+        }
+      ],
+      "meters": [
+        {
+          "id": "throughput",
+          "label": "Throughput",
+          "quantity": {
+            "input": "ru100"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "storage",
+          "label": "Storage",
+          "quantity": {
+            "input": "storageGB"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Cosmos DB' and armRegionName eq '{region}'",
+        "meters": {
+          "throughput": {
+            "unit": "100 RU/s-month (730 h)"
+          },
+          "storage": {
+            "unit": "GB-month"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "standard",
+          "label": "Provisioned, single write region",
+          "attrs": {},
+          "retail": {
+            "throughput": {
+              "productName": "^Azure Cosmos DB$",
+              "skuName": "^RUs$",
+              "meterName": "^100 RU/s$"
+            },
+            "storage": {
+              "productName": "^Azure Cosmos DB$",
+              "skuName": "^RUs$",
+              "meterName": "^Data Stored$"
+            }
+          },
+          "prices": {
+            "throughput": "cosmos-db-provisioned-standard-throughput",
+            "storage": "cosmos-db-provisioned-standard-storage"
+          }
+        },
+        {
+          "id": "multi-write",
+          "label": "Provisioned, multi-region writes",
+          "attrs": {},
+          "retail": {
+            "throughput": {
+              "productName": "^Azure Cosmos DB$",
+              "skuName": "^mRUs$",
+              "meterName": "^100 Multi-master RU/s$"
+            },
+            "storage": {
+              "productName": "^Azure Cosmos DB$",
+              "skuName": "^mRUs$",
+              "meterName": "^Data Stored$"
+            }
+          },
+          "prices": {
+            "throughput": "cosmos-db-provisioned-multi-write-throughput",
+            "storage": "cosmos-db-provisioned-multi-write-storage"
+          }
+        },
+        {
+          "id": "autoscale",
+          "label": "Autoscale, single write region",
+          "attrs": {},
+          "retail": {
+            "throughput": {
+              "productName": "^Azure Cosmos DB autoscale$",
+              "skuName": "^AP1$",
+              "meterName": "^AP1 100 RUs$"
+            },
+            "storage": {
+              "productName": "^Azure Cosmos DB$",
+              "skuName": "^RUs$",
+              "meterName": "^Data Stored$"
+            }
+          },
+          "prices": {
+            "throughput": "cosmos-db-provisioned-autoscale-throughput",
+            "storage": "cosmos-db-provisioned-autoscale-storage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cosmos-db-serverless",
+      "label": "Azure Cosmos DB (serverless)",
+      "category": "database",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/cosmos-db/serverless/",
+      "note": "Request units consumed, in millions, plus transactional storage. Single region only.",
+      "inputs": [
+        {
+          "id": "requestUnitsM",
+          "label": "Request units",
+          "unit": "million RU",
+          "help": "Request units consumed per month, in millions."
+        },
+        {
+          "id": "storageGB",
+          "label": "Storage",
+          "unit": "GB",
+          "help": "Transactional storage in GB."
+        }
+      ],
+      "meters": [
+        {
+          "id": "requests",
+          "label": "Request units",
+          "quantity": {
+            "input": "requestUnitsM"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "storage",
+          "label": "Storage",
+          "quantity": {
+            "input": "storageGB"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Cosmos DB' and armRegionName eq '{region}'",
+        "meters": {
+          "requests": {
+            "productName": "^Azure Cosmos DB serverless$",
+            "meterName": "^1M RUs$",
+            "unit": "million RU"
+          },
+          "storage": {
+            "productName": "^Azure Cosmos DB$",
+            "skuName": "^RUs$",
+            "meterName": "^Data Stored$",
+            "unit": "GB-month"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "serverless",
+          "label": "Serverless",
+          "attrs": {},
+          "prices": {
+            "requests": "cosmos-db-serverless-serverless-requests",
+            "storage": "cosmos-db-serverless-serverless-storage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "redis-cache",
+      "label": "Azure Cache for Redis (Basic, Standard, Premium)",
+      "category": "database",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/cache/",
+      "note": "Per cache per month. Standard and Premium caches are a replicated pair and the price covers both. The Enterprise tiers are replaced by Azure Managed Redis, listed separately. Reserved pricing is per node and is not offered here.",
+      "inputs": [
+        {
+          "id": "caches",
+          "label": "Caches",
+          "unit": "caches",
+          "help": "Number of caches of this size."
+        }
+      ],
+      "meters": [
+        {
+          "id": "cache",
+          "label": "Cache",
+          "quantity": {
+            "input": "caches"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq '{region}'",
+        "skuName": "^{armSku}$",
+        "meters": {
+          "cache": {
+            "meterName": "^{armSku} Cache$",
+            "unit": "cache-month (730 h)"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "basic-c0",
+          "label": "Basic C0 (250 MB)",
+          "attrs": {
+            "tier": "Basic"
+          },
+          "armSku": "C0",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Basic$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-basic-c0-cache"
+          }
+        },
+        {
+          "id": "basic-c1",
+          "label": "Basic C1 (1 GB)",
+          "attrs": {
+            "tier": "Basic"
+          },
+          "armSku": "C1",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Basic$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-basic-c1-cache"
+          }
+        },
+        {
+          "id": "basic-c2",
+          "label": "Basic C2 (2.5 GB)",
+          "attrs": {
+            "tier": "Basic"
+          },
+          "armSku": "C2",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Basic$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-basic-c2-cache"
+          }
+        },
+        {
+          "id": "basic-c3",
+          "label": "Basic C3 (6 GB)",
+          "attrs": {
+            "tier": "Basic"
+          },
+          "armSku": "C3",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Basic$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-basic-c3-cache"
+          }
+        },
+        {
+          "id": "standard-c0",
+          "label": "Standard C0 (250 MB)",
+          "attrs": {
+            "tier": "Standard"
+          },
+          "armSku": "C0",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Standard$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-standard-c0-cache"
+          }
+        },
+        {
+          "id": "standard-c1",
+          "label": "Standard C1 (1 GB)",
+          "attrs": {
+            "tier": "Standard"
+          },
+          "armSku": "C1",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Standard$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-standard-c1-cache"
+          }
+        },
+        {
+          "id": "standard-c2",
+          "label": "Standard C2 (2.5 GB)",
+          "attrs": {
+            "tier": "Standard"
+          },
+          "armSku": "C2",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Standard$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-standard-c2-cache"
+          }
+        },
+        {
+          "id": "standard-c3",
+          "label": "Standard C3 (6 GB)",
+          "attrs": {
+            "tier": "Standard"
+          },
+          "armSku": "C3",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Standard$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-standard-c3-cache"
+          }
+        },
+        {
+          "id": "standard-c4",
+          "label": "Standard C4 (13 GB)",
+          "attrs": {
+            "tier": "Standard"
+          },
+          "armSku": "C4",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Standard$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-standard-c4-cache"
+          }
+        },
+        {
+          "id": "standard-c5",
+          "label": "Standard C5 (26 GB)",
+          "attrs": {
+            "tier": "Standard"
+          },
+          "armSku": "C5",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Standard$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-standard-c5-cache"
+          }
+        },
+        {
+          "id": "standard-c6",
+          "label": "Standard C6 (53 GB)",
+          "attrs": {
+            "tier": "Standard"
+          },
+          "armSku": "C6",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Standard$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-standard-c6-cache"
+          }
+        },
+        {
+          "id": "premium-p1",
+          "label": "Premium P1 (6 GB)",
+          "attrs": {
+            "tier": "Premium"
+          },
+          "armSku": "P1",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Premium$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-premium-p1-cache"
+          }
+        },
+        {
+          "id": "premium-p2",
+          "label": "Premium P2 (13 GB)",
+          "attrs": {
+            "tier": "Premium"
+          },
+          "armSku": "P2",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Premium$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-premium-p2-cache"
+          }
+        },
+        {
+          "id": "premium-p3",
+          "label": "Premium P3 (26 GB)",
+          "attrs": {
+            "tier": "Premium"
+          },
+          "armSku": "P3",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Premium$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-premium-p3-cache"
+          }
+        },
+        {
+          "id": "premium-p4",
+          "label": "Premium P4 (53 GB)",
+          "attrs": {
+            "tier": "Premium"
+          },
+          "armSku": "P4",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Premium$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-premium-p4-cache"
+          }
+        },
+        {
+          "id": "premium-p5",
+          "label": "Premium P5 (120 GB)",
+          "attrs": {
+            "tier": "Premium"
+          },
+          "armSku": "P5",
+          "retail": {
+            "cache": {
+              "productName": "^Azure Redis Cache Premium$"
+            }
+          },
+          "prices": {
+            "cache": "redis-cache-premium-p5-cache"
+          }
+        }
+      ]
+    },
+    {
+      "id": "azure-managed-redis",
+      "label": "Azure Managed Redis",
+      "category": "database",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/managed-redis/",
+      "note": "Per instance per month, high availability included. The number in the size is its memory in GB (B10 is about 12 GB). Geo-replication and private endpoints are separate.",
+      "inputs": [
+        {
+          "id": "instances",
+          "label": "Instances",
+          "unit": "instances",
+          "help": "Number of instances of this size."
+        }
+      ],
+      "meters": [
+        {
+          "id": "instance",
+          "label": "Instance",
+          "quantity": {
+            "input": "instances"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg",
+        "ri1",
+        "ri3"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq '{region}'",
+        "skuName": "^{armSku}$",
+        "meters": {
+          "instance": {
+            "meterName": "^{armSku} Cache Instance$",
+            "unit": "instance-month (730 h)"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "balanced-b0",
+          "label": "Balanced B0",
+          "attrs": {
+            "tier": "Balanced"
+          },
+          "armSku": "B0",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Balanced$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-balanced-b0-instance"
+          }
+        },
+        {
+          "id": "balanced-b1",
+          "label": "Balanced B1",
+          "attrs": {
+            "tier": "Balanced"
+          },
+          "armSku": "B1",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Balanced$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-balanced-b1-instance"
+          }
+        },
+        {
+          "id": "balanced-b3",
+          "label": "Balanced B3",
+          "attrs": {
+            "tier": "Balanced"
+          },
+          "armSku": "B3",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Balanced$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-balanced-b3-instance"
+          }
+        },
+        {
+          "id": "balanced-b5",
+          "label": "Balanced B5",
+          "attrs": {
+            "tier": "Balanced"
+          },
+          "armSku": "B5",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Balanced$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-balanced-b5-instance"
+          }
+        },
+        {
+          "id": "balanced-b10",
+          "label": "Balanced B10",
+          "attrs": {
+            "tier": "Balanced"
+          },
+          "armSku": "B10",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Balanced$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-balanced-b10-instance"
+          }
+        },
+        {
+          "id": "balanced-b20",
+          "label": "Balanced B20",
+          "attrs": {
+            "tier": "Balanced"
+          },
+          "armSku": "B20",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Balanced$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-balanced-b20-instance"
+          }
+        },
+        {
+          "id": "balanced-b50",
+          "label": "Balanced B50",
+          "attrs": {
+            "tier": "Balanced"
+          },
+          "armSku": "B50",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Balanced$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-balanced-b50-instance"
+          }
+        },
+        {
+          "id": "balanced-b100",
+          "label": "Balanced B100",
+          "attrs": {
+            "tier": "Balanced"
+          },
+          "armSku": "B100",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Balanced$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-balanced-b100-instance"
+          }
+        },
+        {
+          "id": "balanced-b250",
+          "label": "Balanced B250",
+          "attrs": {
+            "tier": "Balanced"
+          },
+          "armSku": "B250",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Balanced$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-balanced-b250-instance"
+          }
+        },
+        {
+          "id": "balanced-b500",
+          "label": "Balanced B500",
+          "attrs": {
+            "tier": "Balanced"
+          },
+          "armSku": "B500",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Balanced$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-balanced-b500-instance"
+          }
+        },
+        {
+          "id": "memory-m10",
+          "label": "Memory Optimized M10",
+          "attrs": {
+            "tier": "Memory Optimized"
+          },
+          "armSku": "M10",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Memory Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-memory-m10-instance"
+          }
+        },
+        {
+          "id": "memory-m20",
+          "label": "Memory Optimized M20",
+          "attrs": {
+            "tier": "Memory Optimized"
+          },
+          "armSku": "M20",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Memory Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-memory-m20-instance"
+          }
+        },
+        {
+          "id": "memory-m50",
+          "label": "Memory Optimized M50",
+          "attrs": {
+            "tier": "Memory Optimized"
+          },
+          "armSku": "M50",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Memory Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-memory-m50-instance"
+          }
+        },
+        {
+          "id": "memory-m100",
+          "label": "Memory Optimized M100",
+          "attrs": {
+            "tier": "Memory Optimized"
+          },
+          "armSku": "M100",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Memory Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-memory-m100-instance"
+          }
+        },
+        {
+          "id": "memory-m250",
+          "label": "Memory Optimized M250",
+          "attrs": {
+            "tier": "Memory Optimized"
+          },
+          "armSku": "M250",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Memory Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-memory-m250-instance"
+          }
+        },
+        {
+          "id": "memory-m500",
+          "label": "Memory Optimized M500",
+          "attrs": {
+            "tier": "Memory Optimized"
+          },
+          "armSku": "M500",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Memory Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-memory-m500-instance"
+          }
+        },
+        {
+          "id": "compute-x3",
+          "label": "Compute Optimized X3",
+          "attrs": {
+            "tier": "Compute Optimized"
+          },
+          "armSku": "X3",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Compute Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-compute-x3-instance"
+          }
+        },
+        {
+          "id": "compute-x5",
+          "label": "Compute Optimized X5",
+          "attrs": {
+            "tier": "Compute Optimized"
+          },
+          "armSku": "X5",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Compute Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-compute-x5-instance"
+          }
+        },
+        {
+          "id": "compute-x10",
+          "label": "Compute Optimized X10",
+          "attrs": {
+            "tier": "Compute Optimized"
+          },
+          "armSku": "X10",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Compute Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-compute-x10-instance"
+          }
+        },
+        {
+          "id": "compute-x20",
+          "label": "Compute Optimized X20",
+          "attrs": {
+            "tier": "Compute Optimized"
+          },
+          "armSku": "X20",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Compute Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-compute-x20-instance"
+          }
+        },
+        {
+          "id": "compute-x50",
+          "label": "Compute Optimized X50",
+          "attrs": {
+            "tier": "Compute Optimized"
+          },
+          "armSku": "X50",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Compute Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-compute-x50-instance"
+          }
+        },
+        {
+          "id": "compute-x100",
+          "label": "Compute Optimized X100",
+          "attrs": {
+            "tier": "Compute Optimized"
+          },
+          "armSku": "X100",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Compute Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-compute-x100-instance"
+          }
+        },
+        {
+          "id": "compute-x250",
+          "label": "Compute Optimized X250",
+          "attrs": {
+            "tier": "Compute Optimized"
+          },
+          "armSku": "X250",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Compute Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-compute-x250-instance"
+          }
+        },
+        {
+          "id": "compute-x500",
+          "label": "Compute Optimized X500",
+          "attrs": {
+            "tier": "Compute Optimized"
+          },
+          "armSku": "X500",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Compute Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-compute-x500-instance"
+          }
+        },
+        {
+          "id": "flash-a250",
+          "label": "Flash Optimized A250",
+          "attrs": {
+            "tier": "Flash Optimized"
+          },
+          "armSku": "A250",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Flash Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-flash-a250-instance"
+          }
+        },
+        {
+          "id": "flash-a500",
+          "label": "Flash Optimized A500",
+          "attrs": {
+            "tier": "Flash Optimized"
+          },
+          "armSku": "A500",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Flash Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-flash-a500-instance"
+          }
+        },
+        {
+          "id": "flash-a700",
+          "label": "Flash Optimized A700",
+          "attrs": {
+            "tier": "Flash Optimized"
+          },
+          "armSku": "A700",
+          "retail": {
+            "instance": {
+              "productName": "^Azure Managed Redis - Flash Optimized$"
+            }
+          },
+          "prices": {
+            "instance": "azure-managed-redis-flash-a700-instance"
+          }
+        }
+      ]
+    }
+  ],
+  "unitPrices": [
+    {
+      "id": "sql-db-vcore-gp-gen5-compute",
+      "label": "General Purpose, provisioned (Gen5) · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 188.851,
+      "options": {
+        "ri1": {
+          "price": 122.7677,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 84.993,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single/Elastic Pool General Purpose - Compute Gen5 / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-vcore-gp-gen5-storage",
+      "label": "General Purpose, provisioned (Gen5) · Data storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "General Purpose Data Stored",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single/Elastic Pool General Purpose - Storage / General Purpose",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-vcore-gp-gen5-zr-compute",
+      "label": "General Purpose, provisioned, zone redundant (Gen5) · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 113.296,
+      "options": {
+        "ri1": {
+          "price": 73.6606,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "Zone Redundancy vCore",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 50.9958,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "Zone Redundancy vCore",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Zone Redundancy vCore",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single/Elastic Pool General Purpose - Compute Gen5 / vCore ZR Zone Redundancy",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-vcore-gp-gen5-zr-storage",
+      "label": "General Purpose, provisioned, zone redundant (Gen5) · Data storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.3584,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "General Purpose Zone Redundancy Data Stored",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single/Elastic Pool General Purpose - Storage / General Purpose Zone Redundancy",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-vcore-gp-serverless-compute",
+      "label": "General Purpose, serverless (Gen5) · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 647.437,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database General Purpose - Serverless - Compute Gen5 / 1 vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-vcore-gp-serverless-storage",
+      "label": "General Purpose, serverless (Gen5) · Data storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "General Purpose Data Stored",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single/Elastic Pool General Purpose - Storage / General Purpose",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-vcore-bc-gen5-compute",
+      "label": "Business Critical (Gen5) · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 377.775,
+      "options": {
+        "ri1": {
+          "price": 245.5353,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 169.986,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single/Elastic Pool Business Critical - Compute Gen5 / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-vcore-bc-gen5-storage",
+      "label": "Business Critical (Gen5) · Data storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.3896,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Business Critical Data Stored",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single/Elastic Pool Business Critical - Storage / Business Critical",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-vcore-hyperscale-gen5-compute",
+      "label": "Hyperscale, provisioned (Gen5) · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 226.665,
+      "options": {
+        "ri1": {
+          "price": 147.3212,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 101.9916,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database SingleDB/Elastic Pool Hyperscale - Compute Gen5 / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-vcore-hyperscale-gen5-storage",
+      "label": "Hyperscale, provisioned (Gen5) · Data storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1558,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hyperscale Data Stored",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database SingleDB Hyperscale - Storage / Hyperscale",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-vcore-hyperscale-serverless-compute",
+      "label": "Hyperscale, serverless (Gen5) · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 725.912,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database SingleDB Hyperscale - Serverless - Compute Gen5 / 1 vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-vcore-hyperscale-serverless-storage",
+      "label": "Hyperscale, serverless (Gen5) · Data storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1558,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hyperscale Data Stored",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database SingleDB Hyperscale - Storage / Hyperscale",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-dtu-b-database",
+      "label": "Basic B (5 DTU) · Database",
+      "platform": "azure",
+      "unit": "database-month (30.4 days)",
+      "price": 7.625458,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B DTU",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single Basic / B",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-dtu-s0-database",
+      "label": "Standard S0 (10 DTU) · Database",
+      "platform": "azure",
+      "unit": "database-month (30.4 days)",
+      "price": 22.922,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "S0 DTUs",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single Standard / S0",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-dtu-s1-database",
+      "label": "Standard S1 (20 DTU) · Database",
+      "platform": "azure",
+      "unit": "database-month (30.4 days)",
+      "price": 45.86529,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "S1 DTUs",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single Standard / S1",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-dtu-s2-database",
+      "label": "Standard S2 (50 DTU) · Database",
+      "platform": "azure",
+      "unit": "database-month (30.4 days)",
+      "price": 114.6982,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "S2 DTUs",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single Standard / S2",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-dtu-s3-database",
+      "label": "Standard S3 (100 DTU) · Database",
+      "platform": "azure",
+      "unit": "database-month (30.4 days)",
+      "price": 229.3325,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "S3 DTUs",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single Standard / S3",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-dtu-p1-database",
+      "label": "Premium P1 (125 DTU) · Database",
+      "platform": "azure",
+      "unit": "database-month (30.4 days)",
+      "price": 710.9318,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "P1 DTU",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single Premium / P1",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-dtu-p2-database",
+      "label": "Premium P2 (250 DTU) · Database",
+      "platform": "azure",
+      "unit": "database-month (30.4 days)",
+      "price": 1421.864,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "P2 DTU",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single Premium / P2",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-dtu-p4-database",
+      "label": "Premium P4 (500 DTU) · Database",
+      "platform": "azure",
+      "unit": "database-month (30.4 days)",
+      "price": 2843.724,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "P4 DTU",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single Premium / P4",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-db-dtu-p6-database",
+      "label": "Premium P6 (1000 DTU) · Database",
+      "platform": "azure",
+      "unit": "database-month (30.4 days)",
+      "price": 5687.448,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "P6 DTU",
+        "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+        "note": "SQL Database Single Premium / P6",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-mi-gp-gen5-compute",
+      "label": "General Purpose (Gen5) · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 188.851,
+      "options": {
+        "ri1": {
+          "price": 122.7677,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 84.993,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'SQL Managed Instance' and armRegionName eq 'canadacentral'",
+        "note": "SQL Managed Instance General Purpose - Compute Gen5 / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-mi-gp-gen5-storage",
+      "label": "General Purpose (Gen5) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "General Purpose Data Stored",
+        "filter": "serviceName eq 'SQL Managed Instance' and armRegionName eq 'canadacentral'",
+        "note": "SQL Managed Instance General Purpose - Storage / General Purpose",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-mi-gp-premium-compute",
+      "label": "General Purpose (Premium series) · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 181.989,
+      "options": {
+        "ri1": {
+          "price": 141.773,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 98.17479,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'SQL Managed Instance' and armRegionName eq 'canadacentral'",
+        "note": "SQL Managed Instance General Purpose - Premium Series Compute / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-mi-gp-premium-storage",
+      "label": "General Purpose (Premium series) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "General Purpose Data Stored",
+        "filter": "serviceName eq 'SQL Managed Instance' and armRegionName eq 'canadacentral'",
+        "note": "SQL Managed Instance General Purpose - Storage / General Purpose",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-mi-bc-gen5-compute",
+      "label": "Business Critical (Gen5) · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 377.775,
+      "options": {
+        "ri1": {
+          "price": 245.5353,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 169.986,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'SQL Managed Instance' and armRegionName eq 'canadacentral'",
+        "note": "SQL Managed Instance Business Critical - Compute Gen5 / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-mi-bc-gen5-storage",
+      "label": "Business Critical (Gen5) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.3896,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Business Critical Data Stored",
+        "filter": "serviceName eq 'SQL Managed Instance' and armRegionName eq 'canadacentral'",
+        "note": "SQL Managed Instance Business Critical - Storage / Business Critical",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-mi-bc-premium-compute",
+      "label": "Business Critical (Premium series) · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 363.978,
+      "options": {
+        "ri1": {
+          "price": 283.6641,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 196.3889,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'SQL Managed Instance' and armRegionName eq 'canadacentral'",
+        "note": "SQL Managed Instance Business Critical - Premium Series Compute / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-mi-bc-premium-storage",
+      "label": "Business Critical (Premium series) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.3896,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Business Critical Data Stored",
+        "filter": "serviceName eq 'SQL Managed Instance' and armRegionName eq 'canadacentral'",
+        "note": "SQL Managed Instance Business Critical - Storage / Business Critical",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-server-licence-standard-licence",
+      "label": "SQL Server Standard · SQL Server licence",
+      "platform": "azure",
+      "unit": "vCPU-month (730 h)",
+      "price": 103.4079,
+      "options": {
+        "ahb": {
+          "price": 0,
+          "source": {
+            "kind": "derived",
+            "note": "Azure Hybrid Benefit for SQL Server: you bring your own licence with Software Assurance, so Azure bills no licence meter. The Retail API lists its Hybrid Benefit licence meters at 0.",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "devtest": {
+          "price": 0,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "64 vCPU VM License",
+            "note": "dev/test rate",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "64 vCPU VM License",
+        "filter": "serviceName eq 'Virtual Machines Licenses' and productName eq 'SQL Server Standard'",
+        "note": "SQL Server Standard / 64 vCPU VM",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-server-licence-enterprise-licence",
+      "label": "SQL Server Enterprise · SQL Server licence",
+      "platform": "azure",
+      "unit": "vCPU-month (730 h)",
+      "price": 387.7806,
+      "options": {
+        "ahb": {
+          "price": 0,
+          "source": {
+            "kind": "derived",
+            "note": "Azure Hybrid Benefit for SQL Server: you bring your own licence with Software Assurance, so Azure bills no licence meter. The Retail API lists its Hybrid Benefit licence meters at 0.",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "devtest": {
+          "price": 0,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "64 vCPU VM License",
+            "note": "dev/test rate",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "64 vCPU VM License",
+        "filter": "serviceName eq 'Virtual Machines Licenses' and productName eq 'SQL Server Enterprise'",
+        "note": "SQL Server Enterprise / 64 vCPU VM",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sql-server-licence-web-licence",
+      "label": "SQL Server Web · SQL Server licence",
+      "platform": "azure",
+      "unit": "vCPU-month (730 h)",
+      "price": 8.272953,
+      "options": {
+        "ahb": {
+          "price": 0,
+          "source": {
+            "kind": "derived",
+            "note": "Azure Hybrid Benefit for SQL Server: you bring your own licence with Software Assurance, so Azure bills no licence meter. The Retail API lists its Hybrid Benefit licence meters at 0.",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "devtest": {
+          "price": 0,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "64 vCPU VM License",
+            "note": "dev/test rate",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "64 vCPU VM License",
+        "filter": "serviceName eq 'Virtual Machines Licenses' and productName eq 'SQL Server Web'",
+        "note": "SQL Server Web / 64 vCPU VM",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-gp-ddsv5-compute",
+      "label": "General Purpose, Ddsv5 · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 102.2,
+      "options": {
+        "ri1": {
+          "price": 61.26579,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 40.84386,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flexible Server General Purpose Ddsv5 Series Compute / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-gp-ddsv5-storage",
+      "label": "General Purpose, Ddsv5 · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flex Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-gp-ddsv6-compute",
+      "label": "General Purpose, Ddsv6 · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 128.553,
+      "options": {
+        "ri1": {
+          "price": 77.08393,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 51.42864,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flexible Server General Purpose Ddsv6 Series Compute / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-gp-ddsv6-storage",
+      "label": "General Purpose, Ddsv6 · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flex Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-mo-edsv5-compute",
+      "label": "Memory Optimized, Edsv5 · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 142.715,
+      "options": {
+        "ri1": {
+          "price": 85.34714,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 56.85874,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flexible Server Memory Optimized Edsv5 Series Compute / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-mo-edsv5-storage",
+      "label": "Memory Optimized, Edsv5 · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flex Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-mo-edsv6-compute",
+      "label": "Memory Optimized, Edsv6 · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 171.039,
+      "options": {
+        "ri1": {
+          "price": 102.5818,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 68.42724,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "vCore",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flexible Server Memory Optimized Edsv6 Series Compute / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-mo-edsv6-storage",
+      "label": "Memory Optimized, Edsv6 · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flex Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-burstable-b1ms-compute",
+      "label": "B1ms (1 vCPU, 2 GiB) · Compute",
+      "platform": "azure",
+      "unit": "server-month (730 h)",
+      "price": 19.126,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B1MS",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flexible Server Burstable BS Series Compute / B1MS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-burstable-b1ms-storage",
+      "label": "B1ms (1 vCPU, 2 GiB) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flex Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-burstable-b2s-compute",
+      "label": "B2s (2 vCPU, 4 GiB) · Compute",
+      "platform": "azure",
+      "unit": "server-month (730 h)",
+      "price": 76.504,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B2S",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flexible Server Burstable BS Series Compute / B2S",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-burstable-b2s-storage",
+      "label": "B2s (2 vCPU, 4 GiB) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flex Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-burstable-b2ms-compute",
+      "label": "B2ms (2 vCPU, 8 GiB) · Compute",
+      "platform": "azure",
+      "unit": "server-month (730 h)",
+      "price": 153.008,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B2ms vCore",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flexible Server Burstable BS Series Compute / B2ms",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-burstable-b2ms-storage",
+      "label": "B2ms (2 vCPU, 8 GiB) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flex Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-burstable-b4ms-compute",
+      "label": "B4ms (4 vCPU, 16 GiB) · Compute",
+      "platform": "azure",
+      "unit": "server-month (730 h)",
+      "price": 306.089,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B4ms vCore",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flexible Server Burstable BS Series Compute / B4ms",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-burstable-b4ms-storage",
+      "label": "B4ms (4 vCPU, 16 GiB) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flex Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-burstable-b8ms-compute",
+      "label": "B8ms (8 vCPU, 32 GiB) · Compute",
+      "platform": "azure",
+      "unit": "server-month (730 h)",
+      "price": 612.178,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B8ms vCore",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flexible Server Burstable BS Series Compute / B8ms",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "postgres-flexible-burstable-b8ms-storage",
+      "label": "B8ms (8 vCPU, 32 GiB) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for PostgreSQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for PostgreSQL Flex Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-gp-ddsv5-compute",
+      "label": "General Purpose, Ddsv5 · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 97.747,
+      "attrs": {
+        "fallback.ri1": "No 1-year reserved price is published for this meter, pay-as-you-go used.",
+        "fallback.ri3": "No 3-year reserved price is published for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server General Purpose Ddsv5 Series Compute / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-gp-ddsv5-storage",
+      "label": "General Purpose, Ddsv5 · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-gp-ddsv6-compute",
+      "label": "General Purpose, Ddsv6 · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 138.554,
+      "attrs": {
+        "fallback.ri1": "No 1-year reserved price is published for this meter, pay-as-you-go used.",
+        "fallback.ri3": "No 3-year reserved price is published for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server General Purpose Ddsv6 Series Compute / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-gp-ddsv6-storage",
+      "label": "General Purpose, Ddsv6 · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-mo-eadsv5-compute",
+      "label": "Memory Optimized, Eadsv5 · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 134.32,
+      "attrs": {
+        "fallback.ri1": "No 1-year reserved price is published for this meter, pay-as-you-go used.",
+        "fallback.ri3": "No 3-year reserved price is published for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Memory Optimized Eadsv5 Series Compute / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-mo-eadsv5-storage",
+      "label": "Memory Optimized, Eadsv5 · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-mo-edsv6-compute",
+      "label": "Memory Optimized, Edsv6 · Compute",
+      "platform": "azure",
+      "unit": "vCore-month (730 h)",
+      "price": 185.128,
+      "attrs": {
+        "fallback.ri1": "No 1-year reserved price is published for this meter, pay-as-you-go used.",
+        "fallback.ri3": "No 3-year reserved price is published for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Memory Optimized Edsv6 Series Compute / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-mo-edsv6-storage",
+      "label": "Memory Optimized, Edsv6 · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "attrs": {
+        "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+        "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-burstable-b1ms-compute",
+      "label": "B1ms (1 vCPU, 2 GiB) · Compute",
+      "platform": "azure",
+      "unit": "server-month (730 h)",
+      "price": 19.126,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B1MS",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Burstable BS Series Compute / B1MS",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-burstable-b1ms-storage",
+      "label": "B1ms (1 vCPU, 2 GiB) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-burstable-b2s-compute",
+      "label": "B2s (2 vCPU, 4 GiB) · Compute",
+      "platform": "azure",
+      "unit": "server-month (730 h)",
+      "price": 76.504,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B2S",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Burstable BS Series Compute / B2S",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-burstable-b2s-storage",
+      "label": "B2s (2 vCPU, 4 GiB) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-burstable-b2ms-compute",
+      "label": "B2ms (2 vCPU, 8 GiB) · Compute",
+      "platform": "azure",
+      "unit": "server-month (730 h)",
+      "price": 153.008,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B2MS",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Burstable BS Series Compute / Standard_B2ms2",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-burstable-b2ms-storage",
+      "label": "B2ms (2 vCPU, 8 GiB) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-burstable-b4ms-compute",
+      "label": "B4ms (4 vCPU, 16 GiB) · Compute",
+      "platform": "azure",
+      "unit": "server-month (730 h)",
+      "price": 306.089,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B4MS",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Burstable BS Series Compute / Standard_B4ms",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-burstable-b4ms-storage",
+      "label": "B4ms (4 vCPU, 16 GiB) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-burstable-b8ms-compute",
+      "label": "B8ms (8 vCPU, 32 GiB) · Compute",
+      "platform": "azure",
+      "unit": "server-month (730 h)",
+      "price": 612.178,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B8MS",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Burstable BS Series Compute / Standard_B8ms",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "mysql-flexible-burstable-b8ms-storage",
+      "label": "B8ms (8 vCPU, 32 GiB) · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.1792,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Storage Data Stored",
+        "filter": "serviceName eq 'Azure Database for MySQL' and armRegionName eq 'canadacentral'",
+        "note": "Azure Database for MySQL Flexible Server Storage / Storage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "cosmos-db-provisioned-standard-throughput",
+      "label": "Provisioned, single write region · Throughput",
+      "platform": "azure",
+      "unit": "100 RU/s-month (730 h)",
+      "price": 9.125,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 RU/s",
+        "filter": "serviceName eq 'Azure Cosmos DB' and armRegionName eq 'canadacentral'",
+        "note": "Azure Cosmos DB / RUs",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "cosmos-db-provisioned-standard-storage",
+      "label": "Provisioned, single write region · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.3896,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Data Stored",
+        "filter": "serviceName eq 'Azure Cosmos DB' and armRegionName eq 'canadacentral'",
+        "note": "Azure Cosmos DB / RUs",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "cosmos-db-provisioned-multi-write-throughput",
+      "label": "Provisioned, multi-region writes · Throughput",
+      "platform": "azure",
+      "unit": "100 RU/s-month (730 h)",
+      "price": 18.177,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 Multi-master RU/s",
+        "filter": "serviceName eq 'Azure Cosmos DB' and armRegionName eq 'canadacentral'",
+        "note": "Azure Cosmos DB / mRUs",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "cosmos-db-provisioned-multi-write-storage",
+      "label": "Provisioned, multi-region writes · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.3896,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Data Stored",
+        "filter": "serviceName eq 'Azure Cosmos DB' and armRegionName eq 'canadacentral'",
+        "note": "Azure Cosmos DB / mRUs",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "cosmos-db-provisioned-autoscale-throughput",
+      "label": "Autoscale, single write region · Throughput",
+      "platform": "azure",
+      "unit": "100 RU/s-month (730 h)",
+      "price": 14.892,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "AP1 100 RUs",
+        "filter": "serviceName eq 'Azure Cosmos DB' and armRegionName eq 'canadacentral'",
+        "note": "Azure Cosmos DB autoscale / AP1",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "cosmos-db-provisioned-autoscale-storage",
+      "label": "Autoscale, single write region · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.3896,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Data Stored",
+        "filter": "serviceName eq 'Azure Cosmos DB' and armRegionName eq 'canadacentral'",
+        "note": "Azure Cosmos DB / RUs",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "cosmos-db-serverless-serverless-requests",
+      "label": "Serverless · Request units",
+      "platform": "azure",
+      "unit": "million RU",
+      "price": 0.3896,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "1M RUs",
+        "filter": "serviceName eq 'Azure Cosmos DB' and armRegionName eq 'canadacentral'",
+        "note": "Azure Cosmos DB serverless / RUs",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "cosmos-db-serverless-serverless-storage",
+      "label": "Serverless · Storage",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.3896,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Data Stored",
+        "filter": "serviceName eq 'Azure Cosmos DB' and armRegionName eq 'canadacentral'",
+        "note": "Azure Cosmos DB / RUs",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-basic-c0-cache",
+      "label": "Basic C0 (250 MB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 22.776,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "C0 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Basic / C0",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-basic-c1-cache",
+      "label": "Basic C1 (1 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 56.867,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "C1 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Basic / C1",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-basic-c2-cache",
+      "label": "Basic C2 (2.5 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 93.075,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "C2 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Basic / C2",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-basic-c3-cache",
+      "label": "Basic C3 (6 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 186.15,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "C3 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Basic / C3",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-standard-c0-cache",
+      "label": "Standard C0 (250 MB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 56.867,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "C0 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Standard / C0",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-standard-c1-cache",
+      "label": "Standard C1 (1 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 142.715,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "C1 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Standard / C1",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-standard-c2-cache",
+      "label": "Standard C2 (2.5 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 232.651,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "C2 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Standard / C2",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-standard-c3-cache",
+      "label": "Standard C3 (6 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 465.302,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "C3 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Standard / C3",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-standard-c4-cache",
+      "label": "Standard C4 (13 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 542.901,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "C4 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Standard / C4",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-standard-c5-cache",
+      "label": "Standard C5 (26 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 1085.802,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "C5 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Standard / C5",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-standard-c6-cache",
+      "label": "Standard C6 (53 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 2171.604,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "C6 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Standard / C6",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-premium-p1-cache",
+      "label": "Premium P1 (6 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 688.682,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "P1 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Premium / P1",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-premium-p2-cache",
+      "label": "Premium P2 (13 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 1377.364,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "P2 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Premium / P2",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-premium-p3-cache",
+      "label": "Premium P3 (26 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 2753.779,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "P3 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Premium / P3",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-premium-p4-cache",
+      "label": "Premium P4 (53 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 5509.602,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "P4 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Premium / P4",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "redis-cache-premium-p5-cache",
+      "label": "Premium P5 (120 GB) · Cache",
+      "platform": "azure",
+      "unit": "cache-month (730 h)",
+      "price": 12471.03,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "P5 Cache",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Redis Cache Premium / P5",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-balanced-b0-instance",
+      "label": "Balanced B0 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 17.593,
+      "options": {
+        "ri1": {
+          "price": 11.45045,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B0 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 7.909072,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B0 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B0 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Balanced / B0",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-balanced-b1-instance",
+      "label": "Balanced B1 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 36.208,
+      "options": {
+        "ri1": {
+          "price": 23.49113,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B1 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 16.29032,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B1 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B1 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Balanced / B1",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-balanced-b3-instance",
+      "label": "Balanced B3 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 73.438,
+      "options": {
+        "ri1": {
+          "price": 47.69052,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B3 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 33.05283,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B3 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B3 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Balanced / B3",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-balanced-b5-instance",
+      "label": "Balanced B5 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 175.784,
+      "options": {
+        "ri1": {
+          "price": 114.2684,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B5 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 79.09071,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B5 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B5 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Balanced / B5",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-balanced-b10-instance",
+      "label": "Balanced B10 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 354.707,
+      "options": {
+        "ri1": {
+          "price": 230.5435,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B10 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 159.598,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B10 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B10 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Balanced / B10",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-balanced-b20-instance",
+      "label": "Balanced B20 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 709.414,
+      "options": {
+        "ri1": {
+          "price": 461.087,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B20 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 319.2353,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B20 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B20 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Balanced / B20",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-balanced-b50-instance",
+      "label": "Balanced B50 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 1416.711,
+      "options": {
+        "ri1": {
+          "price": 920.8756,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B50 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 637.5262,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B50 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B50 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Balanced / B50",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-balanced-b100-instance",
+      "label": "Balanced B100 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 2813.712,
+      "options": {
+        "ri1": {
+          "price": 1828.884,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B100 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 1266.199,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B100 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B100 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Balanced / B100",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-balanced-b250-instance",
+      "label": "Balanced B250 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 5681.225,
+      "options": {
+        "ri1": {
+          "price": 3692.828,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B250 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 2556.558,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B250 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B250 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Balanced / B250",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-balanced-b500-instance",
+      "label": "Balanced B500 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 11253.9,
+      "options": {
+        "ri1": {
+          "price": 7315.064,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B500 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 5064.245,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "B500 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "B500 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Balanced / B500",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-memory-m10-instance",
+      "label": "Memory Optimized M10 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 243.017,
+      "attrs": {
+        "fallback.ri1": "No 1-year reserved price is published for this meter, pay-as-you-go used.",
+        "fallback.ri3": "No 3-year reserved price is published for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "M10 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Memory Optimized / M10",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-memory-m20-instance",
+      "label": "Memory Optimized M20 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 486.034,
+      "attrs": {
+        "fallback.ri1": "No 1-year reserved price is published for this meter, pay-as-you-go used.",
+        "fallback.ri3": "No 3-year reserved price is published for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "M20 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Memory Optimized / M20",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-memory-m50-instance",
+      "label": "Memory Optimized M50 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 972.068,
+      "attrs": {
+        "fallback.ri1": "No 1-year reserved price is published for this meter, pay-as-you-go used.",
+        "fallback.ri3": "No 3-year reserved price is published for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "M50 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Memory Optimized / M50",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-memory-m100-instance",
+      "label": "Memory Optimized M100 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 1943.041,
+      "attrs": {
+        "fallback.ri1": "No 1-year reserved price is published for this meter, pay-as-you-go used.",
+        "fallback.ri3": "No 3-year reserved price is published for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "M100 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Memory Optimized / M100",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-memory-m250-instance",
+      "label": "Memory Optimized M250 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 3895.353,
+      "attrs": {
+        "fallback.ri1": "No 1-year reserved price is published for this meter, pay-as-you-go used.",
+        "fallback.ri3": "No 3-year reserved price is published for this meter, pay-as-you-go used."
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "M250 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Memory Optimized / M250",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-memory-m500-instance",
+      "label": "Memory Optimized M500 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 7790.779,
+      "options": {
+        "ri1": {
+          "price": 5064.048,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "M500 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 3505.843,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "M500 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "M500 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Memory Optimized / M500",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-compute-x3-instance",
+      "label": "Compute Optimized X3 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 247.178,
+      "options": {
+        "ri1": {
+          "price": 160.6604,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X3 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 111.1992,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X3 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "X3 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Compute Optimized / X3",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-compute-x5-instance",
+      "label": "Compute Optimized X5 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 327.77,
+      "options": {
+        "ri1": {
+          "price": 213.0727,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X5 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 147.5179,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X5 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "X5 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Compute Optimized / X5",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-compute-x10-instance",
+      "label": "Compute Optimized X10 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 656.635,
+      "options": {
+        "ri1": {
+          "price": 426.8537,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X10 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 295.5081,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X10 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "X10 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Compute Optimized / X10",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-compute-x20-instance",
+      "label": "Compute Optimized X20 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 1314.292,
+      "options": {
+        "ri1": {
+          "price": 854.2977,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X20 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 591.449,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X20 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "X20 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Compute Optimized / X20",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-compute-x50-instance",
+      "label": "Compute Optimized X50 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 2627.635,
+      "options": {
+        "ri1": {
+          "price": 1707.887,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X50 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 1182.426,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X50 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "X50 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Compute Optimized / X50",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-compute-x100-instance",
+      "label": "Compute Optimized X100 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 5256.219,
+      "options": {
+        "ri1": {
+          "price": 3416.601,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X100 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 2365.324,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X100 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "X100 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Compute Optimized / X100",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-compute-x250-instance",
+      "label": "Compute Optimized X250 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 10511.42,
+      "options": {
+        "ri1": {
+          "price": 6832.493,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X250 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 4730.136,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X250 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "X250 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Compute Optimized / X250",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-compute-x500-instance",
+      "label": "Compute Optimized X500 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 21022.9,
+      "options": {
+        "ri1": {
+          "price": 13664.87,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X500 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 9460.311,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "X500 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "X500 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Compute Optimized / X500",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-flash-a250-instance",
+      "label": "Flash Optimized A250 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 1757.913,
+      "options": {
+        "ri1": {
+          "price": 1142.684,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "A250 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 791.0645,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "A250 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "A250 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Flash Optimized / A250",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-flash-a500-instance",
+      "label": "Flash Optimized A500 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 3516.921,
+      "options": {
+        "ri1": {
+          "price": 2285.958,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "A500 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 1582.601,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "A500 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "A500 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Flash Optimized / A500",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-managed-redis-flash-a700-instance",
+      "label": "Flash Optimized A700 · Instance",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 5274.834,
+      "options": {
+        "ri1": {
+          "price": 3428.641,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "A700 Cache Instance",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 2373.666,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "A700 Cache Instance",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "A700 Cache Instance",
+        "filter": "serviceName eq 'Redis Cache' and armRegionName eq 'canadacentral'",
+        "note": "Azure Managed Redis - Flash Optimized / A700",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    }
+  ]
+}

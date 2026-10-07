@@ -116,8 +116,13 @@ describe("picker", () => {
   it("groups types by category and filters SKUs by words", () => {
     const cats = pickerCategories(catalog.resourceTypes);
     expect(cats.find((c) => c.category === "compute")!.types.map((t) => t.id)).toContain("vm");
-    expect(filterSkus(vm, "windows").shown.map((s) => s.id)).toEqual(["d4s-v5-windows"]);
-    expect(filterSkus(vm, "d4s linux").total).toBe(1);
+    const windows = vm.skus.filter((s) => /windows/i.test(s.label));
+    expect(windows.length).toBeGreaterThan(0);
+    expect(filterSkus(vm, "windows").shown.map((s) => s.id)).toEqual(windows.slice(0, 50).map((s) => s.id));
+    expect(filterSkus(vm, "windows").total).toBe(windows.length);
+    const d4sLinux = vm.skus.filter((s) => /d4s/i.test(s.label) && /linux/i.test(s.label));
+    expect(d4sLinux.some((s) => s.id === "d4s-v5-linux")).toBe(true);
+    expect(filterSkus(vm, "d4s linux").total).toBe(d4sLinux.length);
     expect(filterSkus(vm, "").total).toBe(vm.skus.length);
     expect(filterSkus(vm, "zzz").total).toBe(0);
     const big = { ...vm, skus: Array.from({ length: 300 }, (_, i) => ({ id: `s${i}`, label: `Size ${i}`, attrs: {}, prices: {} })) };
