@@ -10,6 +10,7 @@ import { sensitivity, type SensitivityRow } from "./sensitivity.js";
 import { projectRange, type ProjectRange } from "./ranges.js";
 import { verdictFor } from "./present.js";
 import { currentLines, currentVsTarget, type CurrentVsTarget } from "./currentstate.js";
+import { scoreItems, scoreRows } from "./scorecard.js";
 
 export type Row = Record<string, string | number>;
 
@@ -102,6 +103,8 @@ export interface Summary {
   currentVsTarget: CurrentVsTarget;
   /** Number of current-state lines, so the Summary can hide the tile when there are none. */
   currentLineCount: number;
+  /** Present only when the project has scorecard items. `composite` is the weighted average improvement in percent (null with no weights); `monetisedMonthly` is the CAD a month, at full rollout, of the items that are monetised (the only part in NPV and payback). */
+  scorecard?: { count: number; composite: number | null; monetisedMonthly: number };
 }
 
 const ALERT_GROUP: Record<PriceNote["kind"], AlertGroup["id"]> = {
@@ -255,7 +258,17 @@ export function summarize(p: Project, ledger: Ledger, roi: RoiResult, cat: Catal
     verdict,
     currentVsTarget: currentVsTarget(p, ledger),
     currentLineCount: currentLines(p).length,
+    ...(scoreItems(p).length > 0 ? { scorecard: (({ composite, monetisedMonthly }) => ({ count: scoreItems(p).length, composite, monetisedMonthly }))(scoreRows(p)) } : {}),
   };
+}
+
+/** Summary rows for the scorecard; only added when the project has scorecard items. */
+function scoreSummaryRows(c: NonNullable<Summary["scorecard"]>): Row[] {
+  return [
+    { Item: "Scorecard items", Value: c.count },
+    { Item: "Scorecard composite index (weighted average improvement)", Value: c.composite === null ? "No weights set" : `${Math.round(c.composite * 10) / 10}%` },
+    { Item: "Scorecard value in NPV and payback per month (monetised items only)", Value: r2(c.monetisedMonthly) },
+  ];
 }
 
 /** Summary rows for current state against target; only added when the project has current-state lines. */
@@ -286,6 +299,7 @@ export function lineItemRows(ledger: Ledger): Row[] {
 /** One row per month: cost by stream, benefit, the basis cost and the cumulative position. */
 export function monthRows(ledger: Ledger, roi: RoiResult): Row[] {
   const hasCurrent = ledger.months.some((mo) => Object.keys(mo.benefitBy.currentState).length > 0);
+  const hasScore = ledger.months.some((mo) => Object.keys(mo.benefitBy.scorecard).length > 0);
   return ledger.months.map((mo, i) => ({
     Month: mo.m, Date: mo.date, Phase: mo.phase, Adoption: Math.round(mo.adoption * 100) / 100,
     "Build labour": r2(mo.byStream.labour), "AI Dev Lab": r2(mo.byStream.devlab), "Dev environment": r2(mo.byStream.devenv), Environments: r2(mo.byStream.env ?? 0), "Delivery costs": r2(mo.byStream.delivery ?? 0),
@@ -293,6 +307,7 @@ export function monthRows(ledger: Ledger, roi: RoiResult): Row[] {
     [`Cost (${roi.basis})`]: r2(basisCost(mo, roi.basis)), Benefit: r2(mo.benefit),
     // Only when the project has current-state lines, so other projects' sheets keep their columns.
     ...(hasCurrent ? { "Current-state savings": r2(sum(Object.values(mo.benefitBy.currentState))) } : {}),
+    ...(hasScore ? { "Scorecard value": r2(sum(Object.values(mo.benefitBy.scorecard))) } : {}),
     "Cumulative net": r2(roi.cumulative[i]!),
   }));
 }
@@ -329,6 +344,7 @@ export function summaryRows(p: Project, ledger: Ledger, roi: RoiResult, cat: Cat
     { Item: "IRR (annual)", Value: s.irrPct === null ? "Not defined" : `${s.irrPct.toFixed(1)}%` },
     ...(s.hurdleRatePct !== null ? [{ Item: `Hurdle rate ${s.hurdleRatePct}%`, Value: s.clearsHurdle === null ? "n/a" : s.clearsHurdle ? "Cleared" : "Not cleared" }] : []),
     ...(s.currentLineCount > 0 ? currentRows(s.currentVsTarget) : []),
+    ...(s.scorecard ? scoreSummaryRows(s.scorecard) : []),
     { Item: "Total cost, low to high", Value: `${r2(s.range.totalCost.low)} to ${r2(s.range.totalCost.high)}` },
     { Item: "NPV, low to high", Value: `${r2(s.range.npv.low)} to ${r2(s.range.npv.high)}` },
     { Item: "Verdict", Value: `${s.verdict.text} · NPV ${s.verdict.npvPositive ? "positive" : "negative"}` },

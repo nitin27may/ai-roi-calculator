@@ -13,6 +13,7 @@ import { hypercareExtends } from "./delivery.js";
 import { avoidedMonthly, capabilityHours, confidenceWeight, valueItemMonthly } from "./benefits.js";
 import { resourceMonthLines } from "./resources.js";
 import { currentLineSaving, currentLines, currentFullSaving } from "./currentstate.js";
+import { scoreFullMonthly, scoreItems, scoreMonthValue } from "./scorecard.js";
 import { cad, line, sum, type Line, type Stream } from "./lines.js";
 
 export interface MonthBenefit {
@@ -26,6 +27,8 @@ export interface MonthBenefit {
   attributed: Record<string, number>;
   /** Saving from current-state lines, by line id: the current cost minus what remains (see currentstate.ts). Empty without lines. */
   currentState: Record<string, number>;
+  /** Value of monetised scorecard items, by item id (see scorecard.ts). Items that are not monetised are absent, so non-financial items move no figure. */
+  scorecard: Record<string, number>;
 }
 
 export interface Month {
@@ -92,7 +95,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
     const date = monthDate(p.startDate, m);
     let lines: Line[] = [];
     let adoption = 0;
-    const benefitBy: MonthBenefit = { capabilities: {}, avoided: 0, oneOff: 0, value: {}, attributed: {}, currentState: {} };
+    const benefitBy: MonthBenefit = { capabilities: {}, avoided: 0, oneOff: 0, value: {}, attributed: {}, currentState: {}, scorecard: {} };
     if (m <= B) {
       if (p.build.includeLabour) lines.push(...teamLines(p, p.build.team, "labour", "team", contingency, m));
       lines.push(...devLabLines(p, m, book, date));
@@ -175,6 +178,10 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
       const saving = currentLineSaving(p, c, m);
       if (saving !== 0) benefitBy.currentState[c.id] = saving;
     }
+    for (const it of scoreItems(p)) {
+      const v = scoreMonthValue(p, it, m);
+      if (v !== 0) benefitBy.scorecard[it.id] = v;
+    }
     if (m > B) {
       const g2 = growth ** ((m - B - 1) / 12);
       for (const v of p.benefits.value) {
@@ -197,7 +204,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
       else if (l.stream === "delivery") byStream.delivery = (byStream.delivery ?? 0) + l.cost;
       else byStream[l.stream] += l.cost;
     }
-    const benefit = sum(Object.values(benefitBy.capabilities)) + benefitBy.avoided + benefitBy.oneOff + sum(Object.values(benefitBy.value)) + sum(Object.values(benefitBy.currentState));
+    const benefit = sum(Object.values(benefitBy.capabilities)) + benefitBy.avoided + benefitBy.oneOff + sum(Object.values(benefitBy.value)) + sum(Object.values(benefitBy.currentState)) + sum(Object.values(benefitBy.scorecard));
     months.push({ m, date, phase: m <= B ? "build" : "production", adoption, lines, byStream, benefit, benefitBy });
   }
   const last = months[months.length - 1]!;
@@ -224,7 +231,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
       devLab: sum(buildMonths.map((x) => x.byStream.devlab)),
       runRate: firstFull.byStream.run + firstFull.byStream.platform + envCost(firstFull) - onceCost,
       maintRate: firstFull.byStream.maint,
-      benefitRate: sum([...capFull.values()]) + sum(p.benefits.avoidedCosts.map((a) => avoidedMonthly(p, a) * confidenceWeight(a.confidencePct))) + sum(p.benefits.value.map((v) => valueItemMonthly(p, v) * confidenceWeight(v.confidencePct))) + currentFullSaving(p),
+      benefitRate: sum([...capFull.values()]) + sum(p.benefits.avoidedCosts.map((a) => avoidedMonthly(p, a) * confidenceWeight(a.confidencePct))) + sum(p.benefits.value.map((v) => valueItemMonthly(p, v) * confidenceWeight(v.confidencePct))) + currentFullSaving(p) + scoreFullMonthly(p),
     },
   };
 }

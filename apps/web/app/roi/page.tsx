@@ -9,13 +9,14 @@ import { catalog, deploymentOptions, modelOptions, useLedger } from "@/lib/compu
 import { useStudio } from "@/lib/store";
 import { AddMenu } from "@/components/add-menu";
 import { CurrentState } from "@/components/current-state";
+import { Scorecard } from "@/components/scorecard";
 import { MonthLegend } from "@/components/months";
 import { ConfidenceField, FinanceInputs, ValueItems } from "@/components/roi-extras";
 import { cad, cn, fmt } from "@/lib/format";
 
 const BASES = COST_BASES;
 
-type Tab = "cash" | "years" | "capabilities" | "beforeAfter" | "current" | "sensitivity" | "scenarios";
+type Tab = "cash" | "years" | "capabilities" | "beforeAfter" | "current" | "scorecard" | "sensitivity" | "scenarios";
 
 export default function Roi() {
   const [tab, setTab] = useState<Tab>("cash");
@@ -24,12 +25,12 @@ export default function Roi() {
     <div data-tour="roi-view" className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Assumptions />
       <Card className="order-first lg:order-none">
-        <CardHead title={{ cash: "Cumulative cash position", years: "By year", capabilities: "ROI by capability", beforeAfter: "Today vs with AI", current: "Current state and savings", sensitivity: "What moves NPV most", scenarios: "Scenarios" }[tab]}
+        <CardHead title={{ cash: "Cumulative cash position", years: "By year", capabilities: "ROI by capability", beforeAfter: "Today vs with AI", current: "Current state and savings", scorecard: "Non-financial scorecard", sensitivity: "What moves NPV most", scenarios: "Scenarios" }[tab]}
           sub={tab === "scenarios" ? "What-ifs compared with the baseline on the selected cost basis" : `Benefit minus ${BASES.find((b) => b.value === project.roi.basis)!.label.toLowerCase()} · NPV at ${project.roi.discountRatePct}%: ${cad(roi.npv)}`}>
-          <Seg label="View" value={tab} onChange={setTab} options={[{ value: "cash", label: "Cash" }, { value: "years", label: "By year" }, { value: "capabilities", label: "By capability" }, { value: "beforeAfter", label: "Before / after" }, { value: "current", label: "Current state" }, { value: "sensitivity", label: "Sensitivity" }, { value: "scenarios", label: "Scenarios" }]} />
+          <Seg label="View" value={tab} onChange={setTab} options={[{ value: "cash", label: "Cash" }, { value: "years", label: "By year" }, { value: "capabilities", label: "By capability" }, { value: "beforeAfter", label: "Before / after" }, { value: "current", label: "Current state" }, { value: "scorecard", label: "Scorecard" }, { value: "sensitivity", label: "Sensitivity" }, { value: "scenarios", label: "Scenarios" }]} />
         </CardHead>
         {tab === "cash" ? <><div className="flex min-h-0 flex-1 px-1.5 pb-1.5"><CumulativeLine values={roi.cumulative} payback={roi.paybackMonth} /></div><MonthLegend className="px-3.5 pb-3" /></>
-          : <div className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">{tab === "years" ? <Years /> : tab === "capabilities" ? <Capabilities /> : tab === "beforeAfter" ? <BeforeAfterView /> : tab === "current" ? <CurrentState /> : tab === "sensitivity" ? <Tornado /> : <Scenarios />}</div>}
+          : <div className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">{tab === "years" ? <Years /> : tab === "capabilities" ? <Capabilities /> : tab === "beforeAfter" ? <BeforeAfterView /> : tab === "current" ? <CurrentState /> : tab === "scorecard" ? <Scorecard /> : tab === "sensitivity" ? <Tornado /> : <Scenarios />}</div>}
       </Card>
     </div>
   );

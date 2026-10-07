@@ -8,6 +8,18 @@ export interface GlossaryTerm {
 
 export const GLOSSARY: GlossaryTerm[] = [
   {
+    id: "scorecard",
+    term: "Scorecard",
+    plain: "A short list of benefits that are not money, such as faster payment, happier customers, less rework for staff, lower compliance risk or a quicker response to change. Each has a before and an after value. The scorecard sits next to the financial ROI and does not change it, unless you put a price on an item.",
+    technical: "Improvement of an item = (after - before) / before when higher is better and (before - after) / before when lower is better; undefined when before is 0. Composite index = sum(weight x improvement) / sum(weight) over items with a weight. Confidence is shown beside it and does not discount it. A monetised item adds units moved in the good direction x value per unit x monthly volume x confidence to each production month, following the adoption ramp from go-live; only those amounts enter NPV, payback and IRR.",
+  },
+  {
+    id: "score-dimension",
+    term: "Dimension",
+    plain: "The kind of benefit a scorecard item is: speed, customer experience, employee experience, compliance and risk, agility, or other. It groups the items and does nothing to the numbers.",
+    technical: "A label on a scorecard item. It has no effect on the improvement, the composite index or the monetised value.",
+  },
+  {
     id: "current-state",
     term: "Current state and dual running",
     plain: "Current state is what the work costs today, line by line: people, licences, infrastructure and costs per transaction such as stock, postage or courier. Each line can be kept, reduced or retired from a chosen month. Dual running is the stretch where the old cost is still being paid while the new one already is.",
