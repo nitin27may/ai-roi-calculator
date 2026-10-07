@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@roi-calculator/catalog";
+import { RESOURCE_CATEGORIES, loadCatalog, loadCoreCatalog, loadResourceCategories } from "@roi-calculator/catalog";
 import { ProjectSchema, blankProject, type Project } from "@roi-calculator/engine";
 import {
-  ENV_QUICK_ADDS, filterSkus, newEnvironment, newResource, pickerCategories, removeEnvironment, resourceEnvIds, setMonthBound, setResourceSku,
+  CATEGORY_LABEL, ENV_QUICK_ADDS, filterSkus, newEnvironment, newResource, pickerCategories, removeEnvironment, resourceEnvIds, setMonthBound, setResourceSku,
   setScheduleMode, supportsAhb, termOptions, toggleResourceEnv,
 } from "../lib/infrastructure";
 
@@ -113,6 +113,22 @@ describe("resources", () => {
 });
 
 describe("picker", () => {
+  it("lists every category, each with at least one type and a label", () => {
+    const cats = pickerCategories(catalog.resourceTypes);
+    expect(cats.map((c) => c.category).sort()).toEqual([...RESOURCE_CATEGORIES].sort());
+    for (const c of cats) {
+      expect(c.types.length, c.category).toBeGreaterThan(0);
+      expect(CATEGORY_LABEL[c.category], c.category).toBeTruthy();
+    }
+  });
+
+  it("shows the same categories when the web app loads them lazily into the core catalogue", async () => {
+    const core = loadCoreCatalog();
+    expect(pickerCategories(core.resourceTypes)).toEqual([]);
+    await loadResourceCategories(core);
+    expect(pickerCategories(core.resourceTypes).map((c) => `${c.category}:${c.types.length}`).sort()).toEqual(pickerCategories(catalog.resourceTypes).map((c) => `${c.category}:${c.types.length}`).sort());
+  });
+
   it("groups types by category and filters SKUs by words", () => {
     const cats = pickerCategories(catalog.resourceTypes);
     expect(cats.find((c) => c.category === "compute")!.types.map((t) => t.id)).toContain("vm");
