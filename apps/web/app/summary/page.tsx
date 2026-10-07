@@ -192,7 +192,7 @@ function TornadoTable({ rows }: { rows: { id: string; label: string; lowLabel: s
 
 
 function ScenarioCompare({ results }: { results: ReturnType<typeof compareScenarios> }) {
-  if (results.length < 2) return <p className="text-sm text-muted">No scenarios yet. A scenario is a saved what-if, such as a cheaper model or double the volume; add one on the ROI page and it appears here.</p>;
+  if (results.length < 2) return <p className="text-sm text-muted">No scenarios yet. A scenario is a saved what-if, such as a longer build, a smaller footprint, a cheaper model or double the volume; add one on the ROI page and it appears here.</p>;
   const [base, ...rest] = results as [ReturnType<typeof compareScenarios>[number], ...ReturnType<typeof compareScenarios>];
   const run = (r: typeof base) => r.ledger.totals.runRate + r.ledger.totals.maintRate;
   const table = (

@@ -2,6 +2,8 @@
 
 How to set the project up, run the app, refresh prices, and continue development.
 
+The ROI Calculator estimates cost, benefit and payback for any technology project: new applications, enhancements, automation, replatforming and migration, replacing a system with SaaS, and AI. AI pages and wording (models, tokens, capacity, experiments) appear only for projects that use AI. The wording sweep is described under "Wording sweep (A15)".
+
 - **Repository:** https://github.com/nitin27may/roi-calculator
 - **Rename note, 2026-10-06: the product is now "ROI Calculator" (formerly "AI Cost & ROI Studio"). Workspace packages are `@roi-calculator/engine|catalog|web` (formerly `@studio/*`), the root package is `roi-calculator`, the project file schema id is `roi-calculator/project`, and browser storage keys use the `roi-calculator:` prefix. Old project files (`ai-cost-roi-studio/project`) and old storage keys are still read. The GitHub repository and local folder were `ai-roi-calculator` and are renamed to `roi-calculator` after this change merges (repo rename pending).
 
@@ -348,7 +350,7 @@ Three workload kinds, added to the union (old files parse, no version bump): `se
 - `contract { amountCad, cadence: monthly | yearly, escalationPct? }` plus the common start and end months: stream `platform`, fixed. A yearly amount is accrued as one twelfth a month. Escalation is `(1 + pct) ^ whole years since the contract's start month` (go-live unless `startMonth` is set), applied in `ledger.ts` (`contractEscalation`) and written into the line formula.
 - `transactionFee { volumePerMonth, volumeFrom?, unitPriceId? | cadPerTxn? }`: volume x price per transaction, stream `run`, behaviour `usage` (ramp and growth). A catalogue price per 1K, 10K or 1M is divided down to one transaction. `volumeFrom` uses `requestVolumes`, which now includes `transactionFee`. Its one-time volume uses `volumePerMonth` and ignores `volumeFrom`.
 - Empty seats, a zero amount, a zero volume or a missing price add no line (the v5 golden test depends on that). Unknown `volumeFrom` ids fail `projectIssues`.
-- Known wording gap for A15: Excel, Overview and Report call the `run` stream "Production AI usage", so per-transaction fees sit under that label. Left alone on purpose; the wording sweep owns it.
+- The `run` stream label was "Production AI usage" in Excel, Overview and Report; A15 renamed it "Production usage", so per-transaction fees no longer sit under an AI label.
 - Run page: the workload remove button now asks inline first, naming the monthly cost and the links lost (all kinds).
 - Tests: `packages/engine/test/run-cost.test.ts`, `apps/web/test/run-cost-state.test.ts`, gating in `nav-gating.test.ts`; help ids `seats*`, `contract*`, `txn*`.
 ## Delivery model (A9)
@@ -455,6 +457,19 @@ Code: `packages/engine/src/transforms.ts` holds the transforms; `levers.ts`, `sc
 - **Sensitivity drivers added:** resource and environment cost (+-20% of every resource quantity), current-state savings (+-20% of each line's cost today), transaction volume (+-30%), seat count (+-25%), decommission timing (6 months later or earlier). Build length, delivery rates and adoption ramp already existed. Each appears only when the project has the parts. AI-only drivers (AI run volume, token prices, cache hit, model choice) are hidden when `hidesAiChoices && !usesAi`; blank and legacy projects keep them.
 - **Gotchas:** `totals.build` includes non-production environment cost, so labour tests sum the `labour` stream. A saved lever edit that no longer applies to the project is ignored, not an error. The Scenarios lever picker starts empty on purpose (nothing preselected).
 - **Tests:** `packages/engine/test/generic-levers.test.ts`.
+
+## Wording sweep (A15)
+
+Wording and structure only; no figure moves. `golden-v5` and the recipes golden pass unchanged.
+
+- **Stream labels.** "Production AI usage" is "Production usage" in `present.ts` (cost split), the Excel Months columns (`monthRows`), the Excel chart legend (`xlsx-chart.ts`), the Report legend and the Overview lane. The Months column "AI Dev Lab" is "Engineering tools & lab". Stream keys (`run`, `devlab`, `devenv`) are unchanged.
+- **Pinned by the golden fixture.** The Excel and Report summary row "  of which AI Dev Lab" stays, because `v5-golden.json` records it. Renaming it needs a deliberate fixture change approved by the owner.
+- **Story.** `apps/web/lib/story.ts` builds the sentence as segments (`storySegments`), `components/story.tsx` renders them. Projects with a model bake-off keep "N developers build for M months, testing K candidate models". Every other project reads as team, build months, environments, delivery costs, go-live volume (users, seats or transactions), payback and basis. A missing number is left out, never printed as a gap.
+- **Overview lanes.** Model bake-off, Harness iterations and Regression, eval & red team show for AI projects (and blank ones) or whenever they carry cost. Current-state savings is a lane when the project has current-state lines. Environments and Delivery costs lanes were added in A7 and A9.
+- **Tour.** `TOUR_VERSION` is 2 (key `roi-calculator:tour.v2`), 14 steps, with Infrastructure and Current state and scorecard added and the AI-only deployment step replaced. New `data-tour` targets: `infra-environments` and `roi-views`.
+- **Glossary.** Grouped as Estimating, Infrastructure, Savings and benefits, AI and tokens (`GLOSSARY_GROUPS`, `groupedGlossary()`). A test requires every term to belong to a group. New terms: reserved instance, Azure Hybrid Benefit, dev/test pricing, decommission, per-transaction cost, productivity factor.
+- **Guard.** `apps/web/test/wording.test.ts` fails if "AI Dev Lab" or "Production AI usage" appears in user-facing source outside the glossary and the pinned row.
+- **Left AI-specific on purpose.** The Tokens page, Capacity (PTU), the Azure deployment and Snowflake cards on Settings, the Run group "Other AI usage", the AI experiments section on Build, and the glossary term "AI Dev Lab".
 
 ## Plan and progress
 

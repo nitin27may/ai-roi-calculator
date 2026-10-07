@@ -10,8 +10,8 @@ import { useStudio } from "@/lib/store";
 
 const STREAMS = [
   { key: "labour", label: "Build labour", color: "var(--build-2)" },
-  { key: "devlab", label: "AI Dev Lab", color: "var(--build)" },
-  { key: "run", label: "Production AI usage", color: "var(--run)" },
+  { key: "devlab", label: "Engineering tools & lab", color: "var(--build)" },
+  { key: "run", label: "Production usage", color: "var(--run)" },
   { key: "platform", label: "Platform", color: "var(--platform)" },
   { key: "env", label: "Environments", color: "var(--platform)" },
   { key: "delivery", label: "Delivery costs", color: "var(--build-2)" },

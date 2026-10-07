@@ -59,7 +59,7 @@ export default function Projects() {
     <div className="flex items-start justify-between gap-2">
       <div className="min-w-0">
         <div className="truncate font-display text-[15px] font-bold">{e.project.name}</div>
-        <div className="text-xs text-muted">Updated {new Date(e.updatedAt).toLocaleDateString("en-CA")} · {e.project.workloads.length} workloads · {e.project.build.activities.length} Dev Lab activities</div>
+        <div className="text-xs text-muted">Updated {new Date(e.updatedAt).toLocaleDateString("en-CA")} · {e.project.workloads.length} workloads · {e.project.build.activities.length} lab activities</div>
       </div>
       {active && <span className="rounded-full bg-accent px-2 py-px text-xs font-medium text-accent-ink">Open</span>}
     </div>

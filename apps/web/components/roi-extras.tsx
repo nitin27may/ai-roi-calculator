@@ -72,7 +72,7 @@ export function ValueItems() {
                   {from ? <div className="self-end pb-1.5 text-xs text-muted">{workloadVolume(from).items?.toLocaleString("en-CA")} a month, from {from.label}</div>
                     : <Field label="Items per month" help="valueVolume"><NumberInput value={v.volumePerMonth ?? 0} onChange={(n) => setOpt("volumePerMonth", n)} /></Field>}
                   <Field label="Error rate today" help="valueErrBefore"><NumberInput value={v.errorRateBeforePct ?? 0} max={100} step={0.1} suffix="%" onChange={(n) => setOpt("errorRateBeforePct", n)} /></Field>
-                  <Field label="Error rate with AI" help="valueErrAfter"><NumberInput value={v.errorRateAfterPct ?? 0} max={100} step={0.1} suffix="%" onChange={(n) => setOpt("errorRateAfterPct", n)} /></Field>
+                  <Field label="Error rate after the change" help="valueErrAfter"><NumberInput value={v.errorRateAfterPct ?? 0} max={100} step={0.1} suffix="%" onChange={(n) => setOpt("errorRateAfterPct", n)} /></Field>
                   <Field label="Cost of one error" help="valueCostPerError"><NumberInput value={v.costPerError ?? 0} onChange={(n) => setOpt("costPerError", n)} /></Field>
                 </>
               )}

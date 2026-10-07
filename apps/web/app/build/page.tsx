@@ -51,7 +51,7 @@ export default function Build() {
         <div data-tour="build-list" role="listbox" aria-label="Build cost items" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
           <ListRow selected={sel === "all"} onClick={() => setSel("all")} title="Engineering tools & lab, by month" sub="tools, AI-assisted development and AI experiments while building" aside={<Spark values={allDev} color="var(--s2)" />} value={cad(devTotal)} />
           <GroupHead>Labour</GroupHead>
-          <ListRow selected={sel === "team"} onClick={() => setSel("team")} title="Team & rate card" sub={!labourExcluded(project) ? project.build.team.map((t) => t.name ?? `${t.people} ${project.rateCard.find((r) => r.id === t.roleId)?.label ?? t.roleId}`).join(" · ") : "Build labour excluded: the team only drives Dev Lab volumes"} value={labourExcluded(project) ? "Excluded" : cad(labTotal)} />
+          <ListRow selected={sel === "team"} onClick={() => setSel("team")} title="Team & rate card" sub={!labourExcluded(project) ? project.build.team.map((t) => t.name ?? `${t.people} ${project.rateCard.find((r) => r.id === t.roleId)?.label ?? t.roleId}`).join(" · ") : "Build labour excluded: the team only drives lab volumes"} value={labourExcluded(project) ? "Excluded" : cad(labTotal)} />
           <GroupHead>Delivery</GroupHead>
           <ListRow selected={sel === "phases"} onClick={() => setSel("phases")} title="Delivery phases" sub={(project.timeline.phases ?? []).length ? (project.timeline.phases ?? []).map((x) => x.label).join(" · ") : "Not set: use the standard phases or add your own"} value={(project.timeline.phases ?? []).length ? `${(project.timeline.phases ?? []).length} phases` : "None"} />
           <ListRow selected={sel === "delivery"} onClick={() => setSel("delivery")} title="Delivery costs" sub={(project.build.deliveryCosts ?? []).length ? (project.build.deliveryCosts ?? []).map((x) => x.label).join(" · ") : "Vendor work, training, communications, data migration"} value={cad(deliveryTotal)} />
@@ -237,7 +237,7 @@ function ByPerson() {
   const shown = rows.filter((r) => r.devlab > 0 || r.labour > 0);
   return (
     <div className="flex flex-col gap-3 overflow-auto">
-      <TableNote className="mb-0">Spend per person by month, in C$ per person. It is the team&apos;s Dev Lab spend divided by the developers running experiments, so removing a developer raises everyone else&apos;s share only for activities that do not scale with people (bake-off, regression, red teaming).</TableNote>
+      <TableNote className="mb-0">Spend per person by month, in C$ per person. It is the team&apos;s engineering lab spend divided by the developers running experiments, so removing a developer raises everyone else&apos;s share only for activities that do not scale with people (bake-off, regression, red teaming).</TableNote>
       <div className="flex flex-wrap items-end gap-3">
         <Field label="Engineering tools & lab budget per person per month" help="devBudget"><NumberInput value={budget ?? 0} suffix="CAD" onChange={(v) => edit((d) => { d.build.devBudgetPerMonth = v > 0 ? v : undefined; })} /></Field>
         <p className="max-w-md text-xs text-muted">Monthly columns are engineering tools & lab spend per person. Workstream activities are charged to the people on that workstream by their share; project-wide ones to everyone running experiments. 0 = no budget. This is a limit the plan is checked against; it never changes the cost. A fixed monthly engineering tools & lab allowance (Settings) does change the cost, and this per-person limit is then checked against that allowance. The same two settings are under Settings, engineering tools & lab.</p>
@@ -256,7 +256,7 @@ function ByPerson() {
           ))}
         </tbody>
       </table>
-      {unattributed > 0.5 && <p className="text-xs text-warn">{cad(unattributed)} of Dev Lab spend is on workstreams with nobody allocated in that month.</p>}
+      {unattributed > 0.5 && <p className="text-xs text-warn">{cad(unattributed)} of engineering lab spend is on workstreams with nobody allocated in that month.</p>}
       {budget && shown.some((r) => r.overBudget.length) ? <p className="text-xs text-crit">Red months are over the budget of {cad(budget)} per person.</p> : null}
     </div>
   );
@@ -269,7 +269,7 @@ function ByModel() {
   const name = (m: string) => m === MANUAL_METER ? "Typed in by hand (cells and allowance)" : catalog.chatModels.find((c) => c.id === m)?.label ?? catalog.unitPrices.find((u) => u.id === m)?.label ?? m;
   return (
     <div className="flex flex-col gap-1.5">
-      <TableNote>Total engineering tools & lab spend on each model or service over all {project.timeline.buildMonths} build months, in C$ and as a share of the Dev Lab total. Each bar adds up every activity that uses that model.</TableNote>
+      <TableNote>Total engineering tools & lab spend on each model or service over all {project.timeline.buildMonths} build months, in C$ and as a share of the engineering tools & lab total. Each bar adds up every activity that uses that model.</TableNote>
       <WhereFrom to="/prices" toLabel="Prices & sources">the models chosen on each activity, the tokens those activities use, and each model&apos;s price.</WhereFrom>
       {rows.map((r) => (
         <div key={r.meter} className="grid grid-cols-[minmax(140px,240px)_1fr_auto] items-center gap-2.5 text-[12.5px]">
@@ -405,7 +405,7 @@ function Team() {
   const field = "rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]";
   return (
     <>
-      <div><h2 className="text-base font-bold">Team & rate card</h2><div className="text-xs text-muted">Labour for the build in CAD. Ticked lines run AI experiments and drive per-developer Dev Lab volumes.</div></div>
+      <div><h2 className="text-base font-bold">Team & rate card</h2><div className="text-xs text-muted">Labour for the build in CAD. Ticked lines run AI experiments and drive per-developer lab volumes.</div></div>
       <div className="font-display text-[26px] font-bold">{labourExcluded(project) ? "Excluded" : cad(ledger.totals.buildLabour)}</div>
       {labourPartialText(project) && <p className="rounded-md bg-warn-soft px-2.5 py-1.5 text-xs text-warn">{labourPartialText(project)}. Unticked lines still count as people for the engineering tools & lab but add no cost.</p>}
       <LabourExcludeToggle />
@@ -451,14 +451,14 @@ function Team() {
         </tbody>
       </table>
       </div>
-      <WhereFrom>labour is people &times; hours per month &times; the hourly rate (the role&apos;s rate-card rate, or the manual rate on the line), for each month in the From and To window. With People &times; weeks, the total hours (people &times; weeks &times; hours per week) are spread evenly over those months. Only a line in the Hypercare phase can be billed after the last build month. It always changes with headcount. Developers ticked &quot;Experiments&quot; also drive the per-developer Dev Lab activities (iterations, playground, tooling). Change people, hours and months in the table above.</WhereFrom>
+      <WhereFrom>labour is people &times; hours per month &times; the hourly rate (the role&apos;s rate-card rate, or the manual rate on the line), for each month in the From and To window. With People &times; weeks, the total hours (people &times; weeks &times; hours per week) are spread evenly over those months. Only a line in the Hypercare phase can be billed after the last build month. It always changes with headcount. Developers ticked &quot;Experiments&quot; also drive the per-developer lab activities (iterations, playground, tooling). Change people, hours and months in the table above.</WhereFrom>
       {project.build.workstreams.length > 0 && <AllocationMatrix />}
       <button type="button" className="flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2" onClick={() => edit((d) => { d.build.team.push({ roleId: d.rateCard[0]!.id, people: 1, hoursPerMonth: 160, experiments: false }); })}><Plus size={14} />Add team line</button>
       <RateCardEditor />
       <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-2.5">
         <Field label="Contingency" help="contingency"><NumberInput value={project.build.contingencyPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.build.contingencyPct = v; })} /></Field>
         <Field label="Contingency applies to" help="contingencyScope">
-          <Select value={project.build.contingencyScope} options={[{ value: "labour", label: "Build labour only" }, { value: "all", label: "Labour, Dev Lab, environment, delivery and one-time costs" }]}
+          <Select value={project.build.contingencyScope} options={[{ value: "labour", label: "Build labour only" }, { value: "all", label: "Labour, engineering tools & lab, environment, delivery and one-time costs" }]}
             onChange={(v) => edit((d) => { d.build.contingencyScope = v === "all" ? "all" : "labour"; })} />
         </Field>
       </div>

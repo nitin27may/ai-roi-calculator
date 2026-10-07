@@ -1,6 +1,6 @@
 # ROI Calculator
 
-A local, offline cost and ROI calculator for technology projects, priced in CAD, with a token calculator for AI workloads.
+A local, offline cost and ROI calculator for any technology project (new applications, enhancements, automation, migrations, replacing a system with SaaS, and AI), priced in CAD, with a token calculator for AI workloads.
 
 [![CI](https://github.com/nitin27may/roi-calculator/actions/workflows/ci.yml/badge.svg)](https://github.com/nitin27may/roi-calculator/actions/workflows/ci.yml)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
@@ -8,8 +8,8 @@ A local, offline cost and ROI calculator for technology projects, priced in CAD,
 
 ## What it does
 
-- Estimates what a project costs to **build** and to **run**: team, environments, Azure infrastructure, AI services and models.
-- Measures the **return**: benefits, payback month, ROI, NPV and IRR, with cautious, expected and optimistic cases.
+- Estimates what a project costs to **build** and to **run**: team and delivery phases, environments, infrastructure, seats, contracts and fees, and, for AI projects, services and models.
+- Measures the **return**: time saved, costs avoided, current-state savings and a scorecard of benefits that are not money, then payback month, ROI, NPV and IRR, with cautious, expected and optimistic cases.
 - Runs entirely in your browser. No server, no account, no telemetry. Projects stay on your machine.
 
 > **Estimates, not quotes.** Every figure comes from published list prices (Azure Retail Prices API, Snowflake's published credit rates) and from assumptions you set. Your contract, discounts, region and usage will differ. Use the numbers to compare options and make a case, then confirm them with the vendor.
@@ -20,34 +20,44 @@ The Summary page on the bundled sample project (desktop, light):
 
 ![Summary page: verdict, headline tiles, ranges and finance measures](docs/img/summary.png)
 
-The Build page: team, workstreams and the AI Dev Lab by month.
+The Build page: team, workstreams and the engineering tools & lab by month. The screenshots were taken before the wording sweep and still show the earlier "AI Dev Lab" label.
 
-![Build page: labour, workstreams, AI Dev Lab cost by month](docs/img/build.png)
+![Build page: labour, workstreams, engineering lab cost by month](docs/img/build.png)
 
 ## Features
 
 **Estimate the build**
 - Labour from a rate card by delivery phase, with named people or role counts, shares of time per workstream, month windows and contingency.
 - Workstreams (a feature with one or more agents) and templates: single agent, RAG feature, multi-agent feature, shared component.
-- AI Dev Lab: the tokens and services a team uses while building. Model bake-offs, harness iterations, nightly regression, Foundry evaluation, red teaming, synthetic data, fine-tuning and AI coding tools, with an editable cost grid and a month plan.
+- Delivery phases with hypercare after go-live, effort as hours or people x weeks, and one-time delivery costs such as vendor fees and training.
+- Engineering tools & lab: tools and licences, test environments, load testing and AI-assisted development with a productivity percentage per role.
+- AI experiments, for AI projects only: model bake-offs, harness iterations, nightly regression, Foundry evaluation, red teaming, synthetic data, fine-tuning and AI coding tools, with an editable cost grid and a month plan.
 - Optional labour: exclude selected lines or set manual hourly rates.
 
+**Environments and infrastructure**
+- Environments (dev, test, UAT, production, disaster recovery) with a size factor, a schedule and optional billed months.
+- A catalogue of 79 resource types and 526 SKUs, priced from the Azure Retail Prices API and vendor documents, with reserved terms, Azure Hybrid Benefit and dev/test pricing. Define a resource once and choose the environments it runs in.
+
 **Estimate the run**
-- Production workloads: transcription, documents, email, embeddings, AI Search, retrieval, chat, voice and agent harnesses at P50, P90 or worst case.
+- Seats and licences, vendor or support contracts, and fees per transaction, next to hosting and platform costs.
+- For AI projects, production workloads: transcription, documents, email, embeddings, AI Search, retrieval, chat, voice and agent harnesses at P50, P90 or worst case.
 - Azure deployment per workload (Global, Canada Regional, US Data Zone) and a Standard or Batch processing tier.
 - Snowflake Cortex workloads, shown in credits and in CAD.
 - Capacity (PTU): pay-as-you-go against hourly, 1-month and 1-year provisioned throughput, with utilisation and break-even.
 
 **Benefits and ROI**
+- Current state: what the work costs today (people, licences, infrastructure, cost per transaction), with each line kept, reduced or retired from a chosen month, and the dual-running cost until then.
+- Scorecard: non-financial items with a before and after, a weight and a confidence; only items you give a money value enter NPV and payback.
 - Time-saving capabilities (per task, per user-week or per queue item), avoided costs and headcount, one-off benefits, adoption and realisation, with a benchmark library that records sources and confidence.
 - Payback, ROI, NPV, IRR, hurdle rate and terminal value, on running cost only, running plus maintenance, or the full lifecycle.
-- Sensitivity (tornado), before and after view, savings levers, and scenarios you can compare and adopt.
+- Sensitivity (tornado), before and after view, savings levers (reserved coverage, SKU size, non-production hours, volume, build length, go-live and decommission dates, labour rates, adoption, and model levers for AI), and scenarios you can compare and adopt.
 
 **Token calculator**
 - Quick estimates with no project: text (exact o200k count in the browser), documents with every route compared, audio, and a single agent run. Covers Azure OpenAI, Claude on Foundry and Snowflake Cortex.
 
 **Guided start**
-- Use-case wizard, first-run product tour, inline help on every input and a glossary.
+- A wizard that starts from the kind of change (nothing preselected) with recipes and templates, such as cheques to online payments. A first-run product tour, inline help on every input and a glossary grouped by topic.
+- The Projects page groups the portfolio by project type and compares projects side by side.
 
 **Exports**
 - Excel workbook (summary, months, line items with formulas, ROI by capability, assumptions, prices used), CSV, JSON project file and a printable report you can save as PDF.

@@ -55,8 +55,8 @@ export type SplitKey = "build" | "run" | "platform" | "maint";
 export interface CostSplitPart { key: SplitKey; label: string; value: number; share: number }
 
 /**
- * Whole-plan cost by stream in four parts: build (labour, AI Dev Lab, dev environment), production
- * AI usage, platform, and maintenance with transition. Shares add to 1 (all 0 when there is no cost).
+ * Whole-plan cost by stream in four parts: build (labour, engineering tools & lab, dev environment), production
+ * usage, platform, and maintenance with transition. Shares add to 1 (all 0 when there is no cost).
  */
 export function costSplit(ledger: Ledger): CostSplitPart[] {
   const t = { build: 0, run: 0, platform: 0, maint: 0 };
@@ -70,7 +70,7 @@ export function costSplit(ledger: Ledger): CostSplitPart[] {
     t.maint += m.byStream.maint + m.byStream.transition;
   }
   const total = t.build + t.run + t.platform + t.maint;
-  const labels: Record<SplitKey, string> = { build: "Build", run: "Production AI usage", platform: "Platform", maint: "Maintenance" };
+  const labels: Record<SplitKey, string> = { build: "Build", run: "Production usage", platform: "Platform", maint: "Maintenance" };
   return (Object.keys(t) as SplitKey[]).map((key) => ({ key, label: labels[key], value: t[key], share: total > 0 ? t[key] / total : 0 }));
 }
 

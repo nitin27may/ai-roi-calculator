@@ -25,9 +25,9 @@ export default function Roi() {
     <div data-tour="roi-view" className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Assumptions />
       <Card className="order-first lg:order-none">
-        <CardHead title={{ cash: "Cumulative cash position", years: "By year", capabilities: "ROI by capability", beforeAfter: "Today vs with AI", current: "Current state and savings", scorecard: "Non-financial scorecard", sensitivity: "What moves NPV most", scenarios: "Scenarios" }[tab]}
+        <CardHead title={{ cash: "Cumulative cash position", years: "By year", capabilities: "ROI by capability", beforeAfter: "Today vs after the change", current: "Current state and savings", scorecard: "Non-financial scorecard", sensitivity: "What moves NPV most", scenarios: "Scenarios" }[tab]}
           sub={tab === "scenarios" ? "What-ifs compared with the baseline on the selected cost basis" : `Benefit minus ${BASES.find((b) => b.value === project.roi.basis)!.label.toLowerCase()} · NPV at ${project.roi.discountRatePct}%: ${cad(roi.npv)}`}>
-          <Seg label="View" value={tab} onChange={setTab} options={[{ value: "cash", label: "Cash" }, { value: "years", label: "By year" }, { value: "capabilities", label: "By capability" }, { value: "beforeAfter", label: "Before / after" }, { value: "current", label: "Current state" }, { value: "scorecard", label: "Scorecard" }, { value: "sensitivity", label: "Sensitivity" }, { value: "scenarios", label: "Scenarios" }]} />
+          <div data-tour="roi-views"><Seg label="View" value={tab} onChange={setTab} options={[{ value: "cash", label: "Cash" }, { value: "years", label: "By year" }, { value: "capabilities", label: "By capability" }, { value: "beforeAfter", label: "Before / after" }, { value: "current", label: "Current state" }, { value: "scorecard", label: "Scorecard" }, { value: "sensitivity", label: "Sensitivity" }, { value: "scenarios", label: "Scenarios" }]} /></div>
         </CardHead>
         {tab === "cash" ? <><div className="flex min-h-0 flex-1 px-1.5 pb-1.5"><CumulativeLine values={roi.cumulative} payback={roi.paybackMonth} /></div><MonthLegend className="px-3.5 pb-3" /></>
           : <div className="min-h-0 flex-1 overflow-auto scroll-hint px-3.5 pb-3.5">{tab === "years" ? <Years /> : tab === "capabilities" ? <Capabilities /> : tab === "beforeAfter" ? <BeforeAfterView /> : tab === "current" ? <CurrentState /> : tab === "scorecard" ? <Scorecard /> : tab === "sensitivity" ? <Tornado /> : <Scenarios />}</div>}
@@ -207,25 +207,25 @@ function BeforeAfterView() {
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-r-md border-l-[3px] border-accent bg-accent-soft px-3 py-2 text-[12.5px]">
-        At full rollout the work costs <b>{cad(ba.before)}/month today</b> and <b>{cad(ba.after)}/month with AI</b>{ba.before > 0 ? <> ({change <= 0 ? "" : "+"}{fmt(change * 100)}%)</> : null}, AI usage and maintenance included. Build cost is not in this view; the Cash tab pays it back.
+        At full rollout the work costs <b>{cad(ba.before)}/month today</b> and <b>{cad(ba.after)}/month after the change</b>{ba.before > 0 ? <> ({change <= 0 ? "" : "+"}{fmt(change * 100)}%)</> : null}, usage and maintenance included. Build cost is not in this view; the Cash tab pays it back.
       </div>
       <div className="grid grid-cols-[90px_1fr_auto] items-center gap-x-3 gap-y-2 text-[12.5px]">
         <span className="text-muted">Today</span>
         {bar([{ label: "People's time", value: labourBefore, color: "var(--s1)" }, { label: "Avoidable costs", value: ba.avoided, color: "var(--platform)" }])}
         <span className="num font-semibold">{cad(ba.before)}</span>
-        <span className="text-muted">With AI</span>
-        {bar([{ label: "People's time", value: Math.max(0, labourAfter - ba.savedWithoutBaseline), color: "var(--s1)" }, { label: "AI usage and platform", value: ba.ai, color: "var(--run)" }, { label: "Maintenance", value: ba.maint, color: "var(--maint)" }])}
+        <span className="text-muted">After the change</span>
+        {bar([{ label: "People's time", value: Math.max(0, labourAfter - ba.savedWithoutBaseline), color: "var(--s1)" }, { label: "Usage and platform", value: ba.ai, color: "var(--run)" }, { label: "Maintenance", value: ba.maint, color: "var(--maint)" }])}
         <span className="num font-semibold">{cad(ba.after)}</span>
       </div>
-      <Legend items={[{ label: "People's time", color: "var(--s1)" }, { label: "Avoidable costs", color: "var(--platform)" }, { label: "AI usage and platform", color: "var(--run)" }, { label: "Maintenance", color: "var(--maint)" }]} />
+      <Legend items={[{ label: "People's time", color: "var(--s1)" }, { label: "Avoidable costs", color: "var(--platform)" }, { label: "Usage and platform", color: "var(--run)" }, { label: "Maintenance", color: "var(--maint)" }]} />
       <table className="data">
-        <thead><tr><th>Capability</th><th className="n">Hours today</th><th className="n">Hours saved</th><th className="n">Reduction</th><th className="n">Today</th><th className="n">With AI</th></tr></thead>
+        <thead><tr><th>Capability</th><th className="n">Hours today</th><th className="n">Hours saved</th><th className="n">Reduction</th><th className="n">Today</th><th className="n">After</th></tr></thead>
         <tbody>
           {withBase.map((r) => (
             <tr key={r.id}><td>{r.label}</td><td className="n">{fmt(r.baselineHours!)}</td><td className="n">{fmt(r.savedHours)}</td><td className="n">{fmt((r.savedHours / Math.max(1, r.baselineHours!)) * 100)}%</td><td className="n">{cad(r.before)}</td><td className="n">{cad(r.after)}</td></tr>
           ))}
           {ba.avoided > 0 && <tr><td>Avoided costs</td><td /><td /><td /><td className="n">{cad(ba.avoided)}</td><td className="n">{cad(0)}</td></tr>}
-          <tr><td>AI usage and platform</td><td /><td /><td /><td className="n">–</td><td className="n">{cad(ba.ai)}</td></tr>
+          <tr><td>Usage and platform</td><td /><td /><td /><td className="n">–</td><td className="n">{cad(ba.ai)}</td></tr>
           <tr><td>Maintenance</td><td /><td /><td /><td className="n">–</td><td className="n">{cad(ba.maint)}</td></tr>
           {ba.savedWithoutBaseline > 0 && <tr><td>Time saved without a baseline<small className="block text-muted">{ba.rows.filter((r) => r.baselineHours === null).map((r) => r.label).join(", ")}</small></td><td /><td /><td /><td className="n">–</td><td className="n">−{cad(ba.savedWithoutBaseline)}</td></tr>}
           <tr className="total"><td>Total per month</td><td /><td /><td /><td className="n">{cad(ba.before)}</td><td className="n">{cad(ba.after)}</td></tr>

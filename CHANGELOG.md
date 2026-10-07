@@ -4,6 +4,30 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+
+The any-project work (phases A0 to A15): the ROI Calculator now estimates any technology project, not only AI.
+
+- Project types (#59): a feature is a new application, enhancement, automation, replatform or migration, SaaS replacement or AI, with nothing preselected. AI pages and menu entries appear only for projects that use AI.
+- Environments and infrastructure (#57, #60, #62): environments with size, schedule and billed months, and an Infrastructure page for resources defined once and placed in environments.
+- Resource catalogue (#64, #67): 79 resource types and 526 SKUs from the Azure Retail Prices API and vendor documents, with reserved terms, Azure Hybrid Benefit and dev/test pricing.
+- Current state (#58): what the work costs today, line by line, with keep, reduce or retire, conditional decommissioning and dual running.
+- Scorecard (#65): non-financial benefits with before and after, weight and confidence; only monetised items enter NPV and payback.
+- Delivery model (#63): delivery phases, hypercare after go-live, effort as hours or people x weeks, and a delivery costs stream.
+- Engineering tools & lab, and AI-assisted development (#66): tools and licences, test environments, load testing and a productivity percentage per role, with a net saving on the Summary.
+- Run cost beyond AI (#61): seats and licences, vendor or support contracts and per-transaction fees.
+- Generic levers (#69): reserved coverage, SKU size, non-production hours, volume, build length, go-live and decommission shifts, labour rates and adoption, with matching sensitivity drivers.
+- Recipes and templates (#70): the wizard starts from the kind of change and ships eight non-AI recipes; cheques to online payments is the reference template.
+- Portfolio by type (#68): group and filter by project type, with payback and scorecard columns in compare.
+- Glossary terms for reserved instance, Azure Hybrid Benefit, dev/test pricing, decommission, per-transaction cost and productivity factor, grouped by topic.
+
+### Changed
+
+- Wording sweep (A15): the product tour is rewritten for any project (version 2, so it shows again once) and adds Infrastructure and Current state and scorecard. The Summary story describes team, build months, environments, delivery costs, go-live volume and payback for non-AI projects, and keeps the candidate-models line only when a project has a model bake-off. It no longer prints a blank or zero where a number is missing.
+- "Production AI usage" is "Production usage" and the month column "AI Dev Lab" is "Engineering tools & lab", across Overview, Report, the Excel Months sheet and chart legend. Overview shows the model bake-off, harness and regression lanes only for AI projects, and a Current-state savings lane when there is data.
+- Settings, Build, Run, ROI and wizard text that said "AI Dev Lab", "with AI" or "AI usage" now reads generically. The Excel summary row "of which AI Dev Lab" is unchanged.
+- No figure changes: the v5 golden fixture passes unchanged.
+
 ## [1.0.0] - 2026-10-07
 
 First public release.

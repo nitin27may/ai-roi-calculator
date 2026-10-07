@@ -317,8 +317,8 @@ export function monthRows(ledger: Ledger, roi: RoiResult): Row[] {
   const hasScore = ledger.months.some((mo) => Object.keys(mo.benefitBy.scorecard).length > 0);
   return ledger.months.map((mo, i) => ({
     Month: mo.m, Date: mo.date, Phase: mo.phase, Adoption: Math.round(mo.adoption * 100) / 100,
-    "Build labour": r2(mo.byStream.labour), "AI Dev Lab": r2(mo.byStream.devlab), "Dev environment": r2(mo.byStream.devenv), Environments: r2(mo.byStream.env ?? 0), "Delivery costs": r2(mo.byStream.delivery ?? 0),
-    "Production AI usage": r2(mo.byStream.run), "Platform": r2(mo.byStream.platform), Maintenance: r2(mo.byStream.maint), Transition: r2(mo.byStream.transition),
+    "Build labour": r2(mo.byStream.labour), "Engineering tools & lab": r2(mo.byStream.devlab), "Dev environment": r2(mo.byStream.devenv), Environments: r2(mo.byStream.env ?? 0), "Delivery costs": r2(mo.byStream.delivery ?? 0),
+    "Production usage": r2(mo.byStream.run), "Platform": r2(mo.byStream.platform), Maintenance: r2(mo.byStream.maint), Transition: r2(mo.byStream.transition),
     [`Cost (${roi.basis})`]: r2(basisCost(mo, roi.basis)), Benefit: r2(mo.benefit),
     // Only when the project has current-state lines, so other projects' sheets keep their columns.
     ...(hasCurrent ? { "Current-state savings": r2(sum(Object.values(mo.benefitBy.currentState))) } : {}),
@@ -340,7 +340,7 @@ export function summaryRows(p: Project, ledger: Ledger, roi: RoiResult, cat: Cat
     { Item: "First build month", Value: p.startDate },
     { Item: "Build months", Value: p.timeline.buildMonths },
     ...(s.labourExcluded ? [{ Item: "Build labour", Value: "Excluded from every figure (set in Settings or on Build)" }] : []),
-    ...(s.labourPartial ? [{ Item: "Build labour", Value: `${s.labourPartial}: those lines still drive AI Dev Lab volumes but add no cost` }] : []),
+    ...(s.labourPartial ? [{ Item: "Build labour", Value: `${s.labourPartial}: those lines still count as people for the experiment volumes but add no cost` }] : []),
     { Item: "Plan length (months)", Value: s.horizonMonths },
     { Item: buildLabel(p, "Build cost"), Value: r2(s.build) },
     { Item: "  of which labour", Value: s.labourExcluded ? "Excluded" : r2(t.buildLabour) },

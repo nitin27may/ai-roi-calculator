@@ -8,9 +8,9 @@ export type CostBasis = Project["roi"]["basis"];
  * Report and Excel use the same words. `label` names the basis; `short` fits in a tile caption; `hint` is the one-line explanation.
  */
 export const COST_BASES: readonly { value: CostBasis; label: string; short: string; hint: string }[] = [
-  { value: "run", label: "Running cost only", short: "running cost only", hint: "Production AI usage, production infrastructure and platform. Non-production environments are not included. Use this for an app that already exists." },
+  { value: "run", label: "Running cost only", short: "running cost only", hint: "Production usage, production infrastructure and platform. Non-production environments are not included. Use this for an app that already exists." },
   { value: "runMaint", label: "Running + maintenance", short: "running + maintenance", hint: "Adds the support team, transition costs and non-production environments, but not the build." },
-  { value: "full", label: "Full lifecycle", short: "full lifecycle", hint: "Build labour, AI Dev Lab, dev environment, delivery costs (vendor, training and similar), non-production environments, running, maintenance and transition: everything the project costs." },
+  { value: "full", label: "Full lifecycle", short: "full lifecycle", hint: "Build labour, engineering tools & lab, dev environment, delivery costs (vendor, training and similar), non-production environments, running, maintenance and transition: everything the project costs." },
 ];
 
 /** Display name of a cost basis, e.g. "Full lifecycle". */
