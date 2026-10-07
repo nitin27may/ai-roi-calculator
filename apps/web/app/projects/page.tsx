@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Copy, Download, Trash2, Wand2 } from "lucide-react";
-import { PROJECT_TEMPLATES, buildLedger, compareFigures, computeRoi, costSplit, roiOptions, verdictFor } from "@roi-calculator/engine";
+import { PROJECT_TEMPLATES, PROJECT_TYPE_INFO, buildLedger, compareFigures, computeRoi, costSplit, projectTypes, roiOptions, verdictFor } from "@roi-calculator/engine";
 import { Card, CardHead, Field, TextInput } from "@/components/ui";
 import { CompareBars, COMPARE_COLORS, MiniSplit } from "@/components/charts-compare";
 import { VerdictChip } from "@/components/summary-parts";
@@ -60,6 +60,11 @@ export default function Projects() {
                   </div>
                   {active && <span className="rounded-full bg-accent px-2 py-px text-xs font-medium text-accent-ink">Open</span>}
                 </div>
+                {projectTypes(e.project).length > 0 && (
+                  <div className="flex flex-wrap gap-1" aria-label="Types of change" data-testid="type-chips">
+                    {projectTypes(e.project).map((t) => <span key={t} className="rounded-full border border-line bg-surface-2 px-2 py-px text-xs text-ink-2">{PROJECT_TYPE_INFO[t].label}</span>)}
+                  </div>
+                )}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <VerdictChip verdict={s.verdict} />
                 </div>

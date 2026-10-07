@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { DEPLOYMENT_LABEL, ptuAnalysis, resolveAssumptions, sizePtu, type PtuDeployment } from "@roi-calculator/engine";
+import { DEPLOYMENT_LABEL, ptuAnalysis, resolveAssumptions, showsAiPages, sizePtu, type PtuDeployment } from "@roi-calculator/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Select } from "@/components/ui";
 import { catalog, useLedger } from "@/lib/compute";
 import { cad, fmt } from "@/lib/format";
@@ -19,6 +19,11 @@ export default function Capacity() {
   const anyPtuWins = a.rows.some((r) => r.cheapest !== "payg");
   return (
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(0,1fr)_360px]">
+      {!showsAiPages(project) && (
+        <div role="note" data-testid="capacity-not-ai" className="rounded-md bg-surface-2 px-3 py-2 text-[12.5px] text-ink-2 lg:col-span-2">
+          <b>This project has no AI feature, so Capacity (PTU) is left out of the menu.</b> The page still works if you open it by its address. To bring it back, tick AI under Type of change on a feature (Run page, select the feature).
+        </div>
+      )}
       <Card>
         <CardHead title="Provisioned throughput (PTU) or pay-as-you-go" sub={`Azure models in production at month ${a.month} (first month at full adoption). PTU is sized for peak and billed every hour.`}>
           <div className="flex flex-wrap items-end gap-2.5">

@@ -34,7 +34,7 @@ export function newFeature(p: Project, label = "New feature"): Feature {
   const taken = new Set(p.features.map((f) => f.id));
   let id = "feature", i = 1;
   while (taken.has(id)) id = `feature-${++i}`;
-  return { id, label };
+  return { id, label, types: [] };
 }
 
 /** Remove a feature; what it owned becomes shared (no feature). */

@@ -308,6 +308,12 @@ Typed infrastructure resources (VMs, App Service plans, databases) live in `pack
 - **UI:** the Current state tab on `/roi` (`components/current-state.tsx`), the Current vs target card on Summary and Report, a Current state sheet and four Summary rows in Excel.
 - **Gotchas:** an avoided cost or a time-saved capability for the same thing counts twice; the section help says so and nothing checks it. Per-transaction volume does not grow with `growthPctPerYear`. A brand-new line is "keep" so adding it moves nothing until a change is chosen. If A1 or A2 land first, expect small conflicts in `project.ts` and `PROGRESS.md`: keep both sides.
 
+## Project types (A1, schema v6)
+
+- `FeatureSchema.types` lists the kind of change (`newApp`, `enhancement`, `automation`, `replatform`, `saas`, `ai`); empty means not chosen and nothing is preselected. Set on the Run page, select the feature, "Type of change".
+- `packages/engine/src/types.ts`: `projectTypes(p)`, `usesAi(p)` (an AI-typed feature, or any workload other than fixed and hosting, or any Dev Lab activity other than tooling), `hidesAiChoices(p)` and `showsAiPages(p)`.
+- Gating is visibility only and never moves money. Capacity (PTU) leaves the sidebar, and AI workload and activity kinds leave the add menus, only when at least one feature has a type and none is AI and the project has no AI workloads or activities (menus: types chosen and none AI). Blank and legacy projects are unchanged. `/capacity` still opens by URL with a note. The pure helpers are in `apps/web/lib/nav.ts`.
+- Migration 5 to 6 types `["ai"]` on features owning AI workloads or activities (via workstream or feature links, or the single feature when an item has no link) and `[]` on the rest. `golden-v5.test.ts` and its fixture are untouched.
 ## Plan and progress
 
 The 2026-10-04 audit and the roadmap are in [docs/plan](plan/README.md). The done/pending matrix is [docs/PROGRESS.md](PROGRESS.md); update it in every PR.

@@ -52,6 +52,26 @@ const steps: Record<number, Step> = {
    * so totals do not move.
    */
   4: (raw) => ({ ...raw, version: 5 }),
+  /**
+   * v5 → v6: project types per feature. Features that own AI workloads (any kind but fixed or hosting) or AI Dev Lab
+   * activities (any kind but tooling) get `types: ["ai"]`; items with no feature link count for the single feature when
+   * there is exactly one. Every other feature gets `types: []` (not chosen). Types only gate visibility, so no line or total moves.
+   */
+  5: (raw) => {
+    const arr = (x: unknown): Record<string, unknown>[] => (Array.isArray(x) ? (x as Record<string, unknown>[]) : []);
+    const features = arr(raw.features);
+    const build = (raw.build ?? {}) as Record<string, unknown>;
+    const workstreams = arr(build.workstreams);
+    const wsFeature = new Map(workstreams.map((w) => [w.id, w.featureId as string | undefined]));
+    const owners = new Set<string>();
+    const note = (featureId: unknown) => {
+      if (typeof featureId === "string") owners.add(featureId);
+      else if (features.length === 1 && typeof features[0]!.id === "string") owners.add(features[0]!.id as string);
+    };
+    for (const w of arr(raw.workloads)) if (w.kind !== "fixed" && w.kind !== "hosting") note(w.featureId);
+    for (const a of arr(build.activities)) if (a.kind !== "tooling") note((typeof a.workstreamId === "string" ? wsFeature.get(a.workstreamId) : undefined) ?? a.featureId);
+    return { ...raw, version: 6, features: features.map((f) => ({ ...f, types: owners.has(f.id as string) ? ["ai"] : [] })) };
+  },
 };
 
 /** Upgrades a saved project to `CURRENT_PROJECT_VERSION`, one step at a time. Leaves non-project input untouched so `ProjectSchema.safeParse` reports the real problem. */

@@ -18,21 +18,11 @@ import { monthLegendText } from "@/lib/months";
 import { catalog, useLedger } from "@/lib/compute";
 import { cad, cn, fmt } from "@/lib/format";
 import { DRAWER_CLOSE_EVENT, DRAWER_OPEN_EVENT, readProjectMenuChoice, readSidebarCollapsed, resolveProjectMenuOpen, writeProjectMenuOpen, writeSidebarCollapsed } from "@/lib/prefs";
-import { projectRows, showProjectMenu, type ProjectRow } from "@/lib/nav";
+import { PROJECT_VIEWS, projectNavViews, projectRows, showProjectMenu, type ProjectRow } from "@/lib/nav";
 import { downloadProject } from "@/lib/project-file";
 import { LabourExcludedNote } from "@/components/labour-excluded";
 import { EmptyLibrary } from "@/components/empty-library";
 
-const PROJECT_VIEWS = [
-  { href: "/summary", label: "Summary" },
-  { href: "/overview", label: "Overview" },
-  { href: "/build", label: "Build" },
-  { href: "/run", label: "Run" },
-  { href: "/roi", label: "Value & ROI" },
-  { href: "/capacity", label: "Capacity (PTU)" },
-  { href: "/report", label: "Report" },
-  { href: "/settings", label: "Settings" },
-];
 const TITLES: Record<string, string> = { "/summary": "Summary", "/overview": "Overview", "/build": "Build", "/run": "Run", "/roi": "Value & ROI", "/tokens": "Token calculator", "/prices": "Prices & sources", "/settings": "Settings", "/report": "Report", "/capacity": "Capacity (PTU)", "/projects": "Projects", "/wizard": "New estimate wizard", "/glossary": "Glossary" };
 /** Below this width the sidebar is an off-canvas drawer (Tailwind's lg breakpoint). */
 const DRAWER_QUERY = "(max-width: 1023px)";
@@ -205,6 +195,7 @@ type NavLink = (href: string, Icon: LucideIcon, label: string, small?: string, o
 /** One project in the sidebar tree: a fold button and its pages. Following a page link makes the project the active one. */
 function ProjectNode({ row, rail, path, B, H, link }: { row: ProjectRow; rail: boolean; path: string; B: number; H: number; link: NavLink }) {
   const open = useStudio((s) => s.open);
+  const showCapacity = useStudio((s) => { const e = s.library.find((x) => x.id === row.id); return e ? projectNavViews(e.project).some((v) => v.href === "/capacity") : true; });
   const [choice, setChoice] = useState<boolean | null>(null);
   // Read after mount so the static export and the first client render match.
   useEffect(() => setChoice(readProjectMenuChoice(localStorage, row.id)), [row.id]);
@@ -231,7 +222,7 @@ function ProjectNode({ row, rail, path, B, H, link }: { row: ProjectRow; rail: b
           {link("/build", Hammer, "Build", build, go, row.active)}
           {link("/run", Activity, "Run", run, go, row.active)}
           {link("/roi", TrendingUp, "Value & ROI", undefined, go, row.active)}
-          {link("/capacity", Cpu, "Capacity (PTU)", undefined, go, row.active)}
+          {showCapacity && link("/capacity", Cpu, "Capacity (PTU)", undefined, go, row.active)}
           {link("/report", FileText, "Report", undefined, go, row.active)}
           {link("/settings", Settings, "Settings", undefined, go, row.active)}
         </div>
