@@ -1,0 +1,1243 @@
+{
+ "catalogue": {
+  "resourceTypes": [
+   {
+    "id": "vm",
+    "label": "Virtual machine",
+    "category": "compute",
+    "docsUrl": "https://azure.microsoft.com/pricing/details/virtual-machines/windows/",
+    "note": "Compute only: add managed disks, backup, public IPs and bandwidth as their own resources. AKS and Windows node pools are priced as these VMs. Spot and low-priority rates are not offered.",
+    "inputs": [
+     {
+      "id": "count",
+      "label": "Machines",
+      "unit": "machines",
+      "help": "How many identical machines run in production."
+     }
+    ],
+    "meters": [
+     {
+      "id": "compute",
+      "label": "Compute",
+      "quantity": {
+       "input": "count"
+      },
+      "hourly": true,
+      "scalesWithSize": true
+     }
+    ],
+    "options": [
+     "payg",
+     "ri1",
+     "ri3",
+     "ahb",
+     "devtest"
+    ],
+    "retail": {
+     "filter": "serviceName eq 'Virtual Machines' and armRegionName eq '{region}' and armSkuName eq '{armSku}'",
+     "productName": {
+      "linux": "^Virtual Machines [A-Za-z0-9 ]+ Series$",
+      "windows": "^Virtual Machines [A-Za-z0-9 ]+ Series Windows$"
+     },
+     "meters": {
+      "compute": {
+       "meterName": "^(?!.*(Spot|Low Priority))",
+       "unit": "VM-month (730 h)"
+      }
+     },
+     "windowsLicence": true
+    },
+    "ahb": {
+     "kind": "linux-twin",
+     "note": "A Windows size takes the Linux price of the same size (the Windows Server licence is removed). Linux sizes have no licence component, so Hybrid Benefit does not apply to them."
+    },
+    "skus": [
+     {
+      "id": "d2s-v5-windows",
+      "label": "D2s v5, Windows (2 vCPU, 8 GiB)",
+      "attrs": {
+       "os": "windows",
+       "vcpu": 2,
+       "memoryGiB": 8,
+       "series": "D"
+      },
+      "armSku": "Standard_D2s_v5",
+      "prices": {
+       "compute": "vm-d2s-v5-windows-compute"
+      }
+     },
+     {
+      "id": "d4s-v5-windows",
+      "label": "D4s v5, Windows (4 vCPU, 16 GiB)",
+      "attrs": {
+       "os": "windows",
+       "vcpu": 4,
+       "memoryGiB": 16,
+       "series": "D"
+      },
+      "armSku": "Standard_D4s_v5",
+      "prices": {
+       "compute": "vm-d4s-v5-windows-compute"
+      }
+     }
+    ]
+   },
+   {
+    "id": "disk-premium-ssd",
+    "label": "Managed disk, Premium SSD",
+    "category": "compute",
+    "docsUrl": "https://azure.microsoft.com/pricing/details/managed-disks/",
+    "note": "Locally redundant (LRS) disks, billed per disk. Disk transactions (Standard SSD and HDD), bursting, snapshots and zone-redundant disks are not included.",
+    "inputs": [
+     {
+      "id": "disks",
+      "label": "Disks",
+      "unit": "disks",
+      "help": "How many disks of this size."
+     }
+    ],
+    "meters": [
+     {
+      "id": "disk",
+      "label": "Disk",
+      "quantity": {
+       "input": "disks"
+      },
+      "hourly": false,
+      "scalesWithSize": true
+     }
+    ],
+    "options": [
+     "payg",
+     "ri1"
+    ],
+    "retail": {
+     "filter": "serviceName eq 'Storage' and armRegionName eq '{region}' and productName eq 'Premium SSD Managed Disks'",
+     "productName": "^Premium SSD Managed Disks$",
+     "skuName": "^{armSku} LRS$",
+     "meters": {
+      "disk": {
+       "meterName": "^{armSku} LRS Disk$",
+       "unit": "disk-month",
+       "options": [
+        "payg",
+        "ri1"
+       ]
+      }
+     }
+    },
+    "skus": [
+     {
+      "id": "p10",
+      "label": "P10, 128 GiB",
+      "attrs": {
+       "sizeGiB": 128
+      },
+      "armSku": "P10",
+      "prices": {
+       "disk": "disk-premium-ssd-p10-disk"
+      }
+     }
+    ]
+   },
+   {
+    "id": "app-service-plan",
+    "label": "App Service plan",
+    "category": "compute",
+    "docsUrl": "https://azure.microsoft.com/pricing/details/app-service/linux/",
+    "note": "The plan instances only; apps on the plan cost nothing extra. Free, Shared and Isolated v1 plans, the App Service Environment stamp fee, custom domains and IP SSL are not included.",
+    "inputs": [
+     {
+      "id": "instances",
+      "label": "Instances",
+      "unit": "instances",
+      "help": "Number of instances the plan scales out to in production."
+     }
+    ],
+    "meters": [
+     {
+      "id": "plan",
+      "label": "Plan instances",
+      "quantity": {
+       "input": "instances"
+      },
+      "hourly": true,
+      "scalesWithSize": true
+     }
+    ],
+    "options": [
+     "payg",
+     "ri1",
+     "ri3",
+     "devtest"
+    ],
+    "retail": {
+     "filter": "serviceName eq 'Azure App Service' and armRegionName eq '{region}'",
+     "productName": {
+      "linux": "^Azure App Service (Basic|Standard|Premium v3|Premium v4|Isolated v2) Plan - Linux$",
+      "windows": "^Azure App Service (Basic|Standard|Premium v3|Premium v4|Isolated v2) Plan$"
+     },
+     "skuName": "^{armSku}$",
+     "meters": {
+      "plan": {
+       "meterName": ".",
+       "unit": "instance-month (730 h)"
+      }
+     }
+    },
+    "skus": [
+     {
+      "id": "p1v3-linux",
+      "label": "Premium v3 P1v3, Linux (2 vCPU, 8 GiB)",
+      "attrs": {
+       "os": "linux",
+       "tier": "Premium v3",
+       "vcpu": 2,
+       "memoryGiB": 8
+      },
+      "armSku": "P1 v3",
+      "prices": {
+       "plan": "app-service-plan-p1v3-linux-plan"
+      }
+     }
+    ]
+   },
+   {
+    "id": "sql-db-vcore",
+    "label": "Azure SQL Database (vCore)",
+    "category": "database",
+    "docsUrl": "https://azure.microsoft.com/pricing/details/azure-sql-database/single/",
+    "note": "Single databases on the vCore model, licence included. For serverless enter the average active vCores. Elastic pools, backup storage beyond the free allowance, zone-redundant Business Critical, IO charges and Hybrid Benefit are not priced; see the Hybrid Benefit rule.",
+    "inputs": [
+     {
+      "id": "vcores",
+      "label": "vCores",
+      "unit": "vCores",
+      "help": "vCores per database (for serverless, the average active vCores)."
+     },
+     {
+      "id": "storageGB",
+      "label": "Data storage",
+      "unit": "GB",
+      "help": "Provisioned data storage in GB."
+     }
+    ],
+    "meters": [
+     {
+      "id": "compute",
+      "label": "Compute",
+      "quantity": {
+       "input": "vcores"
+      },
+      "hourly": true,
+      "scalesWithSize": true
+     },
+     {
+      "id": "storage",
+      "label": "Data storage",
+      "quantity": {
+       "input": "storageGB"
+      },
+      "hourly": false,
+      "scalesWithSize": true
+     }
+    ],
+    "options": [
+     "payg",
+     "ri1",
+     "ri3"
+    ],
+    "retail": {
+     "filter": "serviceName eq 'SQL Database' and armRegionName eq '{region}'",
+     "meters": {
+      "compute": {
+       "unit": "vCore-month (730 h)"
+      },
+      "storage": {
+       "unit": "GB-month",
+       "options": [
+        "payg"
+       ]
+      }
+     }
+    },
+    "ahb": {
+     "kind": "unavailable",
+     "note": "The Retail API lists the vCore rate with the SQL licence included and publishes no compute-only meter, so Hybrid Benefit is not priced. Add a manual price if you hold Software Assurance."
+    },
+    "skus": [
+     {
+      "id": "gp-gen5",
+      "label": "General Purpose, provisioned (Gen5)",
+      "attrs": {},
+      "prices": {
+       "compute": "sql-db-vcore-gp-gen5-compute",
+       "storage": "sql-db-vcore-gp-gen5-storage"
+      },
+      "retail": {
+       "compute": {
+        "meterName": "^vCore$",
+        "productName": "^SQL Database Single/Elastic Pool General Purpose - Compute Gen5$",
+        "skuName": "^vCore$"
+       },
+       "storage": {
+        "meterName": "^General Purpose Data Stored$",
+        "productName": "^SQL Database Single/Elastic Pool General Purpose - Storage$",
+        "skuName": "^General Purpose$"
+       }
+      }
+     }
+    ]
+   },
+   {
+    "id": "data-factory",
+    "label": "Data Factory pipelines (v2)",
+    "category": "messaging",
+    "docsUrl": "https://azure.microsoft.com/pricing/details/data-factory/data-pipeline/",
+    "note": "Orchestration activity runs, data movement (DIU-hours) and pipeline activity hours by integration runtime. Read and write operations, monitoring operations, inactive pipelines, SSIS and mapping data flows (separate type) are not included.",
+    "inputs": [
+     {
+      "id": "runsK",
+      "label": "Activity runs",
+      "unit": "thousand runs",
+      "help": "Orchestration activity runs a month, in thousands."
+     },
+     {
+      "id": "diuHours",
+      "label": "Data movement",
+      "unit": "DIU-hours",
+      "help": "Data movement a month, in data integration unit-hours."
+     },
+     {
+      "id": "activityHours",
+      "label": "Pipeline activity",
+      "unit": "hours",
+      "help": "External and pipeline activity execution hours a month."
+     }
+    ],
+    "meters": [
+     {
+      "id": "runs",
+      "label": "Orchestration activity runs",
+      "quantity": {
+       "input": "runsK"
+      },
+      "hourly": false,
+      "scalesWithSize": false
+     },
+     {
+      "id": "movement",
+      "label": "Data movement",
+      "quantity": {
+       "input": "diuHours"
+      },
+      "hourly": false,
+      "scalesWithSize": false
+     },
+     {
+      "id": "activity",
+      "label": "Pipeline activity",
+      "quantity": {
+       "input": "activityHours"
+      },
+      "hourly": false,
+      "scalesWithSize": false
+     }
+    ],
+    "options": [
+     "payg"
+    ],
+    "retail": {
+     "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq '{region}'",
+     "productName": ".",
+     "meters": {}
+    },
+    "skus": [
+     {
+      "id": "azure-ir",
+      "label": "Azure integration runtime",
+      "attrs": {},
+      "prices": {
+       "runs": "data-factory-azure-ir-runs",
+       "movement": "data-factory-azure-ir-movement",
+       "activity": "data-factory-azure-ir-activity"
+      },
+      "retail": {
+       "runs": {
+        "meterName": "^Cloud Orchestration Activity Run$",
+        "productName": "^Azure Data Factory v2$",
+        "unit": "1K runs"
+       },
+       "movement": {
+        "meterName": "^Cloud Data Movement$",
+        "productName": "^Azure Data Factory v2$",
+        "usage": true
+       },
+       "activity": {
+        "meterName": "^Cloud Pipeline Activity$",
+        "productName": "^Azure Data Factory v2$",
+        "usage": true
+       }
+      }
+     }
+    ]
+   },
+   {
+    "id": "application-insights",
+    "label": "Application Insights (workspace-based)",
+    "category": "monitoring",
+    "docsUrl": "https://azure.microsoft.com/pricing/details/monitor/",
+    "note": "Telemetry is ingested into a Log Analytics workspace and billed at the `log-analytics-ingest` price. Standard availability tests are priced per execution. Multi-step web tests and the classic Enterprise plan are not included.",
+    "inputs": [
+     {
+      "id": "gb",
+      "label": "Telemetry ingested",
+      "unit": "GB",
+      "help": "Telemetry ingested into the workspace a month."
+     },
+     {
+      "id": "testsK",
+      "label": "Availability test executions",
+      "unit": "thousand executions",
+      "help": "Standard web test executions a month, in thousands."
+     }
+    ],
+    "meters": [
+     {
+      "id": "ingest",
+      "label": "Telemetry ingestion",
+      "quantity": {
+       "input": "gb"
+      },
+      "hourly": false,
+      "scalesWithSize": false
+     },
+     {
+      "id": "tests",
+      "label": "Availability tests",
+      "quantity": {
+       "input": "testsK",
+       "factor": 1000
+      },
+      "hourly": false,
+      "scalesWithSize": false
+     }
+    ],
+    "options": [
+     "payg"
+    ],
+    "retail": {
+     "filter": "serviceName eq 'Azure Monitor' and armRegionName eq '{region}'",
+     "productName": ".",
+     "meters": {},
+     "precise": true
+    },
+    "skus": [
+     {
+      "id": "workspace-based",
+      "label": "Workspace-based (pay-as-you-go)",
+      "attrs": {},
+      "prices": {
+       "ingest": "log-analytics-ingest",
+       "tests": "application-insights-workspace-based-tests"
+      },
+      "retail": {
+       "tests": {
+        "meterName": "^Standard Web Test Execution$",
+        "productName": "^Azure Monitor$",
+        "unit": "execution"
+       }
+      }
+     }
+    ]
+   },
+   {
+    "id": "backup-instance",
+    "label": "Azure Backup protected instance",
+    "category": "monitoring",
+    "docsUrl": "https://azure.microsoft.com/pricing/details/backup/",
+    "note": "The monthly protected-instance fee. Backup storage is a separate type (Backup storage). Instance fees for Azure VMs vary with size in the published table; the Retail API lists one rate.",
+    "inputs": [
+     {
+      "id": "instances",
+      "label": "Protected instances",
+      "unit": "instances",
+      "help": "Machines, databases or file shares protected."
+     }
+    ],
+    "meters": [
+     {
+      "id": "instances",
+      "label": "Protected instances",
+      "quantity": {
+       "input": "instances"
+      },
+      "hourly": false,
+      "scalesWithSize": false
+     }
+    ],
+    "options": [
+     "payg"
+    ],
+    "retail": {
+     "filter": "serviceName eq 'Backup' and armRegionName eq '{region}'",
+     "productName": ".",
+     "meters": {}
+    },
+    "skus": [
+     {
+      "id": "azure-vm",
+      "label": "Azure virtual machine",
+      "attrs": {},
+      "prices": {
+       "instances": "backup-instance-azure-vm-instances"
+      },
+      "retail": {
+       "instances": {
+        "meterName": "^Azure VM Protected Instance$",
+        "productName": "^Backup$",
+        "unit": "instance-month"
+       }
+      }
+     }
+    ]
+   },
+   {
+    "id": "fabric-capacity",
+    "label": "Microsoft Fabric capacity",
+    "category": "data",
+    "docsUrl": "https://azure.microsoft.com/pricing/details/microsoft-fabric/",
+    "note": "F SKUs: capacity units (CU) per hour, pay-as-you-go or a 1-year reservation. Every Fabric capacity-usage meter carries the same CU-hour rate; the Power BI one is the reference. OneLake storage is a separate type. The Retail API's 3-year reservation row is exactly three times the 1-year row, so it is not offered. Power BI Pro licences for viewers below F64 are separate (Licences).",
+    "inputs": [
+     {
+      "id": "capacities",
+      "label": "Capacities",
+      "unit": "capacities",
+      "help": "Fabric capacities of this SKU."
+     }
+    ],
+    "meters": [
+     {
+      "id": "capacity",
+      "label": "Capacity",
+      "quantity": {
+       "input": "capacities"
+      },
+      "hourly": true,
+      "scalesWithSize": true
+     }
+    ],
+    "options": [
+     "payg",
+     "ri1"
+    ],
+    "retail": {
+     "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq '{region}'",
+     "productName": ".",
+     "meters": {
+      "capacity": {
+       "meterName": "^Power BI Capacity Usage CU$",
+       "productName": "^Fabric Capacity$",
+       "unit": "capacity-month (730 h)",
+       "multiplyBy": "cu",
+       "reservation": {
+        "meterName": "^Fabric Capacity CU$",
+        "productName": "^Fabric Capacity Reservation$"
+       }
+      }
+     }
+    },
+    "skus": [
+     {
+      "id": "f8",
+      "label": "F8 (8 CU)",
+      "attrs": {
+       "cu": 8
+      },
+      "prices": {
+       "capacity": "fabric-capacity-f8-capacity"
+      }
+     }
+    ]
+   },
+   {
+    "id": "onelake-storage",
+    "label": "OneLake storage",
+    "category": "data",
+    "docsUrl": "https://azure.microsoft.com/pricing/details/microsoft-fabric/",
+    "note": "Data stored in OneLake per GB a month. Transactions, BCDR storage and the cache are not included.",
+    "inputs": [
+     {
+      "id": "gb",
+      "label": "Data stored",
+      "unit": "GB",
+      "help": "Data stored in OneLake."
+     }
+    ],
+    "meters": [
+     {
+      "id": "gb",
+      "label": "Stored data",
+      "quantity": {
+       "input": "gb"
+      },
+      "hourly": false,
+      "scalesWithSize": true
+     }
+    ],
+    "options": [
+     "payg"
+    ],
+    "retail": {
+     "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq '{region}'",
+     "productName": ".",
+     "meters": {}
+    },
+    "skus": [
+     {
+      "id": "hot",
+      "label": "Hot",
+      "attrs": {},
+      "prices": {
+       "gb": "onelake-storage-hot-gb"
+      },
+      "retail": {
+       "gb": {
+        "meterName": "^OneLake Storage Hot Data Stored$",
+        "productName": "^OneLake$",
+        "skuName": "^OneLake Storage Hot$",
+        "unit": "GB-month"
+       }
+      }
+     }
+    ]
+   },
+   {
+    "id": "microsoft-seat",
+    "label": "Power BI and Power Platform per-user licences",
+    "category": "licences",
+    "docsUrl": "https://www.microsoft.com/power-platform/products/power-bi/pricing",
+    "note": "Vendor list prices per user per month, paid yearly, converted from USD at the catalogue rate. Not Retail API meters, so they are marked unverified. Microsoft 365 E3 and E5 are not listed because their price page could not be read; add them as a manual price on the placeholder SaaS seat.",
+    "inputs": [
+     {
+      "id": "users",
+      "label": "Users",
+      "unit": "users",
+      "help": "Licensed users."
+     }
+    ],
+    "meters": [
+     {
+      "id": "users",
+      "label": "Users",
+      "quantity": {
+       "input": "users"
+      },
+      "hourly": false,
+      "scalesWithSize": false
+     }
+    ],
+    "options": [
+     "payg"
+    ],
+    "skus": [
+     {
+      "id": "power-bi-pro",
+      "label": "Power BI Pro",
+      "attrs": {},
+      "prices": {
+       "users": "microsoft-seat-power-bi-pro-users"
+      }
+     }
+    ]
+   }
+  ],
+  "unitPrices": [
+   {
+    "id": "log-analytics-ingest",
+    "label": "Log Analytics / App Insights ingestion",
+    "platform": "azure",
+    "unit": "GB",
+    "price": 3.9097,
+    "freePerMonth": 5,
+    "source": {
+     "kind": "azure-retail-api",
+     "url": "https://prices.azure.com/api/retail/prices",
+     "meterName": "Analytics Logs Data Ingestion",
+     "retrievedAt": "2026-10-04"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "vm-d2s-v5-windows-compute",
+    "label": "D2s v5, Windows (2 vCPU, 8 GiB) · Compute",
+    "platform": "azure",
+    "unit": "VM-month (730 h)",
+    "price": 205.787,
+    "options": {
+     "ri1": {
+      "price": 163.3495,
+      "source": {
+       "kind": "derived",
+       "meterName": "D2s v5",
+       "note": "1 Year Linux reservation / 12 months + Windows licence at pay-as-you-go (95.119 a month); reservations cover compute only",
+       "retrievedAt": "2026-10-07"
+      }
+     },
+     "ri3": {
+      "price": 138.8353,
+      "source": {
+       "kind": "derived",
+       "meterName": "D2s v5",
+       "note": "3 Years Linux reservation / 36 months + Windows licence at pay-as-you-go (95.119 a month); reservations cover compute only",
+       "retrievedAt": "2026-10-07"
+      }
+     },
+     "ahb": {
+      "price": 110.668,
+      "source": {
+       "kind": "azure-retail-api",
+       "meterName": "D2s v5",
+       "note": "Hybrid Benefit: the Linux price of the same size, Windows licence removed",
+       "retrievedAt": "2026-10-07"
+      }
+     },
+     "devtest": {
+      "price": 110.668,
+      "source": {
+       "kind": "azure-retail-api",
+       "meterName": "D2s v5",
+       "note": "dev/test rate",
+       "retrievedAt": "2026-10-07"
+      }
+     }
+    },
+    "source": {
+     "kind": "azure-retail-api",
+     "meterName": "D2s v5",
+     "note": "Virtual Machines Dsv5 Series Windows / Standard_D2s_v5",
+     "filter": "serviceName eq 'Virtual Machines' and armRegionName eq 'canadacentral' and armSkuName eq 'Standard_D2s_v5'",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "vm-d4s-v5-windows-compute",
+    "label": "D4s v5, Windows (4 vCPU, 16 GiB) · Compute",
+    "platform": "azure",
+    "unit": "VM-month (730 h)",
+    "price": 411.574,
+    "options": {
+     "ri1": {
+      "price": 326.89,
+      "source": {
+       "kind": "derived",
+       "meterName": "D4s v5",
+       "note": "1 Year Linux reservation / 12 months + Windows licence at pay-as-you-go (190.311 a month); reservations cover compute only",
+       "retrievedAt": "2026-10-07"
+      }
+     },
+     "ri3": {
+      "price": 277.7043,
+      "source": {
+       "kind": "derived",
+       "meterName": "D4s v5",
+       "note": "3 Years Linux reservation / 36 months + Windows licence at pay-as-you-go (190.311 a month); reservations cover compute only",
+       "retrievedAt": "2026-10-07"
+      }
+     },
+     "ahb": {
+      "price": 221.263,
+      "source": {
+       "kind": "azure-retail-api",
+       "meterName": "D4s v5",
+       "note": "Hybrid Benefit: the Linux price of the same size, Windows licence removed",
+       "retrievedAt": "2026-10-07"
+      }
+     },
+     "devtest": {
+      "price": 221.263,
+      "source": {
+       "kind": "azure-retail-api",
+       "meterName": "D4s v5",
+       "note": "dev/test rate",
+       "retrievedAt": "2026-10-07"
+      }
+     }
+    },
+    "source": {
+     "kind": "azure-retail-api",
+     "meterName": "D4s v5",
+     "note": "Virtual Machines Dsv5 Series Windows / Standard_D4s_v5",
+     "filter": "serviceName eq 'Virtual Machines' and armRegionName eq 'canadacentral' and armSkuName eq 'Standard_D4s_v5'",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "disk-premium-ssd-p10-disk",
+    "label": "P10, 128 GiB · Disk",
+    "platform": "azure",
+    "unit": "disk-month",
+    "price": 27.923,
+    "attrs": {
+     "fallback.ri1": "No 1-year reserved price is published for this meter, pay-as-you-go used."
+    },
+    "source": {
+     "kind": "azure-retail-api",
+     "meterName": "P10 LRS Disk",
+     "note": "Premium SSD Managed Disks / P10 LRS",
+     "filter": "serviceName eq 'Storage' and armRegionName eq 'canadacentral' and productName eq 'Premium SSD Managed Disks'",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "app-service-plan-p1v3-linux-plan",
+    "label": "Premium v3 P1v3, Linux (2 vCPU, 8 GiB) · Plan instances",
+    "platform": "azure",
+    "unit": "instance-month (730 h)",
+    "price": 173.74,
+    "options": {
+     "ri1": {
+      "price": 112.7338,
+      "source": {
+       "kind": "azure-retail-api",
+       "meterName": "P1 v3 App",
+       "note": "1 Year reservation, total / 12 months",
+       "retrievedAt": "2026-10-07"
+      }
+     },
+     "ri3": {
+      "price": 78.61853,
+      "source": {
+       "kind": "azure-retail-api",
+       "meterName": "P1 v3 App",
+       "note": "3 Years reservation, total / 36 months",
+       "retrievedAt": "2026-10-07"
+      }
+     },
+     "devtest": {
+      "price": 130.305,
+      "source": {
+       "kind": "azure-retail-api",
+       "meterName": "P1 v3 App",
+       "note": "dev/test rate",
+       "retrievedAt": "2026-10-07"
+      }
+     }
+    },
+    "source": {
+     "kind": "azure-retail-api",
+     "meterName": "P1 v3 App",
+     "note": "Azure App Service Premium v3 Plan - Linux / P1 v3",
+     "filter": "serviceName eq 'Azure App Service' and armRegionName eq 'canadacentral'",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "sql-db-vcore-gp-gen5-compute",
+    "label": "General Purpose, provisioned (Gen5) · Compute",
+    "platform": "azure",
+    "unit": "vCore-month (730 h)",
+    "price": 188.851,
+    "options": {
+     "ri1": {
+      "price": 122.7677,
+      "source": {
+       "kind": "azure-retail-api",
+       "meterName": "vCore",
+       "note": "1 Year reservation, total / 12 months",
+       "retrievedAt": "2026-10-07"
+      }
+     },
+     "ri3": {
+      "price": 84.993,
+      "source": {
+       "kind": "azure-retail-api",
+       "meterName": "vCore",
+       "note": "3 Years reservation, total / 36 months",
+       "retrievedAt": "2026-10-07"
+      }
+     }
+    },
+    "source": {
+     "kind": "azure-retail-api",
+     "meterName": "vCore",
+     "note": "SQL Database Single/Elastic Pool General Purpose - Compute Gen5 / vCore",
+     "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "sql-db-vcore-gp-gen5-storage",
+    "label": "General Purpose, provisioned (Gen5) · Data storage",
+    "platform": "azure",
+    "unit": "GB-month",
+    "price": 0.1792,
+    "attrs": {
+     "fallback.ri1": "Not offered for this meter, pay-as-you-go used.",
+     "fallback.ri3": "Not offered for this meter, pay-as-you-go used."
+    },
+    "source": {
+     "kind": "azure-retail-api",
+     "meterName": "General Purpose Data Stored",
+     "note": "SQL Database Single/Elastic Pool General Purpose - Storage / General Purpose",
+     "filter": "serviceName eq 'SQL Database' and armRegionName eq 'canadacentral'",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "data-factory-azure-ir-runs",
+    "label": "Azure integration runtime · Orchestration activity runs",
+    "platform": "azure",
+    "unit": "1K runs",
+    "price": 1.4166,
+    "source": {
+     "kind": "azure-retail-api",
+     "meterName": "Cloud Orchestration Activity Run",
+     "note": "Azure Data Factory v2 / Cloud",
+     "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "data-factory-azure-ir-movement",
+    "label": "Azure integration runtime · Data movement",
+    "platform": "azure",
+    "unit": "1 Hour",
+    "price": 0.3541,
+    "source": {
+     "kind": "azure-retail-api",
+     "meterName": "Cloud Data Movement",
+     "note": "Azure Data Factory v2 / Cloud",
+     "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "data-factory-azure-ir-activity",
+    "label": "Azure integration runtime · Pipeline activity",
+    "platform": "azure",
+    "unit": "1 Hour",
+    "price": 0.0071,
+    "source": {
+     "kind": "azure-retail-api",
+     "meterName": "Cloud Pipeline Activity",
+     "note": "Azure Data Factory v2 / Cloud",
+     "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "application-insights-workspace-based-tests",
+    "label": "Workspace-based (pay-as-you-go) · Availability tests",
+    "platform": "azure",
+    "unit": "execution",
+    "price": 0.000793268,
+    "source": {
+     "kind": "azure-retail-api",
+     "meterName": "Standard Web Test Execution",
+     "note": "Azure Monitor / Standard Web Test",
+     "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "backup-instance-azure-vm-instances",
+    "label": "Azure virtual machine · Protected instances",
+    "platform": "azure",
+    "unit": "instance-month",
+    "price": 14.1655,
+    "source": {
+     "kind": "azure-retail-api",
+     "meterName": "Azure VM Protected Instance",
+     "note": "Backup / Azure VM",
+     "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "fabric-capacity-f8-capacity",
+    "label": "F8 (8 CU) · Capacity",
+    "platform": "azure",
+    "unit": "capacity-month (730 h)",
+    "price": 1654.472,
+    "options": {
+     "ri1": {
+      "price": 984.0301,
+      "source": {
+       "kind": "azure-retail-api",
+       "meterName": "Fabric Capacity CU",
+       "note": "1 Year reservation, total / 12 months",
+       "retrievedAt": "2026-10-07"
+      }
+     }
+    },
+    "source": {
+     "kind": "azure-retail-api",
+     "meterName": "Power BI Capacity Usage CU",
+     "note": "Fabric Capacity / Power BI Capacity Usage",
+     "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "onelake-storage-hot-gb",
+    "label": "Hot · Stored data",
+    "platform": "azure",
+    "unit": "GB-month",
+    "price": 0.0354,
+    "source": {
+     "kind": "azure-retail-api",
+     "meterName": "OneLake Storage Hot Data Stored",
+     "note": "OneLake / OneLake Storage Hot",
+     "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "verified"
+   },
+   {
+    "id": "microsoft-seat-power-bi-pro-users",
+    "label": "Power BI Pro · users",
+    "platform": "azure",
+    "unit": "user-month",
+    "price": 19.8317,
+    "attrs": {
+     "usdList": 14
+    },
+    "source": {
+     "kind": "vendor-doc",
+     "url": "https://www.microsoft.com/power-platform/products/power-bi/pricing",
+     "note": "Power BI pricing page: Pro USD 14.00 user a month, paid yearly, fetched 2026-10-07; USD 14 x 1.41655 (USD list price, unverified: not a Retail API meter, excludes tax and agreements)",
+     "retrievedAt": "2026-10-07"
+    },
+    "confidence": "unverified"
+   }
+  ]
+ },
+ "answers": {
+  "envs": "dev,test,uat",
+  "exit": "yes",
+  "leaseEnded": "yes"
+ },
+ "recipes": {
+  "cheques": {
+   "totals": {
+    "build": 709681.8848,
+    "buildLabour": 672750,
+    "devLab": 0,
+    "runRate": 4189.6052,
+    "maintRate": 0,
+    "benefitRate": 33150
+   },
+   "summary": {
+    "totalCost": 929170.5656,
+    "totalBenefit": 1694475,
+    "build": 709681.8848,
+    "steadyStateAnnualRun": 50275.2624,
+    "benefitPerYear": 397800,
+    "npv": 489413.0553,
+    "paybackMonth": 34
+   },
+   "currentVsTarget": {
+    "currentMonthly": 42000,
+    "targetMonthly": 4189.6052,
+    "saving": 33150,
+    "dualRunningCost": 95625
+   },
+   "lineCount": 674
+  },
+  "rpa": {
+   "totals": {
+    "build": 309250.466,
+    "buildLabour": 288506.25,
+    "devLab": 0,
+    "runRate": 3035.61,
+    "maintRate": 3403.5156,
+    "benefitRate": 21840
+   },
+   "summary": {
+    "totalCost": 669841.501,
+    "totalBenefit": 1168440,
+    "build": 309250.466,
+    "steadyStateAnnualRun": 77269.5075,
+    "benefitPerYear": 262080,
+    "npv": 348242.221,
+    "paybackMonth": 28
+   },
+   "currentVsTarget": {
+    "currentMonthly": 25200,
+    "targetMonthly": 6439.1256,
+    "saving": 17640,
+    "dualRunningCost": 44100
+   },
+   "lineCount": 309
+  },
+  "liftshift": {
+   "totals": {
+    "build": 430445.855,
+    "buildLabour": 388771.875,
+    "devLab": 0,
+    "runRate": 12679.05,
+    "maintRate": 0,
+    "benefitRate": 17835
+   },
+   "summary": {
+    "totalCost": 1127793.605,
+    "totalBenefit": 935925,
+    "build": 430445.855,
+    "steadyStateAnnualRun": 152148.6,
+    "benefitPerYear": 214020,
+    "npv": -233089.3839,
+    "paybackMonth": null
+   },
+   "currentVsTarget": {
+    "currentMonthly": 24450,
+    "targetMonthly": 12679.05,
+    "saving": 17835,
+    "dualRunningCost": 45000
+   },
+   "lineCount": 555
+  },
+  "paas": {
+   "totals": {
+    "build": 571819.8896,
+    "buildLabour": 543375,
+    "devLab": 0,
+    "runRate": 1753.1104,
+    "maintRate": 4434.5833,
+    "benefitRate": 10080
+   },
+   "summary": {
+    "totalCost": 905955.3512,
+    "totalBenefit": 525420,
+    "build": 571819.8896,
+    "steadyStateAnnualRun": 74252.3248,
+    "benefitPerYear": 120960,
+    "npv": -404956.4174,
+    "paybackMonth": null
+   },
+   "currentVsTarget": {
+    "currentMonthly": 12600,
+    "targetMonthly": 6187.6937,
+    "saving": 10080,
+    "dualRunningCost": 18900
+   },
+   "lineCount": 611
+  },
+  "saas": {
+   "totals": {
+    "build": 461912.5,
+    "buildLabour": 376912.5,
+    "devLab": 0,
+    "runRate": 12250,
+    "maintRate": 0,
+    "benefitRate": 18650
+   },
+   "summary": {
+    "totalCost": 1126369.0769,
+    "totalBenefit": 960600,
+    "build": 461912.5,
+    "steadyStateAnnualRun": 147000,
+    "benefitPerYear": 223800,
+    "npv": -217485.8374,
+    "paybackMonth": null
+   },
+   "currentVsTarget": {
+    "currentMonthly": 21800,
+    "targetMonthly": 12250,
+    "saving": 18650,
+    "dualRunningCost": 46500
+   },
+   "lineCount": 138
+  },
+  "newapp": {
+   "totals": {
+    "build": 987315.1431,
+    "buildLabour": 969018.75,
+    "devLab": 0,
+    "runRate": 1696.1687,
+    "maintRate": 15763.2292,
+    "benefitRate": 11666.6667
+   },
+   "summary": {
+    "totalCost": 1877744.4343,
+    "totalBenefit": 565833.3333,
+    "build": 987315.1431,
+    "steadyStateAnnualRun": 209512.7744,
+    "benefitPerYear": 140000,
+    "npv": -1216892.8619,
+    "paybackMonth": null
+   },
+   "currentVsTarget": {
+    "currentMonthly": 0,
+    "targetMonthly": 17459.3979,
+    "saving": 0,
+    "dualRunningCost": 0
+   },
+   "lineCount": 958
+  },
+  "enhance": {
+   "totals": {
+    "build": 293133.186,
+    "buildLabour": 288506.25,
+    "devLab": 0,
+    "runRate": 323.8425,
+    "maintRate": 3203.5156,
+    "benefitRate": 6813.3333
+   },
+   "summary": {
+    "totalCost": 490665.241,
+    "totalBenefit": 364513.3333,
+    "build": 293133.186,
+    "steadyStateAnnualRun": 42328.2975,
+    "benefitPerYear": 81760,
+    "npv": -153425.5203,
+    "paybackMonth": null
+   },
+   "currentVsTarget": {
+    "currentMonthly": 6300,
+    "targetMonthly": 3527.3581,
+    "saving": 3780,
+    "dualRunningCost": 9450
+   },
+   "lineCount": 608
+  },
+  "dataplatform": {
+   "totals": {
+    "build": 862928.886,
+    "buildLabour": 772800,
+    "devLab": 0,
+    "runRate": 11737.297,
+    "maintRate": 9535.625,
+    "benefitRate": 17000
+   },
+   "summary": {
+    "totalCost": 1969120.83,
+    "totalBenefit": 840000,
+    "build": 862928.886,
+    "steadyStateAnnualRun": 255275.064,
+    "benefitPerYear": 204000,
+    "npv": -1056055.0628,
+    "paybackMonth": null
+   },
+   "currentVsTarget": {
+    "currentMonthly": 21900,
+    "targetMonthly": 21272.922,
+    "saving": 12450,
+    "dualRunningCost": 32625
+   },
+   "lineCount": 1135
+  }
+ }
+}

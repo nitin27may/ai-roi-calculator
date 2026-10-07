@@ -1,8 +1,10 @@
 import type { Catalog, ChatModel, ProcessingTier } from "@roi-calculator/catalog";
 import { DEPLOYMENT_LABEL, PriceBook, availableIn, type AzureDeployment } from "./pricing.js";
 import {
-  ProjectSchema, type Capability, type DevActivity, type Feature, type Harness, type Project, type ValueItem, type Workload, type Workstream,
+  ProjectSchema, type Capability, type DevActivity, type Feature, type Harness, type Project, type ProjectType, type ValueItem, type Workload, type Workstream,
 } from "./project.js";
+import { PLAN_DEFS, PLAN_HORIZON_MONTHS, PLAN_RAMP_MONTHS, type PlanParts } from "./recipes-plan.js";
+import { applyStandardPhases } from "./delivery.js";
 import { DEFAULT_HARNESS, newActivity, ACTIVITY_KINDS } from "./templates.js";
 import { blankProject } from "./samples/templates.js";
 import { IMAGE_SIZES } from "./images.js";
@@ -25,6 +27,8 @@ export type Question = QBase & (
   | { kind: "number"; unit: string; default: number; min: number; max?: number; step?: number }
   | { kind: "choice"; options: { value: string; label: string }[]; default: string }
   | { kind: "toggle"; default: boolean }
+  /** Pick any of the options, or none. The answer is the picked values joined by commas; the default is "" (nothing picked). */
+  | { kind: "multi"; options: { value: string; label: string }[]; default: string }
 );
 
 export type ModelNeed = "light" | "balanced" | "strong" | "snowflake" | "realtime";
@@ -84,7 +88,7 @@ export interface Assumption {
   unit: string;
   source: string;
   /** Where the value lives in the built project, so the review step can edit it. Absent means it is explained only. */
-  target?: { collection: "workloads" | "harnesses" | "activities" | "capabilities" | "value" | "avoidedCosts"; id: string; field: string[] };
+  target?: { collection: "workloads" | "harnesses" | "activities" | "capabilities" | "value" | "avoidedCosts" | "currentLines" | "deliveryCosts" | "resources"; id: string; field: string[] };
 }
 
 export interface RecipeVolume { users?: number; monthlyItems: number; oneTimeItems: number; unit: string; mainWorkloadId?: string }
@@ -123,6 +127,8 @@ export interface RecipeResult {
   value: ValueItem[];
   assumptions: Assumption[];
   volume: RecipeVolume;
+  /** Plan recipes (A12) only: team, delivery costs, environments, resources, current-state lines and scorecard items to merge into the project. */
+  plan?: PlanParts;
 }
 
 export interface Recipe {
@@ -137,6 +143,10 @@ export interface Recipe {
   needsHarness: boolean;
   /** Whether part of the workload can run on the Batch tier. */
   batchable: boolean;
+  /** The kinds of change this recipe is offered under in the wizard. Absent means `["ai"]`. See `recipeTypes`. */
+  types?: ProjectType[];
+  /** True for the non-AI plan recipes (A12): they bring their own team, costs and current state, and never choose a model. */
+  plan?: boolean;
   /** Plain-language note on what a time-saved estimate means here. */
   benefitHint: string;
   benefit: (v: Values) => BenefitInput;
@@ -996,7 +1006,7 @@ const translation: Recipe = {
 };
 
 const nonAi: Recipe = {
-  id: "nonai", label: "Non-AI or hybrid (fixed costs and benefits)", needsHarness: false, batchable: false,
+  id: "nonai", label: "Non-AI or hybrid (fixed costs and benefits)", needsHarness: false, batchable: false, types: ["newApp", "enhancement", "automation", "replatform", "saas"],
   description: "Costs and benefits that do not come from a model: a licence, a contractor, a platform fee. Use it alone or beside an AI recipe.",
   questions: [
     q.num("monthly", "Fixed cost per month", "C$", 0, 0, 100_000_000, ["A recurring cost such as a licence, hosting or a support contract.", "C$4,500 a month for a vendor platform.", YOU]),
@@ -1019,8 +1029,27 @@ const nonAi: Recipe = {
   },
 };
 
+/** The non-AI plan recipes (A12), wrapped so they fit the same `Recipe` shape as the AI ones. */
+export const PLAN_RECIPES: Recipe[] = PLAN_DEFS.map((d) => ({
+  id: d.id, label: d.label, description: d.description, questions: d.questions, modelRoles: [], devKinds: [], needsHarness: false, batchable: false,
+  benefitHint: d.benefitHint, benefit: d.benefit, types: d.types, plan: true,
+  build(a) {
+    const o = new Out(a);
+    const built = d.plan(a);
+    for (const w of built.workloads) o.add(w);
+    o.assumptions.push(...built.assumptions);
+    return { ...o.finish(built.volume), plan: built.parts };
+  },
+}));
+
 export const RECIPES: Recipe[] = [book, extraction, rag, search, chat, agent, multi, spreadsheet, batchJobs, email, voice, snowflake, content, translation, nonAi];
-export const recipeById = (id: string): Recipe | undefined => RECIPES.find((r) => r.id === id);
+/** Every recipe the wizard can offer: the AI ones, the fixed-cost one and the non-AI plan recipes (A12). */
+export const ALL_RECIPES: Recipe[] = [...RECIPES, ...PLAN_RECIPES];
+/** The kinds of change a recipe is offered under. AI recipes carry no list and are the "ai" ones. */
+export const recipeTypes = (r: Recipe): ProjectType[] => r.types ?? ["ai"];
+/** Recipes offered under at least one of the given types, in list order. */
+export const recipesForTypes = (types: readonly ProjectType[]): Recipe[] => ALL_RECIPES.filter((r) => recipeTypes(r).some((t) => types.includes(t)));
+export const recipeById = (id: string): Recipe | undefined => ALL_RECIPES.find((r) => r.id === id);
 void batchQ;
 
 // ---------------------------------------------------------------- models
@@ -1097,6 +1126,8 @@ export interface WizardSelection {
   /** Run this feature somewhere other than the project's deployment. */
   deployment?: AzureDeployment;
   benefit?: BenefitInput;
+  /** The kinds of change set on the feature this selection creates. Absent leaves the feature untyped. */
+  types?: ProjectType[];
 }
 
 export interface WizardInput {
@@ -1114,7 +1145,7 @@ export interface WizardInput {
 
 /** A sensible team and build length for the features picked: bigger sets get more people and months. */
 export function defaultBuild(recipeIds: string[]): { people: number; months: number } {
-  const ai = recipeIds.filter((id) => id !== "nonai");
+  const ai = recipeIds.filter((id) => id !== "nonai" && !recipeById(id)?.plan);
   const weight = ai.reduce((s, id) => s + (id === "multi" ? 2 : id === "agent" ? 1.5 : 1), 0);
   return { people: weight <= 2 ? 2 : weight <= 4 ? 3 : 4, months: Math.min(12, Math.max(2, Math.round(2 + weight * 1.5))) };
 }
@@ -1147,43 +1178,74 @@ export interface WizardResult { project: Project; assumptions: Assumption[]; fea
 /**
  * Turns the wizard's answers into a validated project. Throws `MissingChoice` when a needed model has not been picked.
  * Each selection becomes a feature; ids are prefixed with the feature id so combined recipes never collide.
+ * Plan recipes (A12) bring their own team, delivery costs, environments, resources, current state and scorecard; a project
+ * made only of them has no AI developer or architect lines, no Dev Lab and no model choice.
  */
 export function buildWizardProject(cat: Catalog, input: WizardInput): WizardResult {
+  return assemble(cat, input);
+}
+
+/** Like `buildWizardProject` for selections that need no catalogue (plan recipes only); used by the project templates. */
+export function buildPlanProject(input: WizardInput): WizardResult {
+  return assemble(undefined, input);
+}
+
+function assemble(cat: Catalog | undefined, input: WizardInput): WizardResult {
   const p0 = blankProject(input.name.trim() || "New estimate");
+  const recipes = input.selections.map((sel) => {
+    const r = recipeById(sel.recipeId);
+    if (!r) throw new Error(`Unknown recipe "${sel.recipeId}"`);
+    return r;
+  });
+  const hasLegacy = recipes.some((r) => !r.plan);
+  const hasPlan = recipes.some((r) => r.plan);
+  if (hasLegacy && !cat) throw new Error("A catalogue is needed for recipes that are not plan recipes");
+  const planMonths = Math.max(0, ...input.selections.map((sel, i) => (recipes[i]!.plan ? Number(withDefaults(recipes[i]!, sel.values).months ?? 0) : 0)));
   p0.settings.azureDeployment = input.deployment;
   if (input.tier) p0.settings.processingTier = input.tier;
-  p0.timeline.buildMonths = Math.min(24, Math.max(1, Math.round(input.build.months)));
-  p0.build.team = [
-    { roleId: "dev", people: input.build.people, hoursPerMonth: 160, experiments: true },
-    { roleId: "architect", people: input.build.architects ?? 0.5, hoursPerMonth: 160, experiments: false },
-  ];
+  p0.timeline.buildMonths = Math.min(24, Math.max(1, Math.round(hasLegacy ? Math.max(input.build.months, planMonths) : planMonths)));
+  if (hasLegacy) {
+    p0.build.team = [
+      { roleId: "dev", people: input.build.people, hoursPerMonth: 160, experiments: true },
+      { roleId: "architect", people: input.build.architects ?? 0.5, hoursPerMonth: 160, experiments: false },
+    ];
+  } else {
+    // Only plan recipes: the team, cost lines and run-rate come from them, so nothing AI-flavoured is left on the project.
+    p0.build.team = [];
+    p0.build.environment = [];
+    p0.rateCard = p0.rateCard.filter((x) => x.id === "knowledgeWorker");
+    p0.timeline.horizonMonths = PLAN_HORIZON_MONTHS;
+    p0.timeline.adoptionRampMonths = PLAN_RAMP_MONTHS;
+    p0.roi.rateEscalationPctPerYear = 0;
+  }
   const batch = input.batchAllowed && batchOfferedUnder(input.deployment);
-  const light = recommendModel(cat, { id: "judge", label: "Judge", need: "light", reason: "judging is a short, repeated job" }, { deployment: input.deployment, quality: "balanced", batch });
-  const judge = input.judgeModelId ?? light?.modelId ?? modelOptions(cat, { id: "judge", label: "Judge", need: "light", reason: "" }, input.deployment)[0]?.id;
+  const light = cat && hasLegacy ? recommendModel(cat, { id: "judge", label: "Judge", need: "light", reason: "judging is a short, repeated job" }, { deployment: input.deployment, quality: "balanced", batch }) : null;
+  const judge = input.judgeModelId ?? light?.modelId ?? (cat && hasLegacy ? modelOptions(cat, { id: "judge", label: "Judge", need: "light", reason: "" }, input.deployment)[0]?.id : undefined);
   const taken = new Set<string>();
   const assumptions: Assumption[] = [];
   const features: WizardResult["features"] = [];
-  const effortShare = 1 / Math.max(1, input.selections.filter((s) => s.recipeId !== "nonai").length);
+  const effortShare = 1 / Math.max(1, recipes.filter((r) => !r.plan && r.id !== "nonai").length);
+  const firstLegacy = recipes.findIndex((r) => !r.plan);
+  const plan = { first: true, environments: [] as PlanParts["environments"], resources: [] as PlanParts["resources"] };
   input.selections.forEach((sel, i) => {
-    const r = recipeById(sel.recipeId);
-    if (!r) throw new Error(`Unknown recipe "${sel.recipeId}"`);
+    const r = recipes[i]!;
     let fid = r.id, n = 1;
     while (taken.has(fid)) fid = `${r.id}-${++n}`;
     taken.add(fid);
     const label = sel.label?.trim() || (n > 1 ? `${r.label} ${n}` : r.label);
     const res = r.build({
       featureId: fid, label, values: withDefaults(r, sel.values), models: sel.models ?? {}, deployment: sel.deployment ?? input.deployment, projectDeployment: input.deployment,
-      batch, quality: input.quality, judgeModelId: judge, dev: { kinds: input.devKinds, effortShare, buildMonths: p0.timeline.buildMonths, primary: i === 0 },
-      benefit: sel.benefit ?? r.benefit(withDefaults(r, sel.values)), benchmarks: cat.benchmarks, rateCad: p0.rateCard.find((x) => x.id === "knowledgeWorker")?.hourlyRate,
+      batch, quality: input.quality, judgeModelId: judge, dev: { kinds: input.devKinds, effortShare, buildMonths: p0.timeline.buildMonths, primary: i === firstLegacy },
+      benefit: sel.benefit ?? r.benefit(withDefaults(r, sel.values)), benchmarks: cat?.benchmarks, rateCad: p0.rateCard.find((x) => x.id === "knowledgeWorker")?.hourlyRate,
     });
-    p0.features.push({ ...res.feature, description: r.description });
+    p0.features.push({ ...res.feature, description: r.description, types: sel.types ?? [] });
     p0.workloads.push(...res.workloads);
     p0.harnesses.push(...res.harnesses);
     p0.build.workstreams.push(...res.workstreams);
     p0.build.activities.push(...res.activities);
     for (const c of res.capabilities) {
       if (!p0.rateCard.some((x) => x.id === c.roleId)) {
-        const role = cat.benchmarks.roles.find((x) => x.id === c.roleId);
+        const role = cat?.benchmarks.roles.find((x) => x.id === c.roleId);
         if (role) p0.rateCard.push({ id: role.id, label: role.label, hourlyRate: role.hourlyRate });
       }
       p0.benefits.capabilities.push(c);
@@ -1191,22 +1253,57 @@ export function buildWizardProject(cat: Catalog, input: WizardInput): WizardResu
     p0.benefits.avoidedCosts.push(...res.avoidedCosts);
     p0.benefits.oneOff.push(...res.oneOff);
     p0.benefits.value.push(...res.value);
+    if (res.plan) mergePlan(p0, res.plan, plan, !hasLegacy);
     assumptions.push(...res.assumptions);
     features.push({ id: fid, label, recipeId: r.id });
   });
-  assumptions.push(
-    { id: "project-build-people", featureId: "", label: "Developers on the build", value: input.build.people, unit: "people", source: "Starting size for the features picked; change it on the Building it step." },
-    { id: "project-build-months", featureId: "", label: "Build length", value: p0.timeline.buildMonths, unit: "months", source: "Starting length for the features picked; change it on the Building it step." },
-    { id: "project-judge-model", featureId: "", label: "Judge model in Dev Lab", value: judge ?? "none", unit: "model", source: "A small recommended model for judging; change it on the Build page." },
-  );
+  if (hasPlan) {
+    if (plan.environments.length) {
+      // Production must be modelled once any environment is, or the production resources would not be billed at all.
+      for (const x of plan.resources) x.envIds ??= ["prod"];
+      p0.environments = plan.environments;
+    }
+    if (plan.resources.length) p0.resources = plan.resources;
+    applyStandardPhases(p0);
+  }
+  if (hasLegacy) {
+    assumptions.push(
+      { id: "project-build-people", featureId: "", label: "Developers on the build", value: input.build.people, unit: "people", source: "Starting size for the features picked; change it on the Building it step." },
+      { id: "project-build-months", featureId: "", label: "Build length", value: p0.timeline.buildMonths, unit: "months", source: "Starting length for the features picked; change it on the Building it step." },
+      { id: "project-judge-model", featureId: "", label: "Judge model in Dev Lab", value: judge ?? "none", unit: "model", source: "A small recommended model for judging; change it on the Build page." },
+    );
+  } else {
+    assumptions.push(
+      { id: "project-build-months", featureId: "", label: "Build length", value: p0.timeline.buildMonths, unit: "months", source: "The longest build length among the recipes picked; change it on the Build page." },
+      { id: "project-horizon", featureId: "", label: "Plan length", value: PLAN_HORIZON_MONTHS, unit: "months", source: "Five years, so payback and the cumulative figure are read over 60 months; change it on the Value and ROI page." },
+      { id: "project-contingency", featureId: "", label: "Contingency on build labour", value: p0.build.contingencyPct, unit: "%", source: "Illustrative assumption: replace with your figure" },
+      { id: "project-ramp", featureId: "", label: "Adoption ramp", value: PLAN_RAMP_MONTHS, unit: "months", source: "Illustrative assumption: replace with your figure" },
+    );
+  }
   return { project: ProjectSchema.parse(p0), assumptions, features };
+}
+
+/** Merges a plan recipe's parts into the project. The first plan recipe sets maintenance and contingency when only plan recipes are used. */
+function mergePlan(p0: Project, parts: PlanParts, acc: { first: boolean; environments: PlanParts["environments"]; resources: PlanParts["resources"] }, planOnly: boolean) {
+  for (const role of parts.roles) if (!p0.rateCard.some((x) => x.id === role.id)) p0.rateCard.push({ ...role });
+  p0.build.team.push(...parts.team);
+  if (parts.deliveryCosts.length) p0.build.deliveryCosts = [...(p0.build.deliveryCosts ?? []), ...parts.deliveryCosts];
+  for (const e of parts.environments) if (!acc.environments.some((x) => x.id === e.id)) acc.environments.push(e);
+  acc.resources.push(...parts.resources);
+  if (parts.currentLines.length) p0.currentState = { lines: [...(p0.currentState?.lines ?? []), ...parts.currentLines] };
+  if (parts.scorecard.length) p0.benefits.scorecard = [...(p0.benefits.scorecard ?? []), ...parts.scorecard];
+  if (acc.first && planOnly) { p0.maintenance = parts.maintenance; p0.build.contingencyPct = parts.contingencyPct; p0.build.contingencyScope = "labour"; }
+  acc.first = false;
 }
 
 /** Applies an edit from the review step to the project. Returns false when the target is gone. */
 export function applyAssumption(p: Project, a: Assumption, value: number | string | boolean): boolean {
   const t = a.target;
   if (!t) return false;
-  const lists = { workloads: p.workloads, harnesses: p.harnesses, activities: p.build.activities, capabilities: p.benefits.capabilities, value: p.benefits.value, avoidedCosts: p.benefits.avoidedCosts };
+  const lists = {
+    workloads: p.workloads, harnesses: p.harnesses, activities: p.build.activities, capabilities: p.benefits.capabilities, value: p.benefits.value, avoidedCosts: p.benefits.avoidedCosts,
+    currentLines: p.currentState?.lines ?? [], deliveryCosts: p.build.deliveryCosts ?? [], resources: p.resources ?? [],
+  };
   const list = lists[t.collection] as unknown as Record<string, unknown>[];
   let cur: Record<string, unknown> | undefined = list.find((x) => x.id === t.id);
   if (!cur) return false;
