@@ -70,3 +70,4 @@ The tool then helps pick resources and configuration.
 8. **Configurable, not hard-coded.** Deployment (Global / Canada Regional / US Data Zone) and processing tier (Standard / Batch now; Priority / Flex later as data) are set per project and per workload.
 9. **CAD everywhere,** shown as C$, with the FX date stated on every export.
 - [30-any-project-gaps.md](30-any-project-gaps.md): moving from AI-only to any project type (automation, migration, new process, enhancement, AI); gaps and brainstorm agenda.
+- [40-roi-calculator-open-source.md](40-roi-calculator-open-source.md): next phase; rename to roi-calculator and bring the repo to open-source standard.
