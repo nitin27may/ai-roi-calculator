@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
+import { loadCatalog } from "@roi-calculator/catalog";
 import { ALLOWANCE_ID, MANUAL_METER, ProjectSchema, allowanceActive, buildLedger, computeRoi, summarize, clearActivityOverrides, clearAllOverrides, meetingIntelligence, overriddenCells, setMonthOverride, type Project } from "../src/index.js";
 
 const cat = loadCatalog();

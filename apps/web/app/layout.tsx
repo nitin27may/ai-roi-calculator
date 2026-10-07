@@ -9,7 +9,7 @@ import "./globals.css";
 import { Shell } from "@/components/shell";
 import { THEME_INIT_SCRIPT } from "@/lib/prefs";
 
-export const metadata: Metadata = { title: "AI Cost & ROI Studio", description: "Token, cost and ROI calculator for Azure and Snowflake AI workloads (CAD)." };
+export const metadata: Metadata = { title: "ROI Calculator", description: "Cost and ROI calculator for technology projects, in CAD, with a token calculator for AI workloads." };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

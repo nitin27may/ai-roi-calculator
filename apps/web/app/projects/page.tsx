@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Copy, Download, Trash2, Wand2 } from "lucide-react";
-import { PROJECT_TEMPLATES, buildLedger, compareFigures, computeRoi, costSplit, roiOptions, verdictFor } from "@studio/engine";
+import { PROJECT_TEMPLATES, buildLedger, compareFigures, computeRoi, costSplit, roiOptions, verdictFor } from "@roi-calculator/engine";
 import { Card, CardHead, Field, TextInput } from "@/components/ui";
 import { CompareBars, COMPARE_COLORS, MiniSplit } from "@/components/charts-compare";
 import { VerdictChip } from "@/components/summary-parts";

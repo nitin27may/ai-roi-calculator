@@ -1,5 +1,5 @@
 "use client";
-import type { Line } from "@studio/engine";
+import type { Line } from "@roi-calculator/engine";
 import { Formula } from "@/components/ui";
 import { cad } from "@/lib/format";
 

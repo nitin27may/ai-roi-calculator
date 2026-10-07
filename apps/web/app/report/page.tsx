@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { DEPLOYMENT_LABEL, LABOUR_EXCLUDED_TEXT, WIDE_RANGE_TEXT, buildLabel, compareScenarios, computeAllocation, evaluateLevers, moneyBand, pricesUsedRows, steadyState } from "@studio/engine";
+import { DEPLOYMENT_LABEL, LABOUR_EXCLUDED_TEXT, WIDE_RANGE_TEXT, buildLabel, compareScenarios, computeAllocation, evaluateLevers, moneyBand, pricesUsedRows, steadyState } from "@roi-calculator/engine";
 import { CumulativeLine, Legend, RankedBars, StackedBars, Waterfall } from "@/components/charts";
 import { Field, TextInput } from "@/components/ui";
 import { FinanceMeasures, HeadlineTiles, RiskSummary, VerdictChip, WATERFALL_COST_IDS, wideDrivers } from "@/components/summary-parts";
@@ -16,7 +16,10 @@ const STREAMS = [
   { key: "maint", label: "Maintenance & transition", color: "var(--maint)" },
 ];
 
-const AUTHOR_KEY = "studio.reportAuthor";
+import { ensureStorageMigrated } from "@/lib/storage-migrate";
+ensureStorageMigrated();
+
+const AUTHOR_KEY = "roi-calculator:reportAuthor";
 const BASIS_WORDS = { run: "running cost only", runMaint: "running cost and maintenance", full: "the full lifecycle" };
 
 /** Long-form report: cover, executive page, assumptions, then the appendix. Use the browser's Print, then Save as PDF. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
+import { loadCatalog } from "@roi-calculator/catalog";
 import {
   ASSUMPTION_DEFAULTS, HOSTING_PRESETS, type Assumptions, PriceBook, ProjectSchema, WorkloadSchema, buildLedger, hostingItemMeta, imageCost, imageFormula, imageTokens,
   meetingIntelligence, newWorkload, projectIssues, ptuAnalysis, resolveAssumptions, sizePtu, voiceCall, cascadeCall, workloadLines,

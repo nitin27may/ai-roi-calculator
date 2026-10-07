@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ALLOWANCE_ID, allowanceActive, clearActivityOverrides, monthOverride, setMonthOverride, type DevActivity } from "@studio/engine";
+import { ALLOWANCE_ID, allowanceActive, clearActivityOverrides, monthOverride, setMonthOverride, type DevActivity } from "@roi-calculator/engine";
 import { MonthTh, TableNote } from "@/components/months";
 import { useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";

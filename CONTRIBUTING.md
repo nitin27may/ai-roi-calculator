@@ -34,9 +34,9 @@ Run the whole chain. CI runs the same checks.
 ```bash
 pnpm test
 pnpm typecheck
-pnpm --filter @studio/web exec tsc --noEmit    # the root typecheck does not cover apps/web
+pnpm --filter @roi-calculator/web exec tsc --noEmit    # the root typecheck does not cover apps/web
 pnpm validate                                  # catalogue integrity
-pnpm --filter @studio/web build
+pnpm --filter @roi-calculator/web build
 ```
 
 ## Branches and pull requests

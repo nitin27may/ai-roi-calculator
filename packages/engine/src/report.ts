@@ -1,4 +1,4 @@
-import type { Catalog } from "@studio/catalog";
+import type { Catalog } from "@roi-calculator/catalog";
 import type { PriceNote } from "./pricing.js";
 import { steadyState, type Ledger, type Month } from "./ledger.js";
 import type { Project } from "./project.js";

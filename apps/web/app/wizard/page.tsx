@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import {
   DEPLOYMENT_LABEL, TIER_LABEL, applicableDevKinds, batchOfferedUnder, buildLedger, computeRoi, defaultConfidence, modelOptions, recipeById, recommendModel,
   type Assumption, type AzureDeployment, type BenefitInput, type BenefitType, type ModelRole, type Question, type Quality, type Recipe,
-} from "@studio/engine";
+} from "@roi-calculator/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Select, Seg, TextInput } from "@/components/ui";
 import { HelpTip } from "@/components/help-tip";
 import { catalog } from "@/lib/compute";

@@ -1,4 +1,4 @@
-import type { ChatModel } from "@studio/catalog";
+import type { ChatModel } from "@roi-calculator/catalog";
 import type { ImageInput } from "./project.js";
 
 /**

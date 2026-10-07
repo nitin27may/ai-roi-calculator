@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const config: NextConfig = {
-  transpilePackages: ["@studio/engine", "@studio/catalog"],
+  transpilePackages: ["@roi-calculator/engine", "@roi-calculator/catalog"],
   // Static export for Cloudflare Pages; no remote images.
   images: { unoptimized: true },
   output: "export",

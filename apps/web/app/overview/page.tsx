@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import type { Month } from "@studio/engine";
+import type { Month } from "@roi-calculator/engine";
 import { Card, CardHead, Pill, Seg } from "@/components/ui";
 import { Legend, useSize } from "@/components/charts";
 import { Story } from "@/components/story";
@@ -10,7 +10,10 @@ import { catalog, useLedger, useLevers } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad, kcad } from "@/lib/format";
 
-const P3_NOTICE_KEY = "studio.notice.p3";
+import { ensureStorageMigrated } from "@/lib/storage-migrate";
+ensureStorageMigrated();
+
+const P3_NOTICE_KEY = "roi-calculator:notice.p3";
 
 /** One-time notice for the P3 token-accuracy fixes; dismissal persists in localStorage so it shows once per browser. */
 function P3Notice() {

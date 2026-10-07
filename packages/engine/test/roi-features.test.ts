@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
+import { loadCatalog } from "@roi-calculator/catalog";
 import {
   ACTIVITY_KINDS, ProjectSchema, WORKLOAD_KINDS, applyScenario, buildLedger, compareScenarios, computeAllocation, computeRoi,
   meetingIntelligence, newActivity, newWorkload, removeWorkload, setPath, type Project,

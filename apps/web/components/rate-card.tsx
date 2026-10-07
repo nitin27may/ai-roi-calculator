@@ -1,6 +1,6 @@
 "use client";
 import { Plus } from "lucide-react";
-import { addRole, rateEscalationNote, removeRole, roleUsage } from "@studio/engine";
+import { addRole, rateEscalationNote, removeRole, roleUsage } from "@roi-calculator/engine";
 import { Field, NumberInput, TrashButton } from "@/components/ui";
 import { useStudio } from "@/lib/store";
 

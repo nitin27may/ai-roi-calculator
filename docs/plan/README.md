@@ -1,5 +1,7 @@
 # Audit and product plan (2026-10-04)
 
+> 2026-10-06: the product was renamed from "AI Cost & ROI Studio" to "ROI Calculator" and the packages from `@studio/*` to `@roi-calculator/*`. The documents below keep their original wording for the history.
+
 This folder records the end-to-end audit of the calculator and the plan to make it an executive-grade, use-case driven estimator.
 
 | File | Content |

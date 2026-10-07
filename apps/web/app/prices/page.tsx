@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Card, CardHead, Pill, Seg, Select } from "@/components/ui";
-import { availableIn, DEPLOYMENT_LABEL, type AzureDeployment } from "@studio/engine";
+import { availableIn, DEPLOYMENT_LABEL, type AzureDeployment } from "@roi-calculator/engine";
 import { catalog } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad } from "@/lib/format";

@@ -1,4 +1,4 @@
-import { heuristics } from "@studio/catalog";
+import { heuristics } from "@roi-calculator/catalog";
 import type { PriceBook } from "./pricing.js";
 import { AGENT_P10 } from "./spread.js";
 

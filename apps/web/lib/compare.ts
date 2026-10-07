@@ -1,4 +1,4 @@
-import { formatIrr, type ComparedProject } from "@studio/engine";
+import { formatIrr, type ComparedProject } from "@roi-calculator/engine";
 import { cad, fmt } from "./format";
 
 export interface CompareRow {

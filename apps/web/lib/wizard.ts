@@ -1,8 +1,8 @@
-import type { Catalog, ProcessingTier } from "@studio/catalog";
+import type { Catalog, ProcessingTier } from "@roi-calculator/catalog";
 import {
   MissingChoice, ProjectSchema, RECIPES, applyAssumption, batchOfferedUnder, buildWizardProject, defaultBuild, defaultDevKinds, missingModels, modelOptions, recipeById,
   type Assumption, type AzureDeployment, type BenefitInput, type DevKind, type Project, type Quality, type Recipe, type Values, type WizardInput, type WizardResult,
-} from "@studio/engine";
+} from "@roi-calculator/engine";
 
 /** The six wizard steps, in order. */
 export const STEPS = [

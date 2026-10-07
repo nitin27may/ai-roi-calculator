@@ -1,4 +1,6 @@
-# AI Cost & ROI Studio — consolidated design
+# ROI Calculator — consolidated design
+
+> 2026-10-06: the product was renamed from "AI Cost & ROI Studio" to "ROI Calculator"; packages are now `@roi-calculator/*`.
 
 Mockup: `docs/design/mockup.html` (open locally in a browser; also shared as a private claude.ai page).
 Supersedes the scope split in PLAN.md §0/§11: the token calculator and the ROI calculator are **one app**.

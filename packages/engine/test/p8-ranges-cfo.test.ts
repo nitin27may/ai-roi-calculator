@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
+import { loadCatalog } from "@roi-calculator/catalog";
 import {
   CURRENT_PROJECT_VERSION, PROJECT_TEMPLATES, PriceBook, ProjectSchema, applyEdit, buildLedger, computeAllocation, computeRoi, irr, meetingIntelligence,
   migrateProject, newWorkload, projectRange, roiOptions, sensitivity, summarize, valueItemMonthly, workloadLines, workloadRange,

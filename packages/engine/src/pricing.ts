@@ -1,9 +1,9 @@
-import type { Catalog, ChatModel, Deployment, ProcessingTier, TierPricing, TokenPrices, UnitPrice } from "@studio/catalog";
-import { heuristics } from "@studio/catalog";
+import type { Catalog, ChatModel, Deployment, ProcessingTier, TierPricing, TokenPrices, UnitPrice } from "@roi-calculator/catalog";
+import { heuristics } from "@roi-calculator/catalog";
 
 /** Global Standard, Canada Regional Standard or US Data Zone Standard. */
 export type AzureDeployment = Deployment;
-export type { ProcessingTier } from "@studio/catalog";
+export type { ProcessingTier } from "@roi-calculator/catalog";
 
 export const DEPLOYMENT_LABEL: Record<AzureDeployment, string> = { global: "Global Standard", regional: "Canada Regional Standard", dataZone: "US Data Zone Standard" };
 export const DEPLOYMENTS: AzureDeployment[] = ["global", "regional", "dataZone"];

@@ -1,4 +1,4 @@
-import { creditSummary, type Line } from "@studio/engine";
+import { creditSummary, type Line } from "@roi-calculator/engine";
 import { Pill } from "@/components/ui";
 import { cad, fmt } from "@/lib/format";
 

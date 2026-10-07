@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
+import { loadCatalog } from "@roi-calculator/catalog";
 import { PROJECT_TEMPLATES, ProjectSchema, buildLedger, computeRoi } from "../src/index.js";
 
 const cat = loadCatalog();
@@ -23,7 +23,7 @@ describe("project templates", () => {
 
 describe("sample project Dev Lab coverage", () => {
   it("includes every Dev Lab activity kind and each one costs something", async () => {
-    const { loadCatalog } = await import("@studio/catalog");
+    const { loadCatalog } = await import("@roi-calculator/catalog");
     const { PriceBook, devLabLines, meetingIntelligence, ACTIVITY_KINDS } = await import("../src/index.js");
     const book = new PriceBook(loadCatalog(), meetingIntelligence.settings);
     const have = new Set(meetingIntelligence.build.activities.map((a) => a.kind));

@@ -25,7 +25,7 @@ Updated in every PR and posted after every merge. Plan: [docs/plan](plan/README.
 | 19 | Guidance / Coverage | Guided file and agent token estimator | Done | #25 | P13 |
 | 20 | Review fixes | Month labels and captions, explicit cost basis, pricing model setting | Done | #28, #29, #30 | Month 1 headers and legends; Default ROI cost basis and Pricing model (pay-as-you-go or PTU) in Settings; basis shown on headline numbers; Delete any project (inline confirm, empty library stays empty); Exclude build labour flows through every figure; collapsible project menu in the sidebar; sidebar lists every project as its own collapsible row, and the project section disappears with an empty library; per-line Costed toggle and manual hourly rate on the build team, with an editable rate card; Snowflake lines show credits, CAD per credit and manual or catalogue rate on Run, Settings, Tokens and the Line items export |
 | 21 | Scope | Any-project scope: gap analysis | Done | #37 | docs/plan/30-any-project-gaps.md; brainstorm next |
-| 22 | Repo | Rename to roi-calculator and open-source standard | Next | | docs/plan/40-roi-calculator-open-source.md; About and topics set 2026-10-07; licence and community files added; internal references cleaned |
+| 22 | Repo | Rename to roi-calculator and open-source standard | Next | | docs/plan/40-roi-calculator-open-source.md; About and topics set 2026-10-07; licence and community files added; internal references cleaned; product and packages renamed (repo rename pending) |
 | 23 | Scope | Any-project build (environments, resource master, current vs target, benefit scorecard) | Pending | | After 22; brainstorm in 30-any-project-gaps.md |
 
 Status values: Pending, In progress, In review, Done, Deferred.

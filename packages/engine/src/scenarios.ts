@@ -1,4 +1,4 @@
-import type { Catalog } from "@studio/catalog";
+import type { Catalog } from "@roi-calculator/catalog";
 import { ProjectSchema, type Project, type Scenario, type ScenarioEdit } from "./project.js";
 import { LEVERS } from "./levers.js";
 import { buildLedger, type Ledger } from "./ledger.js";

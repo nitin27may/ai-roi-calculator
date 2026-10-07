@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
-import { loadCatalog } from "@studio/catalog";
-import { DEPLOYMENT_LABEL, availableIn, buildLedger, computeRoi, roiOptions, evaluateLevers, summarize, type AzureDeployment } from "@studio/engine";
+import { loadCatalog } from "@roi-calculator/catalog";
+import { DEPLOYMENT_LABEL, availableIn, buildLedger, computeRoi, roiOptions, evaluateLevers, summarize, type AzureDeployment } from "@roi-calculator/engine";
 import { useStudio } from "./store";
 
 /** The bundled CAD price catalogue (validated once). */

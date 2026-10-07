@@ -61,7 +61,7 @@ Recipes are declarative data (`packages/engine/src/usecases.ts`). Each maps answ
 - **Glossary.** Covers token, input/cached/output, reasoning tokens, cache write, deployment types, processing tiers, PTU, AI Dev Lab, harness, P50/P90, NPV, payback, IRR and realisation. It is reachable from Help and from every hint.
 - **Inline validation.** Out-of-range values are explained ("Max 100% — this is a share of calls"), not silently clamped. Raw schema errors are never shown.
 - **Product tour.** Shown on first visit and on each step until finished or explicitly skipped. Back, Next, Skip, and an "n of N" counter. A spotlight highlights the current element. Esc skips. Reduced motion is respected. The seen-state is stored per tour version, and the tour can be relaunched from Help. No heavy dependency: a small in-house component using an SVG mask (driver.js, about 5 KB, is the fallback). Proposed steps:
-  1. Welcome and what the studio estimates.
+  1. Welcome and what the ROI Calculator estimates.
   2. Projects and the sample.
   3. New estimate wizard.
   4. Summary tiles.

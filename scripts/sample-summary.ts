@@ -1,5 +1,5 @@
-import { loadCatalog } from "@studio/catalog";
-import { buildLedger, computeRoi, evaluateLevers, meetingIntelligence as p } from "@studio/engine";
+import { loadCatalog } from "@roi-calculator/catalog";
+import { buildLedger, computeRoi, evaluateLevers, meetingIntelligence as p } from "@roi-calculator/engine";
 const cat = loadCatalog(); const L = buildLedger(p, cat); const f = (n:number)=>"$"+Math.round(n).toLocaleString("en-CA");
 console.log("build", f(L.totals.build), "labour", f(L.totals.buildLabour), "devlab", f(L.totals.devLab));
 console.log("run-rate", f(L.totals.runRate), "maint", f(L.totals.maintRate), "benefit", f(L.totals.benefitRate));

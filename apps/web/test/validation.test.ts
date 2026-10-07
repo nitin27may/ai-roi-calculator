@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ProjectSchema, meetingIntelligence } from "@studio/engine";
+import { ProjectSchema, meetingIntelligence } from "@roi-calculator/engine";
 import { describeIssue, humanizeIssue, pathLabel, rangeMessage } from "../lib/validation";
 import { GLOSSARY } from "../lib/glossary";
 import { nextMenuIndex } from "../lib/menu-keys";

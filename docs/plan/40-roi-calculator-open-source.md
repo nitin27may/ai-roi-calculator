@@ -2,6 +2,9 @@
 
 This is the next phase, ahead of the any-project build work in [30-any-project-gaps.md](30-any-project-gaps.md). The rename comes first so that the any-project work lands under the final name.
 
+## Done 2026-10-06: product and package rename
+The product name, workspace packages (`@studio/*` to `@roi-calculator/*`), root package, project schema id and storage keys were renamed in one change. The loader accepts the old schema id as an alias in `migrateProject` (no version bump, so `CURRENT_PROJECT_VERSION` is unchanged) and a one-time helper copies old browser storage keys to the new prefix. The GitHub repo rename, local folder rename and a new Pages site are still to do; the deploy script and live URL token-calculator-532.pages.dev are unchanged.
+
 ## Done already
 - GitHub About is set. The description is "Local, offline cost and ROI calculator for technology projects: build team, environments, Azure infrastructure, run cost and benefits, in CAD. Includes a token calculator for AI workloads." The homepage is the live site.
 - Topics are set: roi-calculator, cost-estimation, business-case, tco, finops, azure, azure-pricing, cloud-cost, token-calculator, azure-openai, nextjs, typescript.
@@ -13,7 +16,7 @@ This is the next phase, ahead of the any-project build work in [30-any-project-g
 | GitHub repo | `nitin27may/ai-roi-calculator` | `nitin27may/roi-calculator` (GitHub redirects the old URL) |
 | Local folder | `~/workspace/ai-roi-calculator` | `~/workspace/roi-calculator`, with `origin` updated |
 | Root package | `ai-roi-calculator` | `roi-calculator` |
-| Workspace packages | `@studio/engine`, `@studio/catalog`, `@studio/web` | `@roi-calculator/engine`, `@roi-calculator/catalog`, `@roi-calculator/web` |
+| Workspace packages | `@roi-calculator/engine`, `@roi-calculator/catalog`, `@roi-calculator/web` | `@roi-calculator/engine`, `@roi-calculator/catalog`, `@roi-calculator/web` |
 | Product name in the UI | "AI Cost & ROI Studio" (layout title, sidebar, tour, intros, workbook, report) | "ROI Calculator"; the token calculator stays a quick tool inside it |
 | Project file schema id | `ai-cost-roi-studio/project` | `roi-calculator/project`, with a `migrateProject` step that still reads the old id, and a golden fixture |
 | localStorage keys | `ai-cost-roi-studio:*` | Keep reading the old keys and copy them to the new ones once, so no saved project is lost |

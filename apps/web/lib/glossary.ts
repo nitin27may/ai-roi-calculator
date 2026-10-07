@@ -10,14 +10,14 @@ export const GLOSSARY: GlossaryTerm[] = [
   {
     id: "snowflake-credit",
     term: "Snowflake credit",
-    plain: "Snowflake bills in credits, not dollars. The studio shows the credits each workload uses and multiplies them by what one credit costs you in Canadian dollars, so you can see both numbers.",
+    plain: "Snowflake bills in credits, not dollars. The ROI Calculator shows the credits each workload uses and multiplies them by what one credit costs you in Canadian dollars, so you can see both numbers.",
     technical: "AI credits cover Cortex AI functions, Search, Agents and the REST API; platform credits cover warehouses and similar compute. CAD = credits x CAD per credit. The default CAD per credit comes from the catalogue (routing for AI credits, edition for platform credits); Settings, Snowflake lets you replace either with your contract rate, and a manual tag marks the figures that use it.",
   },
   {
     id: "token",
     term: "Token",
     plain: "The unit a model reads and writes. A token is a short piece of a word, so a typical English word is a little over one token. Models are priced per million tokens.",
-    technical: "A subword unit produced by the model's tokenizer. The studio uses about 1.33 tokens per English word and applies per-language multipliers for other languages (Settings, Default language).",
+    technical: "A subword unit produced by the model's tokenizer. The ROI Calculator uses about 1.33 tokens per English word and applies per-language multipliers for other languages (Settings, Default language).",
   },
   {
     id: "input-cached-output",
@@ -29,25 +29,25 @@ export const GLOSSARY: GlossaryTerm[] = [
     id: "reasoning-tokens",
     term: "Reasoning tokens",
     plain: "Thinking the model does before it answers. You never see this text, but you pay for it as output. Higher reasoning effort gives better answers on hard tasks and a larger bill.",
-    technical: "Hidden chain-of-thought tokens billed at the output rate. For agent harnesses the studio adds roughly 500, 2,000 or 6,000 reasoning tokens per step for low, medium and high effort. Models without a reasoning mode ignore the setting.",
+    technical: "Hidden chain-of-thought tokens billed at the output rate. For agent harnesses the ROI Calculator adds roughly 500, 2,000 or 6,000 reasoning tokens per step for low, medium and high effort. Models without a reasoning mode ignore the setting.",
   },
   {
     id: "cache-write",
     term: "Cache write",
     plain: "The first time a prefix is stored in the cache. Some providers charge a little extra for the write, and then much less every time the prefix is read back.",
-    technical: "Anthropic-style prompt caching bills a write at a premium over base input and a read at a discount. Azure OpenAI caching has no write premium. The studio applies a write premium only to models whose price list carries one.",
+    technical: "Anthropic-style prompt caching bills a write at a premium over base input and a read at a discount. Azure OpenAI caching has no write premium. The ROI Calculator applies a write premium only to models whose price list carries one.",
   },
   {
     id: "deployment-types",
     term: "Deployment type (Global, Canada Regional, US Data Zone)",
     plain: "Where Azure runs your model. Global is cheapest and may process data in any Azure region. A regional or data-zone deployment keeps processing inside Canada or the US and costs more. Pick the one your data rules allow.",
-    technical: "Azure OpenAI deployment SKUs: Global Standard, Regional (Canada) and Data Zone (US). Each has its own price per model and not every model is offered in every deployment. When a model is unavailable the studio flags it instead of pricing it from another deployment.",
+    technical: "Azure OpenAI deployment SKUs: Global Standard, Regional (Canada) and Data Zone (US). Each has its own price per model and not every model is offered in every deployment. When a model is unavailable the ROI Calculator flags it instead of pricing it from another deployment.",
   },
   {
     id: "processing-tiers",
     term: "Processing tier (Standard, Batch)",
     plain: "Standard answers immediately. Batch costs about half as much, but results come back within a day, so it suits overnight jobs such as evaluation runs and synthetic data and does not suit live chat.",
-    technical: "Azure OpenAI Global Batch is billed at a discount to Standard and runs asynchronously with a 24-hour completion window. Priority and Flex tiers exist but are not priced in the studio yet.",
+    technical: "Azure OpenAI Global Batch is billed at a discount to Standard and runs asynchronously with a 24-hour completion window. Priority and Flex tiers exist but are not priced in the ROI Calculator yet.",
   },
   {
     id: "ptu",
@@ -64,7 +64,7 @@ export const GLOSSARY: GlossaryTerm[] = [
   {
     id: "dev-lab-typed-cost",
     term: "Typed Dev Lab cost",
-    plain: "A C$ amount you type into one cell of the Build cost grid to replace what the studio calculated for that activity and month. Edited cells are marked, and you can reset any of them to the calculation.",
+    plain: "A C$ amount you type into one cell of the Build cost grid to replace what the ROI Calculator calculated for that activity and month. Edited cells are marked, and you can reset any of them to the calculation.",
     technical: "Stored per activity as a month-to-CAD map. A typed amount replaces that activity's calculated lines for the month and is final: contingency and the AI development-cost cut are not applied on top. A fixed monthly Dev Lab allowance, if set, replaces the whole calculation and the typed cells for every build month.",
   },
   {
@@ -89,7 +89,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     id: "agent-loop",
     term: "Agent loop",
     plain: "One round of an agent's work: the model is called, it asks for a tool, the tool runs, and the result goes back. A task is several loops. A step cap and a token budget stop a loop that will not end.",
-    technical: "One model call per loop. The studio simulates each call, so cost follows the real prompt size at every step, with caching, compaction and the context window applied. The run reports why it stopped: finished, step cap, token budget or context window.",
+    technical: "One model call per loop. The ROI Calculator simulates each call, so cost follows the real prompt size at every step, with caching, compaction and the context window applied. The run reports why it stopped: finished, step cap, token budget or context window.",
   },
   {
     id: "history-growth",
@@ -113,7 +113,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     id: "p50-p90",
     term: "P50 and P90",
     plain: "P50 is the typical case: half of tasks use less and half use more. P90 is a bad day: nine in ten tasks use less. Budget on P50 and look at P90 to see how much headroom you need.",
-    technical: "Percentiles of cost per agent task. The studio takes P50 from the harness inputs and estimates P90 as 1.8 times the steps and 1.5 times the tool-result size. The percentile switch on the Run page chooses which one the totals use.",
+    technical: "Percentiles of cost per agent task. The ROI Calculator takes P50 from the harness inputs and estimates P90 as 1.8 times the steps and 1.5 times the tool-result size. The percentile switch on the Run page chooses which one the totals use.",
   },
   {
     id: "npv",

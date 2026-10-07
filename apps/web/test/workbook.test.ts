@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
-import { buildLedger, computeRoi, meetingIntelligence, roiOptions } from "@studio/engine";
+import { loadCatalog } from "@roi-calculator/catalog";
+import { buildLedger, computeRoi, meetingIntelligence, roiOptions } from "@roi-calculator/engine";
 import { buildWorkbook, chartMonths, rangeTableRows } from "../lib/workbook";
 import { CHART_SERIES, axisLabel, drawMonthlyChart, niceMax, type Ctx2D } from "../lib/xlsx-chart";
 

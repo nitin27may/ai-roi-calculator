@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { meetingIntelligence } from "@studio/engine";
+import { meetingIntelligence } from "@roi-calculator/engine";
 import { PROJECT_MENU_KEY, PROJECT_MENU_STATE_KEY, readProjectMenuChoice, resolveProjectMenuOpen, writeProjectMenuOpen, type PrefStorage } from "../lib/prefs";
 import { projectRows, showProjectMenu } from "../lib/nav";
 
@@ -9,7 +9,7 @@ vi.stubGlobal("localStorage", storage);
 
 const { useStudio } = await import("../lib/store");
 const fresh = () => { mem.clear(); useStudio.setState({ ...useStudio.getInitialState(), hydrated: false }, true); };
-const saved = () => JSON.parse(mem.get("ai-cost-roi-studio:library")!) as { library: { id: string }[]; activeId: string };
+const saved = () => JSON.parse(mem.get("roi-calculator:library")!) as { library: { id: string }[]; activeId: string };
 
 describe("project library deletion", () => {
   beforeEach(fresh);
@@ -123,5 +123,25 @@ describe("sidebar project tree", () => {
     useStudio.getState().remove(second);
     expect(rows()).toHaveLength(2);
     expect(rows().filter((r) => r.active)).toHaveLength(1);
+  });
+});
+
+describe("a library saved under the pre-rename keys", () => {
+  it("is copied to the new key and hydrates with the same project", async () => {
+    const { migrateLegacyKeys } = await import("../lib/storage-migrate");
+    fresh();
+    const old = structuredClone(meetingIntelligence) as unknown as Record<string, unknown>;
+    old.schema = "ai-cost-roi-studio/project";
+    old.name = "Saved before the rename";
+    mem.set("ai-cost-roi-studio:library", JSON.stringify({ library: [{ id: "keep", project: old, updatedAt: "2026-10-01T00:00:00Z" }], activeId: "keep" }));
+    const wrapped = { get length() { return mem.size; }, key: (i: number) => [...mem.keys()][i] ?? null, getItem: storage.getItem, setItem: storage.setItem };
+    expect(migrateLegacyKeys(wrapped)).toBe(1);
+    expect(mem.has("ai-cost-roi-studio:library")).toBe(true);
+    useStudio.getState().hydrate();
+    const s = useStudio.getState();
+    expect(s.activeId).toBe("keep");
+    expect(s.project.name).toBe("Saved before the rename");
+    expect(s.project.schema).toBe("roi-calculator/project");
+    expect(s.unreadableCount).toBe(0);
   });
 });

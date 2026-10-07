@@ -1,4 +1,4 @@
-import { heuristics, type ChatModel } from "@studio/catalog";
+import { heuristics, type ChatModel } from "@roi-calculator/catalog";
 import { imageCost, IMAGE_SIZES, type ImageCost } from "./images.js";
 
 /**

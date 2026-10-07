@@ -1,7 +1,7 @@
 "use client";
 import type { ReactNode } from "react";
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
-import { LABOUR_EXCLUDED_TEXT, WIDE_RANGE_TEXT, formatIrr, irrBand, moneyBand, type AlertGroup, type Summary } from "@studio/engine";
+import { LABOUR_EXCLUDED_TEXT, WIDE_RANGE_TEXT, formatIrr, irrBand, moneyBand, type AlertGroup, type Summary } from "@roi-calculator/engine";
 import { Pill } from "@/components/ui";
 import { cad, fmt } from "@/lib/format";
 

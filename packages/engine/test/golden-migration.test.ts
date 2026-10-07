@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "@studio/catalog";
-import { CURRENT_PROJECT_VERSION, PROJECT_TEMPLATES, ProjectSchema, buildLedger, computeAllocation, computeRoi, meetingIntelligence, migrateProject } from "../src/index.js";
+import { loadCatalog } from "@roi-calculator/catalog";
+import { CURRENT_PROJECT_VERSION, LEGACY_PROJECT_SCHEMA_ID, PROJECT_SCHEMA_ID, PROJECT_TEMPLATES, ProjectSchema, buildLedger, computeAllocation, computeRoi, meetingIntelligence, migrateProject } from "../src/index.js";
 import golden from "./fixtures/v2-golden.json";
 
 /**
@@ -119,5 +119,56 @@ describe("P10 price fix: Container Apps", () => {
     const expected = (2_600_000 - 180_000) * 0.0000482 + (5_200_000 - 360_000) * 0.00000567;
     expect(after - before).toBeCloseTo(expected, 4);
     expect(expected).toBeCloseTo(144.0868, 4);
+  });
+});
+
+/**
+ * The 2026-10-06 rename changed the schema id from "ai-cost-roi-studio/project" to "roi-calculator/project". The shape did not change,
+ * so this is an id alias handled in migrateProject, not a version bump: CURRENT_PROJECT_VERSION is unchanged. A saved library entry
+ * and an exported file that still carry the old id must open with identical totals.
+ */
+describe("legacy schema id", () => {
+  const sources = [["sample", meetingIntelligence as unknown], ...PROJECT_TEMPLATES.map((t) => [t.id, t.make(`legacy ${t.id}`) as unknown] as const)] as const;
+  const withOldId = (p: unknown) => ({ ...(structuredClone(p) as Record<string, unknown>), schema: LEGACY_PROJECT_SCHEMA_ID });
+
+  it("the new id is the one written, and the old one is a different string", () => {
+    expect(PROJECT_SCHEMA_ID).toBe("roi-calculator/project");
+    expect(LEGACY_PROJECT_SCHEMA_ID).toBe("ai-cost-roi-studio/project");
+    expect(ProjectSchema.parse(meetingIntelligence).schema).toBe(PROJECT_SCHEMA_ID);
+  });
+
+  it("an unmigrated old-id project is rejected by the parser, so the loader must go through migrateProject", () => {
+    expect(ProjectSchema.safeParse(withOldId(meetingIntelligence)).success).toBe(false);
+  });
+
+  for (const [name, project] of sources) {
+    it(`${name}: a saved project and an exported JSON file with the old id open with identical totals`, () => {
+      const current = ProjectSchema.parse(project);
+      const expected = buildLedger(current, cat);
+      const saved = withOldId(project);
+      const exported = JSON.parse(JSON.stringify(saved, null, 2)) as unknown; // what a file on disk round-trips to
+      for (const raw of [saved, exported]) {
+        const opened = ProjectSchema.parse(migrateProject(structuredClone(raw)));
+        expect(opened.schema).toBe(PROJECT_SCHEMA_ID);
+        expect(opened.version).toBe(CURRENT_PROJECT_VERSION);
+        expect(opened).toEqual(current);
+        const ledger = buildLedger(opened, cat);
+        expect(ledger.totals).toEqual(expected.totals);
+        ledger.months.forEach((mo, i) => expect(mo.byStream).toEqual(expected.months[i]!.byStream));
+      }
+    });
+  }
+
+  it("an old-id project at an older version migrates both the id and the version", () => {
+    const e = (golden as unknown as Record<string, Entry>).sample!;
+    expect((e.project as { schema: string }).schema).toBe(LEGACY_PROJECT_SCHEMA_ID);
+    const migrated = ProjectSchema.parse(migrateProject(structuredClone(e.project)));
+    expect(migrated.schema).toBe(PROJECT_SCHEMA_ID);
+    expect(migrated.version).toBe(CURRENT_PROJECT_VERSION);
+  });
+
+  it("a project with the new id is untouched by the alias step", () => {
+    const p = ProjectSchema.parse(meetingIntelligence);
+    expect(migrateProject(structuredClone(p))).toEqual(p);
   });
 });

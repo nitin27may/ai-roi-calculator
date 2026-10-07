@@ -1,4 +1,4 @@
-import type { BenchmarkLibrary } from "@studio/catalog";
+import type { BenchmarkLibrary } from "@roi-calculator/catalog";
 import type { z } from "zod";
 import type { Capability, Project, ValueItem } from "./project.js";
 

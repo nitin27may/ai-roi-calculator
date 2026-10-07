@@ -39,9 +39,9 @@ describe("tour seen-state", () => {
   it("a version bump shows it again", () => {
     const s = memory();
     writeTourState(s, "finished");
-    expect(shouldAutoShowTour(s, `studio.tour.v${TOUR_VERSION + 1}`)).toBe(true);
+    expect(shouldAutoShowTour(s, `roi-calculator:tour.v${TOUR_VERSION + 1}`)).toBe(true);
   });
-  it("the key carries the version", () => expect(TOUR_KEY).toBe(`studio.tour.v${TOUR_VERSION}`));
+  it("the key carries the version", () => expect(TOUR_KEY).toBe(`roi-calculator:tour.v${TOUR_VERSION}`));
   it("relaunch starts at step 1 whatever is stored", () => {
     const s = memory();
     writeTourState(s, "skipped");

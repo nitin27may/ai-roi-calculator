@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
-import { COST_BASES, LEVERS, applyScenario, buildLabel, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityVolume, workloadVolume, sensitivity, capabilityHours, compareScenarios, computeAllocation, linkCapabilityToFeature, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@studio/engine";
+import { COST_BASES, LEVERS, applyScenario, buildLabel, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityVolume, workloadVolume, sensitivity, capabilityHours, compareScenarios, computeAllocation, linkCapabilityToFeature, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@roi-calculator/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Seg, Select, TextInput, TrashButton } from "@/components/ui";
 import type { HelpId } from "@/lib/help";
 import { CumulativeLine, Legend } from "@/components/charts";

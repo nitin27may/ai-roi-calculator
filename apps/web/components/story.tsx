@@ -1,5 +1,5 @@
 "use client";
-import { labourExcluded } from "@studio/engine";
+import { labourExcluded } from "@roi-calculator/engine";
 import { useStudio } from "@/lib/store";
 
 /** The one-sentence story of the project, editable inline. Shared by the Summary page and the Overview. */
