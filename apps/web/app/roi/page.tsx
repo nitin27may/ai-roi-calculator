@@ -77,6 +77,7 @@ function Assumptions() {
         <div className="flex flex-col gap-2.5">
           {slider("Reduce development cost", project.roi.devCutPct, (n) => edit((d) => { d.roi.devCutPct = n; }), "dev-cut")}
           {slider("Reduce maintenance cost", project.roi.maintCutPct, (n) => edit((d) => { d.roi.maintCutPct = n; }), "maint-cut")}
+          {project.roi.devCutPct > 0 && project.build.aiAssist && <p role="note" className="rounded-md bg-warn-soft px-2.5 py-1.5 text-xs text-warn">Hours saved per role (Build, AI-assisted development) is also set. It multiplies with this reduction, so the same saving is counted twice. Use one of them.</p>}
           <p className="text-xs text-muted">Blunt what-ifs. The savings levers on the Overview and the Scenarios tab model concrete changes.</p>
         </div>
 

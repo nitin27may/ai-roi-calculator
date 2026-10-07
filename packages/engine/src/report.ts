@@ -9,6 +9,7 @@ import { beforeAfter, workloadVolume } from "./benefits.js";
 import { sensitivity, type SensitivityRow } from "./sensitivity.js";
 import { projectRange, type ProjectRange } from "./ranges.js";
 import { verdictFor } from "./present.js";
+import { aiAssistSummary, type AiAssistSummary } from "./aiassist.js";
 import { currentLines, currentVsTarget, type CurrentVsTarget } from "./currentstate.js";
 import { scoreItems, scoreRows } from "./scorecard.js";
 
@@ -105,6 +106,8 @@ export interface Summary {
   currentLineCount: number;
   /** Present only when the project has scorecard items. `composite` is the weighted average improvement in percent (null with no weights); `monetisedMonthly` is the CAD a month, at full rollout, of the items that are monetised (the only part in NPV and payback). */
   scorecard?: { count: number; composite: number | null; monetisedMonthly: number };
+  /** AI-assisted development: hours and labour saved against seat and token cost. Present only when the project sets `build.aiAssist`. */
+  aiAssist?: AiAssistSummary;
 }
 
 const ALERT_GROUP: Record<PriceNote["kind"], AlertGroup["id"]> = {
@@ -220,6 +223,7 @@ export function summarize(p: Project, ledger: Ledger, roi: RoiResult, cat: Catal
   const net = roi.totalBenefit - roi.totalCost;
   const paysBackWithinPlan = roi.paybackMonth !== null;
   const verdict = verdictFor(roi);
+  const aiAssist = aiAssistSummary(p, ledger, cat);
   return {
     labourExcluded: labourExcluded(p),
     labourPartial: labourPartialText(p),
@@ -259,6 +263,7 @@ export function summarize(p: Project, ledger: Ledger, roi: RoiResult, cat: Catal
     currentVsTarget: currentVsTarget(p, ledger),
     currentLineCount: currentLines(p).length,
     ...(scoreItems(p).length > 0 ? { scorecard: (({ composite, monetisedMonthly }) => ({ count: scoreItems(p).length, composite, monetisedMonthly }))(scoreRows(p)) } : {}),
+    ...(aiAssist ? { aiAssist } : {}),
   };
 }
 
@@ -278,6 +283,16 @@ function currentRows(c: CurrentVsTarget): Row[] {
     { Item: "Target run cost per month (steady state)", Value: r2(c.targetMonthly) },
     { Item: "Current-state saving per month (all changes in effect)", Value: r2(c.saving) },
     { Item: "Dual-running cost (current cost still paid while the target runs)", Value: r2(c.dualRunningCost) },
+  ];
+}
+
+/** Summary rows for AI-assisted development; only added when the project sets it. */
+function aiAssistRows(a: AiAssistSummary): Row[] {
+  return [
+    { Item: "AI-assisted development: build hours saved", Value: Math.round(a.hoursSaved * 10) / 10 },
+    { Item: "AI-assisted development: labour saved (with contingency)", Value: r2(a.labourSaved) },
+    { Item: "AI-assisted development: seat and token cost", Value: r2(a.toolCost) },
+    { Item: "AI-assisted development: net saving", Value: r2(a.net) },
   ];
 }
 
@@ -345,6 +360,7 @@ export function summaryRows(p: Project, ledger: Ledger, roi: RoiResult, cat: Cat
     ...(s.hurdleRatePct !== null ? [{ Item: `Hurdle rate ${s.hurdleRatePct}%`, Value: s.clearsHurdle === null ? "n/a" : s.clearsHurdle ? "Cleared" : "Not cleared" }] : []),
     ...(s.currentLineCount > 0 ? currentRows(s.currentVsTarget) : []),
     ...(s.scorecard ? scoreSummaryRows(s.scorecard) : []),
+    ...(s.aiAssist ? aiAssistRows(s.aiAssist) : []),
     { Item: "Total cost, low to high", Value: `${r2(s.range.totalCost.low)} to ${r2(s.range.totalCost.high)}` },
     { Item: "NPV, low to high", Value: `${r2(s.range.npv.low)} to ${r2(s.range.npv.high)}` },
     { Item: "Verdict", Value: `${s.verdict.text} · NPV ${s.verdict.npvPositive ? "positive" : "negative"}` },

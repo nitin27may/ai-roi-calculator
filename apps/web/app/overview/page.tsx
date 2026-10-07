@@ -70,7 +70,7 @@ function LifecycleCanvas() {
     ["Model bake-off", "var(--build)", months.map((m) => comp(m, kinds(["bakeoff"])))],
     ["Harness iterations", "var(--build)", months.map((m) => comp(m, kinds(["iterations"])))],
     ["Regression, eval & red team", "var(--build)", months.map((m) => comp(m, kinds(["regression", "evaluation", "redteam"])))],
-    ["Tools & dev environment", "var(--build)", months.map((m) => comp(m, kinds(["playground", "tooling"])) + m.byStream.devenv)],
+    ["Engineering tools & lab", "var(--build)", months.map((m) => comp(m, kinds(["playground", "tooling"])) + m.byStream.devenv)],
     ["Production AI usage", "var(--run)", months.map((m) => m.byStream.run - prodRes(m))],
     ["Platform & infrastructure", "var(--platform)", months.map((m) => m.byStream.platform + prodRes(m))],
     ...(hasEnv ? [["Environments", "var(--build)", months.map((m) => envCost(m))] as [string, string, number[]]] : []),

@@ -41,8 +41,15 @@ function languageFactor(w: { language?: string }, c: { language?: string }): num
 }
 
 /** A free-text CAD cost as a ledger line: fixed monthly, or one-time (landing in the item's month, or the owner's first month). */
-export function cashLine(lineId: string, componentId: string, it: CashItem, stream: Line["stream"]): Line {
+export function cashLine(lineId: string, componentId: string, it: CashItem, stream: Line["stream"], people?: number): Line {
   const once = it.cadence === "once";
+  if (it.perPerson && people !== undefined) {
+    return line({
+      id: lineId, componentId, label: once ? `${it.label} (one-time)` : it.label, stream, behaviour: "fixed", meter: `cad:${it.id}`,
+      quantity: people, unit: once ? "person, once" : "person-month", unitPrice: it.amountCad, formula: `${people} people × CAD ${it.amountCad.toLocaleString("en-CA")} ${once ? "once" : "per person per month"}`,
+      ...(once ? { once: true } : {}), ...(once && it.month !== undefined ? { onceMonth: it.month } : {}),
+    });
+  }
   return line({
     id: lineId, componentId, label: once ? `${it.label} (one-time)` : it.label, stream, behaviour: "fixed", meter: `cad:${it.id}`,
     quantity: 1, unit: once ? "once" : "month", unitPrice: it.amountCad, formula: `CAD ${it.amountCad.toLocaleString("en-CA")} ${once ? "once" : "per month"}`,
