@@ -487,6 +487,27 @@ export const CurrentLineSchema = z.object({
 export type CurrentLine = z.infer<typeof CurrentLineSchema>;
 
 /**
+ * One non-financial benefit: a measure with a before and an after value, a weight and a confidence.
+ * It is shown next to the financial ROI and counts in no financial figure unless `monetise` is set (see scorecard.ts).
+ * `weightPct` weights the item in the composite index; `confidencePct` is displayed, and also scales the monetised value.
+ */
+export const ScoreItemSchema = z.object({
+  id, label: z.string(),
+  dimension: z.enum(["speed", "customer", "employee", "compliance", "agility", "other"]),
+  /** What is measured, e.g. "Days from claim to payment". */
+  measure: z.string(),
+  unit: z.string(),
+  before: z.number(), after: z.number(),
+  higherIsBetter: z.boolean(),
+  weightPct: z.number().min(0).max(100),
+  confidencePct: z.number().min(0).max(100),
+  featureId: id.optional(),
+  /** Value of one unit of improvement, times the monthly volume it applies to. Absent means not in NPV or payback. */
+  monetise: z.object({ cadPerUnit: n0, volumePerMonth: n0.optional(), volumeFrom: id.optional() }).optional(),
+});
+export type ScoreItem = z.infer<typeof ScoreItemSchema>;
+
+/**
  * An environment resources run in (dev, test, UAT, production, DR). Resources are defined once, as production; each
  * environment scales them by `sizeFactor` (for meters that scale with size) and bills hourly pay-as-you-go meters for
  * the hours of its `schedule`. The default schedule is 730 hours a month. `fromMonth`/`toMonth` bound the billed
@@ -597,6 +618,8 @@ const ProjectObject = z.object({
     value: z.array(ValueItemSchema).default([]),
     /** One-time benefits such as a decommissioned system's resale or a grant. */
     oneOff: z.array(z.object({ id, label: z.string(), amount: n0, month: z.number().int().positive() })).default([]),
+    /** Non-financial benefits. Absent or empty adds nothing; only monetised items reach NPV and payback (see scorecard.ts). */
+    scorecard: z.array(ScoreItemSchema).default([]).optional(),
   }),
   roi: z.object({
     basis: z.enum(["run", "runMaint", "full"]),
@@ -645,6 +668,10 @@ export function projectIssues(p: z.infer<typeof ProjectObject>): { path: (string
     feat(["benefits", "capabilities", i, "featureId"], c.featureId);
     c.workloadIds.forEach((x, k) => { if (!workloads.has(x)) out.push({ path: ["benefits", "capabilities", i, "workloadIds", k], message: `Unknown workload "${x}"` }); });
     c.workstreamIds.forEach((x, k) => { if (!workstreams.has(x)) out.push({ path: ["benefits", "capabilities", i, "workstreamIds", k], message: `Unknown workstream "${x}"` }); });
+  });
+  (p.benefits.scorecard ?? []).forEach((c, i) => {
+    feat(["benefits", "scorecard", i, "featureId"], c.featureId);
+    if (c.monetise?.volumeFrom !== undefined && !workloads.has(c.monetise.volumeFrom)) out.push({ path: ["benefits", "scorecard", i, "monetise", "volumeFrom"], message: `Unknown workload "${c.monetise.volumeFrom}"` });
   });
   (p.currentState?.lines ?? []).forEach((c, i) => {
     feat(["currentState", "lines", i, "featureId"], c.featureId);

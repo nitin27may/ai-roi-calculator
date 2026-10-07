@@ -77,7 +77,7 @@ export function computeAllocation(p: Project, ledger: Ledger, basis: CostBasis):
   const items = [...unlinked, ...(unallocatedShared > 0 ? [{ componentId: "shared", label: "Shared build, platform and support cost", cost: unallocatedShared }] : [])];
   return {
     capabilities,
-    projectBenefit: ledger.months.reduce((s, mo) => s + mo.benefitBy.avoided + mo.benefitBy.oneOff + Object.values(mo.benefitBy.value).reduce((a, b) => a + b, 0) + Object.values(mo.benefitBy.currentState).reduce((a, b) => a + b, 0) - Object.values(mo.benefitBy.attributed).reduce((a, b) => a + b, 0), 0),
+    projectBenefit: ledger.months.reduce((s, mo) => s + mo.benefitBy.avoided + mo.benefitBy.oneOff + Object.values(mo.benefitBy.value).reduce((a, b) => a + b, 0) + Object.values(mo.benefitBy.currentState).reduce((a, b) => a + b, 0) + Object.values(mo.benefitBy.scorecard).reduce((a, b) => a + b, 0) - Object.values(mo.benefitBy.attributed).reduce((a, b) => a + b, 0), 0),
     unallocated: { cost: items.reduce((s, i) => s + i.cost, 0), reason, items },
     sharedPool,
   };

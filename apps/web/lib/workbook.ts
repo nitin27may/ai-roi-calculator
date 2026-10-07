@@ -1,5 +1,5 @@
 import type { Workbook } from "exceljs";
-import { WIDE_RANGE_TEXT, avoidedMonthly, buildLabel, labourExcluded, capabilityHours, computeAllocation, irrBand, lineItemRows, moneyBand, monthRows, pricesUsedRows, currentLines, currentStateRows, summarize, summaryRows, type Ledger, type Project, type RoiResult, type Row } from "@roi-calculator/engine";
+import { WIDE_RANGE_TEXT, avoidedMonthly, buildLabel, labourExcluded, capabilityHours, computeAllocation, irrBand, lineItemRows, moneyBand, monthRows, pricesUsedRows, currentLines, currentStateRows, scoreItems, scorecardRows, summarize, summaryRows, type Ledger, type Project, type RoiResult, type Row } from "@roi-calculator/engine";
 import type { Catalog } from "@roi-calculator/catalog";
 import type { ChartMonth } from "./xlsx-chart";
 
@@ -111,6 +111,8 @@ export async function buildWorkbook(p: Project, ledger: Ledger, roi: RoiResult, 
   ]);
   // Only for projects that itemise what the work costs today, so other workbooks keep their sheets.
   if (currentLines(p).length > 0) sheet("Current state", currentStateRows(p), ["Cost per month today (CAD)", "Saving per month, change in full effect (CAD)"]);
+  // Only for projects with scorecard items; non-monetised items are listed but add nothing to the financial figures.
+  if (scoreItems(p).length > 0) sheet("Scorecard", scorecardRows(p), ["Value per month, full rollout (CAD)"]);
   sheet("Prices used", pricesUsedRows(ledger, cat));
   return wb;
 }

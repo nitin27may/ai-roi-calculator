@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { DEPLOYMENT_LABEL, LABOUR_EXCLUDED_TEXT, WIDE_RANGE_TEXT, buildLabel, compareScenarios, computeAllocation, currentStateRows, evaluateLevers, moneyBand, pricesUsedRows, steadyState } from "@roi-calculator/engine";
+import { DEPLOYMENT_LABEL, LABOUR_EXCLUDED_TEXT, WIDE_RANGE_TEXT, buildLabel, compareScenarios, computeAllocation, currentStateRows, evaluateLevers, moneyBand, pricesUsedRows, scorecardRows, steadyState } from "@roi-calculator/engine";
 import { CumulativeLine, Legend, RankedBars, StackedBars, Waterfall } from "@/components/charts";
 import { Field, TextInput } from "@/components/ui";
 import { CurrentVsTargetTile, FinanceMeasures, HeadlineTiles, RiskSummary, VerdictChip, WATERFALL_COST_IDS, wideDrivers } from "@/components/summary-parts";
@@ -178,6 +178,17 @@ export default function Report() {
                 <thead><tr><th>Item</th><th>Basis</th><th className="n">Per month</th><th>Change</th><th className="n">Saving per month</th></tr></thead>
                 <tbody>{currentStateRows(p).map((r) => <tr key={String(r.Item)}><td>{r.Item}</td><td>{r.Basis}</td><td className="n">{cad(Number(r["Cost per month today (CAD)"]))}</td><td>{r.Change}</td><td className="n">{cad(Number(r["Saving per month, change in full effect (CAD)"]))}</td></tr>)}</tbody>
               </table>
+            </section>
+          )}
+          {s.scorecard && (
+            <section className="break-inside-avoid">
+              <h3 className="mb-1.5 text-[15px] font-bold">Non-financial scorecard</h3>
+              <p className="mb-1.5 max-w-[80ch] text-[12.5px] text-ink-2">Shown beside the financial figures. Only items marked as counted are in NPV and payback.</p>
+              <table className="data [&_td.n]:whitespace-normal [&_td.n]:font-sans">
+                <thead><tr><th>Item</th><th>Measure</th><th className="n">Before</th><th className="n">After</th><th>Result</th><th className="n">Weight</th><th className="n">Confidence</th><th>In NPV</th></tr></thead>
+                <tbody>{scorecardRows(p).map((r) => <tr key={String(r.Item)}><td>{r.Item}</td><td>{r.Measure} ({r.Unit})</td><td className="n">{r.Before}</td><td className="n">{r.After}</td><td>{r.Direction}{typeof r["Improvement (%)"] === "number" ? ` ${r["Improvement (%)"]}%` : ""}</td><td className="n">{r["Weight (%)"]}%</td><td className="n">{r["Confidence (%)"]}%</td><td>{r["In NPV and payback"]}</td></tr>)}</tbody>
+              </table>
+              <p className="mt-1 text-[12.5px] text-ink-2">Composite index: {s.scorecard.composite === null ? "no weights set" : `${Math.round(s.scorecard.composite * 10) / 10}%`}. Counted in NPV: {cad(s.scorecard.monetisedMonthly)} a month at full rollout.</p>
             </section>
           )}
           <section className="break-inside-avoid">

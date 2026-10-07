@@ -88,6 +88,27 @@ export function CurrentVsTargetTile({ s, className = "px-3.5 pb-3.5" }: { s: Sum
   );
 }
 
+/** The non-financial scorecard, from `summarize()`. Render only when `s.scorecard` is set. Shown beside the financial tiles; only monetised items are in NPV. */
+export function ScorecardTile({ s, className = "px-3.5 pb-3.5" }: { s: Summary; className?: string }) {
+  const c = s.scorecard;
+  if (!c) return null;
+  const rows: [string, string, string][] = [
+    ["Composite index", c.composite === null ? "No weights set" : `${c.composite > 0 ? "+" : ""}${fmt(c.composite, 1)}%`, "weighted average improvement across the items"],
+    ["Items", String(c.count), "not in NPV unless monetised"],
+    ["Monetised, in NPV and payback", cad(c.monetisedMonthly), "per month at full rollout"],
+  ];
+  return (
+    <dl className={`grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-[12.5px] ${className}`} data-testid="scorecard-tile">
+      {rows.map(([k, v, note]) => (
+        <div key={k} className="contents">
+          <dt className="text-ink-2">{k}<small className="block text-muted">{note}</small></dt>
+          <dd className="num self-center text-right font-semibold">{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 /** Finance measures as label/value rows. IRR is capped in text and its range shows only when it is narrow. */
 export function FinanceMeasures({ s, className = "px-3.5 pb-3.5" }: { s: Summary; className?: string }) {
   const irr = irrBand(s.range.irrPct);
