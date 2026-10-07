@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { envCost, ACTIVITY_KINDS, ALLOWANCE_ID, MANUAL_METER, allowanceActive, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, labourExcluded, labourPartialText, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, addAllocationPeriod, allocationPeriods, overlappingPeriods, peakAllocation, removeAllocationPeriod, removeWorkstream, setAllocation, updateAllocationPeriod, setPlanValue, workstreamBreakdown, type DevActivity, type PlanShape, type Workstream } from "@roi-calculator/engine";
+import { envCost, ACTIVITY_KINDS, ALLOWANCE_ID, MANUAL_METER, allowanceActive, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, labourExcluded, labourPartialText, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, addAllocationPeriod, allocationPeriods, overlappingPeriods, peakAllocation, removeAllocationPeriod, removeWorkstream, setAllocation, updateAllocationPeriod, setPlanValue, workstreamBreakdown, hypercareExtends, lineWindow, lineMonthlyHours, setEffort, setEffortMode, setLinePhase, type DevActivity, type PlanShape, type Workstream } from "@roi-calculator/engine";
 import { RateCardEditor } from "@/components/rate-card";
+import { DeliveryCostsPanel, PhasesPanel } from "@/components/delivery-model";
 import { HelpTip } from "@/components/help-tip";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
 import { CostGrid } from "@/components/cost-grid";
@@ -30,6 +31,7 @@ export default function Build() {
   const series = (id: string) => buildMonths.map((m) => m.lines.filter((l) => l.componentId === id && l.stream === "devlab").reduce((s, l) => s + l.cost, 0));
   const devEnv = buildMonths.map((m) => m.byStream.devenv);
   const envNote = buildMonths.some((m) => envCost(m) > 0) ? ` and environments (${cad(buildMonths.reduce((t, m) => t + envCost(m), 0))}, see Infrastructure)` : "";
+  const deliveryTotal = buildMonths.reduce((s, m) => s + (m.byStream.delivery ?? 0), 0);
   const devTotal = ledger.totals.devLab, labTotal = ledger.totals.buildLabour;
   const allDev = buildMonths.map((m) => m.byStream.devlab);
   const edit = useStudio((s) => s.edit);
@@ -39,11 +41,14 @@ export default function Build() {
   return (
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Card>
-        <CardHead title={`Build, months 1–${B}`} sub={labourExcluded(project) ? `AI Dev Lab and dev environment${envNote}. Build labour excluded` : labourPartialText(project) ? `Labour, AI Dev Lab and dev environment${envNote}. ${labourPartialText(project)}` : `Labour, AI Dev Lab and dev environment${envNote}`}><span className="num text-sm">{cad(ledger.totals.build)}</span></CardHead>
+        <CardHead title={`Build, months 1–${B}`} sub={labourExcluded(project) ? `AI Dev Lab, dev environment and delivery costs${envNote}. Build labour excluded` : labourPartialText(project) ? `Labour, AI Dev Lab, dev environment and delivery costs${envNote}. ${labourPartialText(project)}` : `Labour, AI Dev Lab, dev environment and delivery costs${envNote}`}><span className="num text-sm">{cad(ledger.totals.build)}</span></CardHead>
         <div data-tour="build-list" role="listbox" aria-label="Build cost items" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
           <ListRow selected={sel === "all"} onClick={() => setSel("all")} title="AI Dev Lab, all activities" sub="tokens and AI services while building" aside={<Spark values={allDev} color="var(--s2)" />} value={cad(devTotal)} />
           <GroupHead>Labour</GroupHead>
           <ListRow selected={sel === "team"} onClick={() => setSel("team")} title="Team & rate card" sub={!labourExcluded(project) ? project.build.team.map((t) => t.name ?? `${t.people} ${project.rateCard.find((r) => r.id === t.roleId)?.label ?? t.roleId}`).join(" · ") : "Build labour excluded: the team only drives Dev Lab volumes"} value={labourExcluded(project) ? "Excluded" : cad(labTotal)} />
+          <GroupHead>Delivery</GroupHead>
+          <ListRow selected={sel === "phases"} onClick={() => setSel("phases")} title="Delivery phases" sub={(project.timeline.phases ?? []).length ? (project.timeline.phases ?? []).map((x) => x.label).join(" · ") : "Not set: use the standard phases or add your own"} value={(project.timeline.phases ?? []).length ? `${(project.timeline.phases ?? []).length} phases` : "None"} />
+          <ListRow selected={sel === "delivery"} onClick={() => setSel("delivery")} title="Delivery costs" sub={(project.build.deliveryCosts ?? []).length ? (project.build.deliveryCosts ?? []).map((x) => x.label).join(" · ") : "Vendor work, training, communications, data migration"} value={cad(deliveryTotal)} />
           <GroupHead>Workstreams</GroupHead>
           {wsRows.filter((r) => r.id).map((r) => (
             <ListRow key={r.id} selected={sel === `ws:${r.id}`} onClick={() => setSel(`ws:${r.id}`)} title={r.label} sub={`${fmt(r.people, 1)} people · ${acts.filter((a) => a.workstreamId === r.id).length} activities`} aside={<Spark values={r.byMonth} color="var(--s3)" />} value={cad(r.total)} />
@@ -67,7 +72,7 @@ export default function Build() {
       </Card>
       <Card>
         <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto scroll-hint p-3.5">
-          {sel === "all" ? <AllActivities /> : sel === "team" ? <Team /> : sel === "env" ? <DevEnvironment /> : sel.startsWith("ws:") ? <WorkstreamPanel id={sel.slice(3)} onRemoved={() => setSel("all")} onOpen={setSel} /> : <Activity id={sel} onRemoved={() => setSel("all")} />}
+          {sel === "all" ? <AllActivities /> : sel === "team" ? <Team /> : sel === "env" ? <DevEnvironment /> : sel === "phases" ? <PhasesPanel /> : sel === "delivery" ? <DeliveryCostsPanel /> : sel.startsWith("ws:") ? <WorkstreamPanel id={sel.slice(3)} onRemoved={() => setSel("all")} onOpen={setSel} /> : <Activity id={sel} onRemoved={() => setSel("all")} />}
         </div>
       </Card>
     </div>
@@ -376,6 +381,9 @@ function Team() {
   const roles = project.rateCard.map((r) => ({ value: r.id, label: r.label }));
   const perLine = developerBreakdown(project, ledger).rows;
   const allOff = !project.build.includeLabour;
+  const phases = project.timeline.phases ?? [];
+  /** Last month a line can be billed: the build, or for a hypercare line the end of the hypercare phase. */
+  const maxTo = (t: (typeof project.build.team)[number]) => (t.phaseId === "hypercare" && hypercareExtends(project) ? Math.min(phases.find((x) => x.id === "hypercare")!.toMonth, project.timeline.horizonMonths) : B);
   const field = "rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]";
   return (
     <>
@@ -386,18 +394,32 @@ function Team() {
       {!project.build.includeLabour && <p className="rounded-md bg-warn-soft px-2.5 py-1.5 text-xs text-warn">Build labour excluded: nothing below is costed. People and experiment ticks still set the AI Dev Lab volumes, and the rates still value time saved and maintenance.</p>}
       <div className="flex-none overflow-x-auto">
       <table className="data">
-        <thead><tr><th><span className="inline-flex items-center gap-0.5">Costed<HelpTip id="teamCosted" label="Costed" /></span></th><th>Name</th><th>Phase</th><th>Role</th><th className="n">People</th><th className="n">Hours / month</th><th className="n">From</th><th className="n">To</th><th>Experiments</th><th className="n"><span className="inline-flex items-center gap-0.5">Manual rate (CAD/h)<HelpTip id="rateOverride" label="Manual rate" /></span></th><th className="n">Build cost</th><th /></tr></thead>
+        <thead><tr><th><span className="inline-flex items-center gap-0.5">Costed<HelpTip id="teamCosted" label="Costed" /></span></th><th>Name</th><th><span className="inline-flex items-center gap-0.5">Phase<HelpTip id="teamPhase" label="Phase" /></span></th><th>Role</th><th className="n">People</th><th className="n"><span className="inline-flex items-center gap-0.5">Effort<HelpTip id="teamEffortMode" label="Effort" /></span></th><th className="n">From</th><th className="n">To</th><th>Experiments</th><th className="n"><span className="inline-flex items-center gap-0.5">Manual rate (CAD/h)<HelpTip id="rateOverride" label="Manual rate" /></span></th><th className="n">Build cost</th><th /></tr></thead>
         <tbody>
           {project.build.team.map((t, i) => (
             <tr key={i}>
               <td><input type="checkbox" checked={!allOff && t.costed !== false} disabled={allOff} title={allOff ? "All build labour is excluded by the project switch above" : undefined} onChange={(e) => edit((d) => { if (e.target.checked) delete d.build.team[i]!.costed; else d.build.team[i]!.costed = false; })} aria-label={`Costed, team row ${i + 1}`} /></td>
               <td><input aria-label="Name" className="w-24 rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]" value={t.name ?? ""} placeholder="(role)" onChange={(e) => edit((d) => { d.build.team[i]!.name = e.target.value || undefined; })} /></td>
-              <td><input aria-label="Phase" className="w-24 rounded border border-line bg-surface-2 px-2 py-1.5 text-[13px]" value={t.phase ?? ""} placeholder="All build" onChange={(e) => edit((d) => { d.build.team[i]!.phase = e.target.value || undefined; })} /></td>
+              <td className="min-w-[150px]">
+                {phases.length > 0 && <Select label={`Delivery phase, team row ${i + 1}`} value={phases.some((x) => x.id === t.phaseId) ? t.phaseId! : ""} options={[{ value: "", label: "No phase" }, ...phases.map((x) => ({ value: x.id, label: x.label }))]} onChange={(v) => edit((d) => setLinePhase(d, i, v || undefined))} />}
+                <input aria-label="Phase" className={`${field} mt-1 w-full`} value={t.phase ?? ""} placeholder={phases.length > 0 ? "Own label (optional)" : "All build"} onChange={(e) => edit((d) => { d.build.team[i]!.phase = e.target.value || undefined; })} />
+              </td>
               <td className="min-w-[150px]"><Select label={`Role, team row ${i + 1}`} value={t.roleId} options={roles} onChange={(v) => edit((d) => { d.build.team[i]!.roleId = v; })} /></td>
-              <td className="n min-w-[80px]"><NumberInput label={`People, team row ${i + 1}`} value={t.people} step={0.1} onChange={(v) => edit((d) => { d.build.team[i]!.people = v; })} /></td>
-              <td className="n"><NumberInput label={`Hours per month, team row ${i + 1}`} value={t.hoursPerMonth} onChange={(v) => edit((d) => { d.build.team[i]!.hoursPerMonth = v; })} /></td>
-              <td className="n min-w-[72px]"><NumberInput label={`From month, team row ${i + 1}`} value={t.fromMonth ?? 1} min={1} max={B} onChange={(v) => edit((d) => { d.build.team[i]!.fromMonth = Math.round(v); })} /></td>
-              <td className="n min-w-[72px]"><NumberInput label={`To month, team row ${i + 1}`} value={Math.min(t.toMonth ?? B, B)} min={1} max={B} onChange={(v) => edit((d) => { d.build.team[i]!.toMonth = Math.round(v); })} /></td>
+              <td className="n min-w-[80px]"><NumberInput label={`People, team row ${i + 1}`} value={t.people} step={0.1} onChange={(v) => edit((d) => { if (d.build.team[i]!.effort) setEffort(d, i, { people: v }); else d.build.team[i]!.people = v; })} /></td>
+              <td className="n min-w-[190px]">
+                <Select label={`Effort entry, team row ${i + 1}`} value={t.effort ? "effort" : "hours"} options={[{ value: "hours", label: "Hours per month" }, { value: "effort", label: "People × weeks" }]} onChange={(v) => edit((d) => setEffortMode(d, i, v === "effort"))} />
+                {t.effort ? (
+                  <div className="mt-1 flex flex-col gap-1">
+                    <NumberInput label={`Weeks, team row ${i + 1}`} value={t.effort.weeks} step={0.5} suffix="weeks" onChange={(v) => edit((d) => setEffort(d, i, { weeks: v }))} />
+                    <NumberInput label={`Hours per week, team row ${i + 1}`} value={t.effort.hoursPerWeek} suffix="h/week" onChange={(v) => edit((d) => setEffort(d, i, { hoursPerWeek: v }))} />
+                    <div className="text-xs text-muted">{fmt(t.effort.people * t.effort.weeks * t.effort.hoursPerWeek, 0)} h in total, {fmt(lineMonthlyHours(project, t), 1)} h a month over months {lineWindow(project, t).from}–{lineWindow(project, t).to}</div>
+                  </div>
+                ) : (
+                  <div className="mt-1"><NumberInput label={`Hours per month, team row ${i + 1}`} value={t.hoursPerMonth} suffix="h/month" onChange={(v) => edit((d) => { d.build.team[i]!.hoursPerMonth = v; })} /></div>
+                )}
+              </td>
+              <td className="n min-w-[72px]"><NumberInput label={`From month, team row ${i + 1}`} value={lineWindow(project, t).from} min={1} max={maxTo(t)} onChange={(v) => edit((d) => { d.build.team[i]!.fromMonth = Math.round(v); })} /></td>
+              <td className="n min-w-[72px]"><NumberInput label={`To month, team row ${i + 1}`} value={lineWindow(project, t).to} min={1} max={maxTo(t)} onChange={(v) => edit((d) => { d.build.team[i]!.toMonth = Math.round(v); })} /></td>
               <td><input type="checkbox" checked={t.experiments} onChange={(e) => edit((d) => { d.build.team[i]!.experiments = e.target.checked; })} aria-label="Runs experiments" /></td>
               <td className="n min-w-[120px]">
                 <input type="number" min={0} step="any" aria-label={`Manual rate, team row ${i + 1}`} className={`${field} w-24 text-right ${t.rateOverride !== undefined ? "border-accent" : ""}`} value={t.rateOverride ?? ""} placeholder={`${project.rateCard.find((r) => r.id === t.roleId)?.hourlyRate ?? 0} (rate card)`}
@@ -411,14 +433,14 @@ function Team() {
         </tbody>
       </table>
       </div>
-      <WhereFrom>labour is people &times; hours per month &times; the hourly rate (the role&apos;s rate-card rate, or the manual rate on the line),  for each month in the From and To window. It always changes with headcount. Developers ticked &quot;Experiments&quot; also drive the per-developer Dev Lab activities (iterations, playground, tooling). Change people, hours and months in the table above.</WhereFrom>
+      <WhereFrom>labour is people &times; hours per month &times; the hourly rate (the role&apos;s rate-card rate, or the manual rate on the line), for each month in the From and To window. With People &times; weeks, the total hours (people &times; weeks &times; hours per week) are spread evenly over those months. Only a line in the Hypercare phase can be billed after the last build month. It always changes with headcount. Developers ticked &quot;Experiments&quot; also drive the per-developer Dev Lab activities (iterations, playground, tooling). Change people, hours and months in the table above.</WhereFrom>
       {project.build.workstreams.length > 0 && <AllocationMatrix />}
       <button type="button" className="flex w-fit items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-medium hover:bg-surface-2" onClick={() => edit((d) => { d.build.team.push({ roleId: d.rateCard[0]!.id, people: 1, hoursPerMonth: 160, experiments: false }); })}><Plus size={14} />Add team line</button>
       <RateCardEditor />
       <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-2.5">
         <Field label="Contingency" help="contingency"><NumberInput value={project.build.contingencyPct} max={100} suffix="%" onChange={(v) => edit((d) => { d.build.contingencyPct = v; })} /></Field>
         <Field label="Contingency applies to" help="contingencyScope">
-          <Select value={project.build.contingencyScope} options={[{ value: "labour", label: "Build labour only" }, { value: "all", label: "Labour, Dev Lab, environment and one-time costs" }]}
+          <Select value={project.build.contingencyScope} options={[{ value: "labour", label: "Build labour only" }, { value: "all", label: "Labour, Dev Lab, environment, delivery and one-time costs" }]}
             onChange={(v) => edit((d) => { d.build.contingencyScope = v === "all" ? "all" : "labour"; })} />
         </Field>
       </div>

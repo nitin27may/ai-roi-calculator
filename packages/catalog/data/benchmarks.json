@@ -45,6 +45,106 @@
       "source": "Assumption"
     }
   ],
+  "availableRoles": [
+    {
+      "id": "ba",
+      "label": "Business analyst",
+      "hourlyRate": 55,
+      "source": "Assumption",
+      "confidence": "unverified"
+    },
+    {
+      "id": "bsa",
+      "label": "Business systems analyst",
+      "hourlyRate": 95,
+      "source": "Assumption",
+      "confidence": "unverified"
+    },
+    {
+      "id": "qa",
+      "label": "QA / test analyst",
+      "hourlyRate": 80,
+      "source": "Assumption",
+      "confidence": "unverified"
+    },
+    {
+      "id": "pm",
+      "label": "Project manager",
+      "hourlyRate": 110,
+      "source": "Assumption",
+      "confidence": "unverified"
+    },
+    {
+      "id": "scrumMaster",
+      "label": "Scrum master",
+      "hourlyRate": 95,
+      "source": "Assumption",
+      "confidence": "unverified"
+    },
+    {
+      "id": "devops",
+      "label": "DevOps engineer",
+      "hourlyRate": 115,
+      "source": "Assumption",
+      "confidence": "unverified"
+    },
+    {
+      "id": "dba",
+      "label": "Database administrator",
+      "hourlyRate": 110,
+      "source": "Assumption",
+      "confidence": "unverified"
+    },
+    {
+      "id": "ux",
+      "label": "UX designer",
+      "hourlyRate": 95,
+      "source": "Assumption",
+      "confidence": "unverified"
+    },
+    {
+      "id": "dataEngineer",
+      "label": "Data engineer",
+      "hourlyRate": 110,
+      "source": "Assumption",
+      "confidence": "unverified"
+    },
+    {
+      "id": "techLead",
+      "label": "Tech lead",
+      "hourlyRate": 130,
+      "source": "Assumption",
+      "confidence": "unverified"
+    },
+    {
+      "id": "changeTraining",
+      "label": "Change and training lead",
+      "hourlyRate": 85,
+      "source": "Assumption",
+      "confidence": "unverified"
+    },
+    {
+      "id": "supportAnalyst",
+      "label": "Support analyst",
+      "hourlyRate": 65,
+      "source": "Assumption",
+      "confidence": "unverified"
+    },
+    {
+      "id": "developer",
+      "label": "Developer",
+      "hourlyRate": 105,
+      "source": "Assumption",
+      "confidence": "unverified"
+    },
+    {
+      "id": "architect",
+      "label": "Architect",
+      "hourlyRate": 140,
+      "source": "Assumption",
+      "confidence": "unverified"
+    }
+  ],
   "capabilities": [
     {
       "id": "meeting_prep",

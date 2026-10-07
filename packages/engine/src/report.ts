@@ -137,8 +137,8 @@ export function alertSummary(ledger: Ledger): AlertGroup[] {
   return order.filter((id) => byGroup.has(id)).map((id) => ({ id, label: ALERT_LABEL[id], count: byGroup.get(id)!.length, items: byGroup.get(id)!.slice(0, 3) }));
 }
 
-const STREAM_WORD: Record<Stream, string> = { labour: "Building", devlab: "Building", devenv: "Building", run: "Running", platform: "Platform", maint: "Maintenance", transition: "Maintenance", env: "Environments" };
-const STREAM_DRIVER_COLOR: Record<Stream, DriverColor> = { labour: "labour", devlab: "devlab", devenv: "devlab", run: "run", platform: "platform", maint: "maint", transition: "maint", env: "platform" };
+const STREAM_WORD: Record<Stream, string> = { labour: "Building", devlab: "Building", devenv: "Building", run: "Running", platform: "Platform", maint: "Maintenance", transition: "Maintenance", env: "Environments", delivery: "Delivery costs" };
+const STREAM_DRIVER_COLOR: Record<Stream, DriverColor> = { labour: "labour", devlab: "devlab", devenv: "devlab", run: "run", platform: "platform", maint: "maint", transition: "maint", env: "platform", delivery: "labour" };
 
 /**
  * Top 5 cost lines over the whole plan (by stream and label, summed across months) plus an
@@ -208,9 +208,11 @@ export function summarize(p: Project, ledger: Ledger, roi: RoiResult, cat: Catal
   const B = p.timeline.buildMonths;
   const production = ledger.months.filter((m): m is Month => m.phase === "production");
   const costOf = (months: Month[]) => sum(months.map((m) => basisCost(m, roi.basis)));
-  const buildCost = costOf(ledger.months.slice(0, B));
+  // Hypercare labour after go-live is part of the cost of delivering, so it is reported with build, not first-year running. It only counts under the full basis, the only one that includes labour.
+  const hypercareOf = (months: Month[]) => (roi.basis === "full" ? sum(months.map((m) => m.byStream.labour)) : 0);
+  const buildCost = costOf(ledger.months.slice(0, B)) + hypercareOf(production);
   const year1 = production.slice(0, 12);
-  const year1Run = costOf(year1);
+  const year1Run = costOf(year1) - hypercareOf(year1);
   const laterRun = roi.totalCost - buildCost - year1Run;
   const net = roi.totalBenefit - roi.totalCost;
   const paysBackWithinPlan = roi.paybackMonth !== null;
@@ -286,7 +288,7 @@ export function monthRows(ledger: Ledger, roi: RoiResult): Row[] {
   const hasCurrent = ledger.months.some((mo) => Object.keys(mo.benefitBy.currentState).length > 0);
   return ledger.months.map((mo, i) => ({
     Month: mo.m, Date: mo.date, Phase: mo.phase, Adoption: Math.round(mo.adoption * 100) / 100,
-    "Build labour": r2(mo.byStream.labour), "AI Dev Lab": r2(mo.byStream.devlab), "Dev environment": r2(mo.byStream.devenv), Environments: r2(mo.byStream.env ?? 0),
+    "Build labour": r2(mo.byStream.labour), "AI Dev Lab": r2(mo.byStream.devlab), "Dev environment": r2(mo.byStream.devenv), Environments: r2(mo.byStream.env ?? 0), "Delivery costs": r2(mo.byStream.delivery ?? 0),
     "Production AI usage": r2(mo.byStream.run), "Platform": r2(mo.byStream.platform), Maintenance: r2(mo.byStream.maint), Transition: r2(mo.byStream.transition),
     [`Cost (${roi.basis})`]: r2(basisCost(mo, roi.basis)), Benefit: r2(mo.benefit),
     // Only when the project has current-state lines, so other projects' sheets keep their columns.

@@ -74,6 +74,7 @@ function LifecycleCanvas() {
     ["Production AI usage", "var(--run)", months.map((m) => m.byStream.run - prodRes(m))],
     ["Platform & infrastructure", "var(--platform)", months.map((m) => m.byStream.platform + prodRes(m))],
     ...(hasEnv ? [["Environments", "var(--build)", months.map((m) => envCost(m))] as [string, string, number[]]] : []),
+    ...(months.some((m) => (m.byStream.delivery ?? 0) > 0) ? [["Delivery costs", "var(--build-2)", months.map((m) => m.byStream.delivery ?? 0)] as [string, string, number[]]] : []),
     ["Maintenance", "var(--maint)", months.map((m) => m.byStream.maint)],
     ["Benefit", "var(--benefit)", months.map((m) => m.benefit)],
   ];
