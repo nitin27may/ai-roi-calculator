@@ -1,6 +1,6 @@
 "use client";
 import { lineItemRows, toCsv, type Ledger, type Project, type RoiResult } from "@roi-calculator/engine";
-import { catalog } from "./compute";
+import { catalog, ensureResources } from "./compute";
 import { buildWorkbook, chartMonths } from "./workbook";
 import { renderMonthlyChartPng } from "./xlsx-chart";
 
@@ -20,6 +20,7 @@ export function exportCsv(p: Project, ledger: Ledger) {
 
 /** Downloads the workbook (see buildWorkbook for what is in it). */
 export async function exportXlsx(p: Project, ledger: Ledger, roi: RoiResult) {
+  await ensureResources();
   const chartPng = await renderMonthlyChartPng(chartMonths(ledger)).catch(() => null);
   const wb = await buildWorkbook(p, ledger, roi, catalog, { chartPng });
   const buf = await wb.xlsx.writeBuffer();

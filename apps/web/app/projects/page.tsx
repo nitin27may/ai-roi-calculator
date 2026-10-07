@@ -8,7 +8,7 @@ import { Card, CardHead, Field, TextInput } from "@/components/ui";
 import { CompareBars, COMPARE_COLORS, MiniSplit } from "@/components/charts-compare";
 import { VerdictChip } from "@/components/summary-parts";
 import { COMPARE_ROWS, bestIndex } from "@/lib/compare";
-import { catalog } from "@/lib/compute";
+import { catalog, useResourcesReady, useResourceVersion } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { downloadProject } from "@/lib/project-file";
 import { EmptyLibrary } from "@/components/empty-library";
@@ -25,11 +25,13 @@ export default function Projects() {
   const [confirm, setConfirm] = useState<string | null>(null);
   const triggers = useRef(new Map<string, HTMLButtonElement>());
   const [picked, setPicked] = useState<string[]>([]);
+  useResourcesReady(library.some((e) => (e.project.resources?.length ?? 0) > 0));
+  const resourceVersion = useResourceVersion();
   const summaries = useMemo(() => new Map(library.map((e) => {
     const L = buildLedger(e.project, catalog);
     const r = computeRoi(L, e.project.roi.basis, e.project.roi.discountRatePct, roiOptions(e.project));
     return [e.id, { L, r, split: costSplit(L), verdict: verdictFor(r), figures: compareFigures(e.project.name, L, r) }];
-  })), [library]);
+  })), [library, resourceVersion]);
 
   const toggle = (id: string) => setPicked((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : cur.length >= 3 ? cur : [...cur, id]));
   const chosen = picked.filter((id) => summaries.has(id));

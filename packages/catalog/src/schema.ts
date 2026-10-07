@@ -223,6 +223,14 @@ export const MeterRule = z.object({
   options: z.array(z.enum(["payg", "ri1", "ri3", "ahb", "devtest"])).optional(),
   /** Priced at 0 with a reason, for free tiers and meters that carry no charge. */
   free: z.string().optional(),
+  /** Regex on the row's unit of measure, to tell a monthly row from an hourly row of the same meter name. */
+  uom: z.string().optional(),
+  /** A per-hour price billed by the hour used (DBU-hours, DIU-hours): not scaled to a 730-hour month. */
+  usage: z.boolean().optional(),
+  /** Name of a numeric SKU attribute the price is multiplied by (Fabric capacity units, Synapse units of 100 DWU). */
+  multiplyBy: z.string().optional(),
+  /** Reserved prices come from another meter (Fabric reservations are a different product from pay-as-you-go). */
+  reservation: z.object({ meterName: z.string().optional(), productName: z.string().optional(), skuName: z.string().optional() }).optional(),
   /** Divide the row's price by this (a licence listed for a 64 vCPU VM, priced per vCPU). */
   divisor: z.number().positive().optional(),
   parts: z.array(z.object({ meterName: z.string(), productName: z.union([z.string(), z.record(z.string())]).optional(), skuName: z.string().optional(), factorAttr: z.string(), tier: z.union([z.number().nonnegative(), z.literal("paid")]).optional() })).optional(),

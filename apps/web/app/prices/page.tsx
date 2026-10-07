@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import { Card, CardHead, Pill, Seg, Select } from "@/components/ui";
 import { availableIn, DEPLOYMENT_LABEL, type AzureDeployment } from "@roi-calculator/engine";
-import { catalog } from "@/lib/compute";
+import { catalog, useResourcesReady, useResourceVersion } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad } from "@/lib/format";
 
@@ -29,6 +29,8 @@ const both = (e: Parameters<typeof availableIn>[0], price: string) =>
 const VENDOR_OF_SPEECH = (id: string, via: string) => (via.startsWith("Snowflake") ? "snowflake" : id.startsWith("gpt-") || id === "whisper" ? "openai" : "microsoft");
 
 export default function Prices() {
+  useResourcesReady(true);
+  const resourceVersion = useResourceVersion();
   const deployment = useStudio((s) => s.project.settings.azureDeployment);
   const [q, setQ] = useState("");
   const [offered, setOffered] = useState<"all" | AzureDeployment>(deployment);
@@ -66,7 +68,7 @@ export default function Prices() {
     ...catalog.unitPrices.map((u) => ({ id: u.id, label: u.label, platform: u.platform, kind: "Service", vendor: u.platform === "snowflake" ? "snowflake" : "Azure", status: u.lifecycle?.status ?? "ga",
       ...both({}, u.manual ? `${cad(u.manual.price, 4)} /${u.unit}` : u.price !== undefined ? `${cad(u.price, 4)} /${u.unit}` : `${u.credits} ${u.creditType} credits /${u.unit}`),
       source: u.manual ? "manual" : u.source.kind, note: u.manual ? `${u.manual.note} (replaces the refreshed price)` : undefined, confidence: u.confidence, url: u.manual ? undefined : u.source.url, retrievedAt: u.manual ? u.manual.retrievedAt : u.source.retrievedAt })),
-  ], []);
+  ], [resourceVersion]);
   const vendors = [...new Set(rows.filter((r) => kind === "all" || r.kind === kind).map((r) => r.vendor))].sort();
   const shown = rows.filter((r) =>
     (offered === "all" || r[offered] !== null) && (kind === "all" || r.kind === kind) && (vendor === "all" || r.vendor === vendor) &&

@@ -56,7 +56,7 @@ const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const sig = (n: number) => Number(n.toPrecision(7));
 
 /** Monthly multiplier and whether the unit is an hourly one, from the Retail API unit of measure. */
-export function unitFactor(uom: string): { factor: number; hourly: boolean } {
+export function unitFactorOf(uom: string): { factor: number; hourly: boolean } {
   const u = uom.trim().toLowerCase().replace(/\s+/g, " ");
   if (/(^|[ /])hour$/.test(u)) return { factor: 730, hourly: true };
   if (/(^|[ /])day$/.test(u)) return { factor: 730 / 24, hourly: false };
@@ -64,6 +64,8 @@ export function unitFactor(uom: string): { factor: number; hourly: boolean } {
   if (/second/.test(u) && !/gi?b second/.test(u)) throw new PriceMatchError(`unsupported unit of measure "${uom}"`);
   return { factor: 1, hourly: false };
 }
+
+export const unitFactor = unitFactorOf;
 
 function defaultUnit(uom: string, hourly: boolean): string {
   if (hourly) return "unit-month (730 h)";
@@ -132,7 +134,12 @@ export async function priceMeter(type: Json, sku: Json, meterId: string, env: En
   const allowed: Option[] = rule.options ?? type.options;
   const os = osOf(sku);
   const perSku = retail.filter.includes("armSkuName eq '{armSku}'");
-  const div: number = rule.divisor ?? 1;
+  // `multiplyBy` names a numeric SKU attribute the price is scaled by (Fabric: CUs, Synapse: units of 100 DWU); folded into the divisor.
+  const mult = rule.multiplyBy ? Number(sku.attrs?.[rule.multiplyBy]) : 1;
+  if (!Number.isFinite(mult) || mult <= 0) throw new PriceMatchError(`${sku.id}: attribute ${rule.multiplyBy} is missing`);
+  const div: number = (rule.divisor ?? 1) / mult;
+  // `usage`: a per-hour price that is billed by the hour used (DBU-hours, DIU-hours), not a 730-hour monthly unit.
+  const unitFactor = (uom: string) => (rule.usage ? { factor: 1, hourly: false } : unitFactorOf(uom));
   const label = `${sku.id}/${meterId}`;
 
   if (rule.free !== undefined) {
@@ -147,6 +154,7 @@ export async function priceMeter(type: Json, sku: Json, meterId: string, env: En
       meterName: (rule.meterName ?? ".").replaceAll("{armSku}", escape(sku.armSku ?? "")),
       productName: productPattern(rule.productName ?? retail.productName, target, sku.armSku),
       skuPattern: (rule.skuName ?? retail.skuName)?.replaceAll("{armSku}", escape(sku.armSku ?? "")),
+      ...(rule.uom ? { uomPattern: rule.uom } : {}),
       ...(perSku && sku.armSku ? { armSkuName: sku.armSku } : {}),
       ...(rule.tier === "paid" ? { firstPaidTier: true } : { tierMinimumUnits: rule.tier ?? 0 }),
       ...over,
@@ -179,7 +187,7 @@ export async function priceMeter(type: Json, sku: Json, meterId: string, env: En
   const { hourly } = unitFactor(uom);
   if (hourly !== meter.hourly && !rule.parts) throw new PriceMatchError(`${label}: meter is ${meter.hourly ? "hourly" : "not hourly"} but the Retail API unit is "${uom}"`);
 
-  const out: MeterPrice = { price: sig(payg), unit: rule.unit ?? defaultUnit(uom, hourly), hourly: meter.hourly, source: paygSource, options: {}, fallbacks: {}, confidence: "verified" };
+  const out: MeterPrice = { price: sig(payg), unit: rule.unit ?? (rule.usage ? uom.trim().replace(/\s+/g, " ") : defaultUnit(uom, hourly)), hourly: meter.hourly, source: paygSource, options: {}, fallbacks: {}, confidence: "verified" };
   const note = (o: Exclude<Option, "payg">, why: string) => { out.fallbacks[o] = why; };
   const attempt = async (o: Exclude<Option, "payg">, fn: () => Promise<void>) => {
     try { await fn(); } catch (e) {
@@ -196,7 +204,8 @@ export async function priceMeter(type: Json, sku: Json, meterId: string, env: En
       await attempt(o, async () => {
         const { term, years } = TERMS[o];
         const windowsRi = retail.windowsLicence === true && os === "windows";
-        const row = await pick(env, build({ type: "Reservation", reservationTerm: term }, windowsRi ? "linux" : "own"));
+        const res = rule.reservation as Json | undefined;
+        const row = await pick(env, build({ type: "Reservation", reservationTerm: term, ...(res?.meterName ? { meterName: res.meterName } : {}), ...(res?.productName ? { productName: res.productName } : {}), ...(res?.skuName ? { skuPattern: res.skuName } : {}) }, windowsRi ? "linux" : "own"));
         const monthly = row.retailPrice / (12 * years) / div;
         if (!windowsRi) { out.options[o] = { price: sig(monthly), source: src(env, row, `${term} reservation, total / ${12 * years} months`) }; return; }
         // Reservations cover compute only: the Windows licence stays at pay-as-you-go.
@@ -244,7 +253,7 @@ const DESIGNED = /^(Not offered|Linux has no|Free tier|Hybrid Benefit does not a
 const keyOf = (id: string, sku: string, meter: string) => `${id}|${sku}|${meter}`;
 
 /** Refreshes every type that has a `retail` block in the given resource files (mutated in place). */
-export async function refreshResources(files: Json[], ctx: Ctx, only?: string[]): Promise<Result> {
+export async function refreshResources(files: Json[], ctx: Ctx, only?: string[], external: ReadonlySet<string> = new Set()): Promise<Result> {
   const result: Result = { types: [], changes: [] };
   for (const file of files) {
     for (const type of file.types as Json[]) {
@@ -263,7 +272,8 @@ export async function refreshResources(files: Json[], ctx: Ctx, only?: string[])
         const env: Env = { rows, filter, ctx, usdRows: ctx.usd ? () => ctx.usd!(filter) : undefined };
         for (const meter of type.meters as Json[]) {
           const id = sku.prices[meter.id];
-          if (!id) continue;
+          // A price that lives in unit-prices.json (refreshed by `pnpm prices:azure`) is referenced, never repriced here.
+          if (!id || external.has(id)) continue;
           rep.pairs++;
           try {
             const mp = await priceMeter(type, sku, meter.id, env, rep.ambiguous);
@@ -286,6 +296,23 @@ export async function refreshResources(files: Json[], ctx: Ctx, only?: string[])
     }
   }
   return result;
+}
+
+/**
+ * Vendor-doc seat prices (Entra ID, Power BI, ...) keep the published USD list price in `attrs.usdList`; the CAD price is
+ * that times the FX rate measured by `pnpm prices:azure`, so a refresh moves them with the exchange rate.
+ */
+export function refreshVendorDoc(files: Json[], usdToCad: number | undefined): Change[] {
+  const changes: Change[] = [];
+  if (!usdToCad) return changes;
+  for (const f of files) for (const u of f.unitPrices as Json[]) {
+    const usd = u.attrs?.usdList;
+    if (u.source?.kind !== "vendor-doc" || typeof usd !== "number") continue;
+    const price = Number((usd * usdToCad).toFixed(4));
+    if (price !== u.price) { changes.push({ id: u.id, field: "price", from: u.price, to: price }); u.price = price; }
+    u.source.note = String(u.source.note).replace(/x [\d.]+ \(USD/, `x ${usdToCad} (USD`);
+  }
+  return changes;
 }
 
 /** `--check` fails on an ambiguous match or a pay-as-you-go price that no row supplies. */
@@ -326,7 +353,9 @@ export async function runResources(args: string[], log: (m: string) => void = co
   };
   const files = readResourceFiles();
   log(`Pricing resources (CAD, ${region})…`);
-  const r = await refreshResources(files.map((f) => f.data), ctx, only);
+  const external = new Set<string>((JSON.parse(readFileSync(join(DATA, "unit-prices.json"), "utf8")) as Json[]).map((u) => u.id));
+  const r = await refreshResources(files.map((f) => f.data), ctx, only, external);
+  r.changes.push(...refreshVendorDoc(files.map((f) => f.data), usdToCad));
   mkdirSync(join(ROOT, "reports"), { recursive: true });
   const reportPath = join(ROOT, "reports", `prices-resources-${today}.md`);
   writeFileSync(reportPath, report(r, today, region));

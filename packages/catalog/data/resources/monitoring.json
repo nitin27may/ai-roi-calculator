@@ -1,0 +1,2092 @@
+{
+  "category": "monitoring",
+  "note": "Part 2 of the catalogue: Log Analytics, Application Insights, alerts, App Configuration, Backup, Site Recovery and Automation.",
+  "types": [
+    {
+      "id": "log-analytics-ingestion",
+      "label": "Log Analytics ingestion",
+      "category": "monitoring",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/monitor/",
+      "note": "Analytics logs pay-as-you-go (the `log-analytics-ingest` price: first paid volume tier after the free 5 GB), basic logs, auxiliary logs, or a daily commitment tier. Retention beyond 31 days is its own type. Data beyond a commitment is billed at the tier's effective rate and is not modelled. Application Insights workspace-based data and Sentinel data are billed here too.",
+      "inputs": [
+        {
+          "id": "gb",
+          "label": "Data ingested",
+          "unit": "GB",
+          "help": "Data ingested a month at the SKU's rate."
+        },
+        {
+          "id": "commitments",
+          "label": "Commitment tiers",
+          "unit": "tiers",
+          "help": "Commitment tiers of the SKU's daily size."
+        }
+      ],
+      "meters": [
+        {
+          "id": "gb",
+          "label": "Ingestion",
+          "quantity": {
+            "input": "gb"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "commit",
+          "label": "Commitment tier",
+          "quantity": {
+            "input": "commitments"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "analytics-payg",
+          "label": "Analytics logs, pay-as-you-go",
+          "attrs": {},
+          "prices": {
+            "gb": "log-analytics-ingest",
+            "commit": "log-analytics-ingestion-analytics-payg-commit"
+          },
+          "retail": {
+            "commit": {
+              "free": "No commitment tier on pay-as-you-go."
+            }
+          }
+        },
+        {
+          "id": "basic-logs",
+          "label": "Basic logs",
+          "attrs": {},
+          "prices": {
+            "gb": "log-analytics-ingestion-basic-logs-gb",
+            "commit": "log-analytics-ingestion-basic-logs-commit"
+          },
+          "retail": {
+            "gb": {
+              "meterName": "^Basic Logs Data Ingestion$",
+              "productName": "^Azure Monitor$",
+              "skuName": "^Basic Logs$"
+            },
+            "commit": {
+              "free": "No commitment tier for basic logs."
+            }
+          }
+        },
+        {
+          "id": "auxiliary-logs",
+          "label": "Auxiliary logs",
+          "attrs": {},
+          "prices": {
+            "gb": "log-analytics-ingestion-auxiliary-logs-gb",
+            "commit": "log-analytics-ingestion-auxiliary-logs-commit"
+          },
+          "retail": {
+            "gb": {
+              "meterName": "^Auxiliary Logs Data Ingestion$",
+              "productName": "^Azure Monitor$",
+              "skuName": "^Auxiliary Logs$"
+            },
+            "commit": {
+              "free": "No commitment tier for auxiliary logs."
+            }
+          }
+        },
+        {
+          "id": "commit-100",
+          "label": "100 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "log-analytics-ingestion-commit-100-gb",
+            "commit": "log-analytics-ingestion-commit-100-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^100 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Azure Monitor$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-200",
+          "label": "200 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "log-analytics-ingestion-commit-200-gb",
+            "commit": "log-analytics-ingestion-commit-200-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^200 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Azure Monitor$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-300",
+          "label": "300 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "log-analytics-ingestion-commit-300-gb",
+            "commit": "log-analytics-ingestion-commit-300-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^300 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Azure Monitor$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-400",
+          "label": "400 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "log-analytics-ingestion-commit-400-gb",
+            "commit": "log-analytics-ingestion-commit-400-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^400 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Azure Monitor$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-500",
+          "label": "500 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "log-analytics-ingestion-commit-500-gb",
+            "commit": "log-analytics-ingestion-commit-500-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^500 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Azure Monitor$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-1000",
+          "label": "1,000 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "log-analytics-ingestion-commit-1000-gb",
+            "commit": "log-analytics-ingestion-commit-1000-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^1000 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Azure Monitor$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-2000",
+          "label": "2,000 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "log-analytics-ingestion-commit-2000-gb",
+            "commit": "log-analytics-ingestion-commit-2000-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^2000 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Azure Monitor$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-5000",
+          "label": "5,000 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "log-analytics-ingestion-commit-5000-gb",
+            "commit": "log-analytics-ingestion-commit-5000-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^5000 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Azure Monitor$",
+              "unit": "tier-month"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "log-analytics-retention",
+      "label": "Log Analytics retention and archive",
+      "category": "monitoring",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/monitor/",
+      "note": "Analytics logs kept beyond the 31 days included, and long-term archive. Search jobs, restores and data export are not included.",
+      "inputs": [
+        {
+          "id": "gb",
+          "label": "Data retained",
+          "unit": "GB",
+          "help": "Average GB held beyond the included retention."
+        }
+      ],
+      "meters": [
+        {
+          "id": "gb",
+          "label": "Retained data",
+          "quantity": {
+            "input": "gb"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "(serviceName eq 'Log Analytics' or serviceName eq 'Azure Monitor') and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "interactive",
+          "label": "Interactive retention beyond 31 days",
+          "attrs": {},
+          "prices": {
+            "gb": "log-analytics-retention-interactive-gb"
+          },
+          "retail": {
+            "gb": {
+              "meterName": "^Analytics Logs Data Retention$",
+              "productName": "^Log Analytics$",
+              "unit": "GB-month"
+            }
+          }
+        },
+        {
+          "id": "archive",
+          "label": "Long-term archive",
+          "attrs": {},
+          "prices": {
+            "gb": "log-analytics-retention-archive-gb"
+          },
+          "retail": {
+            "gb": {
+              "meterName": "^Data Archive$",
+              "productName": "^Azure Monitor$",
+              "unit": "GB-month"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "application-insights",
+      "label": "Application Insights (workspace-based)",
+      "category": "monitoring",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/monitor/",
+      "note": "Telemetry is ingested into a Log Analytics workspace and billed at the `log-analytics-ingest` price. Standard availability tests are priced per execution. Multi-step web tests and the classic Enterprise plan are not included.",
+      "inputs": [
+        {
+          "id": "gb",
+          "label": "Telemetry ingested",
+          "unit": "GB",
+          "help": "Telemetry ingested into the workspace a month."
+        },
+        {
+          "id": "testsK",
+          "label": "Availability test executions",
+          "unit": "thousand executions",
+          "help": "Standard web test executions a month, in thousands."
+        }
+      ],
+      "meters": [
+        {
+          "id": "ingest",
+          "label": "Telemetry ingestion",
+          "quantity": {
+            "input": "gb"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "tests",
+          "label": "Availability tests",
+          "quantity": {
+            "input": "testsK",
+            "factor": 1000
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq '{region}'",
+        "productName": ".",
+        "precise": true,
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "workspace-based",
+          "label": "Workspace-based (pay-as-you-go)",
+          "attrs": {},
+          "prices": {
+            "ingest": "log-analytics-ingest",
+            "tests": "application-insights-workspace-based-tests"
+          },
+          "retail": {
+            "tests": {
+              "meterName": "^Standard Web Test Execution$",
+              "productName": "^Azure Monitor$",
+              "unit": "execution"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "monitor-alerts",
+      "label": "Azure Monitor alert rules",
+      "category": "monitoring",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/monitor/",
+      "note": "Per monitored time series or per log alert rule per month. The first 10 metric time series are free; this prices the paid rate. Notifications (SMS, voice, email) and action groups are not included.",
+      "inputs": [
+        {
+          "id": "rules",
+          "label": "Rules or time series",
+          "unit": "rules",
+          "help": "Alert rules or monitored time series."
+        }
+      ],
+      "meters": [
+        {
+          "id": "rules",
+          "label": "Rules",
+          "quantity": {
+            "input": "rules"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "metric-timeseries",
+          "label": "Metric alert, per monitored time series",
+          "attrs": {},
+          "prices": {
+            "rules": "monitor-alerts-metric-timeseries-rules"
+          },
+          "retail": {
+            "rules": {
+              "meterName": "^Alerts Metric Monitored$",
+              "productName": "^Azure Monitor$",
+              "tier": "paid",
+              "unit": "time series-month"
+            }
+          }
+        },
+        {
+          "id": "dynamic-threshold",
+          "label": "Dynamic threshold, per time series",
+          "attrs": {},
+          "prices": {
+            "rules": "monitor-alerts-dynamic-threshold-rules"
+          },
+          "retail": {
+            "rules": {
+              "meterName": "^Alerts Dynamic Threshold$",
+              "productName": "^Azure Monitor$",
+              "unit": "time series-month"
+            }
+          }
+        },
+        {
+          "id": "log-1min",
+          "label": "Log alert rule, 1-minute frequency",
+          "attrs": {},
+          "prices": {
+            "rules": "monitor-alerts-log-1min-rules"
+          },
+          "retail": {
+            "rules": {
+              "meterName": "^Alerts Resource Monitored at 1 Minute Frequency$",
+              "productName": "^Azure Monitor$",
+              "unit": "rule-month"
+            }
+          }
+        },
+        {
+          "id": "log-5min",
+          "label": "Log alert rule, 5-minute frequency",
+          "attrs": {},
+          "prices": {
+            "rules": "monitor-alerts-log-5min-rules"
+          },
+          "retail": {
+            "rules": {
+              "meterName": "^Alerts Resource Monitored at 5 Minute Frequency$",
+              "productName": "^Azure Monitor$",
+              "unit": "rule-month"
+            }
+          }
+        },
+        {
+          "id": "log-10min",
+          "label": "Log alert rule, 10-minute frequency",
+          "attrs": {},
+          "prices": {
+            "rules": "monitor-alerts-log-10min-rules"
+          },
+          "retail": {
+            "rules": {
+              "meterName": "^Alerts Resource Monitored at 10 Minute Frequency$",
+              "productName": "^Azure Monitor$",
+              "unit": "rule-month"
+            }
+          }
+        },
+        {
+          "id": "log-15min",
+          "label": "Log alert rule, 15-minute frequency",
+          "attrs": {},
+          "prices": {
+            "rules": "monitor-alerts-log-15min-rules"
+          },
+          "retail": {
+            "rules": {
+              "meterName": "^Alerts Resource Monitored at 15 Minute Frequency$",
+              "productName": "^Azure Monitor$",
+              "unit": "rule-month"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-configuration",
+      "label": "App Configuration",
+      "category": "monitoring",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/app-configuration/",
+      "note": "Store charge by tier (billed per day), replicas, and operations beyond the included amount. Snapshots overage and experimentation events are not included.",
+      "inputs": [
+        {
+          "id": "stores",
+          "label": "Stores",
+          "unit": "stores",
+          "help": "App Configuration stores."
+        },
+        {
+          "id": "replicas",
+          "label": "Replicas",
+          "unit": "replicas",
+          "help": "Replicas across all stores."
+        },
+        {
+          "id": "ops10k",
+          "label": "Overage operations",
+          "unit": "10K operations",
+          "help": "Operations beyond the included quota, in tens of thousands."
+        }
+      ],
+      "meters": [
+        {
+          "id": "instances",
+          "label": "Stores",
+          "quantity": {
+            "input": "stores"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "replicas",
+          "label": "Replicas",
+          "quantity": {
+            "input": "replicas"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "ops",
+          "label": "Overage operations",
+          "quantity": {
+            "input": "ops10k"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'App Configuration' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "free",
+          "label": "Free",
+          "attrs": {},
+          "prices": {
+            "instances": "app-configuration-free-instances",
+            "replicas": "app-configuration-free-replicas",
+            "ops": "app-configuration-free-ops"
+          },
+          "retail": {
+            "instances": {
+              "free": "The Free tier has no charge."
+            },
+            "replicas": {
+              "free": "The Free tier has no replicas."
+            },
+            "ops": {
+              "free": "The Free tier has a fixed daily quota, no overage."
+            }
+          }
+        },
+        {
+          "id": "developer",
+          "label": "Developer",
+          "attrs": {},
+          "prices": {
+            "instances": "app-configuration-developer-instances",
+            "replicas": "app-configuration-developer-replicas",
+            "ops": "app-configuration-developer-ops"
+          },
+          "retail": {
+            "instances": {
+              "meterName": "^Developer Instance$",
+              "productName": "^App Configuration$",
+              "unit": "instance-month (30.4 days)"
+            },
+            "replicas": {
+              "free": "Developer has no replicas."
+            },
+            "ops": {
+              "meterName": "^Developer Overage Operations$",
+              "productName": "^App Configuration$",
+              "divisor": 0.1,
+              "unit": "10K operations"
+            }
+          }
+        },
+        {
+          "id": "standard",
+          "label": "Standard",
+          "attrs": {},
+          "prices": {
+            "instances": "app-configuration-standard-instances",
+            "replicas": "app-configuration-standard-replicas",
+            "ops": "app-configuration-standard-ops"
+          },
+          "retail": {
+            "instances": {
+              "meterName": "^Standard Instance$",
+              "productName": "^App Configuration$",
+              "unit": "instance-month (30.4 days)"
+            },
+            "replicas": {
+              "meterName": "^Standard Replica Instance$",
+              "productName": "^App Configuration$",
+              "unit": "replica-month (30.4 days)"
+            },
+            "ops": {
+              "meterName": "^Standard Overage Operations$",
+              "productName": "^App Configuration$"
+            }
+          }
+        },
+        {
+          "id": "premium",
+          "label": "Premium",
+          "attrs": {},
+          "prices": {
+            "instances": "app-configuration-premium-instances",
+            "replicas": "app-configuration-premium-replicas",
+            "ops": "app-configuration-premium-ops"
+          },
+          "retail": {
+            "instances": {
+              "meterName": "^Premium Instance$",
+              "productName": "^App Configuration$",
+              "unit": "instance-month (30.4 days)"
+            },
+            "replicas": {
+              "meterName": "^Premium Replica Instance$",
+              "productName": "^App Configuration$",
+              "unit": "replica-month (30.4 days)"
+            },
+            "ops": {
+              "meterName": "^Premium Overage Operations$",
+              "productName": "^App Configuration$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "backup-instance",
+      "label": "Azure Backup protected instance",
+      "category": "monitoring",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/backup/",
+      "note": "The monthly protected-instance fee. Backup storage is a separate type (Backup storage). Instance fees for Azure VMs vary with size in the published table; the Retail API lists one rate.",
+      "inputs": [
+        {
+          "id": "instances",
+          "label": "Protected instances",
+          "unit": "instances",
+          "help": "Machines, databases or file shares protected."
+        }
+      ],
+      "meters": [
+        {
+          "id": "instances",
+          "label": "Protected instances",
+          "quantity": {
+            "input": "instances"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Backup' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "azure-vm",
+          "label": "Azure virtual machine",
+          "attrs": {},
+          "prices": {
+            "instances": "backup-instance-azure-vm-instances"
+          },
+          "retail": {
+            "instances": {
+              "meterName": "^Azure VM Protected Instance$",
+              "productName": "^Backup$",
+              "unit": "instance-month"
+            }
+          }
+        },
+        {
+          "id": "sql-in-vm",
+          "label": "SQL Server in an Azure VM",
+          "attrs": {},
+          "prices": {
+            "instances": "backup-instance-sql-in-vm-instances"
+          },
+          "retail": {
+            "instances": {
+              "meterName": "^SQL Server in Azure VM Protected Instance$",
+              "productName": "^Backup$",
+              "unit": "instance-month"
+            }
+          }
+        },
+        {
+          "id": "sap-hana",
+          "label": "SAP HANA in an Azure VM",
+          "attrs": {},
+          "prices": {
+            "instances": "backup-instance-sap-hana-instances"
+          },
+          "retail": {
+            "instances": {
+              "meterName": "^SAP HANA on Azure VM Protected Instance$",
+              "productName": "^Backup$",
+              "unit": "instance-month"
+            }
+          }
+        },
+        {
+          "id": "azure-files",
+          "label": "Azure Files share",
+          "attrs": {},
+          "prices": {
+            "instances": "backup-instance-azure-files-instances"
+          },
+          "retail": {
+            "instances": {
+              "meterName": "^Azure Files Protected Instance$",
+              "productName": "^Backup$",
+              "unit": "instance-month"
+            }
+          }
+        },
+        {
+          "id": "azure-blobs",
+          "label": "Azure Blobs",
+          "attrs": {},
+          "prices": {
+            "instances": "backup-instance-azure-blobs-instances"
+          },
+          "retail": {
+            "instances": {
+              "meterName": "^Azure Blob Protected Instance$",
+              "productName": "^Backup$",
+              "unit": "instance-month"
+            }
+          }
+        },
+        {
+          "id": "postgresql",
+          "label": "PostgreSQL",
+          "attrs": {},
+          "prices": {
+            "instances": "backup-instance-postgresql-instances"
+          },
+          "retail": {
+            "instances": {
+              "meterName": "^PostgreSQL Protected Instance$",
+              "productName": "^Backup$",
+              "unit": "instance-month"
+            }
+          }
+        },
+        {
+          "id": "on-premises-server",
+          "label": "On-premises server",
+          "attrs": {},
+          "prices": {
+            "instances": "backup-instance-on-premises-server-instances"
+          },
+          "retail": {
+            "instances": {
+              "meterName": "^On Premises Server Protected Instance$",
+              "productName": "^Backup$",
+              "unit": "instance-month"
+            }
+          }
+        },
+        {
+          "id": "cosmos-db",
+          "label": "Cosmos DB",
+          "attrs": {},
+          "prices": {
+            "instances": "backup-instance-cosmos-db-instances"
+          },
+          "retail": {
+            "instances": {
+              "meterName": "^Cosmos DB Protected Instance$",
+              "productName": "^Backup$",
+              "unit": "instance-month"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "backup-storage",
+      "label": "Azure Backup storage",
+      "category": "monitoring",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/backup/",
+      "note": "Backup data stored in the vault, per GB a month, by redundancy. Reserved capacity and the archive early-delete fee are not included.",
+      "inputs": [
+        {
+          "id": "gb",
+          "label": "Backup data",
+          "unit": "GB",
+          "help": "Backup data stored in the vault."
+        }
+      ],
+      "meters": [
+        {
+          "id": "gb",
+          "label": "Stored data",
+          "quantity": {
+            "input": "gb"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Backup' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "lrs",
+          "label": "Standard LRS",
+          "attrs": {},
+          "prices": {
+            "gb": "backup-storage-lrs-gb"
+          },
+          "retail": {
+            "gb": {
+              "meterName": "^Standard LRS Data Stored$",
+              "productName": "^Backup$",
+              "unit": "GB-month"
+            }
+          }
+        },
+        {
+          "id": "zrs",
+          "label": "Standard ZRS",
+          "attrs": {},
+          "prices": {
+            "gb": "backup-storage-zrs-gb"
+          },
+          "retail": {
+            "gb": {
+              "meterName": "^Standard ZRS Data Stored$",
+              "productName": "^Backup$",
+              "unit": "GB-month"
+            }
+          }
+        },
+        {
+          "id": "grs",
+          "label": "Standard GRS",
+          "attrs": {},
+          "prices": {
+            "gb": "backup-storage-grs-gb"
+          },
+          "retail": {
+            "gb": {
+              "meterName": "^Standard GRS Data Stored$",
+              "productName": "^Backup$",
+              "unit": "GB-month"
+            }
+          }
+        },
+        {
+          "id": "ra-grs",
+          "label": "Standard RA-GRS",
+          "attrs": {},
+          "prices": {
+            "gb": "backup-storage-ra-grs-gb"
+          },
+          "retail": {
+            "gb": {
+              "meterName": "^Standard RA-GRS Data Stored$",
+              "productName": "^Backup$",
+              "unit": "GB-month"
+            }
+          }
+        },
+        {
+          "id": "archive-lrs",
+          "label": "Archive LRS",
+          "attrs": {},
+          "prices": {
+            "gb": "backup-storage-archive-lrs-gb"
+          },
+          "retail": {
+            "gb": {
+              "meterName": "^Archive LRS Data Stored$",
+              "productName": "^Backup$",
+              "unit": "GB-month"
+            }
+          }
+        },
+        {
+          "id": "archive-grs",
+          "label": "Archive GRS",
+          "attrs": {},
+          "prices": {
+            "gb": "backup-storage-archive-grs-gb"
+          },
+          "retail": {
+            "gb": {
+              "meterName": "^Archive GRS Data Stored$",
+              "productName": "^Backup$",
+              "unit": "GB-month"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "site-recovery",
+      "label": "Site Recovery",
+      "category": "monitoring",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/site-recovery/",
+      "note": "Per protected instance per month. The storage, compute and network used by the replica are separate resources.",
+      "inputs": [
+        {
+          "id": "instances",
+          "label": "Protected instances",
+          "unit": "instances",
+          "help": "Machines replicated."
+        }
+      ],
+      "meters": [
+        {
+          "id": "instances",
+          "label": "Protected instances",
+          "quantity": {
+            "input": "instances"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Site Recovery' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "to-azure",
+          "label": "Replicating to Azure",
+          "attrs": {},
+          "prices": {
+            "instances": "site-recovery-to-azure-instances"
+          },
+          "retail": {
+            "instances": {
+              "meterName": "^VM Replicated to Azure$",
+              "unit": "instance-month"
+            }
+          }
+        },
+        {
+          "id": "to-customer-site",
+          "label": "Replicating to a customer-owned site",
+          "attrs": {},
+          "prices": {
+            "instances": "site-recovery-to-customer-site-instances"
+          },
+          "retail": {
+            "instances": {
+              "meterName": "^VM Replicated to System Center$",
+              "unit": "instance-month"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "automation",
+      "label": "Automation",
+      "category": "monitoring",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/automation/",
+      "note": "Runbook job minutes beyond the free 500 and State Configuration nodes beyond the free five. Watcher tasks and Update Management are not included.",
+      "inputs": [
+        {
+          "id": "minutes",
+          "label": "Job minutes",
+          "unit": "minutes",
+          "help": "Runbook minutes beyond the free 500."
+        },
+        {
+          "id": "nodes",
+          "label": "Non-Azure nodes",
+          "unit": "nodes",
+          "help": "State Configuration nodes outside Azure, beyond the free five."
+        }
+      ],
+      "meters": [
+        {
+          "id": "minutes",
+          "label": "Job minutes",
+          "quantity": {
+            "input": "minutes"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "nodes",
+          "label": "Non-Azure nodes",
+          "quantity": {
+            "input": "nodes"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Automation' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "process-automation",
+          "label": "Process automation (runbook minutes)",
+          "attrs": {},
+          "prices": {
+            "minutes": "automation-process-automation-minutes",
+            "nodes": "automation-process-automation-nodes"
+          },
+          "retail": {
+            "minutes": {
+              "meterName": "^Basic Runtime$",
+              "productName": "^Process Automation$",
+              "skuName": "^Basic$",
+              "tier": "paid",
+              "unit": "minute"
+            },
+            "nodes": {
+              "free": "Nodes apply to State Configuration only."
+            }
+          }
+        },
+        {
+          "id": "state-configuration",
+          "label": "State Configuration (non-Azure nodes)",
+          "attrs": {},
+          "prices": {
+            "minutes": "automation-state-configuration-minutes",
+            "nodes": "automation-state-configuration-nodes"
+          },
+          "retail": {
+            "minutes": {
+              "free": "Job minutes apply to process automation only."
+            },
+            "nodes": {
+              "meterName": "^Non-Azure Node$",
+              "productName": "^Configuration Management$",
+              "tier": "paid",
+              "unit": "node-month"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "unitPrices": [
+    {
+      "id": "log-analytics-ingestion-analytics-payg-commit",
+      "label": "Log Analytics ingestion: Commitment tier, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/monitor/",
+        "note": "No commitment tier on pay-as-you-go.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "log-analytics-ingestion-basic-logs-gb",
+      "label": "Basic logs · Ingestion",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.8499,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Logs Data Ingestion",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / Basic Logs",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "log-analytics-ingestion-basic-logs-commit",
+      "label": "Log Analytics ingestion: Commitment tier, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/monitor/",
+        "note": "No commitment tier for basic logs.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "log-analytics-ingestion-auxiliary-logs-gb",
+      "label": "Auxiliary logs · Ingestion",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.085,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Auxiliary Logs Data Ingestion",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / Auxiliary Logs",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "log-analytics-ingestion-auxiliary-logs-commit",
+      "label": "Log Analytics ingestion: Commitment tier, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/monitor/",
+        "note": "No commitment tier for auxiliary logs.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-100-gb",
+      "label": "Log Analytics ingestion: Ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/monitor/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-100-commit",
+      "label": "100 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 9458.4,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / 100 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-200-gb",
+      "label": "Log Analytics ingestion: Ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/monitor/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-200-commit",
+      "label": "200 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 17758.62,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "200 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / 200 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-300-gb",
+      "label": "Log Analytics ingestion: Ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/monitor/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-300-commit",
+      "label": "300 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 26058.85,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "300 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / 300 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-400-gb",
+      "label": "Log Analytics ingestion: Ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/monitor/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-400-commit",
+      "label": "400 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 33973.02,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "400 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / 400 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-500-gb",
+      "label": "Log Analytics ingestion: Ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/monitor/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-500-commit",
+      "label": "500 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 41742.42,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "500 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / 500 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-1000-gb",
+      "label": "Log Analytics ingestion: Ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/monitor/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-1000-commit",
+      "label": "1,000 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 82037.13,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "1000 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / 1000 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-2000-gb",
+      "label": "Log Analytics ingestion: Ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/monitor/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-2000-commit",
+      "label": "2,000 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 160213.7,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "2000 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / 2000 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-5000-gb",
+      "label": "Log Analytics ingestion: Ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/monitor/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "log-analytics-ingestion-commit-5000-commit",
+      "label": "5,000 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 388470,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "5000 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / 5000 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "log-analytics-retention-interactive-gb",
+      "label": "Interactive retention beyond 31 days · Retained data",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.17,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Analytics Logs Data Retention",
+        "filter": "(serviceName eq 'Log Analytics' or serviceName eq 'Azure Monitor') and armRegionName eq 'canadacentral'",
+        "note": "Log Analytics / Analytics Logs",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "log-analytics-retention-archive-gb",
+      "label": "Long-term archive · Retained data",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.034,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Data Archive",
+        "filter": "(serviceName eq 'Log Analytics' or serviceName eq 'Azure Monitor') and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / Data Archive",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "application-insights-workspace-based-tests",
+      "label": "Workspace-based (pay-as-you-go) · Availability tests",
+      "platform": "azure",
+      "unit": "execution",
+      "price": 0.000793268,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Web Test Execution",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / Standard Web Test",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "monitor-alerts-metric-timeseries-rules",
+      "label": "Metric alert, per monitored time series · Rules",
+      "platform": "azure",
+      "unit": "time series-month",
+      "price": 0.1417,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Alerts Metric Monitored",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / Alerts",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "monitor-alerts-dynamic-threshold-rules",
+      "label": "Dynamic threshold, per time series · Rules",
+      "platform": "azure",
+      "unit": "time series-month",
+      "price": 0.1417,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Alerts Dynamic Threshold",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / Alerts",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "monitor-alerts-log-1min-rules",
+      "label": "Log alert rule, 1-minute frequency · Rules",
+      "platform": "azure",
+      "unit": "rule-month",
+      "price": 0.425,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Alerts Resource Monitored at 1 Minute Frequency",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / Alerts",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "monitor-alerts-log-5min-rules",
+      "label": "Log alert rule, 5-minute frequency · Rules",
+      "platform": "azure",
+      "unit": "rule-month",
+      "price": 0.2125,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Alerts Resource Monitored at 5 Minute Frequency",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / Alerts",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "monitor-alerts-log-10min-rules",
+      "label": "Log alert rule, 10-minute frequency · Rules",
+      "platform": "azure",
+      "unit": "rule-month",
+      "price": 0.1417,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Alerts Resource Monitored at 10 Minute Frequency",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / Alerts",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "monitor-alerts-log-15min-rules",
+      "label": "Log alert rule, 15-minute frequency · Rules",
+      "platform": "azure",
+      "unit": "rule-month",
+      "price": 0.0708,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Alerts Resource Monitored at 15 Minute Frequency",
+        "filter": "serviceName eq 'Azure Monitor' and armRegionName eq 'canadacentral'",
+        "note": "Azure Monitor / Alerts",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-configuration-free-instances",
+      "label": "App Configuration: Stores, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/app-configuration/",
+        "note": "The Free tier has no charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "app-configuration-free-replicas",
+      "label": "App Configuration: Replicas, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/app-configuration/",
+        "note": "The Free tier has no replicas.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "app-configuration-free-ops",
+      "label": "App Configuration: Overage operations, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/app-configuration/",
+        "note": "The Free tier has a fixed daily quota, no overage.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "app-configuration-developer-instances",
+      "label": "Developer · Stores",
+      "platform": "azure",
+      "unit": "instance-month (30.4 days)",
+      "price": 5.170833,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Developer Instance",
+        "filter": "serviceName eq 'App Configuration' and armRegionName eq 'canadacentral'",
+        "note": "App Configuration / Developer",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-configuration-developer-replicas",
+      "label": "App Configuration: Replicas, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/app-configuration/",
+        "note": "Developer has no replicas.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "app-configuration-developer-ops",
+      "label": "Developer · Overage operations",
+      "platform": "azure",
+      "unit": "10K operations",
+      "price": 0.567,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Developer Overage Operations",
+        "filter": "serviceName eq 'App Configuration' and armRegionName eq 'canadacentral'",
+        "note": "App Configuration / Developer",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-configuration-standard-instances",
+      "label": "Standard · Stores",
+      "platform": "azure",
+      "unit": "instance-month (30.4 days)",
+      "price": 51.70529,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Instance",
+        "filter": "serviceName eq 'App Configuration' and armRegionName eq 'canadacentral'",
+        "note": "App Configuration / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-configuration-standard-replicas",
+      "label": "Standard · Replicas",
+      "platform": "azure",
+      "unit": "replica-month (30.4 days)",
+      "price": 51.70529,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Replica Instance",
+        "filter": "serviceName eq 'App Configuration' and armRegionName eq 'canadacentral'",
+        "note": "App Configuration / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-configuration-standard-ops",
+      "label": "Standard · Overage operations",
+      "platform": "azure",
+      "unit": "10K",
+      "price": 0.085,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Overage Operations",
+        "filter": "serviceName eq 'App Configuration' and armRegionName eq 'canadacentral'",
+        "note": "App Configuration / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-configuration-premium-instances",
+      "label": "Premium · Stores",
+      "platform": "azure",
+      "unit": "instance-month (30.4 days)",
+      "price": 413.6332,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Instance",
+        "filter": "serviceName eq 'App Configuration' and armRegionName eq 'canadacentral'",
+        "note": "App Configuration / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-configuration-premium-replicas",
+      "label": "Premium · Replicas",
+      "platform": "azure",
+      "unit": "replica-month (30.4 days)",
+      "price": 206.8151,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Replica Instance",
+        "filter": "serviceName eq 'App Configuration' and armRegionName eq 'canadacentral'",
+        "note": "App Configuration / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-configuration-premium-ops",
+      "label": "Premium · Overage operations",
+      "platform": "azure",
+      "unit": "10K",
+      "price": 0.085,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Overage Operations",
+        "filter": "serviceName eq 'App Configuration' and armRegionName eq 'canadacentral'",
+        "note": "App Configuration / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-instance-azure-vm-instances",
+      "label": "Azure virtual machine · Protected instances",
+      "platform": "azure",
+      "unit": "instance-month",
+      "price": 14.1655,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Azure VM Protected Instance",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / Azure VM",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-instance-sql-in-vm-instances",
+      "label": "SQL Server in an Azure VM · Protected instances",
+      "platform": "azure",
+      "unit": "instance-month",
+      "price": 42.4965,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "SQL Server in Azure VM Protected Instance",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / SQL Server in Azure VM",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-instance-sap-hana-instances",
+      "label": "SAP HANA in an Azure VM · Protected instances",
+      "platform": "azure",
+      "unit": "instance-month",
+      "price": 135.9888,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "SAP HANA on Azure VM Protected Instance",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / SAP HANA on Azure VM",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-instance-azure-files-instances",
+      "label": "Azure Files share · Protected instances",
+      "platform": "azure",
+      "unit": "instance-month",
+      "price": 7.791,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Azure Files Protected Instance",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / Azure Files",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-instance-azure-blobs-instances",
+      "label": "Azure Blobs · Protected instances",
+      "platform": "azure",
+      "unit": "instance-month",
+      "price": 16.9986,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Azure Blob Protected Instance",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / Azure Blob",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-instance-postgresql-instances",
+      "label": "PostgreSQL · Protected instances",
+      "platform": "azure",
+      "unit": "instance-month",
+      "price": 10.6241,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "PostgreSQL Protected Instance",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / PostgreSQL",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-instance-on-premises-server-instances",
+      "label": "On-premises server · Protected instances",
+      "platform": "azure",
+      "unit": "instance-month",
+      "price": 14.1655,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "On Premises Server Protected Instance",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / On Premises Server",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-instance-cosmos-db-instances",
+      "label": "Cosmos DB · Protected instances",
+      "platform": "azure",
+      "unit": "instance-month",
+      "price": 42.4965,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cosmos DB Protected Instance",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / Cosmos DB",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-storage-lrs-gb",
+      "label": "Standard LRS · Stored data",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0348,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard LRS Data Stored",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-storage-zrs-gb",
+      "label": "Standard ZRS · Stored data",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0436,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard ZRS Data Stored",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-storage-grs-gb",
+      "label": "Standard GRS · Stored data",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0748,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard GRS Data Stored",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-storage-ra-grs-gb",
+      "label": "Standard RA-GRS · Stored data",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0951,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard RA-GRS Data Stored",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-storage-archive-lrs-gb",
+      "label": "Archive LRS · Stored data",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0034,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive LRS Data Stored",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / Archive",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "backup-storage-archive-grs-gb",
+      "label": "Archive GRS · Stored data",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0081,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Archive GRS Data Stored",
+        "filter": "serviceName eq 'Backup' and armRegionName eq 'canadacentral'",
+        "note": "Backup / Archive",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "site-recovery-to-azure-instances",
+      "label": "Replicating to Azure · Protected instances",
+      "platform": "azure",
+      "unit": "instance-month",
+      "price": 35.4138,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "VM Replicated to Azure",
+        "filter": "serviceName eq 'Azure Site Recovery' and armRegionName eq 'canadacentral'",
+        "note": "Azure Site Recovery / Azure",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "site-recovery-to-customer-site-instances",
+      "label": "Replicating to a customer-owned site · Protected instances",
+      "platform": "azure",
+      "unit": "instance-month",
+      "price": 22.6648,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "VM Replicated to System Center",
+        "filter": "serviceName eq 'Azure Site Recovery' and armRegionName eq 'canadacentral'",
+        "note": "Azure Site Recovery / System Center",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "automation-process-automation-minutes",
+      "label": "Process automation (runbook minutes) · Job minutes",
+      "platform": "azure",
+      "unit": "minute",
+      "price": 0.0028,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Runtime",
+        "filter": "serviceName eq 'Automation' and armRegionName eq 'canadacentral'",
+        "note": "Process Automation / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "automation-process-automation-nodes",
+      "label": "Automation: Non-Azure nodes, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/automation/",
+        "note": "Nodes apply to State Configuration only.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "automation-state-configuration-minutes",
+      "label": "Automation: Job minutes, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/automation/",
+        "note": "Job minutes apply to process automation only.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "automation-state-configuration-nodes",
+      "label": "State Configuration (non-Azure nodes) · Non-Azure nodes",
+      "platform": "azure",
+      "unit": "node-month",
+      "price": 8.4993,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Non-Azure Node",
+        "filter": "serviceName eq 'Automation' and armRegionName eq 'canadacentral'",
+        "note": "Configuration Management / Non-Azure",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    }
+  ]
+}

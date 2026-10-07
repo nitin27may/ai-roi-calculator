@@ -1,0 +1,588 @@
+{
+  "category": "licences",
+  "note": "Part 2 of the catalogue: Azure DevOps, GitHub, Power BI and Power Platform seats, and a placeholder SaaS seat.",
+  "types": [
+    {
+      "id": "azure-devops-users",
+      "label": "Azure DevOps users",
+      "category": "licences",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/devops/azure-devops-services/",
+      "note": "Per user per month beyond the five free Basic users. Listed in the Retail API under Global.",
+      "inputs": [
+        {
+          "id": "users",
+          "label": "Users",
+          "unit": "users",
+          "help": "Licensed users."
+        }
+      ],
+      "meters": [
+        {
+          "id": "users",
+          "label": "Users",
+          "quantity": {
+            "input": "users"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure DevOps' and armRegionName eq 'Global'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "basic",
+          "label": "Basic (Repos, Boards, Pipelines)",
+          "attrs": {},
+          "prices": {
+            "users": "azure-devops-users-basic-users"
+          },
+          "retail": {
+            "users": {
+              "meterName": "^Basic User$",
+              "productName": "^Azure Repos and Boards \\(Basic\\)$",
+              "unit": "user-month"
+            }
+          }
+        },
+        {
+          "id": "basic-test-plans",
+          "label": "Basic + Test Plans",
+          "attrs": {},
+          "prices": {
+            "users": "azure-devops-users-basic-test-plans-users"
+          },
+          "retail": {
+            "users": {
+              "meterName": "^Advanced User$",
+              "productName": "^Azure Repos and Boards$",
+              "unit": "user-month"
+            }
+          }
+        },
+        {
+          "id": "test-plans",
+          "label": "Test Plans (add-on)",
+          "attrs": {},
+          "prices": {
+            "users": "azure-devops-users-test-plans-users"
+          },
+          "retail": {
+            "users": {
+              "meterName": "^Standard User$",
+              "productName": "^Azure Test Plans$",
+              "unit": "user-month"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "azure-devops-jobs",
+      "label": "Azure DevOps parallel jobs",
+      "category": "licences",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/devops/azure-devops-services/",
+      "note": "Parallel pipeline jobs beyond the free grant, per job per month. Hosted build minutes on larger agents are not included.",
+      "inputs": [
+        {
+          "id": "jobs",
+          "label": "Parallel jobs",
+          "unit": "jobs",
+          "help": "Parallel jobs purchased."
+        }
+      ],
+      "meters": [
+        {
+          "id": "jobs",
+          "label": "Parallel jobs",
+          "quantity": {
+            "input": "jobs"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure DevOps' and armRegionName eq 'Global'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "microsoft-hosted",
+          "label": "Microsoft-hosted CI/CD",
+          "attrs": {},
+          "prices": {
+            "jobs": "azure-devops-jobs-microsoft-hosted-jobs"
+          },
+          "retail": {
+            "jobs": {
+              "meterName": "^Microsoft-hosted CI/CD Concurrent Job$",
+              "productName": "^Azure Pipelines$",
+              "unit": "job-month"
+            }
+          }
+        },
+        {
+          "id": "self-hosted",
+          "label": "Self-hosted CI/CD",
+          "attrs": {},
+          "prices": {
+            "jobs": "azure-devops-jobs-self-hosted-jobs"
+          },
+          "retail": {
+            "jobs": {
+              "meterName": "^Self-hosted CI/CD Concurrent Job$",
+              "productName": "^Azure Pipelines$",
+              "unit": "job-month"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "github-seat",
+      "label": "GitHub seats",
+      "category": "licences",
+      "docsUrl": "https://github.com/pricing",
+      "note": "Per seat or committer per month, from the Retail API (GitHub Enterprise Cloud and the Advanced Security add-ons) and the existing Copilot prices. GitHub Team is not in the Retail API and is not listed. Actions minutes, Codespaces and storage are not included.",
+      "inputs": [
+        {
+          "id": "seats",
+          "label": "Seats",
+          "unit": "seats",
+          "help": "Licensed users or active committers."
+        }
+      ],
+      "meters": [
+        {
+          "id": "seats",
+          "label": "Seats",
+          "quantity": {
+            "input": "seats"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'GitHub' and armRegionName eq 'Global'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "enterprise",
+          "label": "GitHub Enterprise Cloud",
+          "attrs": {},
+          "prices": {
+            "seats": "github-seat-enterprise-seats"
+          },
+          "retail": {
+            "seats": {
+              "meterName": "^Enterprise User$",
+              "productName": "^GitHub Enterprise \\(GHE\\)$",
+              "unit": "seat-month"
+            }
+          }
+        },
+        {
+          "id": "copilot-business",
+          "label": "Copilot Business",
+          "attrs": {},
+          "prices": {
+            "seats": "copilot-business"
+          }
+        },
+        {
+          "id": "copilot-enterprise",
+          "label": "Copilot Enterprise",
+          "attrs": {},
+          "prices": {
+            "seats": "copilot-enterprise"
+          }
+        },
+        {
+          "id": "advanced-security",
+          "label": "Advanced Security (Enterprise, per committer)",
+          "attrs": {},
+          "prices": {
+            "seats": "github-seat-advanced-security-seats"
+          },
+          "retail": {
+            "seats": {
+              "meterName": "^Advanced Security GHE Committer$",
+              "productName": "^GitHub Advanced Security GHE$",
+              "unit": "committer-month"
+            }
+          }
+        },
+        {
+          "id": "secret-protection",
+          "label": "Secret Protection (Enterprise, per committer)",
+          "attrs": {},
+          "prices": {
+            "seats": "github-seat-secret-protection-seats"
+          },
+          "retail": {
+            "seats": {
+              "meterName": "^Secret Scanning for GHE Committer$",
+              "productName": "^GitHub Advanced Security GHE$",
+              "unit": "committer-month"
+            }
+          }
+        },
+        {
+          "id": "code-security",
+          "label": "Code Security (Enterprise, per committer)",
+          "attrs": {},
+          "prices": {
+            "seats": "github-seat-code-security-seats"
+          },
+          "retail": {
+            "seats": {
+              "meterName": "^Code Scanning for GHE Committer$",
+              "productName": "^GitHub Advanced Security GHE$",
+              "unit": "committer-month"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "microsoft-seat",
+      "label": "Power BI and Power Platform per-user licences",
+      "category": "licences",
+      "docsUrl": "https://www.microsoft.com/power-platform/products/power-bi/pricing",
+      "note": "Vendor list prices per user per month, paid yearly, converted from USD at the catalogue rate. Not Retail API meters, so they are marked unverified. Microsoft 365 E3 and E5 are not listed because their price page could not be read; add them as a manual price on the placeholder SaaS seat.",
+      "inputs": [
+        {
+          "id": "users",
+          "label": "Users",
+          "unit": "users",
+          "help": "Licensed users."
+        }
+      ],
+      "meters": [
+        {
+          "id": "users",
+          "label": "Users",
+          "quantity": {
+            "input": "users"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "skus": [
+        {
+          "id": "power-bi-pro",
+          "label": "Power BI Pro",
+          "attrs": {},
+          "prices": {
+            "users": "microsoft-seat-power-bi-pro-users"
+          }
+        },
+        {
+          "id": "power-bi-ppu",
+          "label": "Power BI Premium Per User",
+          "attrs": {},
+          "prices": {
+            "users": "microsoft-seat-power-bi-ppu-users"
+          }
+        },
+        {
+          "id": "power-apps-premium",
+          "label": "Power Apps Premium",
+          "attrs": {},
+          "prices": {
+            "users": "microsoft-seat-power-apps-premium-users"
+          }
+        },
+        {
+          "id": "power-automate-premium",
+          "label": "Power Automate Premium",
+          "attrs": {},
+          "prices": {
+            "users": "microsoft-seat-power-automate-premium-users"
+          }
+        }
+      ]
+    },
+    {
+      "id": "saas-seat",
+      "label": "Other SaaS per seat (set your own price)",
+      "category": "licences",
+      "docsUrl": "https://github.com/nitin27may/roi-calculator",
+      "note": "A placeholder with no list price: it costs 0 until you set a manual price for it in Prices & sources (the unit price `saas-seat-custom-seats`). Add one resource per product and use the label to name it.",
+      "inputs": [
+        {
+          "id": "seats",
+          "label": "Seats",
+          "unit": "seats",
+          "help": "Licensed users."
+        }
+      ],
+      "meters": [
+        {
+          "id": "seats",
+          "label": "Seats",
+          "quantity": {
+            "input": "seats"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "skus": [
+        {
+          "id": "custom",
+          "label": "Custom SaaS seat (no price until you set one)",
+          "attrs": {},
+          "prices": {
+            "seats": "saas-seat-custom-seats"
+          }
+        }
+      ]
+    }
+  ],
+  "unitPrices": [
+    {
+      "id": "microsoft-seat-power-bi-pro-users",
+      "label": "Power BI Pro · users",
+      "platform": "azure",
+      "unit": "user-month",
+      "price": 19.8317,
+      "attrs": {
+        "usdList": 14
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://www.microsoft.com/power-platform/products/power-bi/pricing",
+        "note": "Power BI pricing page: Pro USD 14.00 user a month, paid yearly, fetched 2026-10-07; USD 14 x 1.41655 (USD list price, unverified: not a Retail API meter, excludes tax and agreements)",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "unverified"
+    },
+    {
+      "id": "microsoft-seat-power-bi-ppu-users",
+      "label": "Power BI Premium Per User · users",
+      "platform": "azure",
+      "unit": "user-month",
+      "price": 33.9972,
+      "attrs": {
+        "usdList": 24
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://www.microsoft.com/power-platform/products/power-bi/pricing",
+        "note": "Power BI pricing page: Premium Per User USD 24.00 user a month, paid yearly, fetched 2026-10-07; USD 24 x 1.41655 (USD list price, unverified: not a Retail API meter, excludes tax and agreements)",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "unverified"
+    },
+    {
+      "id": "microsoft-seat-power-apps-premium-users",
+      "label": "Power Apps Premium · users",
+      "platform": "azure",
+      "unit": "user-month",
+      "price": 28.331,
+      "attrs": {
+        "usdList": 20
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://www.microsoft.com/power-platform/products/power-apps/pricing",
+        "note": "Power Apps pricing page: Premium USD 20.00 user a month, paid yearly, fetched 2026-10-07; USD 20 x 1.41655 (USD list price, unverified: not a Retail API meter, excludes tax and agreements)",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "unverified"
+    },
+    {
+      "id": "microsoft-seat-power-automate-premium-users",
+      "label": "Power Automate Premium · users",
+      "platform": "azure",
+      "unit": "user-month",
+      "price": 21.2482,
+      "attrs": {
+        "usdList": 15
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://www.microsoft.com/power-platform/products/power-automate/pricing",
+        "note": "Power Automate pricing page: Premium USD 15.00 user a month, paid yearly, fetched 2026-10-07; USD 15 x 1.41655 (USD list price, unverified: not a Retail API meter, excludes tax and agreements)",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "unverified"
+    },
+    {
+      "id": "saas-seat-custom-seats",
+      "label": "Custom SaaS seat (placeholder)",
+      "platform": "azure",
+      "unit": "seat-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "manual",
+        "note": "Placeholder with no price: set a manual price in Prices & sources to cost a SaaS product.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "unverified"
+    },
+    {
+      "id": "azure-devops-users-basic-users",
+      "label": "Basic (Repos, Boards, Pipelines) · Users",
+      "platform": "azure",
+      "unit": "user-month",
+      "price": 8.4993,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic User",
+        "filter": "serviceName eq 'Azure DevOps' and armRegionName eq 'Global'",
+        "note": "Azure Repos and Boards (Basic) / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-devops-users-basic-test-plans-users",
+      "label": "Basic + Test Plans · Users",
+      "platform": "azure",
+      "unit": "user-month",
+      "price": 84.993,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Advanced User",
+        "filter": "serviceName eq 'Azure DevOps' and armRegionName eq 'Global'",
+        "note": "Azure Repos and Boards / Advanced",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-devops-users-test-plans-users",
+      "label": "Test Plans (add-on) · Users",
+      "platform": "azure",
+      "unit": "user-month",
+      "price": 73.6606,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard User",
+        "filter": "serviceName eq 'Azure DevOps' and armRegionName eq 'Global'",
+        "note": "Azure Test Plans / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-devops-jobs-microsoft-hosted-jobs",
+      "label": "Microsoft-hosted CI/CD · Parallel jobs",
+      "platform": "azure",
+      "unit": "job-month",
+      "price": 56.662,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Microsoft-hosted CI/CD Concurrent Job",
+        "filter": "serviceName eq 'Azure DevOps' and armRegionName eq 'Global'",
+        "note": "Azure Pipelines / Microsoft-hosted CI/CD",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-devops-jobs-self-hosted-jobs",
+      "label": "Self-hosted CI/CD · Parallel jobs",
+      "platform": "azure",
+      "unit": "job-month",
+      "price": 21.2483,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Self-hosted CI/CD Concurrent Job",
+        "filter": "serviceName eq 'Azure DevOps' and armRegionName eq 'Global'",
+        "note": "Azure Pipelines / Self-hosted CI/CD",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "github-seat-enterprise-seats",
+      "label": "GitHub Enterprise Cloud · Seats",
+      "platform": "azure",
+      "unit": "seat-month",
+      "price": 29.7476,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Enterprise User",
+        "filter": "serviceName eq 'GitHub' and armRegionName eq 'Global'",
+        "note": "GitHub Enterprise (GHE) / Enterprise",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "github-seat-advanced-security-seats",
+      "label": "Advanced Security (Enterprise, per committer) · Seats",
+      "platform": "azure",
+      "unit": "committer-month",
+      "price": 69.411,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Advanced Security GHE Committer",
+        "filter": "serviceName eq 'GitHub' and armRegionName eq 'Global'",
+        "note": "GitHub Advanced Security GHE / Advanced Security GHE",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "github-seat-secret-protection-seats",
+      "label": "Secret Protection (Enterprise, per committer) · Seats",
+      "platform": "azure",
+      "unit": "committer-month",
+      "price": 26.9145,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Secret Scanning for GHE Committer",
+        "filter": "serviceName eq 'GitHub' and armRegionName eq 'Global'",
+        "note": "GitHub Advanced Security GHE / Secret Scanning for GHE",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "github-seat-code-security-seats",
+      "label": "Code Security (Enterprise, per committer) · Seats",
+      "platform": "azure",
+      "unit": "committer-month",
+      "price": 42.4965,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Code Scanning for GHE Committer",
+        "filter": "serviceName eq 'GitHub' and armRegionName eq 'Global'",
+        "note": "GitHub Advanced Security GHE / Code Scanning for GHE",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    }
+  ]
+}

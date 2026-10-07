@@ -7,7 +7,7 @@ import { InlineConfirm } from "@/components/cost-grid";
 import { FeatureSelect } from "@/components/feature-fields";
 import { HelpTip } from "@/components/help-tip";
 import { Card, Field, Formula, NumberInput, Pill, Select, TrashButton, inputCls } from "@/components/ui";
-import { catalog, useLedger } from "@/lib/compute";
+import { catalog, useLedger, useResourcesReady, useResourceVersion } from "@/lib/compute";
 import { cad, cn } from "@/lib/format";
 import {
   CATEGORY_LABEL, ENV_QUICK_ADDS, TERM_LABEL, filterSkus, newEnvironment, newResource, pickerCategories, removeEnvironment, resourceEnvIds, setMonthBound,
@@ -141,7 +141,9 @@ function ResourcePicker({ onAdd }: { onAdd: (typeId: string, skuId: string) => v
   const [typeId, setTypeId] = useState("");
   const [filter, setFilter] = useState("");
   const panel = useId();
-  const cats = useMemo(() => pickerCategories(catalog.resourceTypes), []);
+  const version = useResourceVersion();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const cats = useMemo(() => pickerCategories(catalog.resourceTypes), [version]);
   const types = cats.find((c) => c.category === category)?.types ?? [];
   const type = types.find((t) => t.id === typeId);
   const found = type ? filterSkus(type, filter) : { shown: [], total: 0 };
@@ -291,18 +293,20 @@ function ResourceCard({ r }: { r: Resource }) {
 export function ResourcesList() {
   const resources = useStudio((s) => s.project.resources) ?? [];
   const edit = useStudio((s) => s.edit);
+  const ready = useResourcesReady(true);
   return (
     <section aria-labelledby="res-h" className="flex flex-col gap-3">
       <div>
         <h2 id="res-h" className="inline-flex items-center gap-1 text-base font-bold">Resources<HelpTip id="resourceType" label="Resources" /></h2>
         <p className={small}>Each resource is defined once, as it runs in production, then priced in every environment it exists in. Prices come from the catalogue under Prices &amp; sources.</p>
       </div>
-      {resources.length === 0 && <p className="rounded-md border border-dashed border-line px-3 py-4 text-sm text-ink-2">No resources yet. Add a virtual machine, a plan or a database and say how many you run. Nothing is costed until you do.</p>}
-      <div className="flex flex-col gap-3">{resources.map((r) => <ResourceCard key={r.id} r={r} />)}</div>
-      <ResourcePicker onAdd={(typeId, skuId) => {
+      {!ready && <p role="status" className="rounded-md border border-dashed border-line px-3 py-4 text-sm text-ink-2">Loading prices…</p>}
+      {ready && resources.length === 0 && <p className="rounded-md border border-dashed border-line px-3 py-4 text-sm text-ink-2">No resources yet. Add a virtual machine, a plan or a database and say how many you run. Nothing is costed until you do.</p>}
+      {ready && <div className="flex flex-col gap-3">{resources.map((r) => <ResourceCard key={r.id} r={r} />)}</div>}
+      {ready && <ResourcePicker onAdd={(typeId, skuId) => {
         const type = catalog.resourceTypes.find((t) => t.id === typeId);
         if (type) edit((d) => { d.resources = [...(d.resources ?? []), newResource(type, skuId, d.resources ?? [])]; });
-      }} />
+      }} />}
     </section>
   );
 }

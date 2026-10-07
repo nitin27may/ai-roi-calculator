@@ -1,0 +1,3718 @@
+{
+  "category": "network",
+  "note": "Part 2 of the catalogue: peering, private endpoints, NAT, public IPs, Application Gateway, Front Door, Load Balancer, VPN and ExpressRoute, Firewall, Bastion, DDoS IP Protection, DNS and data transfer.",
+  "types": [
+    {
+      "id": "vnet-peering",
+      "label": "Virtual network peering",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/virtual-network/",
+      "note": "Data in and out through the peering, per GB. Inter-region peering is priced for the catalogue region's zone; other zones differ.",
+      "inputs": [
+        {
+          "id": "inGB",
+          "label": "Inbound data",
+          "unit": "GB",
+          "help": "Data received over the peering a month."
+        },
+        {
+          "id": "outGB",
+          "label": "Outbound data",
+          "unit": "GB",
+          "help": "Data sent over the peering a month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "in",
+          "label": "Inbound",
+          "quantity": {
+            "input": "inGB"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "out",
+          "label": "Outbound",
+          "quantity": {
+            "input": "outGB"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq '{region}' or armRegionName eq 'Global')",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "intra-region",
+          "label": "Same region",
+          "attrs": {},
+          "prices": {
+            "in": "vnet-peering-intra-region-in",
+            "out": "vnet-peering-intra-region-out"
+          },
+          "retail": {
+            "in": {
+              "meterName": "^Intra-Region Ingress$",
+              "productName": "^Virtual Network Peering$"
+            },
+            "out": {
+              "meterName": "^Intra-Region Egress$",
+              "productName": "^Virtual Network Peering$"
+            }
+          }
+        },
+        {
+          "id": "inter-region",
+          "label": "Between regions (global peering)",
+          "attrs": {},
+          "prices": {
+            "in": "vnet-peering-inter-region-in",
+            "out": "vnet-peering-inter-region-out"
+          },
+          "retail": {
+            "in": {
+              "meterName": "^Inter-Region Ingress$",
+              "productName": "^Global Virtual Network Peering$"
+            },
+            "out": {
+              "meterName": "^Inter-Region Egress$",
+              "productName": "^Global Virtual Network Peering$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "private-endpoint",
+      "label": "Private endpoint",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/private-link/",
+      "note": "Endpoint hours and data processed in each direction (first volume tier). Private Link service and fixed-bandwidth endpoints are not included.",
+      "inputs": [
+        {
+          "id": "endpoints",
+          "label": "Endpoints",
+          "unit": "endpoints",
+          "help": "Private endpoints, billed per hour."
+        },
+        {
+          "id": "inGB",
+          "label": "Inbound data",
+          "unit": "GB",
+          "help": "Data processed inbound a month."
+        },
+        {
+          "id": "outGB",
+          "label": "Outbound data",
+          "unit": "GB",
+          "help": "Data processed outbound a month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "endpoint",
+          "label": "Endpoints",
+          "quantity": {
+            "input": "endpoints"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "in",
+          "label": "Data processed, inbound",
+          "quantity": {
+            "input": "inGB"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "out",
+          "label": "Data processed, outbound",
+          "quantity": {
+            "input": "outGB"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq '{region}' or armRegionName eq 'Global')",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "standard",
+          "label": "Standard",
+          "attrs": {},
+          "prices": {
+            "endpoint": "private-endpoint-standard-endpoint",
+            "in": "private-endpoint-standard-in",
+            "out": "private-endpoint-standard-out"
+          },
+          "retail": {
+            "endpoint": {
+              "meterName": "^Standard Private Endpoint$",
+              "productName": "^Virtual Network Private Link$"
+            },
+            "in": {
+              "meterName": "^Standard Data Processed - Ingress$",
+              "productName": "^Virtual Network Private Link$",
+              "tier": 0
+            },
+            "out": {
+              "meterName": "^Standard Data Processed - Egress$",
+              "productName": "^Virtual Network Private Link$",
+              "tier": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "nat-gateway",
+      "label": "NAT gateway",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/azure-nat-gateway/",
+      "note": "Gateway hours and data processed. The public IPs it uses are separate resources.",
+      "inputs": [
+        {
+          "id": "gateways",
+          "label": "Gateways",
+          "unit": "gateways",
+          "help": "NAT gateways, billed per hour."
+        },
+        {
+          "id": "dataGB",
+          "label": "Data processed",
+          "unit": "GB",
+          "help": "Data processed a month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "gateway",
+          "label": "Gateway",
+          "quantity": {
+            "input": "gateways"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "data",
+          "label": "Data processed",
+          "quantity": {
+            "input": "dataGB"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'NAT Gateway' and (armRegionName eq '{region}' or armRegionName eq 'Global')",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "standard",
+          "label": "Standard",
+          "attrs": {},
+          "prices": {
+            "gateway": "nat-gateway-standard-gateway",
+            "data": "nat-gateway-standard-data"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^Standard Gateway$",
+              "productName": "^NAT Gateway$"
+            },
+            "data": {
+              "meterName": "^Standard Data Processed$",
+              "productName": "^NAT Gateway$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "public-ip",
+      "label": "Public IP address",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/ip-addresses/",
+      "note": "IPv4 addresses billed per hour. Public IP prefixes are not included.",
+      "inputs": [
+        {
+          "id": "ips",
+          "label": "Addresses",
+          "unit": "addresses",
+          "help": "Public IP addresses."
+        }
+      ],
+      "meters": [
+        {
+          "id": "ip",
+          "label": "Address",
+          "quantity": {
+            "input": "ips"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq '{region}' or armRegionName eq 'Global')",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "standard-static",
+          "label": "Standard, static IPv4",
+          "attrs": {},
+          "prices": {
+            "ip": "public-ip-standard-static-ip"
+          },
+          "retail": {
+            "ip": {
+              "meterName": "^Standard IPv4 Static Public IP$",
+              "productName": "^IP Addresses$"
+            }
+          }
+        },
+        {
+          "id": "basic-static",
+          "label": "Basic, static IPv4",
+          "attrs": {},
+          "prices": {
+            "ip": "public-ip-basic-static-ip"
+          },
+          "retail": {
+            "ip": {
+              "meterName": "^Basic IPv4 Static Public IP$",
+              "productName": "^IP Addresses$"
+            }
+          }
+        },
+        {
+          "id": "basic-dynamic",
+          "label": "Basic, dynamic IPv4",
+          "attrs": {},
+          "prices": {
+            "ip": "public-ip-basic-dynamic-ip"
+          },
+          "retail": {
+            "ip": {
+              "meterName": "^Basic IPv4 Dynamic Public IP$",
+              "productName": "^IP Addresses$"
+            }
+          }
+        },
+        {
+          "id": "global-static",
+          "label": "Global, static IPv4",
+          "attrs": {},
+          "prices": {
+            "ip": "public-ip-global-static-ip"
+          },
+          "retail": {
+            "ip": {
+              "meterName": "^Global IPv4 Static Public IP$",
+              "productName": "^IP Addresses$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-gateway",
+      "label": "Application Gateway v2",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/application-gateway/",
+      "note": "The fixed hourly charge plus capacity units (enter the average number running). v1 gateways, Application Gateway for Containers and the discounted WAF policy rate are not included.",
+      "inputs": [
+        {
+          "id": "gateways",
+          "label": "Gateways",
+          "unit": "gateways",
+          "help": "Gateways billed the fixed charge."
+        },
+        {
+          "id": "cus",
+          "label": "Capacity units",
+          "unit": "capacity units",
+          "help": "Average capacity units in use across the month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "fixed",
+          "label": "Fixed charge",
+          "quantity": {
+            "input": "gateways"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "cu",
+          "label": "Capacity units",
+          "quantity": {
+            "input": "cus"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Application Gateway' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "standard-v2",
+          "label": "Standard v2",
+          "attrs": {},
+          "prices": {
+            "fixed": "app-gateway-standard-v2-fixed",
+            "cu": "app-gateway-standard-v2-cu"
+          },
+          "retail": {
+            "fixed": {
+              "meterName": "^Standard Fixed Cost$",
+              "productName": "^Application Gateway Standard v2$"
+            },
+            "cu": {
+              "meterName": "^Standard Capacity Units$",
+              "productName": "^Application Gateway Standard v2$"
+            }
+          }
+        },
+        {
+          "id": "waf-v2",
+          "label": "WAF v2",
+          "attrs": {},
+          "prices": {
+            "fixed": "app-gateway-waf-v2-fixed",
+            "cu": "app-gateway-waf-v2-cu"
+          },
+          "retail": {
+            "fixed": {
+              "meterName": "^Standard Fixed Cost$",
+              "productName": "^Application Gateway WAF v2$"
+            },
+            "cu": {
+              "meterName": "^Standard Capacity Units$",
+              "productName": "^Application Gateway WAF v2$"
+            }
+          }
+        },
+        {
+          "id": "basic-v2",
+          "label": "Basic v2",
+          "attrs": {},
+          "prices": {
+            "fixed": "app-gateway-basic-v2-fixed",
+            "cu": "app-gateway-basic-v2-cu"
+          },
+          "retail": {
+            "fixed": {
+              "meterName": "^Basic Fixed Cost$",
+              "productName": "^Application Gateway Basic v2$"
+            },
+            "cu": {
+              "meterName": "^Basic Capacity Units$",
+              "productName": "^Application Gateway Basic v2$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "front-door",
+      "label": "Front Door Standard and Premium",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/frontdoor/",
+      "note": "Base fee, requests and edge-to-client data transfer, first volume tier. Billed by zone: this uses Zone 1 (North America and Europe). Custom domains, WAF policies and rules, origin transfer and the classic tiers are not included.",
+      "inputs": [
+        {
+          "id": "profiles",
+          "label": "Profiles",
+          "unit": "profiles",
+          "help": "Front Door profiles billed the base fee."
+        },
+        {
+          "id": "requests10k",
+          "label": "Requests",
+          "unit": "10K requests",
+          "help": "Requests a month, in tens of thousands."
+        },
+        {
+          "id": "outGB",
+          "label": "Data transfer out",
+          "unit": "GB",
+          "help": "Data sent from the edge to clients a month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "base",
+          "label": "Base fee",
+          "quantity": {
+            "input": "profiles"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "requests",
+          "label": "Requests",
+          "quantity": {
+            "input": "requests10k"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "out",
+          "label": "Data transfer out",
+          "quantity": {
+            "input": "outGB"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Front Door Service' and armRegionName eq '{region}'",
+        "productName": ".",
+        "regionOverride": "Zone 1",
+        "regionNote": "Front Door is billed by zone; the Retail API lists Zone 1 (North America and Europe) rather than a region.",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "standard",
+          "label": "Standard",
+          "attrs": {},
+          "prices": {
+            "base": "front-door-standard-base",
+            "requests": "front-door-standard-requests",
+            "out": "front-door-standard-out"
+          },
+          "retail": {
+            "base": {
+              "meterName": "^Standard Base Fees$",
+              "productName": "^Azure Front Door$"
+            },
+            "requests": {
+              "meterName": "^Standard Requests$",
+              "productName": "^Azure Front Door$",
+              "tier": 0,
+              "uom": "^10K$"
+            },
+            "out": {
+              "meterName": "^Standard Data Transfer Out$",
+              "productName": "^Azure Front Door$",
+              "tier": 0
+            }
+          }
+        },
+        {
+          "id": "premium",
+          "label": "Premium",
+          "attrs": {},
+          "prices": {
+            "base": "front-door-premium-base",
+            "requests": "front-door-premium-requests",
+            "out": "front-door-premium-out"
+          },
+          "retail": {
+            "base": {
+              "meterName": "^Premium Base Fees$",
+              "productName": "^Azure Front Door$"
+            },
+            "requests": {
+              "meterName": "^Premium Requests$",
+              "productName": "^Azure Front Door$",
+              "tier": 0,
+              "uom": "^10K$"
+            },
+            "out": {
+              "meterName": "^Premium Data Transfer Out$",
+              "productName": "^Azure Front Door$",
+              "tier": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "load-balancer",
+      "label": "Load Balancer",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/load-balancer/",
+      "note": "Standard and Global: the charge that covers the first five rules, rules beyond five, and data processed. Gateway Load Balancer and the free Basic tier are not included.",
+      "inputs": [
+        {
+          "id": "balancers",
+          "label": "Load balancers",
+          "unit": "load balancers",
+          "help": "Load balancers billed the base charge (includes five rules)."
+        },
+        {
+          "id": "extraRules",
+          "label": "Extra rules",
+          "unit": "rules",
+          "help": "Load-balancing and outbound rules beyond the first five, across all balancers."
+        },
+        {
+          "id": "dataGB",
+          "label": "Data processed",
+          "unit": "GB",
+          "help": "Data processed a month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "base",
+          "label": "Base charge",
+          "quantity": {
+            "input": "balancers"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "rules",
+          "label": "Extra rules",
+          "quantity": {
+            "input": "extraRules"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "data",
+          "label": "Data processed",
+          "quantity": {
+            "input": "dataGB"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Load Balancer' and (armRegionName eq '{region}' or armRegionName eq 'Global')",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "standard",
+          "label": "Standard",
+          "attrs": {},
+          "prices": {
+            "base": "load-balancer-standard-base",
+            "rules": "load-balancer-standard-rules",
+            "data": "load-balancer-standard-data"
+          },
+          "retail": {
+            "base": {
+              "meterName": "^Standard Included LB Rules and Outbound Rules$",
+              "productName": "^Load Balancer$"
+            },
+            "rules": {
+              "meterName": "^Standard Overage LB Rules and Outbound Rules$",
+              "productName": "^Load Balancer$"
+            },
+            "data": {
+              "meterName": "^Standard Data Processed$",
+              "productName": "^Load Balancer$"
+            }
+          }
+        },
+        {
+          "id": "global",
+          "label": "Global (cross-region)",
+          "attrs": {},
+          "prices": {
+            "base": "load-balancer-global-base",
+            "rules": "load-balancer-global-rules",
+            "data": "load-balancer-global-data"
+          },
+          "retail": {
+            "base": {
+              "meterName": "^Global Included LB Rules and Outbound Rules$",
+              "productName": "^Load Balancer$"
+            },
+            "rules": {
+              "meterName": "^Global Overage LB Rules and Outbound Rules$",
+              "productName": "^Load Balancer$"
+            },
+            "data": {
+              "free": "The Retail API lists Global data processed at 0."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "vpn-gateway",
+      "label": "VPN Gateway",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/vpn-gateway/",
+      "note": "Gateway hours. Site-to-site and point-to-site connections beyond those included, and the advanced connectivity add-on, are not included.",
+      "inputs": [
+        {
+          "id": "gateways",
+          "label": "Gateways",
+          "unit": "gateways",
+          "help": "VPN gateways, billed per hour."
+        }
+      ],
+      "meters": [
+        {
+          "id": "gateway",
+          "label": "Gateway",
+          "quantity": {
+            "input": "gateways"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'VPN Gateway' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "basic",
+          "label": "Basic",
+          "attrs": {},
+          "prices": {
+            "gateway": "vpn-gateway-basic-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^Basic Gateway$",
+              "productName": "^VPN Gateway$",
+              "skuName": "^Basic$"
+            }
+          }
+        },
+        {
+          "id": "vpngw1",
+          "label": "VpnGw1",
+          "attrs": {},
+          "prices": {
+            "gateway": "vpn-gateway-vpngw1-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^VpnGw1$",
+              "productName": "^VPN Gateway$",
+              "skuName": "^VpnGw1$"
+            }
+          }
+        },
+        {
+          "id": "vpngw1az",
+          "label": "VpnGw1AZ",
+          "attrs": {},
+          "prices": {
+            "gateway": "vpn-gateway-vpngw1az-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^VpnGw1AZ$",
+              "productName": "^VPN Gateway$",
+              "skuName": "^VpnGw1AZ$"
+            }
+          }
+        },
+        {
+          "id": "vpngw2",
+          "label": "VpnGw2",
+          "attrs": {},
+          "prices": {
+            "gateway": "vpn-gateway-vpngw2-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^VpnGw2$",
+              "productName": "^VPN Gateway$",
+              "skuName": "^VpnGw2$"
+            }
+          }
+        },
+        {
+          "id": "vpngw2az",
+          "label": "VpnGw2AZ",
+          "attrs": {},
+          "prices": {
+            "gateway": "vpn-gateway-vpngw2az-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^VpnGw2AZ$",
+              "productName": "^VPN Gateway$",
+              "skuName": "^VpnGw2AZ$"
+            }
+          }
+        },
+        {
+          "id": "vpngw3",
+          "label": "VpnGw3",
+          "attrs": {},
+          "prices": {
+            "gateway": "vpn-gateway-vpngw3-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^VpnGw3$",
+              "productName": "^VPN Gateway$",
+              "skuName": "^VpnGw3$"
+            }
+          }
+        },
+        {
+          "id": "vpngw3az",
+          "label": "VpnGw3AZ",
+          "attrs": {},
+          "prices": {
+            "gateway": "vpn-gateway-vpngw3az-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^VpnGw3AZ$",
+              "productName": "^VPN Gateway$",
+              "skuName": "^VpnGw3AZ$"
+            }
+          }
+        },
+        {
+          "id": "vpngw4",
+          "label": "VpnGw4",
+          "attrs": {},
+          "prices": {
+            "gateway": "vpn-gateway-vpngw4-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^VpnGw4$",
+              "productName": "^VPN Gateway$",
+              "skuName": "^VpnGw4$"
+            }
+          }
+        },
+        {
+          "id": "vpngw4az",
+          "label": "VpnGw4AZ",
+          "attrs": {},
+          "prices": {
+            "gateway": "vpn-gateway-vpngw4az-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^VpnGw4AZ$",
+              "productName": "^VPN Gateway$",
+              "skuName": "^VpnGw4AZ$"
+            }
+          }
+        },
+        {
+          "id": "vpngw5",
+          "label": "VpnGw5",
+          "attrs": {},
+          "prices": {
+            "gateway": "vpn-gateway-vpngw5-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^VpnGw5$",
+              "productName": "^VPN Gateway$",
+              "skuName": "^VpnGw5$"
+            }
+          }
+        },
+        {
+          "id": "vpngw5az",
+          "label": "VpnGw5AZ",
+          "attrs": {},
+          "prices": {
+            "gateway": "vpn-gateway-vpngw5az-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^VpnGw5AZ$",
+              "productName": "^VPN Gateway$",
+              "skuName": "^VpnGw5AZ$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "expressroute-gateway",
+      "label": "ExpressRoute gateway",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/vpn-gateway/",
+      "note": "Virtual network gateway hours. ErGwScale is priced per scale unit (at least two).",
+      "inputs": [
+        {
+          "id": "gateways",
+          "label": "Gateways or scale units",
+          "unit": "units",
+          "help": "Gateways, or ErGwScale scale units, billed per hour."
+        }
+      ],
+      "meters": [
+        {
+          "id": "gateway",
+          "label": "Gateway",
+          "quantity": {
+            "input": "gateways"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "standard",
+          "label": "Standard",
+          "attrs": {},
+          "prices": {
+            "gateway": "expressroute-gateway-standard-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^Standard Gateway$",
+              "productName": "^ExpressRoute Standard Gateway$"
+            }
+          }
+        },
+        {
+          "id": "high-performance",
+          "label": "High Performance",
+          "attrs": {},
+          "prices": {
+            "gateway": "expressroute-gateway-high-performance-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^High Performance Gateway$",
+              "productName": "^ExpressRoute High Performance Gateway$"
+            }
+          }
+        },
+        {
+          "id": "ultra-performance",
+          "label": "Ultra Performance",
+          "attrs": {},
+          "prices": {
+            "gateway": "expressroute-gateway-ultra-performance-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^Ultra High Performance Gateway$",
+              "productName": "^ExpressRoute Ultra High Performance Gateway$"
+            }
+          }
+        },
+        {
+          "id": "ergw1az",
+          "label": "ErGw1AZ",
+          "attrs": {},
+          "prices": {
+            "gateway": "expressroute-gateway-ergw1az-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^ErGw1AZ Gateway$",
+              "productName": "^ExpressRoute Gateway$"
+            }
+          }
+        },
+        {
+          "id": "ergw2az",
+          "label": "ErGw2AZ",
+          "attrs": {},
+          "prices": {
+            "gateway": "expressroute-gateway-ergw2az-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^ErGw2AZ Gateway$",
+              "productName": "^ExpressRoute Gateway$"
+            }
+          }
+        },
+        {
+          "id": "ergw3az",
+          "label": "ErGw3AZ",
+          "attrs": {},
+          "prices": {
+            "gateway": "expressroute-gateway-ergw3az-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^ErGw3AZ Gateway$",
+              "productName": "^ExpressRoute Gateway$"
+            }
+          }
+        },
+        {
+          "id": "ergwscale",
+          "label": "ErGwScale (per scale unit)",
+          "attrs": {},
+          "prices": {
+            "gateway": "expressroute-gateway-ergwscale-gateway"
+          },
+          "retail": {
+            "gateway": {
+              "meterName": "^ErGwScale Unit$",
+              "productName": "^ExpressRoute Gateway$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "expressroute-circuit",
+      "label": "ExpressRoute circuit",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/expressroute/",
+      "note": "The monthly circuit fee by bandwidth and plan. Metered plans also bill outbound data per GB, which is not included; the unlimited plan has no data charge. Billed by zone: this uses Zone 1. ExpressRoute Direct, Global Reach and the gateway (separate type) are not included.",
+      "inputs": [
+        {
+          "id": "circuits",
+          "label": "Circuits",
+          "unit": "circuits",
+          "help": "ExpressRoute circuits."
+        }
+      ],
+      "meters": [
+        {
+          "id": "circuit",
+          "label": "Circuit",
+          "quantity": {
+            "input": "circuits"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq '{region}'",
+        "productName": ".",
+        "regionOverride": "Zone 1",
+        "regionNote": "ExpressRoute circuits are billed by zone; the Retail API lists Zone 1 (North America and Europe) rather than a region.",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "standard-metered-50mbps",
+          "label": "Standard, metered data, 50 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-metered-50mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Metered Data 50 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^50 Mbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-metered-100mbps",
+          "label": "Standard, metered data, 100 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-metered-100mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Metered Data 100 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^100 Mbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-metered-200mbps",
+          "label": "Standard, metered data, 200 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-metered-200mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Metered Data 200 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^200 Mbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-metered-500mbps",
+          "label": "Standard, metered data, 500 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-metered-500mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Metered Data 500 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^500 Mbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-metered-1gbps",
+          "label": "Standard, metered data, 1 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-metered-1gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Metered Data 1 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^1 Gbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-metered-2gbps",
+          "label": "Standard, metered data, 2 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-metered-2gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Metered Data 2 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^2 Gbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-metered-5gbps",
+          "label": "Standard, metered data, 5 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-metered-5gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Metered Data 5 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^5 Gbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-metered-10gbps",
+          "label": "Standard, metered data, 10 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-metered-10gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Metered Data 10 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^10 Gbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-unlimited-50mbps",
+          "label": "Standard, unlimited data, 50 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-unlimited-50mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Unlimited Data 50 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^50 Mbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-unlimited-100mbps",
+          "label": "Standard, unlimited data, 100 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-unlimited-100mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Unlimited Data 100 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^100 Mbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-unlimited-200mbps",
+          "label": "Standard, unlimited data, 200 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-unlimited-200mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Unlimited Data 200 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^200 Mbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-unlimited-500mbps",
+          "label": "Standard, unlimited data, 500 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-unlimited-500mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Unlimited Data 500 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^500 Mbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-unlimited-1gbps",
+          "label": "Standard, unlimited data, 1 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-unlimited-1gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Unlimited Data 1 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^1 Gbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-unlimited-2gbps",
+          "label": "Standard, unlimited data, 2 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-unlimited-2gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Unlimited Data 2 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^2 Gbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-unlimited-5gbps",
+          "label": "Standard, unlimited data, 5 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-unlimited-5gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Unlimited Data 5 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^5 Gbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "standard-unlimited-10gbps",
+          "label": "Standard, unlimited data, 10 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-standard-unlimited-10gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Standard Unlimited Data 10 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^10 Gbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-metered-50mbps",
+          "label": "Premium, metered data, 50 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-metered-50mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Metered Data 50 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^50 Mbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-metered-100mbps",
+          "label": "Premium, metered data, 100 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-metered-100mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Metered Data 100 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^100 Mbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-metered-200mbps",
+          "label": "Premium, metered data, 200 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-metered-200mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Metered Data 200 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^200 Mbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-metered-500mbps",
+          "label": "Premium, metered data, 500 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-metered-500mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Metered Data 500 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^500 Mbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-metered-1gbps",
+          "label": "Premium, metered data, 1 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-metered-1gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Metered Data 1 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^1 Gbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-metered-2gbps",
+          "label": "Premium, metered data, 2 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-metered-2gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Metered Data 2 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^2 Gbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-metered-5gbps",
+          "label": "Premium, metered data, 5 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-metered-5gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Metered Data 5 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^5 Gbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-metered-10gbps",
+          "label": "Premium, metered data, 10 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-metered-10gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Metered Data 10 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^10 Gbps Metered Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-unlimited-50mbps",
+          "label": "Premium, unlimited data, 50 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-unlimited-50mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Unlimited Data 50 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^50 Mbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-unlimited-100mbps",
+          "label": "Premium, unlimited data, 100 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-unlimited-100mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Unlimited Data 100 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^100 Mbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-unlimited-200mbps",
+          "label": "Premium, unlimited data, 200 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-unlimited-200mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Unlimited Data 200 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^200 Mbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-unlimited-500mbps",
+          "label": "Premium, unlimited data, 500 Mbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-unlimited-500mbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Unlimited Data 500 Mbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^500 Mbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-unlimited-1gbps",
+          "label": "Premium, unlimited data, 1 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-unlimited-1gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Unlimited Data 1 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^1 Gbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-unlimited-2gbps",
+          "label": "Premium, unlimited data, 2 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-unlimited-2gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Unlimited Data 2 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^2 Gbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-unlimited-5gbps",
+          "label": "Premium, unlimited data, 5 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-unlimited-5gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Unlimited Data 5 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^5 Gbps Unlimited Data$"
+            }
+          }
+        },
+        {
+          "id": "premium-unlimited-10gbps",
+          "label": "Premium, unlimited data, 10 Gbps",
+          "attrs": {},
+          "prices": {
+            "circuit": "expressroute-circuit-premium-unlimited-10gbps-circuit"
+          },
+          "retail": {
+            "circuit": {
+              "meterName": "^Premium Unlimited Data 10 Gbps Circuit$",
+              "productName": "^ExpressRoute$",
+              "skuName": "^10 Gbps Unlimited Data$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "azure-firewall",
+      "label": "Azure Firewall",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/azure-firewall/",
+      "note": "Deployment hours and data processed for Basic, Standard and Premium. Secured virtual hub deployments and capacity units are not included.",
+      "inputs": [
+        {
+          "id": "firewalls",
+          "label": "Firewalls",
+          "unit": "firewalls",
+          "help": "Firewall deployments, billed per hour."
+        },
+        {
+          "id": "dataGB",
+          "label": "Data processed",
+          "unit": "GB",
+          "help": "Data processed a month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "deployment",
+          "label": "Deployment",
+          "quantity": {
+            "input": "firewalls"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "data",
+          "label": "Data processed",
+          "quantity": {
+            "input": "dataGB"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Firewall' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "basic",
+          "label": "Basic",
+          "attrs": {},
+          "prices": {
+            "deployment": "azure-firewall-basic-deployment",
+            "data": "azure-firewall-basic-data"
+          },
+          "retail": {
+            "deployment": {
+              "meterName": "^Basic Deployment$",
+              "productName": "^Azure Firewall$"
+            },
+            "data": {
+              "meterName": "^Basic Data Processed$",
+              "productName": "^Azure Firewall$"
+            }
+          }
+        },
+        {
+          "id": "standard",
+          "label": "Standard",
+          "attrs": {},
+          "prices": {
+            "deployment": "azure-firewall-standard-deployment",
+            "data": "azure-firewall-standard-data"
+          },
+          "retail": {
+            "deployment": {
+              "meterName": "^Standard Deployment$",
+              "productName": "^Azure Firewall$"
+            },
+            "data": {
+              "meterName": "^Standard Data Processed$",
+              "productName": "^Azure Firewall$"
+            }
+          }
+        },
+        {
+          "id": "premium",
+          "label": "Premium",
+          "attrs": {},
+          "prices": {
+            "deployment": "azure-firewall-premium-deployment",
+            "data": "azure-firewall-premium-data"
+          },
+          "retail": {
+            "deployment": {
+              "meterName": "^Premium Deployment$",
+              "productName": "^Azure Firewall$"
+            },
+            "data": {
+              "meterName": "^Premium Data Processed$",
+              "productName": "^Azure Firewall$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "bastion",
+      "label": "Azure Bastion",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/azure-bastion/",
+      "note": "Host hours and additional scale-out instances. Outbound data transfer is billed as internet egress.",
+      "inputs": [
+        {
+          "id": "hosts",
+          "label": "Bastion hosts",
+          "unit": "hosts",
+          "help": "Bastion hosts, billed per hour."
+        },
+        {
+          "id": "extra",
+          "label": "Additional instances",
+          "unit": "instances",
+          "help": "Scale-out instances beyond the two included, billed per hour."
+        }
+      ],
+      "meters": [
+        {
+          "id": "host",
+          "label": "Host",
+          "quantity": {
+            "input": "hosts"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "extra",
+          "label": "Additional instances",
+          "quantity": {
+            "input": "extra"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Bastion' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "basic",
+          "label": "Basic",
+          "attrs": {},
+          "prices": {
+            "host": "bastion-basic-host",
+            "extra": "bastion-basic-extra"
+          },
+          "retail": {
+            "host": {
+              "meterName": "^Basic Gateway$",
+              "productName": "^Azure Bastion$"
+            },
+            "extra": {
+              "free": "Basic does not scale beyond two instances."
+            }
+          }
+        },
+        {
+          "id": "standard",
+          "label": "Standard",
+          "attrs": {},
+          "prices": {
+            "host": "bastion-standard-host",
+            "extra": "bastion-standard-extra"
+          },
+          "retail": {
+            "host": {
+              "meterName": "^Standard Gateway$",
+              "productName": "^Azure Bastion$"
+            },
+            "extra": {
+              "meterName": "^Standard Additional Gateway$",
+              "productName": "^Azure Bastion$"
+            }
+          }
+        },
+        {
+          "id": "premium",
+          "label": "Premium",
+          "attrs": {},
+          "prices": {
+            "host": "bastion-premium-host",
+            "extra": "bastion-premium-extra"
+          },
+          "retail": {
+            "host": {
+              "meterName": "^Premium Gateway$",
+              "productName": "^Azure Bastion$"
+            },
+            "extra": {
+              "meterName": "^Premium Additional Gateway$",
+              "productName": "^Azure Bastion$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "ddos-ip-protection",
+      "label": "DDoS IP Protection",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/ddos-protection/",
+      "note": "Per protected public IP address. The Retail API has no DDoS meter and the Network Protection price (which covers 100 IPs) was not published in the page text, so only IP Protection is listed. Vendor price, not verified against a meter.",
+      "inputs": [
+        {
+          "id": "ips",
+          "label": "Protected IPs",
+          "unit": "addresses",
+          "help": "Public IP addresses with DDoS IP Protection."
+        }
+      ],
+      "meters": [
+        {
+          "id": "ip",
+          "label": "Protected IP",
+          "quantity": {
+            "input": "ips"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "skus": [
+        {
+          "id": "ip-protection",
+          "label": "DDoS IP Protection",
+          "attrs": {},
+          "prices": {
+            "ip": "ddos-ip-protection-ip-protection-ip"
+          }
+        }
+      ]
+    },
+    {
+      "id": "azure-dns",
+      "label": "Azure DNS",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/dns/",
+      "note": "Hosted zones (first 25 zones; the lower rate beyond is not applied) and queries (first billion). Record sets and Private Resolver endpoints are not included. Billed by zone: this uses Zone 1.",
+      "inputs": [
+        {
+          "id": "zones",
+          "label": "Zones",
+          "unit": "zones",
+          "help": "Hosted DNS zones."
+        },
+        {
+          "id": "queriesM",
+          "label": "Queries",
+          "unit": "million queries",
+          "help": "DNS queries a month, in millions."
+        }
+      ],
+      "meters": [
+        {
+          "id": "zones",
+          "label": "Zones",
+          "quantity": {
+            "input": "zones"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "queries",
+          "label": "Queries",
+          "quantity": {
+            "input": "queriesM"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure DNS' and armRegionName eq '{region}'",
+        "productName": ".",
+        "regionOverride": "Zone 1",
+        "regionNote": "Azure DNS is billed by zone; the Retail API lists Zone 1 rather than a region.",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "public",
+          "label": "Public DNS",
+          "attrs": {},
+          "prices": {
+            "zones": "azure-dns-public-zones",
+            "queries": "azure-dns-public-queries"
+          },
+          "retail": {
+            "zones": {
+              "meterName": "^Public Zone$",
+              "productName": "^Azure DNS$",
+              "tier": 0,
+              "unit": "zone-month"
+            },
+            "queries": {
+              "meterName": "^Public Queries$",
+              "productName": "^Azure DNS$",
+              "tier": 0
+            }
+          }
+        },
+        {
+          "id": "private",
+          "label": "Private DNS",
+          "attrs": {},
+          "prices": {
+            "zones": "azure-dns-private-zones",
+            "queries": "azure-dns-private-queries"
+          },
+          "retail": {
+            "zones": {
+              "meterName": "^Private Zone$",
+              "productName": "^Azure DNS$",
+              "tier": 0,
+              "unit": "zone-month"
+            },
+            "queries": {
+              "meterName": "^Private Queries$",
+              "productName": "^Azure DNS$",
+              "tier": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "internet-egress",
+      "label": "Data transfer out (internet and between regions)",
+      "category": "network",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/bandwidth/",
+      "note": "Outbound data per GB. The Microsoft global network tiers are volume bands: pick the band that matches the month's total (the first 100 GB are free and the band above 100 GB is the `egress-gb` price). Inbound data is free. Continent-specific rates differ.",
+      "inputs": [
+        {
+          "id": "outGB",
+          "label": "Data out",
+          "unit": "GB",
+          "help": "Data sent out a month, within the chosen band."
+        }
+      ],
+      "meters": [
+        {
+          "id": "out",
+          "label": "Data out",
+          "quantity": {
+            "input": "outGB"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Bandwidth' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "mgn-100gb-10tb",
+          "label": "Microsoft global network, 100 GB to 10 TB",
+          "attrs": {},
+          "prices": {
+            "out": "egress-gb"
+          }
+        },
+        {
+          "id": "mgn-10-50tb",
+          "label": "Microsoft global network, 10 to 50 TB",
+          "attrs": {},
+          "prices": {
+            "out": "internet-egress-mgn-10-50tb-out"
+          },
+          "retail": {
+            "out": {
+              "meterName": "^Standard Data Transfer Out$",
+              "productName": "^Rtn Preference: MGN$",
+              "tier": 10335
+            }
+          }
+        },
+        {
+          "id": "mgn-50-150tb",
+          "label": "Microsoft global network, 50 to 150 TB",
+          "attrs": {},
+          "prices": {
+            "out": "internet-egress-mgn-50-150tb-out"
+          },
+          "retail": {
+            "out": {
+              "meterName": "^Standard Data Transfer Out$",
+              "productName": "^Rtn Preference: MGN$",
+              "tier": 51295
+            }
+          }
+        },
+        {
+          "id": "mgn-150-500tb",
+          "label": "Microsoft global network, 150 to 500 TB",
+          "attrs": {},
+          "prices": {
+            "out": "internet-egress-mgn-150-500tb-out"
+          },
+          "retail": {
+            "out": {
+              "meterName": "^Standard Data Transfer Out$",
+              "productName": "^Rtn Preference: MGN$",
+              "tier": 153695
+            }
+          }
+        },
+        {
+          "id": "mgn-over-500tb",
+          "label": "Microsoft global network, over 500 TB",
+          "attrs": {},
+          "prices": {
+            "out": "internet-egress-mgn-over-500tb-out"
+          },
+          "retail": {
+            "out": {
+              "meterName": "^Standard Data Transfer Out$",
+              "productName": "^Rtn Preference: MGN$",
+              "tier": 512095
+            }
+          }
+        },
+        {
+          "id": "internet-100gb-10tb",
+          "label": "Routing preference Internet, 100 GB to 10 TB",
+          "attrs": {},
+          "prices": {
+            "out": "internet-egress-internet-100gb-10tb-out"
+          },
+          "retail": {
+            "out": {
+              "meterName": "^Standard Data Transfer Out$",
+              "productName": "^Bandwidth - Routing Preference: Internet$",
+              "tier": 100
+            }
+          }
+        },
+        {
+          "id": "internet-10-50tb",
+          "label": "Routing preference Internet, 10 to 50 TB",
+          "attrs": {},
+          "prices": {
+            "out": "internet-egress-internet-10-50tb-out"
+          },
+          "retail": {
+            "out": {
+              "meterName": "^Standard Data Transfer Out$",
+              "productName": "^Bandwidth - Routing Preference: Internet$",
+              "tier": 10100
+            }
+          }
+        },
+        {
+          "id": "internet-50-150tb",
+          "label": "Routing preference Internet, 50 to 150 TB",
+          "attrs": {},
+          "prices": {
+            "out": "internet-egress-internet-50-150tb-out"
+          },
+          "retail": {
+            "out": {
+              "meterName": "^Standard Data Transfer Out$",
+              "productName": "^Bandwidth - Routing Preference: Internet$",
+              "tier": 50100
+            }
+          }
+        },
+        {
+          "id": "internet-over-150tb",
+          "label": "Routing preference Internet, over 150 TB",
+          "attrs": {},
+          "prices": {
+            "out": "internet-egress-internet-over-150tb-out"
+          },
+          "retail": {
+            "out": {
+              "meterName": "^Standard Data Transfer Out$",
+              "productName": "^Bandwidth - Routing Preference: Internet$",
+              "tier": 150100
+            }
+          }
+        },
+        {
+          "id": "inter-region",
+          "label": "Between regions (same continent)",
+          "attrs": {},
+          "prices": {
+            "out": "internet-egress-inter-region-out"
+          },
+          "retail": {
+            "out": {
+              "meterName": "^Standard Inter-Region Data Transfer$",
+              "productName": "^Rtn Preference: MGN$",
+              "tier": 0
+            }
+          }
+        },
+        {
+          "id": "inter-az-out",
+          "label": "Between availability zones, outbound",
+          "attrs": {},
+          "prices": {
+            "out": "internet-egress-inter-az-out-out"
+          },
+          "retail": {
+            "out": {
+              "meterName": "^Standard Inter-Availability Zone Data Transfer Out$",
+              "productName": "^Rtn Preference: MGN$",
+              "tier": 0
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "unitPrices": [
+    {
+      "id": "ddos-ip-protection-ip-protection-ip",
+      "label": "DDoS IP Protection · ip",
+      "platform": "azure",
+      "unit": "IP-month",
+      "price": 281.8934,
+      "attrs": {
+        "usdList": 199
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/ddos-protection/",
+        "note": "Azure DDoS Protection pricing page, IP Protection USD 199 per public IP a month, fetched 2026-10-07; USD 199 x 1.41655 (USD list price, unverified: not a Retail API meter, excludes tax and agreements)",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "unverified"
+    },
+    {
+      "id": "vnet-peering-intra-region-in",
+      "label": "Same region · Inbound",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Intra-Region Ingress",
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Virtual Network Peering / Intra-Region",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "vnet-peering-intra-region-out",
+      "label": "Same region · Outbound",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Intra-Region Egress",
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Virtual Network Peering / Intra-Region",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "vnet-peering-inter-region-in",
+      "label": "Between regions (global peering) · Inbound",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0496,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Inter-Region Ingress",
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Global Virtual Network Peering / Inter-Region",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "vnet-peering-inter-region-out",
+      "label": "Between regions (global peering) · Outbound",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0496,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Inter-Region Egress",
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Global Virtual Network Peering / Inter-Region",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "private-endpoint-standard-endpoint",
+      "label": "Standard · Endpoints",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 10.366,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Private Endpoint",
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Virtual Network Private Link / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "private-endpoint-standard-in",
+      "label": "Standard · Data processed, inbound",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Processed - Ingress",
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Virtual Network Private Link / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "private-endpoint-standard-out",
+      "label": "Standard · Data processed, outbound",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Processed - Egress",
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Virtual Network Private Link / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "nat-gateway-standard-gateway",
+      "label": "Standard · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 46.501,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Gateway",
+        "filter": "serviceName eq 'NAT Gateway' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "NAT Gateway / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "nat-gateway-standard-data",
+      "label": "Standard · Data processed",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0637,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Processed",
+        "filter": "serviceName eq 'NAT Gateway' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "NAT Gateway / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "public-ip-standard-static-ip",
+      "label": "Standard, static IPv4 · Address",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 5.183,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard IPv4 Static Public IP",
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "IP Addresses / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "public-ip-basic-static-ip",
+      "label": "Basic, static IPv4 · Address",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 3.723,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic IPv4 Static Public IP",
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "IP Addresses / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "public-ip-basic-dynamic-ip",
+      "label": "Basic, dynamic IPv4 · Address",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 4.161,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic IPv4 Dynamic Public IP",
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "IP Addresses / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "public-ip-global-static-ip",
+      "label": "Global, static IPv4 · Address",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 10.366,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Global IPv4 Static Public IP",
+        "filter": "serviceName eq 'Virtual Network' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "IP Addresses / Global",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-gateway-standard-v2-fixed",
+      "label": "Standard v2 · Fixed charge",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 248.2,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Fixed Cost",
+        "filter": "serviceName eq 'Application Gateway' and armRegionName eq 'canadacentral'",
+        "note": "Application Gateway Standard v2 / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-gateway-standard-v2-cu",
+      "label": "Standard v2 · Capacity units",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 8.249,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Capacity Units",
+        "filter": "serviceName eq 'Application Gateway' and armRegionName eq 'canadacentral'",
+        "note": "Application Gateway Standard v2 / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-gateway-waf-v2-fixed",
+      "label": "WAF v2 · Fixed charge",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 446.687,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Fixed Cost",
+        "filter": "serviceName eq 'Application Gateway' and armRegionName eq 'canadacentral'",
+        "note": "Application Gateway WAF v2 / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-gateway-waf-v2-cu",
+      "label": "WAF v2 · Capacity units",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 14.892,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Capacity Units",
+        "filter": "serviceName eq 'Application Gateway' and armRegionName eq 'canadacentral'",
+        "note": "Application Gateway WAF v2 / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-gateway-basic-v2-fixed",
+      "label": "Basic v2 · Fixed charge",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 25.623,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Fixed Cost",
+        "filter": "serviceName eq 'Application Gateway' and armRegionName eq 'canadacentral'",
+        "note": "Application Gateway Basic v2 / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "app-gateway-basic-v2-cu",
+      "label": "Basic v2 · Capacity units",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 9.125,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Capacity Units",
+        "filter": "serviceName eq 'Application Gateway' and armRegionName eq 'canadacentral'",
+        "note": "Application Gateway Basic v2 / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "front-door-standard-base",
+      "label": "Standard · Base fee",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 49.5793,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Base Fees",
+        "filter": "serviceName eq 'Azure Front Door Service' and armRegionName eq 'Zone 1'",
+        "note": "Azure Front Door / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "front-door-standard-requests",
+      "label": "Standard · Requests",
+      "platform": "azure",
+      "unit": "10K",
+      "price": 0.0127,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Requests",
+        "filter": "serviceName eq 'Azure Front Door Service' and armRegionName eq 'Zone 1'",
+        "note": "Azure Front Door / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "front-door-standard-out",
+      "label": "Standard · Data transfer out",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.1169,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Transfer Out",
+        "filter": "serviceName eq 'Azure Front Door Service' and armRegionName eq 'Zone 1'",
+        "note": "Azure Front Door / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "front-door-premium-base",
+      "label": "Premium · Base fee",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 467.4615,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Base Fees",
+        "filter": "serviceName eq 'Azure Front Door Service' and armRegionName eq 'Zone 1'",
+        "note": "Azure Front Door / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "front-door-premium-requests",
+      "label": "Premium · Requests",
+      "platform": "azure",
+      "unit": "10K",
+      "price": 0.0212,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Requests",
+        "filter": "serviceName eq 'Azure Front Door Service' and armRegionName eq 'Zone 1'",
+        "note": "Azure Front Door / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "front-door-premium-out",
+      "label": "Premium · Data transfer out",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.1169,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Data Transfer Out",
+        "filter": "serviceName eq 'Azure Front Door Service' and armRegionName eq 'Zone 1'",
+        "note": "Azure Front Door / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "load-balancer-standard-base",
+      "label": "Standard · Base charge",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 25.842,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Included LB Rules and Outbound Rules",
+        "filter": "serviceName eq 'Load Balancer' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Load Balancer / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "load-balancer-standard-rules",
+      "label": "Standard · Extra rules",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 10.366,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Overage LB Rules and Outbound Rules",
+        "filter": "serviceName eq 'Load Balancer' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Load Balancer / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "load-balancer-standard-data",
+      "label": "Standard · Data processed",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0071,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Processed",
+        "filter": "serviceName eq 'Load Balancer' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Load Balancer / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "load-balancer-global-base",
+      "label": "Global (cross-region) · Base charge",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 25.842,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Global Included LB Rules and Outbound Rules",
+        "filter": "serviceName eq 'Load Balancer' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Load Balancer / Global",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "load-balancer-global-rules",
+      "label": "Global (cross-region) · Extra rules",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 10.366,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Global Overage LB Rules and Outbound Rules",
+        "filter": "serviceName eq 'Load Balancer' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Load Balancer / Global",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "load-balancer-global-data",
+      "label": "Load Balancer: Data processed, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/load-balancer/",
+        "note": "The Retail API lists Global data processed at 0.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "vpn-gateway-basic-gateway",
+      "label": "Basic · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 37.23,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Gateway",
+        "filter": "serviceName eq 'VPN Gateway' and armRegionName eq 'canadacentral'",
+        "note": "VPN Gateway / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "vpn-gateway-vpngw1-gateway",
+      "label": "VpnGw1 · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 196.443,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "VpnGw1",
+        "filter": "serviceName eq 'VPN Gateway' and armRegionName eq 'canadacentral'",
+        "note": "VPN Gateway / VpnGw1",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "vpn-gateway-vpngw1az-gateway",
+      "label": "VpnGw1AZ · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 217.175,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "VpnGw1AZ",
+        "filter": "serviceName eq 'VPN Gateway' and armRegionName eq 'canadacentral'",
+        "note": "VPN Gateway / VpnGw1AZ",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "vpn-gateway-vpngw2-gateway",
+      "label": "VpnGw2 · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 506.693,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "VpnGw2",
+        "filter": "serviceName eq 'VPN Gateway' and armRegionName eq 'canadacentral'",
+        "note": "VPN Gateway / VpnGw2",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "vpn-gateway-vpngw2az-gateway",
+      "label": "VpnGw2AZ · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 558.377,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "VpnGw2AZ",
+        "filter": "serviceName eq 'VPN Gateway' and armRegionName eq 'canadacentral'",
+        "note": "VPN Gateway / VpnGw2AZ",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "vpn-gateway-vpngw3-gateway",
+      "label": "VpnGw3 · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 1292.611,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "VpnGw3",
+        "filter": "serviceName eq 'VPN Gateway' and armRegionName eq 'canadacentral'",
+        "note": "VPN Gateway / VpnGw3",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "vpn-gateway-vpngw3az-gateway",
+      "label": "VpnGw3AZ · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 1427.004,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "VpnGw3AZ",
+        "filter": "serviceName eq 'VPN Gateway' and armRegionName eq 'canadacentral'",
+        "note": "VPN Gateway / VpnGw3AZ",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "vpn-gateway-vpngw4-gateway",
+      "label": "VpnGw4 · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 2171.604,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "VpnGw4",
+        "filter": "serviceName eq 'VPN Gateway' and armRegionName eq 'canadacentral'",
+        "note": "VPN Gateway / VpnGw4",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "vpn-gateway-vpngw4az-gateway",
+      "label": "VpnGw4AZ · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 2388.706,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "VpnGw4AZ",
+        "filter": "serviceName eq 'VPN Gateway' and armRegionName eq 'canadacentral'",
+        "note": "VPN Gateway / VpnGw4AZ",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "vpn-gateway-vpngw5-gateway",
+      "label": "VpnGw5 · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 3774.392,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "VpnGw5",
+        "filter": "serviceName eq 'VPN Gateway' and armRegionName eq 'canadacentral'",
+        "note": "VPN Gateway / VpnGw5",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "vpn-gateway-vpngw5az-gateway",
+      "label": "VpnGw5AZ · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 4156.985,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "VpnGw5AZ",
+        "filter": "serviceName eq 'VPN Gateway' and armRegionName eq 'canadacentral'",
+        "note": "VPN Gateway / VpnGw5AZ",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-gateway-standard-gateway",
+      "label": "Standard · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 196.443,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Gateway",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'canadacentral'",
+        "note": "ExpressRoute Standard Gateway / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-gateway-high-performance-gateway",
+      "label": "High Performance · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 506.693,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "High Performance Gateway",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'canadacentral'",
+        "note": "ExpressRoute High Performance Gateway / High Performance",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-gateway-ultra-performance-gateway",
+      "label": "Ultra Performance · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 1933.697,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Ultra High Performance Gateway",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'canadacentral'",
+        "note": "ExpressRoute Ultra High Performance Gateway / Ultra High Performance",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-gateway-ergw1az-gateway",
+      "label": "ErGw1AZ · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 373.322,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "ErGw1AZ Gateway",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'canadacentral'",
+        "note": "ExpressRoute Gateway / ErGw1AZ",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-gateway-ergw2az-gateway",
+      "label": "ErGw2AZ · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 653.569,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "ErGw2AZ Gateway",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'canadacentral'",
+        "note": "ExpressRoute Gateway / ErGw2AZ",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-gateway-ergw3az-gateway",
+      "label": "ErGw3AZ · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 2224.31,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "ErGw3AZ Gateway",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'canadacentral'",
+        "note": "ExpressRoute Gateway / ErGw3AZ",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-gateway-ergwscale-gateway",
+      "label": "ErGwScale (per scale unit) · Gateway",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 217.175,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "ErGwScale Unit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'canadacentral'",
+        "note": "ExpressRoute Gateway / ErGwScale",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-metered-50mbps-circuit",
+      "label": "Standard, metered data, 50 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 77.9103,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Metered Data 50 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 50 Mbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-metered-100mbps-circuit",
+      "label": "Standard, metered data, 100 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 155.8205,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Metered Data 100 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 100 Mbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-metered-200mbps-circuit",
+      "label": "Standard, metered data, 200 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 205.3998,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Metered Data 200 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 200 Mbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-metered-500mbps-circuit",
+      "label": "Standard, metered data, 500 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 410.7995,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Metered Data 500 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 500 Mbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-metered-1gbps-circuit",
+      "label": "Standard, metered data, 1 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 617.6158,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Metered Data 1 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 1 Gbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-metered-2gbps-circuit",
+      "label": "Standard, metered data, 2 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 1235.232,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Metered Data 2 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 2 Gbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-metered-5gbps-circuit",
+      "label": "Standard, metered data, 5 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 3088.079,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Metered Data 5 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 5 Gbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-metered-10gbps-circuit",
+      "label": "Standard, metered data, 10 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 4816.27,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Metered Data 10 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 10 Gbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-unlimited-50mbps-circuit",
+      "label": "Standard, unlimited data, 50 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 424.965,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Unlimited Data 50 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 50 Mbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-unlimited-100mbps-circuit",
+      "label": "Standard, unlimited data, 100 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 814.5163,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Unlimited Data 100 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 100 Mbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-unlimited-200mbps-circuit",
+      "label": "Standard, unlimited data, 200 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 1629.033,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Unlimited Data 200 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 200 Mbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-unlimited-500mbps-circuit",
+      "label": "Standard, unlimited data, 500 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 3895.512,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Unlimited Data 500 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 500 Mbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-unlimited-1gbps-circuit",
+      "label": "Standard, unlimited data, 1 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 8074.335,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Unlimited Data 1 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 1 Gbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-unlimited-2gbps-circuit",
+      "label": "Standard, unlimited data, 2 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 16148.67,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Unlimited Data 2 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 2 Gbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-unlimited-5gbps-circuit",
+      "label": "Standard, unlimited data, 5 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 36334.51,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Unlimited Data 5 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 5 Gbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-standard-unlimited-10gbps-circuit",
+      "label": "Standard, unlimited data, 10 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 72669.01,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Unlimited Data 10 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 10 Gbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-metered-50mbps-circuit",
+      "label": "Premium, metered data, 50 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 184.1515,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Metered Data 50 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 50 Mbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-metered-100mbps-circuit",
+      "label": "Premium, metered data, 100 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 283.31,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Metered Data 100 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 100 Mbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-metered-200mbps-circuit",
+      "label": "Premium, metered data, 200 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 417.8823,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Metered Data 200 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 200 Mbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-metered-500mbps-circuit",
+      "label": "Premium, metered data, 500 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 977.4195,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Metered Data 500 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 500 Mbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-metered-1gbps-circuit",
+      "label": "Premium, metered data, 1 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 1680.028,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Metered Data 1 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 1 Gbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-metered-2gbps-circuit",
+      "label": "Premium, metered data, 2 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 3360.057,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Metered Data 2 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 2 Gbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-metered-5gbps-circuit",
+      "label": "Premium, metered data, 5 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 7337.729,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Metered Data 5 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 5 Gbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-metered-10gbps-circuit",
+      "label": "Premium, metered data, 10 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 9065.92,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Metered Data 10 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 10 Gbps Metered Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-unlimited-50mbps-circuit",
+      "label": "Premium, unlimited data, 50 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 531.2063,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Unlimited Data 50 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 50 Mbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-unlimited-100mbps-circuit",
+      "label": "Premium, unlimited data, 100 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 956.1713,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Unlimited Data 100 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 100 Mbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-unlimited-200mbps-circuit",
+      "label": "Premium, unlimited data, 200 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 1841.515,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Unlimited Data 200 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 200 Mbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-unlimited-500mbps-circuit",
+      "label": "Premium, unlimited data, 500 Mbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 4462.132,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Unlimited Data 500 Mbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 500 Mbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-unlimited-1gbps-circuit",
+      "label": "Premium, unlimited data, 1 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 9136.747,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Unlimited Data 1 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 1 Gbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-unlimited-2gbps-circuit",
+      "label": "Premium, unlimited data, 2 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 18273.49,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Unlimited Data 2 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 2 Gbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-unlimited-5gbps-circuit",
+      "label": "Premium, unlimited data, 5 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 40584.16,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Unlimited Data 5 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 5 Gbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "expressroute-circuit-premium-unlimited-10gbps-circuit",
+      "label": "Premium, unlimited data, 10 Gbps · Circuit",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 76918.66,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Unlimited Data 10 Gbps Circuit",
+        "filter": "serviceName eq 'ExpressRoute' and armRegionName eq 'Zone 1'",
+        "note": "ExpressRoute / 10 Gbps Unlimited Data",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-firewall-basic-deployment",
+      "label": "Basic · Deployment",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 408.435,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Deployment",
+        "filter": "serviceName eq 'Azure Firewall' and armRegionName eq 'canadacentral'",
+        "note": "Azure Firewall / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-firewall-basic-data",
+      "label": "Basic · Data processed",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0921,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Data Processed",
+        "filter": "serviceName eq 'Azure Firewall' and armRegionName eq 'canadacentral'",
+        "note": "Azure Firewall / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-firewall-standard-deployment",
+      "label": "Standard · Deployment",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 1292.611,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Deployment",
+        "filter": "serviceName eq 'Azure Firewall' and armRegionName eq 'canadacentral'",
+        "note": "Azure Firewall / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-firewall-standard-data",
+      "label": "Standard · Data processed",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0227,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Processed",
+        "filter": "serviceName eq 'Azure Firewall' and armRegionName eq 'canadacentral'",
+        "note": "Azure Firewall / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-firewall-premium-deployment",
+      "label": "Premium · Deployment",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 1809.67,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Deployment",
+        "filter": "serviceName eq 'Azure Firewall' and armRegionName eq 'canadacentral'",
+        "note": "Azure Firewall / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-firewall-premium-data",
+      "label": "Premium · Data processed",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0227,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Data Processed",
+        "filter": "serviceName eq 'Azure Firewall' and armRegionName eq 'canadacentral'",
+        "note": "Azure Firewall / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "bastion-basic-host",
+      "label": "Basic · Host",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 196.443,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Gateway",
+        "filter": "serviceName eq 'Azure Bastion' and armRegionName eq 'canadacentral'",
+        "note": "Azure Bastion / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "bastion-basic-extra",
+      "label": "Azure Bastion: Additional instances, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/azure-bastion/",
+        "note": "Basic does not scale beyond two instances.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "bastion-standard-host",
+      "label": "Standard · Host",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 299.884,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Gateway",
+        "filter": "serviceName eq 'Azure Bastion' and armRegionName eq 'canadacentral'",
+        "note": "Azure Bastion / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "bastion-standard-extra",
+      "label": "Standard · Additional instances",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 144.759,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Additional Gateway",
+        "filter": "serviceName eq 'Azure Bastion' and armRegionName eq 'canadacentral'",
+        "note": "Azure Bastion / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "bastion-premium-host",
+      "label": "Premium · Host",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 465.302,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Gateway",
+        "filter": "serviceName eq 'Azure Bastion' and armRegionName eq 'canadacentral'",
+        "note": "Azure Bastion / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "bastion-premium-extra",
+      "label": "Premium · Additional instances",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 227.468,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Additional Gateway",
+        "filter": "serviceName eq 'Azure Bastion' and armRegionName eq 'canadacentral'",
+        "note": "Azure Bastion / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-dns-public-zones",
+      "label": "Public DNS · Zones",
+      "platform": "azure",
+      "unit": "zone-month",
+      "price": 0.7083,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Public Zone",
+        "filter": "serviceName eq 'Azure DNS' and armRegionName eq 'Zone 1'",
+        "note": "Azure DNS / Public",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-dns-public-queries",
+      "label": "Public DNS · Queries",
+      "platform": "azure",
+      "unit": "1M",
+      "price": 0.5666,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Public Queries",
+        "filter": "serviceName eq 'Azure DNS' and armRegionName eq 'Zone 1'",
+        "note": "Azure DNS / Public",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-dns-private-zones",
+      "label": "Private DNS · Zones",
+      "platform": "azure",
+      "unit": "zone-month",
+      "price": 0.7083,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Private Zone",
+        "filter": "serviceName eq 'Azure DNS' and armRegionName eq 'Zone 1'",
+        "note": "Azure DNS / Private",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "azure-dns-private-queries",
+      "label": "Private DNS · Queries",
+      "platform": "azure",
+      "unit": "1M",
+      "price": 0.5666,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Private Queries",
+        "filter": "serviceName eq 'Azure DNS' and armRegionName eq 'Zone 1'",
+        "note": "Azure DNS / Private",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "internet-egress-mgn-10-50tb-out",
+      "label": "Microsoft global network, 10 to 50 TB · Data out",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.1176,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Transfer Out",
+        "filter": "serviceName eq 'Bandwidth' and armRegionName eq 'canadacentral'",
+        "note": "Rtn Preference: MGN / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "internet-egress-mgn-50-150tb-out",
+      "label": "Microsoft global network, 50 to 150 TB · Data out",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0992,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Transfer Out",
+        "filter": "serviceName eq 'Bandwidth' and armRegionName eq 'canadacentral'",
+        "note": "Rtn Preference: MGN / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "internet-egress-mgn-150-500tb-out",
+      "label": "Microsoft global network, 150 to 500 TB · Data out",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0708,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Transfer Out",
+        "filter": "serviceName eq 'Bandwidth' and armRegionName eq 'canadacentral'",
+        "note": "Rtn Preference: MGN / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "internet-egress-mgn-over-500tb-out",
+      "label": "Microsoft global network, over 500 TB · Data out",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0708,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Transfer Out",
+        "filter": "serviceName eq 'Bandwidth' and armRegionName eq 'canadacentral'",
+        "note": "Rtn Preference: MGN / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "internet-egress-internet-100gb-10tb-out",
+      "label": "Routing preference Internet, 100 GB to 10 TB · Data out",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.1133,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Transfer Out",
+        "filter": "serviceName eq 'Bandwidth' and armRegionName eq 'canadacentral'",
+        "note": "Bandwidth - Routing Preference: Internet / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "internet-egress-internet-10-50tb-out",
+      "label": "Routing preference Internet, 10 to 50 TB · Data out",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0921,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Transfer Out",
+        "filter": "serviceName eq 'Bandwidth' and armRegionName eq 'canadacentral'",
+        "note": "Bandwidth - Routing Preference: Internet / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "internet-egress-internet-50-150tb-out",
+      "label": "Routing preference Internet, 50 to 150 TB · Data out",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.085,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Transfer Out",
+        "filter": "serviceName eq 'Bandwidth' and armRegionName eq 'canadacentral'",
+        "note": "Bandwidth - Routing Preference: Internet / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "internet-egress-internet-over-150tb-out",
+      "label": "Routing preference Internet, over 150 TB · Data out",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0567,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Transfer Out",
+        "filter": "serviceName eq 'Bandwidth' and armRegionName eq 'canadacentral'",
+        "note": "Bandwidth - Routing Preference: Internet / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "internet-egress-inter-region-out",
+      "label": "Between regions (same continent) · Data out",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0283,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Inter-Region Data Transfer",
+        "filter": "serviceName eq 'Bandwidth' and armRegionName eq 'canadacentral'",
+        "note": "Rtn Preference: MGN / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "internet-egress-inter-az-out-out",
+      "label": "Between availability zones, outbound · Data out",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 0.0142,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Inter-Availability Zone Data Transfer Out",
+        "filter": "serviceName eq 'Bandwidth' and armRegionName eq 'canadacentral'",
+        "note": "Rtn Preference: MGN / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    }
+  ]
+}

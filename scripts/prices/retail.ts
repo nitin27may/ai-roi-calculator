@@ -91,6 +91,8 @@ export interface Match {
   preferRegions?: string[];
   /** Only rows in these regions count (Canada for Regional Standard, the US for Data Zone). */
   regions?: string[];
+  /** Regex on unitOfMeasure ("^1/Month$" separates a monthly row from an hourly one of the same meter name). */
+  uomPattern?: string;
   /** Regex on skuName (in addition to the exact `skuName`). */
   skuPattern?: string;
   /** Price type to keep ("Consumption", "Reservation", "DevTestConsumption"); default any. */
@@ -109,8 +111,9 @@ export function one(rows: RetailRow[], m: Match): RetailRow {
   const re = new RegExp(m.meterName, "i");
   const pr = m.productName ? new RegExp(m.productName, "i") : null;
   const sp = m.skuPattern ? new RegExp(m.skuPattern, "i") : null;
+  const up = m.uomPattern ? new RegExp(m.uomPattern, "i") : null;
   const base = rows.filter((r) =>
-    re.test(r.meterName) && (!pr || pr.test(r.productName)) && (!m.skuName || r.skuName === m.skuName) && (!sp || sp.test(r.skuName)) &&
+    re.test(r.meterName) && (!pr || pr.test(r.productName)) && (!m.skuName || r.skuName === m.skuName) && (!sp || sp.test(r.skuName)) && (!up || up.test(r.unitOfMeasure)) &&
     (!m.type || r.type === m.type) && (!m.reservationTerm || r.reservationTerm === m.reservationTerm) && (!m.armSkuName || r.armSkuName === m.armSkuName) &&
     (m.armRegionName === undefined || r.armRegionName === m.armRegionName) && (!m.regions || m.regions.includes(r.armRegionName)) && (m.allowZero || r.retailPrice > 0));
   // The first paid tier is the lowest tier above 0 that carries a price, per meter and product.
