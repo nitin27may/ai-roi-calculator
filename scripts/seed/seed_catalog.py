@@ -1,4 +1,4 @@
-"""One-off seed of packages/catalog/data from the workgraph.ai canadacentral.CAD price set
+"""One-off seed of packages/catalog/data from an earlier internal canadacentral.CAD price set
 (Azure Retail Prices API, CAD, 2026-09-17) plus the research notes in docs/research.
 After this, `pnpm prices` owns the Azure and Snowflake fields; edit manual entries by hand.
 Superseded for USD-only prices: those now live in packages/catalog/data/usd-list.json and
@@ -8,7 +8,7 @@ import json, os, pathlib
 
 FX = 1.386  # CAD per USD, ratio of Azure CAD/USD meters on 2026-09-17 (only for USD-only list prices)
 OUT = pathlib.Path(__file__).resolve().parents[2] / "packages/catalog/data"
-SHOW = pathlib.Path("/home/user/workgraph.ai/showcase/cost-calculator/catalogue/prices/canadacentral.CAD")
+SHOW = pathlib.Path(os.environ.get("SEED_PRICE_SET_DIR", "seed-source/canadacentral.CAD"))  # source set is not in this repository
 API = lambda meter=None, note=None: {k: v for k, v in {"kind": "azure-retail-api", "url": "https://prices.azure.com/api/retail/prices", "meterName": meter, "note": note, "retrievedAt": "2026-09-17"}.items() if v}
 def USD(url, note="USD list price × 1.386 (Azure CAD/USD meter ratio)"):
     return {"kind": "derived", "url": url, "note": note, "retrievedAt": "2026-10-02"}

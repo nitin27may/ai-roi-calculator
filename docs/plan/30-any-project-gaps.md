@@ -1,7 +1,7 @@
 # Any-project scope: gap analysis (2026-10-07)
 
 ## Context
-Nitin wants the calculator to estimate cost and ROI for any change, not only AI. A project can be one of these types, or a mix:
+The owner wants the calculator to estimate cost and ROI for any change, not only AI. A project can be one of these types, or a mix:
 - **Automation:** for example, RPA or workflow.
 - **Replatform or migration:** for example, lift-and-shift, move to PaaS, or replace with SaaS.
 - **New application or new process:** for example, paying claims online instead of printing and couriering cheques.
@@ -17,8 +17,8 @@ Each project needs:
 The Dev Lab must also work without AI, and it must treat AI-assisted development and testing as a normal productivity input.
 
 Two references:
-- **The current repo:** `~/workspace/ai-roi-calculator`.
-- **The older WorkGraph calculator:** `~/workspace/workgraph.ai/showcase/cost-calculator`.
+- **The current repo:** this repository.
+- **An earlier internal calculator** (not part of this repository).
 
 Both were mapped read-only on 2026-10-07. This step only produces the gap list and the brainstorm agenda. No code is written until the brainstorm decisions are made.
 
@@ -34,7 +34,7 @@ Both were mapped read-only on 2026-10-07. This step only produces the gap list a
   - one-off benefits and transition costs.
 - **Costs with no catalogue price:** cash items and fixed items (`CashItemSchema`, `FixedItemSchema` in `project.ts`), and hosting presets (`hosting.ts`).
 
-## What the old WorkGraph calculator has that we lack (reuse it)
+## What the earlier internal calculator has that we lack (reuse it)
 - **Current state:**
   - itemised "what we pay today" lines (`CurrentStateLineSchema`, `showcase/.../schema.ts:499`) and `computeCurrentState`;
   - avoided costs that `replace` a current line and can be `conditional`, for example "only if the old system is decommissioned".
@@ -91,7 +91,7 @@ The aim is a master catalogue that covers the 80–90% of Azure resources real p
 **Price data and quality:**
 - Every price records its date and the Retail API filter it came from, and can be overridden by hand with a "manual" tag.
 - A coverage test fails if a catalogue resource has no price.
-- The old WorkGraph type files (`showcase/cost-calculator/catalogue/types/*.json`) and its fetcher filters are the starting point. That fetcher dropped reserved and Windows meters on purpose, so those filters change.
+- The earlier calculator's type files and its fetcher filters are the starting point. That fetcher dropped reserved and Windows meters on purpose, so those filters change.
 
 ## Brainstorm agenda
 Asked one question at a time, per CLAUDE.md:

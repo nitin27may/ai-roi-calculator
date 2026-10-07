@@ -7,7 +7,7 @@ const lib = cat.benchmarks;
 const withPreset = (preset: Project["roi"]["benefitPreset"]) => ({ ...structuredClone(meetingIntelligence), roi: { ...meetingIntelligence.roi, benefitPreset: preset } });
 
 describe("benchmark library", () => {
-  it("has the workgraph capabilities and presets", () => {
+  it("has the ported benchmark capabilities and presets", () => {
     expect(lib.capabilities.length).toBeGreaterThanOrEqual(12);
     expect(lib.presets.typical).toMatchObject({ adoptionPct: 40, realisationPct: 40 });
   });

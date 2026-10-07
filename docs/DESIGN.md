@@ -51,7 +51,7 @@ So a project has **definitions**: harnesses, eval suites, document pipelines, ch
 
 ## 3. Build phase = labour + AI Dev Lab + dev environment
 ### 3.1 Labour (from the rate card)
-Roles and rates (CAD/h). Team lines are entered as people × months × hours/month, or as phases. Contingency %. This is ported from the workgraph.ai delivery model.
+Roles and rates (CAD/h). Team lines are entered as people × months × hours/month, or as phases. Contingency %. This is ported from an earlier internal calculator's delivery model.
 
 ### 3.2 AI Dev Lab (the new part)
 These are activities that consume tokens and AI services while the app is built. The "6-month build, 2–3 developers running agents around the clock" case is modelled explicitly.
@@ -94,14 +94,14 @@ Workloads are grouped as in the mockup:
 | Voice | real-time voice agent, or cascaded STT → LLM → TTS |
 | Agents | harness runs at P50 / P90 / worst-under-caps |
 | Quality & safety | continuous evaluation, Content Safety, Prompt Shields |
-| Platform | Container Apps, App Service, AKS, APIM, Key Vault, Storage, App Insights, Cosmos/Postgres/Redis, private endpoints. Ported from the workgraph.ai infrastructure types. |
+| Platform | Container Apps, App Service, AKS, APIM, Key Vault, Storage, App Insights, Cosmos/Postgres/Redis, private endpoints. Ported from an earlier internal calculator's infrastructure types. |
 
 **Cost behaviour.** Each line is either `usage` (scales with adoption) or `fixed` (from go-live). This is stored in the catalogue, not inferred from category names.
 
 **Maintenance.** Entered as labour (FTE × rate) or as % of build per year.
 
 ## 5. Value & ROI
-- **Benefits** (ported from workgraph.ai ROI):
+- **Benefits** (ported from an earlier internal calculator's ROI model):
   - capabilities with time saved, valued at role rates, adoption and realisation
   - avoided costs: licences retired, headcount avoided
   - one-off benefits
@@ -127,7 +127,7 @@ A **token calculator** with input modes:
 Each result has **Add to project**, which turns it into a workload or a Dev Lab activity.
 
 ## 7. Prices (CAD, offline)
-- **Azure:** Retail Prices API with `currencyCode='CAD'`, so Azure prices are native CAD and need no FX. The fetcher is lifted from workgraph.ai (`retail.ts`, `match.ts`), with discovery and an unmapped-meter report added. The seed is the workgraph.ai `canadacentral.CAD` set (2026-09-17).
+- **Azure:** Retail Prices API with `currencyCode='CAD'`, so Azure prices are native CAD and need no FX. The fetcher is lifted from the earlier calculator (`retail.ts`, `match.ts`), with discovery and an unmapped-meter report added. The seed is that calculator's `canadacentral.CAD` set (2026-09-17).
 - **Snowflake:** bills in credits.
   - Project settings take **CAD per AI credit** and **CAD per platform credit** directly, so no FX table is needed.
   - Defaults are derived once from the USD list price and written into the catalogue as CAD.

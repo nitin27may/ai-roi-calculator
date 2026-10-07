@@ -4,6 +4,7 @@ dist/
 *.tsbuildinfo
 .cache/
 .env*
+.wrangler/
 reports/*
 !reports/prices-*.md
 apps/web/out/

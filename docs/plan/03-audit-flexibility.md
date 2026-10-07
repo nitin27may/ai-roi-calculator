@@ -16,7 +16,7 @@
 
 ## 2.5 Pending items already listed in the docs
 
-- From HANDOVER §6:
+- From HANDOVER §5:
   - Fine-tune rates are still derived from USD.
   - Monte Carlo NPV.
   - Side-by-side project comparison.

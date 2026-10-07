@@ -5,7 +5,7 @@ import { join } from "node:path";
 /**
  * Azure Retail Prices API client (public, no auth). Follows NextPageLink, retries with backoff,
  * keeps Consumption rows, and caches raw pages on disk so a re-run is offline.
- * Adapted from workgraph.ai showcase/cost-calculator/packages/fetcher.
+ * Adapted from an earlier internal cost calculator fetcher.
  */
 export const RETAIL_API = "https://prices.azure.com/api/retail/prices";
 
