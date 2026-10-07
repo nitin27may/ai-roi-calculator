@@ -8,8 +8,8 @@ export interface ChartMonth { build: number; devlab: number; run: number; platfo
 
 export const CHART_SERIES = [
   { key: "build", label: "Build labour", color: "#b84a1a" },
-  { key: "devlab", label: "AI Dev Lab", color: "#ee6c34" },
-  { key: "run", label: "Production AI usage", color: "#1fae7e" },
+  { key: "devlab", label: "Engineering tools & lab", color: "#ee6c34" },
+  { key: "run", label: "Production usage", color: "#1fae7e" },
   { key: "platform", label: "Platform", color: "#4b6672" },
   { key: "maint", label: "Maintenance and transition", color: "#8a6538" },
 ] as const;

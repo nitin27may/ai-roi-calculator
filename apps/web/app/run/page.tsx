@@ -194,7 +194,7 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
           <table className="data">
             <thead><tr><th>Over {project.timeline.horizonMonths} months</th><th className="n">C$</th></tr></thead>
             <tbody>
-              <tr><td>Build (labour, Dev Lab, environment)</td><td className="n">{cad(row.build)}</td></tr>
+              <tr><td>Build (labour, engineering tools & lab, environment)</td><td className="n">{cad(row.build)}</td></tr>
               <tr><td>Run (usage and platform)</td><td className="n">{cad(row.run)}</td></tr>
               <tr><td>Benefit (time saved by its capabilities)</td><td className="n">{cad(row.benefit)}</td></tr>
               <tr><td className="font-semibold">Net</td><td className="n font-semibold">{cad(row.net)}</td></tr>

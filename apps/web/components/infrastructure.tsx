@@ -58,7 +58,7 @@ export function EnvironmentsGrid() {
   const nameOf = (e: Environment) => e.label || "this environment";
 
   return (
-    <section aria-labelledby="envs-h" className="flex flex-col gap-3">
+    <section data-tour="infra-environments" aria-labelledby="envs-h" className="flex flex-col gap-3">
       <div>
         <h2 id="envs-h" className="inline-flex items-center gap-1 text-base font-bold">Environments<HelpTip id="environmentLabel" label="Environments" /></h2>
         <p className={small}>Resources are defined once, as production. Each environment runs them at its own size and schedule. The monthly cost is read at the first month the environment is billed.</p>

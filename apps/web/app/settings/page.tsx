@@ -109,7 +109,7 @@ export default function Settings() {
   );
 }
 
-/** Everything about how the AI Dev Lab is costed: run cost, the per-person limit, the fixed allowance and typed grid cells. */
+/** Everything about how the engineering tools & lab is costed: run cost, the per-person limit, the fixed allowance and typed grid cells. */
 function DevLabCard() {
   const project = useStudio((s) => s.project);
   const edit = useStudio((s) => s.edit);
@@ -119,24 +119,24 @@ function DevLabCard() {
   const perPerson = project.build.devBudgetPerMonth ?? 0;
   return (
     <Card id="ai-dev-lab">
-      <CardHead title="AI Dev Lab" sub="How the build-phase model spend is costed" />
+      <CardHead title="Engineering tools & lab" sub="How build-phase tool and model spend is costed" />
       <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3 px-3.5 pb-3.5">
-        <Field label="AI Dev Lab run cost" help="devLabPercentile"><Select value={project.settings.devLabPercentile ?? "p50"} options={[{ value: "p50", label: "Typical run (P50)" }, { value: "p90", label: "Heavy run (P90)" }]} onChange={(v) => edit((d) => { d.settings.devLabPercentile = v as "p50" | "p90"; })} /></Field>
-        <Field label="Fixed AI Dev Lab spend per month, whole team" help="devLabMonthly"><NumberInput value={allowance} suffix="CAD" onChange={(v) => edit((d) => { if (v > 0) d.build.devLabMonthlyCad = v; else delete d.build.devLabMonthlyCad; })} /></Field>
-        <Field label="AI Dev Lab budget per person per month" help="devBudget"><NumberInput value={perPerson} suffix="CAD" onChange={(v) => edit((d) => { if (v > 0) d.build.devBudgetPerMonth = v; else delete d.build.devBudgetPerMonth; })} /></Field>
+        <Field label="Lab run cost" help="devLabPercentile"><Select value={project.settings.devLabPercentile ?? "p50"} options={[{ value: "p50", label: "Typical run (P50)" }, { value: "p90", label: "Heavy run (P90)" }]} onChange={(v) => edit((d) => { d.settings.devLabPercentile = v as "p50" | "p90"; })} /></Field>
+        <Field label="Fixed engineering tools & lab spend per month, whole team" help="devLabMonthly"><NumberInput value={allowance} suffix="CAD" onChange={(v) => edit((d) => { if (v > 0) d.build.devLabMonthlyCad = v; else delete d.build.devLabMonthlyCad; })} /></Field>
+        <Field label="Lab budget per person per month" help="devBudget"><NumberInput value={perPerson} suffix="CAD" onChange={(v) => edit((d) => { if (v > 0) d.build.devBudgetPerMonth = v; else delete d.build.devBudgetPerMonth; })} /></Field>
       </div>
       <div className="space-y-1.5 px-3.5 pb-3 text-xs text-muted">
         <p>The run cost prices each agent run at this percentile. The cautious case on the Summary page always uses P90, whatever you pick here.</p>
         <p data-testid="devlab-which-wins"><b className="text-ink-2">Which one wins.</b> {allowance > 0
-          ? `The fixed spend of C$${allowance.toLocaleString("en-CA")} a month is set, so it replaces the calculated Dev Lab cost in every build month, and the cells you typed on Build are ignored while it is set. `
-          : "The fixed monthly spend is blank, so the Dev Lab cost is calculated from the activities, with any cells you typed on Build replacing their month. "}
+          ? `The fixed spend of C$${allowance.toLocaleString("en-CA")} a month is set, so it replaces the calculated lab cost in every build month, and the cells you typed on Build are ignored while it is set. `
+          : "The fixed monthly spend is blank, so the lab cost is calculated from the activities, with any cells you typed on Build replacing their month. "}
           {perPerson > 0
             ? "The per-person budget never changes the cost; it flags the months where spend per person goes over it, and it is checked against whichever cost applies."
             : "The per-person budget is blank; when set it only flags months over it and never changes the cost."}</p>
         <p>Use the fixed spend when you simply know the team&apos;s budget. Use the per-person budget as a limit to be checked against. Leave both blank to cost from the activities.</p>
       </div>
       <div className="flex flex-col gap-2 border-t border-line px-3.5 py-3" data-testid="devlab-typed-cells">
-        <p className="text-xs text-muted">The monthly cost grid on <Link href="/build" className="font-medium text-accent underline underline-offset-2">Build</Link> (AI Dev Lab by month, Cost grid) is editable: type a C$ amount in any cell to replace the calculation for that activity and month.</p>
+        <p className="text-xs text-muted">The monthly cost grid on <Link href="/build" className="font-medium text-accent underline underline-offset-2">Build</Link> (Engineering tools & lab by month, Cost grid) is editable: type a C$ amount in any cell to replace the calculation for that activity and month.</p>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span data-testid="devlab-typed-count"><b>{typed.length}</b> {typed.length === 1 ? "cell is" : "cells are"} edited{allowanceActive(project) && typed.length > 0 ? " (not used while the fixed spend is set)" : ""}.</span>
           {typed.length > 0 && !confirm && <button type="button" className="inline-flex min-h-6 items-center rounded-md border border-line px-2 py-0.5 text-xs font-medium hover:bg-surface-2" aria-expanded={confirm} onClick={() => setConfirm(true)}>Reset all overrides</button>}

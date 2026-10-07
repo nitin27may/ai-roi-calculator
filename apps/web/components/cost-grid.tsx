@@ -74,7 +74,7 @@ export function CostGrid() {
     return (
       <div className="overflow-auto">
         <TableNote>
-          A fixed AI Dev Lab allowance of <b>{cad(project.build.devLabMonthlyCad!)}</b> a month is set, so it replaces the calculated cost and the cells below are not editable. Change or remove it under <Link href="/settings#ai-dev-lab" className="font-medium text-accent underline underline-offset-2">Settings, AI Dev Lab</Link> to edit cells again. Cells you typed earlier are kept and apply again once the allowance is removed.
+          A fixed engineering tools & lab allowance of <b>{cad(project.build.devLabMonthlyCad!)}</b> a month is set, so it replaces the calculated cost and the cells below are not editable. Change or remove it under <Link href="/settings#ai-dev-lab" className="font-medium text-accent underline underline-offset-2">Settings, Engineering tools & lab</Link> to edit cells again. Cells you typed earlier are kept and apply again once the allowance is removed.
         </TableNote>
         <table className="data">
           <thead><tr><th>Activity</th>{months.map((m) => <MonthTh key={m.m} m={m.m} />)}<th className="n">Total</th></tr></thead>
@@ -94,7 +94,7 @@ export function CostGrid() {
   const update = (id: string, fn: (a: DevActivity) => void) => edit((d) => { const a = d.build.activities.find((x) => x.id === id); if (a) fn(a); });
   return (
     <div className="overflow-auto">
-      <TableNote>{MONTH_TABLE_NOTES.cost} Amounts are AI Dev Lab spend only; build labour is on Team &amp; rate card.</TableNote>
+      <TableNote>{MONTH_TABLE_NOTES.cost} Amounts are engineering tools & lab spend only; build labour is on Team &amp; rate card.</TableNote>
       <table className="data">
         <thead><tr><th>Activity</th>{months.map((m) => <MonthTh key={m.m} m={m.m} />)}<th className="n">Total</th></tr></thead>
         <tbody>

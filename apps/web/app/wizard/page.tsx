@@ -295,18 +295,18 @@ function BuildStep({ state, update }: StepProps) {
   const harness = picked(state).some((r) => r.needsHarness);
   return (
     <>
-      <p className="max-w-3xl text-[13px] text-ink-2">How big is the team and how long does it take? The wizard starts from a size that suits what you picked. Tick the Dev Lab work you expect; its volumes are shared across the features.</p>
+      <p className="max-w-3xl text-[13px] text-ink-2">How big is the team and how long does it take? The wizard starts from a size that suits what you picked. Tick the engineering lab work you expect; its volumes are shared across the features.</p>
       <Card>
-        <CardHead title="Team and length" sub="Used for build labour and Dev Lab volumes." />
+        <CardHead title="Team and length" sub="Used for build labour and lab volumes." />
         <div className="grid gap-3 px-3.5 pb-3.5 sm:grid-cols-2 lg:max-w-xl">
           <Field label="Developers" help="wizPeople"><NumberInput value={state.build.people} min={1} max={100} step={1} suffix="people" onChange={(n) => update((s) => setBuild(s, { people: n }))} /></Field>
           <Field label="Build length" help="wizMonths"><NumberInput value={state.build.months} min={1} max={24} step={1} suffix="months" onChange={(n) => update((s) => setBuild(s, { months: Math.round(n) }))} /></Field>
         </div>
       </Card>
       <Card>
-        <CardHead title="Dev Lab activities" sub={harness ? "You picked an agent feature, so its harness is added with these activities." : "No agent harness is added, because nothing you picked runs an agent."} />
+        <CardHead title="Engineering lab activities" sub={harness ? "You picked an agent feature, so its harness is added with these activities." : "No agent harness is added, because nothing you picked runs an agent."} />
         <div className="grid gap-2 px-3.5 pb-3.5 sm:grid-cols-2">
-          {kinds.length === 0 && <p className="text-[12.5px] text-muted">Nothing to test here. Add Dev Lab work later on the Build page.</p>}
+          {kinds.length === 0 && <p className="text-[12.5px] text-muted">Nothing to test here. Add engineering lab work later on the Build page.</p>}
           {kinds.map((k) => (
             <label key={k.kind} className="flex cursor-pointer items-start gap-2 rounded-md border border-line px-2.5 py-2 text-[12.5px]">
               <input type="checkbox" className="mt-0.5" checked={state.devKinds.includes(k.kind)} onChange={() => update((s) => toggleDevKind(s, k.kind))} />

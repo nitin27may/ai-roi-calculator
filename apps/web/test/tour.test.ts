@@ -84,3 +84,28 @@ describe("tour step data", () => {
     expect(readFileSync(join(root, "components/help-menu.tsx"), "utf8")).toContain("Take the tour");
   });
 });
+
+describe("tour for any project (A15)", () => {
+  it("is version 2, so everyone who saw the AI-only tour sees this one", () => {
+    expect(TOUR_VERSION).toBe(2);
+    expect(TOUR_KEY).toBe("roi-calculator:tour.v2");
+    const s = memory();
+    s.setItem("roi-calculator:tour.v1", "finished");
+    expect(shouldAutoShowTour(s)).toBe(true);
+  });
+  it("has about 12 to 14 steps", () => {
+    expect(TOUR_STEPS.length).toBeGreaterThanOrEqual(12);
+    expect(TOUR_STEPS.length).toBeLessThanOrEqual(14);
+  });
+  it("covers infrastructure, current state and the scorecard", () => {
+    const ids = TOUR_STEPS.map((s) => s.id);
+    expect(ids).toContain("infrastructure");
+    expect(TOUR_STEPS.find((s) => s.id === "infrastructure")!.route).toBe("/infrastructure");
+    expect(TOUR_STEPS.find((s) => s.id === "current-state")!.body).toMatch(/current state/i);
+    expect(TOUR_STEPS.find((s) => s.id === "current-state")!.body).toMatch(/scorecard/i);
+  });
+  it("does not describe the product as AI only", () => {
+    const all = TOUR_STEPS.map((s) => `${s.title} ${s.body}`).join("\n");
+    expect(all).not.toMatch(/AI Dev Lab|candidate model|cost of an AI project|what an AI project/i);
+  });
+});

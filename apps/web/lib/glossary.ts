@@ -32,6 +32,42 @@ export const GLOSSARY: GlossaryTerm[] = [
     technical: "Each environment has a size factor, a schedule, optional first and last billed months and a pricing choice (pay-as-you-go or dev/test). Production environments are billed from go-live under running cost. Non-production environments are billed in the build months by default and are counted as environment cost, which Running cost only leaves out.",
   },
   {
+    id: "reserved-instance",
+    term: "Reserved instance",
+    plain: "A server, database or plan you commit to for one or three years in return for a lower hourly price. You pay for the committed capacity whether or not you use it, so it suits what runs all day, such as production.",
+    technical: "A resource's term is pay-as-you-go, 1-year or 3-year. A reserved term uses the reserved price when the resource type offers one and the SKU has one; otherwise the ROI Calculator falls back to pay-as-you-go and says so. Reserved ignores the environment schedule, because the commitment is billed for every hour of the month.",
+  },
+  {
+    id: "azure-hybrid-benefit",
+    term: "Azure Hybrid Benefit",
+    plain: "A discount for bringing a Windows Server or SQL Server licence you already own to Azure, so you do not pay for the licence a second time. Tick it only when you hold licences that qualify.",
+    technical: "A per-resource option that applies the Hybrid Benefit price where the resource type offers one. A reserved term wins over Hybrid Benefit, because the reserved compute price is the one billed. Nothing is ticked for you.",
+  },
+  {
+    id: "dev-test-pricing",
+    term: "Dev/test pricing",
+    plain: "Lower Azure prices for environments that are used for building and testing, not for real users. You choose it per environment, and only dev, test and UAT normally qualify.",
+    technical: "An environment's pricing choice is pay-as-you-go or dev/test. Where the SKU has a dev/test price it is used for that environment's resources; where it has none the ROI Calculator falls back to pay-as-you-go and adds a note.",
+  },
+  {
+    id: "decommission",
+    term: "Decommission",
+    plain: "Switching off the old system, lease or contract once the new one is live. The saving only starts when it actually happens, so you pick the month and, if it depends on something outside the project, say whether you are assuming it.",
+    technical: "A current-state line stops costing in its change month. A conditional line, such as a lease that has to end first, saves nothing unless it is marked as assumed. The decommission-shift lever moves every change month together, never earlier than go-live.",
+  },
+  {
+    id: "per-transaction-cost",
+    term: "Per-transaction cost",
+    plain: "What one unit of work costs: a payment fee, an e-signature envelope, a cheque's stock and postage, a courier trip. Multiply it by how many happen each month to get the monthly cost, today or after the change.",
+    technical: "Cost per month = cost per transaction x transactions per month. On Run it is a Per-transaction fee line with a catalogue or your own price. In the current state it is a basis of the same name. Summary also shows the cost per unit at full adoption against today's cost.",
+  },
+  {
+    id: "productivity-factor",
+    term: "Productivity factor",
+    plain: "The share of a role's build hours that a tool saves, such as AI coding tools for developers. A factor of 20 percent means the same work takes 80 percent of the hours.",
+    technical: "Held per rate-card role under AI-assisted development. A team line for a listed role bills hours x (1 - factor). It multiplies with the development-cost cut on the Value and ROI page, so set one or the other. The Summary compares the labour saved with the cost of the tools.",
+  },
+  {
     id: "size-factor",
     term: "Size factor",
     plain: "How big an environment is next to production. 0.5 means half the size, so half the cost for the parts of the price that grow with size.",
@@ -262,3 +298,24 @@ export const GLOSSARY: GlossaryTerm[] = [
 ];
 
 export const glossaryById = (id: string): GlossaryTerm | undefined => GLOSSARY.find((g) => g.id === id);
+
+/** The glossary is shown in these groups, generic terms first. AI and token terms come last so a non-AI project meets them last. */
+export const GLOSSARY_GROUPS = ["Estimating", "Infrastructure", "Savings and benefits", "AI and tokens"] as const;
+export type GlossaryGroup = (typeof GLOSSARY_GROUPS)[number];
+
+const GROUP_IDS: Record<GlossaryGroup, readonly string[]> = {
+  Estimating: ["project-type", "type-new-app", "type-enhancement", "type-automation", "type-replatform", "type-saas", "type-ai", "delivery-phase", "hypercare", "delivery-costs", "engineering-tools-lab", "productivity-factor", "month-index", "intensity", "p50-p90"],
+  Infrastructure: ["environment", "size-factor", "schedule-hours-per-month", "reserved-instance", "azure-hybrid-benefit", "dev-test-pricing", "snowflake-credit"],
+  "Savings and benefits": ["current-state", "decommission", "per-transaction-cost", "scorecard", "score-dimension", "realisation", "payback", "npv", "irr"],
+  "AI and tokens": ["token", "input-cached-output", "reasoning-tokens", "cache-write", "image-tokens", "tool-result", "agent-loop", "history-growth", "code-interpreter", "token-budget", "deployment-types", "processing-tiers", "ptu", "ai-assisted-development", "ai-dev-lab", "dev-lab-typed-cost", "harness"],
+};
+
+/** The group a term is listed under. Every term has one; a test keeps new terms from going unlisted. */
+export function glossaryGroupOf(id: string): GlossaryGroup | undefined {
+  return GLOSSARY_GROUPS.find((g) => GROUP_IDS[g].includes(id));
+}
+
+/** The glossary split into its groups, in group order and, inside a group, in the order of GROUP_IDS. */
+export function groupedGlossary(): { group: GlossaryGroup; terms: GlossaryTerm[] }[] {
+  return GLOSSARY_GROUPS.map((group) => ({ group, terms: GROUP_IDS[group].map((id) => GLOSSARY.find((t) => t.id === id)).filter((t): t is GlossaryTerm => !!t) }));
+}
