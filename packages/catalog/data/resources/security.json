@@ -1,0 +1,1226 @@
+{
+  "category": "security",
+  "note": "Part 2 of the catalogue: Key Vault, HSMs, Defender for Cloud plans, Microsoft Sentinel and Entra ID.",
+  "types": [
+    {
+      "id": "key-vault",
+      "label": "Key Vault",
+      "category": "security",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/key-vault/",
+      "note": "Operations (the `key-vault-ops` price), advanced key operations (RSA 3072/4096 and ECC) and HSM-protected RSA 2048 keys on Premium. Certificate renewals, automated rotation and the volume tiers for HSM advanced keys are not included.",
+      "inputs": [
+        {
+          "id": "ops10k",
+          "label": "Operations",
+          "unit": "10K operations",
+          "help": "Secret, certificate and key operations a month, in tens of thousands."
+        },
+        {
+          "id": "advanced10k",
+          "label": "Advanced key operations",
+          "unit": "10K operations",
+          "help": "RSA 3072/4096 and ECC key operations a month, in tens of thousands."
+        },
+        {
+          "id": "hsmKeys",
+          "label": "HSM-protected keys",
+          "unit": "keys",
+          "help": "RSA 2048 keys protected by an HSM (Premium)."
+        }
+      ],
+      "meters": [
+        {
+          "id": "ops",
+          "label": "Operations",
+          "quantity": {
+            "input": "ops10k"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "advanced",
+          "label": "Advanced key operations",
+          "quantity": {
+            "input": "advanced10k"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "hsmkeys",
+          "label": "HSM-protected keys",
+          "quantity": {
+            "input": "hsmKeys"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Key Vault' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "standard",
+          "label": "Standard",
+          "attrs": {},
+          "prices": {
+            "ops": "key-vault-ops",
+            "advanced": "key-vault-standard-advanced",
+            "hsmkeys": "key-vault-standard-hsmkeys"
+          },
+          "retail": {
+            "advanced": {
+              "meterName": "^Advanced Key Operations$",
+              "productName": "^Key Vault$",
+              "skuName": "^Standard$"
+            },
+            "hsmkeys": {
+              "free": "Standard vaults use software-protected keys, with no per-key charge."
+            }
+          }
+        },
+        {
+          "id": "premium",
+          "label": "Premium (HSM-backed keys)",
+          "attrs": {},
+          "prices": {
+            "ops": "key-vault-ops",
+            "advanced": "key-vault-premium-advanced",
+            "hsmkeys": "key-vault-premium-hsmkeys"
+          },
+          "retail": {
+            "advanced": {
+              "meterName": "^Advanced Key Operations$",
+              "productName": "^Key Vault$",
+              "skuName": "^Premium$"
+            },
+            "hsmkeys": {
+              "meterName": "^Premium HSM-protected RSA 2048-bit key$",
+              "productName": "^Key Vault$",
+              "skuName": "^Premium$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "managed-hsm",
+      "label": "Managed HSM and dedicated HSM",
+      "category": "security",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/key-vault/",
+      "note": "Hourly pool or instance charge. Azure Managed HSM bills per pool; Dedicated HSM is the older single-tenant offer. Key and operation charges on Managed HSM are not included.",
+      "inputs": [
+        {
+          "id": "pools",
+          "label": "Pools or instances",
+          "unit": "units",
+          "help": "HSM pools or instances, billed per hour."
+        }
+      ],
+      "meters": [
+        {
+          "id": "pool",
+          "label": "Pool",
+          "quantity": {
+            "input": "pools"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Key Vault' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "managed-b1",
+          "label": "Managed HSM pool, Standard B1",
+          "attrs": {},
+          "prices": {
+            "pool": "managed-hsm-managed-b1-pool"
+          },
+          "retail": {
+            "pool": {
+              "meterName": "^Standard B1 Instance$",
+              "productName": "^Key Vault HSM Pool$"
+            }
+          }
+        },
+        {
+          "id": "dedicated",
+          "label": "Dedicated HSM instance",
+          "attrs": {},
+          "prices": {
+            "pool": "managed-hsm-dedicated-pool"
+          },
+          "retail": {
+            "pool": {
+              "meterName": "^Standard Instance$",
+              "productName": "^Azure Dedicated HSM$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "defender-plan",
+      "label": "Defender for Cloud plan (billed by the hour)",
+      "category": "security",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/defender-for-cloud/",
+      "note": "Per protected unit per hour; the unit differs by plan (shown in the SKU name). App Service, Containers and Cosmos DB use the `defender-*` prices in Prices & sources. Defender for APIs, AI Services, DevOps, Key Vault, DNS and the pre-purchase plan are not included.",
+      "inputs": [
+        {
+          "id": "units",
+          "label": "Protected units",
+          "unit": "units",
+          "help": "Servers, instances, vCores, accounts or subscriptions, as the SKU says."
+        }
+      ],
+      "meters": [
+        {
+          "id": "units",
+          "label": "Protected units",
+          "quantity": {
+            "input": "units"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Microsoft Defender for Cloud' and (armRegionName eq '{region}' or armRegionName eq 'Global')",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "servers-p1",
+          "label": "Servers Plan 1 (per server)",
+          "attrs": {},
+          "prices": {
+            "units": "defender-plan-servers-p1-units"
+          },
+          "retail": {
+            "units": {
+              "meterName": "^Standard P1 Node$",
+              "productName": "^Microsoft Defender for Servers$",
+              "unit": "server-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "servers-p2",
+          "label": "Servers Plan 2 (per server)",
+          "attrs": {},
+          "prices": {
+            "units": "defender-plan-servers-p2-units"
+          },
+          "retail": {
+            "units": {
+              "meterName": "^Standard P2 Node$",
+              "productName": "^Microsoft Defender for Servers$",
+              "unit": "server-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "sql-machines",
+          "label": "SQL servers on machines (per server)",
+          "attrs": {},
+          "prices": {
+            "units": "defender-plan-sql-machines-units"
+          },
+          "retail": {
+            "units": {
+              "meterName": "^Standard Instance$",
+              "productName": "^Microsoft Defender for SQL$",
+              "unit": "server-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "app-service",
+          "label": "App Service (per instance)",
+          "attrs": {},
+          "prices": {
+            "units": "defender-app-service-node"
+          }
+        },
+        {
+          "id": "containers",
+          "label": "Containers (per vCore)",
+          "attrs": {},
+          "prices": {
+            "units": "defender-containers-vcore"
+          }
+        },
+        {
+          "id": "cosmos-db",
+          "label": "Cosmos DB (per 100 RU/s)",
+          "attrs": {},
+          "prices": {
+            "units": "defender-cosmos-100ru"
+          }
+        },
+        {
+          "id": "storage",
+          "label": "Storage (per storage account)",
+          "attrs": {},
+          "prices": {
+            "units": "defender-plan-storage-units"
+          },
+          "retail": {
+            "units": {
+              "meterName": "^Standard Node$",
+              "productName": "^Microsoft Defender for Storage$",
+              "unit": "account-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "resource-manager",
+          "label": "Resource Manager (per subscription)",
+          "attrs": {},
+          "prices": {
+            "units": "defender-plan-resource-manager-units"
+          },
+          "retail": {
+            "units": {
+              "meterName": "^Per node Std Node$",
+              "productName": "^Microsoft Defender for Resource Manager$",
+              "unit": "subscription-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "cspm",
+          "label": "Defender CSPM (per billable resource)",
+          "attrs": {},
+          "prices": {
+            "units": "defender-plan-cspm-units"
+          },
+          "retail": {
+            "units": {
+              "meterName": "^Standard Node$",
+              "productName": "^Microsoft Defender CSPM$",
+              "unit": "resource-month (730 h)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "defender-database",
+      "label": "Defender for Cloud plan (per server, monthly)",
+      "category": "security",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/defender-for-cloud/",
+      "note": "Defender for Azure SQL Database servers and for open-source relational databases, per server per month.",
+      "inputs": [
+        {
+          "id": "servers",
+          "label": "Servers",
+          "unit": "servers",
+          "help": "Database servers protected."
+        }
+      ],
+      "meters": [
+        {
+          "id": "servers",
+          "label": "Servers",
+          "quantity": {
+            "input": "servers"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Microsoft Defender for Cloud' and (armRegionName eq '{region}' or armRegionName eq 'Global')",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "sql",
+          "label": "Azure SQL Database (per server)",
+          "attrs": {},
+          "prices": {
+            "servers": "defender-database-sql-servers"
+          },
+          "retail": {
+            "servers": {
+              "meterName": "^Standard Node$",
+              "productName": "^Microsoft Defender for SQL$",
+              "uom": "^1/Month$"
+            }
+          }
+        },
+        {
+          "id": "postgresql",
+          "label": "PostgreSQL (per server)",
+          "attrs": {},
+          "prices": {
+            "servers": "defender-database-postgresql-servers"
+          },
+          "retail": {
+            "servers": {
+              "meterName": "^Standard Node$",
+              "productName": "^Microsoft Defender for PostgreSQL$"
+            }
+          }
+        },
+        {
+          "id": "mysql",
+          "label": "MySQL (per server)",
+          "attrs": {},
+          "prices": {
+            "servers": "defender-database-mysql-servers"
+          },
+          "retail": {
+            "servers": {
+              "meterName": "^Standard Node$",
+              "productName": "^Microsoft Defender for MySQL$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "sentinel",
+      "label": "Microsoft Sentinel",
+      "category": "security",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/microsoft-sentinel/",
+      "note": "The Sentinel charge per GB ingested, pay-as-you-go or a daily commitment tier. Log Analytics ingestion and retention are billed separately (add a Log Analytics resource). Data beyond a commitment tier is billed at that tier's effective rate and is not modelled. The data lake, SAP solution and the free benefits are not included.",
+      "inputs": [
+        {
+          "id": "gb",
+          "label": "Data ingested",
+          "unit": "GB",
+          "help": "Data analysed by Sentinel a month, pay-as-you-go."
+        },
+        {
+          "id": "commitments",
+          "label": "Commitment tiers",
+          "unit": "tiers",
+          "help": "Commitment tiers of the SKU's daily size."
+        }
+      ],
+      "meters": [
+        {
+          "id": "gb",
+          "label": "Pay-as-you-go ingestion",
+          "quantity": {
+            "input": "gb"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "commit",
+          "label": "Commitment tier",
+          "quantity": {
+            "input": "commitments"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Sentinel' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "payg",
+          "label": "Pay-as-you-go",
+          "attrs": {},
+          "prices": {
+            "gb": "sentinel-payg-gb",
+            "commit": "sentinel-payg-commit"
+          },
+          "retail": {
+            "gb": {
+              "meterName": "^Pay-as-you-go Analysis$",
+              "productName": "^Sentinel$"
+            },
+            "commit": {
+              "free": "No commitment tier on pay-as-you-go."
+            }
+          }
+        },
+        {
+          "id": "commit-100",
+          "label": "100 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "sentinel-commit-100-gb",
+            "commit": "sentinel-commit-100-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^100 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Sentinel$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-200",
+          "label": "200 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "sentinel-commit-200-gb",
+            "commit": "sentinel-commit-200-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^200 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Sentinel$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-300",
+          "label": "300 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "sentinel-commit-300-gb",
+            "commit": "sentinel-commit-300-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^300 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Sentinel$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-400",
+          "label": "400 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "sentinel-commit-400-gb",
+            "commit": "sentinel-commit-400-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^400 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Sentinel$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-500",
+          "label": "500 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "sentinel-commit-500-gb",
+            "commit": "sentinel-commit-500-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^500 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Sentinel$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-1000",
+          "label": "1,000 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "sentinel-commit-1000-gb",
+            "commit": "sentinel-commit-1000-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^1000 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Sentinel$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-2000",
+          "label": "2,000 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "sentinel-commit-2000-gb",
+            "commit": "sentinel-commit-2000-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^2000 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Sentinel$",
+              "unit": "tier-month"
+            }
+          }
+        },
+        {
+          "id": "commit-5000",
+          "label": "5,000 GB a day commitment",
+          "attrs": {},
+          "prices": {
+            "gb": "sentinel-commit-5000-gb",
+            "commit": "sentinel-commit-5000-commit"
+          },
+          "retail": {
+            "gb": {
+              "free": "Ingestion up to the commitment is covered by the tier charge."
+            },
+            "commit": {
+              "meterName": "^5000 GB Commitment Tier Capacity Reservation$",
+              "productName": "^Sentinel$",
+              "unit": "tier-month"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "entra-id",
+      "label": "Microsoft Entra ID (per user)",
+      "category": "security",
+      "docsUrl": "https://www.microsoft.com/security/business/microsoft-entra-pricing",
+      "note": "Per user per month, annual commitment, list price. Vendor price converted from USD, not a Retail API meter. Free and Microsoft 365 bundled editions are not listed.",
+      "inputs": [
+        {
+          "id": "users",
+          "label": "Users",
+          "unit": "users",
+          "help": "Licensed users."
+        }
+      ],
+      "meters": [
+        {
+          "id": "users",
+          "label": "Users",
+          "quantity": {
+            "input": "users"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "skus": [
+        {
+          "id": "p1",
+          "label": "Entra ID P1",
+          "attrs": {},
+          "prices": {
+            "users": "entra-id-p1-users"
+          }
+        },
+        {
+          "id": "p2",
+          "label": "Entra ID P2",
+          "attrs": {},
+          "prices": {
+            "users": "entra-id-p2-users"
+          }
+        }
+      ]
+    }
+  ],
+  "unitPrices": [
+    {
+      "id": "entra-id-p1-users",
+      "label": "Entra ID P1 · users",
+      "platform": "azure",
+      "unit": "user-month",
+      "price": 9.9158,
+      "attrs": {
+        "usdList": 7
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://www.microsoft.com/security/business/microsoft-entra-pricing",
+        "note": "Microsoft Entra pricing page: P1 USD 7.00 user a month, paid yearly, fetched 2026-10-07; USD 7 x 1.41655 (USD list price, unverified: not a Retail API meter, excludes tax and agreements)",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "unverified"
+    },
+    {
+      "id": "entra-id-p2-users",
+      "label": "Entra ID P2 · users",
+      "platform": "azure",
+      "unit": "user-month",
+      "price": 14.1655,
+      "attrs": {
+        "usdList": 10
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://www.microsoft.com/security/business/microsoft-entra-pricing",
+        "note": "Microsoft Entra pricing page: P2 USD 10.00 user a month, paid yearly, fetched 2026-10-07; USD 10 x 1.41655 (USD list price, unverified: not a Retail API meter, excludes tax and agreements)",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "unverified"
+    },
+    {
+      "id": "key-vault-standard-advanced",
+      "label": "Standard · Advanced key operations",
+      "platform": "azure",
+      "unit": "10K",
+      "price": 0.2125,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Advanced Key Operations",
+        "filter": "serviceName eq 'Key Vault' and armRegionName eq 'canadacentral'",
+        "note": "Key Vault / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "key-vault-standard-hsmkeys",
+      "label": "Key Vault: HSM-protected keys, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/key-vault/",
+        "note": "Standard vaults use software-protected keys, with no per-key charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "key-vault-premium-advanced",
+      "label": "Premium (HSM-backed keys) · Advanced key operations",
+      "platform": "azure",
+      "unit": "10K",
+      "price": 0.2125,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Advanced Key Operations",
+        "filter": "serviceName eq 'Key Vault' and armRegionName eq 'canadacentral'",
+        "note": "Key Vault / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "key-vault-premium-hsmkeys",
+      "label": "Premium (HSM-backed keys) · HSM-protected keys",
+      "platform": "azure",
+      "unit": "1",
+      "price": 1.4166,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium HSM-protected RSA 2048-bit key",
+        "filter": "serviceName eq 'Key Vault' and armRegionName eq 'canadacentral'",
+        "note": "Key Vault / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "managed-hsm-managed-b1-pool",
+      "label": "Managed HSM pool, Standard B1 · Pool",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 3309.09,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard B1 Instance",
+        "filter": "serviceName eq 'Key Vault' and armRegionName eq 'canadacentral'",
+        "note": "Key Vault HSM Pool / Standard B1",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "managed-hsm-dedicated-pool",
+      "label": "Dedicated HSM instance · Pool",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 5015.319,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Instance",
+        "filter": "serviceName eq 'Key Vault' and armRegionName eq 'canadacentral'",
+        "note": "Azure Dedicated HSM / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "defender-plan-servers-p1-units",
+      "label": "Servers Plan 1 (per server) · Protected units",
+      "platform": "azure",
+      "unit": "server-month (730 h)",
+      "price": 6.935,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard P1 Node",
+        "filter": "serviceName eq 'Microsoft Defender for Cloud' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Microsoft Defender for Servers / Standard P1",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "defender-plan-servers-p2-units",
+      "label": "Servers Plan 2 (per server) · Protected units",
+      "platform": "azure",
+      "unit": "server-month (730 h)",
+      "price": 20.659,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard P2 Node",
+        "filter": "serviceName eq 'Microsoft Defender for Cloud' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Microsoft Defender for Servers / Standard P2",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "defender-plan-sql-machines-units",
+      "label": "SQL servers on machines (per server) · Protected units",
+      "platform": "azure",
+      "unit": "server-month (730 h)",
+      "price": 20.878,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Instance",
+        "filter": "serviceName eq 'Microsoft Defender for Cloud' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Microsoft Defender for SQL / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "defender-plan-storage-units",
+      "label": "Storage (per storage account) · Protected units",
+      "platform": "azure",
+      "unit": "account-month (730 h)",
+      "price": 13.87,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Node",
+        "filter": "serviceName eq 'Microsoft Defender for Cloud' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Microsoft Defender for Storage / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "defender-plan-resource-manager-units",
+      "label": "Resource Manager (per subscription) · Protected units",
+      "platform": "azure",
+      "unit": "subscription-month (730 h)",
+      "price": 7.154,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Per node Std Node",
+        "filter": "serviceName eq 'Microsoft Defender for Cloud' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Microsoft Defender for Resource Manager / Per node Std",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "defender-plan-cspm-units",
+      "label": "Defender CSPM (per billable resource) · Protected units",
+      "platform": "azure",
+      "unit": "resource-month (730 h)",
+      "price": 7.227,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Node",
+        "filter": "serviceName eq 'Microsoft Defender for Cloud' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Microsoft Defender CSPM / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "defender-database-sql-servers",
+      "label": "Azure SQL Database (per server) · Servers",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 21.2483,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Node",
+        "filter": "serviceName eq 'Microsoft Defender for Cloud' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Microsoft Defender for SQL / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "defender-database-postgresql-servers",
+      "label": "PostgreSQL (per server) · Servers",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 21.2483,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Node",
+        "filter": "serviceName eq 'Microsoft Defender for Cloud' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Microsoft Defender for PostgreSQL / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "defender-database-mysql-servers",
+      "label": "MySQL (per server) · Servers",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 21.2483,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Node",
+        "filter": "serviceName eq 'Microsoft Defender for Cloud' and (armRegionName eq 'canadacentral' or armRegionName eq 'Global')",
+        "note": "Microsoft Defender for MySQL / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sentinel-payg-gb",
+      "label": "Pay-as-you-go · Pay-as-you-go ingestion",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 7.3094,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Pay-as-you-go Analysis",
+        "filter": "serviceName eq 'Sentinel' and armRegionName eq 'canadacentral'",
+        "note": "Sentinel / Pay-as-you-go",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sentinel-payg-commit",
+      "label": "Microsoft Sentinel: Commitment tier, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/microsoft-sentinel/",
+        "note": "No commitment tier on pay-as-you-go.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "sentinel-commit-100-gb",
+      "label": "Microsoft Sentinel: Pay-as-you-go ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/microsoft-sentinel/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "sentinel-commit-100-commit",
+      "label": "100 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 14628.81,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Sentinel' and armRegionName eq 'canadacentral'",
+        "note": "Sentinel / 100 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sentinel-commit-200-gb",
+      "label": "Microsoft Sentinel: Pay-as-you-go ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/microsoft-sentinel/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "sentinel-commit-200-commit",
+      "label": "200 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 27065.36,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "200 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Sentinel' and armRegionName eq 'canadacentral'",
+        "note": "Sentinel / 200 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sentinel-commit-300-gb",
+      "label": "Microsoft Sentinel: Pay-as-you-go ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/microsoft-sentinel/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "sentinel-commit-300-commit",
+      "label": "300 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 39501.91,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "300 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Sentinel' and armRegionName eq 'canadacentral'",
+        "note": "Sentinel / 300 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sentinel-commit-400-gb",
+      "label": "Microsoft Sentinel: Pay-as-you-go ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/microsoft-sentinel/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "sentinel-commit-400-commit",
+      "label": "400 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 51207.71,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "400 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Sentinel' and armRegionName eq 'canadacentral'",
+        "note": "Sentinel / 400 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sentinel-commit-500-gb",
+      "label": "Microsoft Sentinel: Pay-as-you-go ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/microsoft-sentinel/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "sentinel-commit-500-commit",
+      "label": "500 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 62424.05,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "500 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Sentinel' and armRegionName eq 'canadacentral'",
+        "note": "Sentinel / 500 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sentinel-commit-1000-gb",
+      "label": "Microsoft Sentinel: Pay-as-you-go ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/microsoft-sentinel/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "sentinel-commit-1000-commit",
+      "label": "1,000 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 122366.3,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "1000 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Sentinel' and armRegionName eq 'canadacentral'",
+        "note": "Sentinel / 1000 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sentinel-commit-2000-gb",
+      "label": "Microsoft Sentinel: Pay-as-you-go ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/microsoft-sentinel/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "sentinel-commit-2000-commit",
+      "label": "2,000 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 236735.7,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "2000 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Sentinel' and armRegionName eq 'canadacentral'",
+        "note": "Sentinel / 2000 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "sentinel-commit-5000-gb",
+      "label": "Microsoft Sentinel: Pay-as-you-go ingestion, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/microsoft-sentinel/",
+        "note": "Ingestion up to the commitment is covered by the tier charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "sentinel-commit-5000-commit",
+      "label": "5,000 GB a day commitment · Commitment tier",
+      "platform": "azure",
+      "unit": "tier-month",
+      "price": 569434.2,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "5000 GB Commitment Tier Capacity Reservation",
+        "filter": "serviceName eq 'Sentinel' and armRegionName eq 'canadacentral'",
+        "note": "Sentinel / 5000 GB Commitment Tier",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    }
+  ]
+}

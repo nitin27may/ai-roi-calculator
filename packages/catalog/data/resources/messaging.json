@@ -1,0 +1,1883 @@
+{
+  "category": "messaging",
+  "note": "Part 2 of the catalogue: Service Bus, Event Grid, Event Hubs, Logic Apps, API Management, Relay, Notification Hubs and Data Factory.",
+  "types": [
+    {
+      "id": "service-bus",
+      "label": "Service Bus namespace",
+      "category": "messaging",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/service-bus/",
+      "note": "Basic (operations), Standard (base charge plus operations beyond the 13M included) and Premium (messaging units). Operations use the first paid volume tier, so the cheaper tiers above 100M operations are not applied. Brokered connections, geo-replication, Hybrid Connections and WCF Relay are not included.",
+      "inputs": [
+        {
+          "id": "namespaces",
+          "label": "Namespaces",
+          "unit": "namespaces",
+          "help": "Standard namespaces billed the monthly base charge."
+        },
+        {
+          "id": "opsM",
+          "label": "Operations",
+          "unit": "million operations",
+          "help": "Messaging operations a month, in millions. Standard includes the first 13 million."
+        },
+        {
+          "id": "mus",
+          "label": "Messaging units",
+          "unit": "units",
+          "help": "Premium messaging units, billed per hour."
+        }
+      ],
+      "meters": [
+        {
+          "id": "base",
+          "label": "Base charge",
+          "quantity": {
+            "input": "namespaces"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "ops",
+          "label": "Operations",
+          "quantity": {
+            "input": "opsM"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "mu",
+          "label": "Messaging units",
+          "quantity": {
+            "input": "mus"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Service Bus' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "basic",
+          "label": "Basic (pay per operation)",
+          "attrs": {},
+          "prices": {
+            "base": "service-bus-basic-base",
+            "ops": "service-bus-basic-ops",
+            "mu": "service-bus-basic-mu"
+          },
+          "retail": {
+            "base": {
+              "free": "Basic has no base charge."
+            },
+            "ops": {
+              "meterName": "^Basic Messaging Operations$",
+              "productName": "^Service Bus$",
+              "skuName": "^Basic$"
+            },
+            "mu": {
+              "free": "Messaging units apply to Premium only."
+            }
+          }
+        },
+        {
+          "id": "standard",
+          "label": "Standard (base charge plus operations)",
+          "attrs": {},
+          "prices": {
+            "base": "service-bus-standard-base",
+            "ops": "service-bus-standard-ops",
+            "mu": "service-bus-standard-mu"
+          },
+          "retail": {
+            "base": {
+              "meterName": "^Standard Base Unit$",
+              "productName": "^Service Bus$",
+              "uom": "^1/Month$"
+            },
+            "ops": {
+              "meterName": "^Standard Messaging Operations$",
+              "productName": "^Service Bus$",
+              "tier": "paid"
+            },
+            "mu": {
+              "free": "Messaging units apply to Premium only."
+            }
+          }
+        },
+        {
+          "id": "premium",
+          "label": "Premium (per messaging unit)",
+          "attrs": {},
+          "prices": {
+            "base": "service-bus-premium-base",
+            "ops": "service-bus-premium-ops",
+            "mu": "service-bus-premium-mu"
+          },
+          "retail": {
+            "base": {
+              "free": "Premium is billed per messaging unit."
+            },
+            "ops": {
+              "free": "Operations are included in Premium."
+            },
+            "mu": {
+              "meterName": "^Premium Messaging Unit$",
+              "productName": "^Service Bus$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "event-grid",
+      "label": "Event Grid",
+      "category": "messaging",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/event-grid/",
+      "note": "Event Grid Standard operations (the first 100,000 a month are free; this prices the paid tier), MQTT operations and namespace throughput units. Custom topics and domains use the same operation price.",
+      "inputs": [
+        {
+          "id": "opsM",
+          "label": "Event operations",
+          "unit": "million operations",
+          "help": "Publish, delivery and management operations a month, in millions."
+        },
+        {
+          "id": "mqttM",
+          "label": "MQTT operations",
+          "unit": "million operations",
+          "help": "MQTT publish and delivery operations a month, in millions."
+        },
+        {
+          "id": "tus",
+          "label": "Throughput units",
+          "unit": "units",
+          "help": "Namespace throughput units, billed per hour."
+        }
+      ],
+      "meters": [
+        {
+          "id": "ops",
+          "label": "Event operations",
+          "quantity": {
+            "input": "opsM"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "mqtt",
+          "label": "MQTT operations",
+          "quantity": {
+            "input": "mqttM"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "tu",
+          "label": "Throughput units",
+          "quantity": {
+            "input": "tus"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Event Grid' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "standard",
+          "label": "Standard",
+          "attrs": {},
+          "prices": {
+            "ops": "event-grid-standard-ops",
+            "mqtt": "event-grid-standard-mqtt",
+            "tu": "event-grid-standard-tu"
+          },
+          "retail": {
+            "ops": {
+              "meterName": "^Standard Event Operations$",
+              "tier": "paid"
+            },
+            "mqtt": {
+              "meterName": "^Standard MQTT Operations$",
+              "tier": "paid"
+            },
+            "tu": {
+              "meterName": "^Standard Throughput Unit$"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "event-hubs",
+      "label": "Event Hubs",
+      "category": "messaging",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/event-hubs/",
+      "note": "Throughput units (Basic, Standard), processing units (Premium) or capacity units (Dedicated) per hour, plus ingress events on Basic and Standard. Capture, the Kafka endpoint, extended retention and geo-replication are not included.",
+      "inputs": [
+        {
+          "id": "units",
+          "label": "Units",
+          "unit": "units",
+          "help": "Throughput, processing or capacity units, billed per hour."
+        },
+        {
+          "id": "ingressM",
+          "label": "Ingress events",
+          "unit": "million events",
+          "help": "Events received a month, in millions (Basic and Standard)."
+        }
+      ],
+      "meters": [
+        {
+          "id": "units",
+          "label": "Units",
+          "quantity": {
+            "input": "units"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "ingress",
+          "label": "Ingress events",
+          "quantity": {
+            "input": "ingressM"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Event Hubs' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "basic",
+          "label": "Basic (throughput units)",
+          "attrs": {},
+          "prices": {
+            "units": "event-hubs-basic-units",
+            "ingress": "event-hubs-basic-ingress"
+          },
+          "retail": {
+            "units": {
+              "meterName": "^Basic Throughput Unit$"
+            },
+            "ingress": {
+              "meterName": "^Basic Ingress Events$"
+            }
+          }
+        },
+        {
+          "id": "standard",
+          "label": "Standard (throughput units)",
+          "attrs": {},
+          "prices": {
+            "units": "event-hubs-standard-units",
+            "ingress": "event-hubs-standard-ingress"
+          },
+          "retail": {
+            "units": {
+              "meterName": "^Standard Throughput Unit$"
+            },
+            "ingress": {
+              "meterName": "^Standard Ingress Events$"
+            }
+          }
+        },
+        {
+          "id": "premium",
+          "label": "Premium (processing units)",
+          "attrs": {},
+          "prices": {
+            "units": "event-hubs-premium-units",
+            "ingress": "event-hubs-premium-ingress"
+          },
+          "retail": {
+            "units": {
+              "meterName": "^Premium Processing Unit$"
+            },
+            "ingress": {
+              "free": "Ingress is included in Premium."
+            }
+          }
+        },
+        {
+          "id": "dedicated",
+          "label": "Dedicated (capacity units)",
+          "attrs": {},
+          "prices": {
+            "units": "event-hubs-dedicated-units",
+            "ingress": "event-hubs-dedicated-ingress"
+          },
+          "retail": {
+            "units": {
+              "meterName": "^Dedicated Capacity Unit$"
+            },
+            "ingress": {
+              "free": "Ingress is included in Dedicated."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "logic-apps-consumption",
+      "label": "Logic Apps, Consumption",
+      "category": "messaging",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/logic-apps/",
+      "note": "Pay per action: built-in, standard connector and enterprise connector actions. Data retention, integration accounts and the Integration Service Environment are not included.",
+      "inputs": [
+        {
+          "id": "builtinK",
+          "label": "Built-in actions",
+          "unit": "thousand actions",
+          "help": "Built-in actions (HTTP, control flow) a month, in thousands."
+        },
+        {
+          "id": "standardK",
+          "label": "Standard connector actions",
+          "unit": "thousand actions",
+          "help": "Standard connector actions a month, in thousands."
+        },
+        {
+          "id": "enterpriseK",
+          "label": "Enterprise connector actions",
+          "unit": "thousand actions",
+          "help": "Enterprise connector actions a month, in thousands."
+        }
+      ],
+      "meters": [
+        {
+          "id": "builtin",
+          "label": "Built-in actions",
+          "quantity": {
+            "input": "builtinK",
+            "factor": 1000
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "standard",
+          "label": "Standard connector actions",
+          "quantity": {
+            "input": "standardK",
+            "factor": 1000
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "enterprise",
+          "label": "Enterprise connector actions",
+          "quantity": {
+            "input": "enterpriseK",
+            "factor": 1000
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Logic Apps' and armRegionName eq '{region}'",
+        "productName": ".",
+        "precise": true,
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "pay-per-action",
+          "label": "Consumption (pay per action)",
+          "attrs": {},
+          "prices": {
+            "builtin": "logic-apps-consumption-pay-per-action-builtin",
+            "standard": "logic-apps-consumption-pay-per-action-standard",
+            "enterprise": "logic-apps-consumption-pay-per-action-enterprise"
+          },
+          "retail": {
+            "builtin": {
+              "meterName": "^Consumption Built-in Actions$",
+              "productName": "^Logic Apps$",
+              "tier": "paid",
+              "unit": "action"
+            },
+            "standard": {
+              "meterName": "^Consumption Standard Connector Actions$",
+              "productName": "^Logic Apps$",
+              "unit": "action"
+            },
+            "enterprise": {
+              "meterName": "^Consumption Enterprise Connector Actions$",
+              "productName": "^Logic Apps$",
+              "unit": "action"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "logic-apps-standard",
+      "label": "Logic Apps, Standard (workflow plan)",
+      "category": "messaging",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/logic-apps/",
+      "note": "Workflow Standard plan instances: vCPU and memory per hour. Storage, networking and connector charges outside the plan are not included.",
+      "inputs": [
+        {
+          "id": "instances",
+          "label": "Instances",
+          "unit": "instances",
+          "help": "Workflow plan instances running all month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "compute",
+          "label": "Compute",
+          "quantity": {
+            "input": "instances"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Logic Apps' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "ws1",
+          "label": "WS1 (1 vCPU, 3.5 GiB)",
+          "attrs": {
+            "vcpu": 1,
+            "memoryGiB": 3.5
+          },
+          "prices": {
+            "compute": "logic-apps-standard-ws1-compute"
+          },
+          "retail": {
+            "compute": {
+              "productName": "^Logic Apps$",
+              "parts": [
+                {
+                  "meterName": "^Standard vCPU Duration$",
+                  "factorAttr": "vcpu"
+                },
+                {
+                  "meterName": "^Standard Memory Duration$",
+                  "factorAttr": "memoryGiB"
+                }
+              ],
+              "unit": "instance-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "ws2",
+          "label": "WS2 (2 vCPU, 7 GiB)",
+          "attrs": {
+            "vcpu": 2,
+            "memoryGiB": 7
+          },
+          "prices": {
+            "compute": "logic-apps-standard-ws2-compute"
+          },
+          "retail": {
+            "compute": {
+              "productName": "^Logic Apps$",
+              "parts": [
+                {
+                  "meterName": "^Standard vCPU Duration$",
+                  "factorAttr": "vcpu"
+                },
+                {
+                  "meterName": "^Standard Memory Duration$",
+                  "factorAttr": "memoryGiB"
+                }
+              ],
+              "unit": "instance-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "ws3",
+          "label": "WS3 (4 vCPU, 14 GiB)",
+          "attrs": {
+            "vcpu": 4,
+            "memoryGiB": 14
+          },
+          "prices": {
+            "compute": "logic-apps-standard-ws3-compute"
+          },
+          "retail": {
+            "compute": {
+              "productName": "^Logic Apps$",
+              "parts": [
+                {
+                  "meterName": "^Standard vCPU Duration$",
+                  "factorAttr": "vcpu"
+                },
+                {
+                  "meterName": "^Standard Memory Duration$",
+                  "factorAttr": "memoryGiB"
+                }
+              ],
+              "unit": "instance-month (730 h)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "apim-gateway",
+      "label": "API Management (tiers billed per unit)",
+      "category": "messaging",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/api-management/",
+      "note": "Gateway units per hour for Developer, Basic, Standard, Premium and the v2 tiers. Developer, Basic v2, Standard v2 and Premium (classic) use the prices in Prices & sources (the `apim-*` entries). Calls beyond the included amount on v2 tiers, secondary units, workspaces and self-hosted gateways are not included. Consumption is its own resource type.",
+      "inputs": [
+        {
+          "id": "units",
+          "label": "Units",
+          "unit": "units",
+          "help": "Gateway units, billed per hour."
+        }
+      ],
+      "meters": [
+        {
+          "id": "units",
+          "label": "Units",
+          "quantity": {
+            "input": "units"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'API Management' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "developer",
+          "label": "Developer",
+          "attrs": {},
+          "prices": {
+            "units": "apim-developer"
+          }
+        },
+        {
+          "id": "basic",
+          "label": "Basic (classic)",
+          "attrs": {},
+          "prices": {
+            "units": "apim-gateway-basic-units"
+          },
+          "retail": {
+            "units": {
+              "meterName": "^Basic Unit$",
+              "productName": "^API Management$",
+              "skuName": "^Basic$",
+              "unit": "unit-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "standard",
+          "label": "Standard (classic)",
+          "attrs": {},
+          "prices": {
+            "units": "apim-gateway-standard-units"
+          },
+          "retail": {
+            "units": {
+              "meterName": "^Standard Unit$",
+              "productName": "^API Management$",
+              "skuName": "^Standard$",
+              "unit": "unit-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "premium",
+          "label": "Premium (classic)",
+          "attrs": {},
+          "prices": {
+            "units": "apim-premium"
+          }
+        },
+        {
+          "id": "basic-v2",
+          "label": "Basic v2",
+          "attrs": {},
+          "prices": {
+            "units": "apim-basic-v2"
+          }
+        },
+        {
+          "id": "standard-v2",
+          "label": "Standard v2",
+          "attrs": {},
+          "prices": {
+            "units": "apim-standard-v2"
+          }
+        },
+        {
+          "id": "premium-v2",
+          "label": "Premium v2",
+          "attrs": {},
+          "prices": {
+            "units": "apim-gateway-premium-v2-units"
+          },
+          "retail": {
+            "units": {
+              "meterName": "^Premium v2 Unit$",
+              "productName": "^API Management$",
+              "skuName": "^Premium v2$",
+              "unit": "unit-month (730 h)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "apim-consumption",
+      "label": "API Management, Consumption",
+      "category": "messaging",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/api-management/",
+      "note": "Pay per call. Uses the `apim-consumption-calls` price, which is the first paid tier (after 1 million free calls).",
+      "inputs": [
+        {
+          "id": "calls10k",
+          "label": "Calls",
+          "unit": "10K calls",
+          "help": "API calls a month, in tens of thousands."
+        }
+      ],
+      "meters": [
+        {
+          "id": "calls",
+          "label": "Calls",
+          "quantity": {
+            "input": "calls10k"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "skus": [
+        {
+          "id": "consumption",
+          "label": "Consumption (pay per call)",
+          "attrs": {},
+          "prices": {
+            "calls": "apim-consumption-calls"
+          }
+        }
+      ]
+    },
+    {
+      "id": "relay",
+      "label": "Azure Relay (Hybrid Connections)",
+      "category": "messaging",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/service-bus/",
+      "note": "Hybrid Connections listeners per hour and data above the included 5 GB. WCF Relay is a legacy offer and is not included.",
+      "inputs": [
+        {
+          "id": "listeners",
+          "label": "Listeners",
+          "unit": "listeners",
+          "help": "Hybrid Connections listeners, billed per hour."
+        },
+        {
+          "id": "dataGB",
+          "label": "Data transferred",
+          "unit": "GB",
+          "help": "Data sent through the relay a month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "listeners",
+          "label": "Listeners",
+          "quantity": {
+            "input": "listeners"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        },
+        {
+          "id": "data",
+          "label": "Data transfer",
+          "quantity": {
+            "input": "dataGB"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Service Bus' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "hybrid-connections",
+          "label": "Hybrid Connections",
+          "attrs": {},
+          "prices": {
+            "listeners": "relay-hybrid-connections-listeners",
+            "data": "relay-hybrid-connections-data"
+          },
+          "retail": {
+            "listeners": {
+              "meterName": "^Hybrid Connections Listener Unit$",
+              "productName": "^Service Bus$"
+            },
+            "data": {
+              "meterName": "^Hybrid Connections Data Transfer$",
+              "productName": "^Service Bus$",
+              "tier": "paid"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "notification-hubs",
+      "label": "Notification Hubs",
+      "category": "messaging",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/notification-hubs/",
+      "note": "Namespace charge and pushes beyond the included amount (first paid volume tier). The Availability Zones and Private Link options are not included.",
+      "inputs": [
+        {
+          "id": "namespaces",
+          "label": "Namespaces",
+          "unit": "namespaces",
+          "help": "Namespaces billed the monthly charge."
+        },
+        {
+          "id": "pushesM",
+          "label": "Pushes",
+          "unit": "million pushes",
+          "help": "Pushes a month, in millions."
+        }
+      ],
+      "meters": [
+        {
+          "id": "unit",
+          "label": "Namespace",
+          "quantity": {
+            "input": "namespaces"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "pushes",
+          "label": "Pushes",
+          "quantity": {
+            "input": "pushesM"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Notification Hubs' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "free",
+          "label": "Free",
+          "attrs": {},
+          "prices": {
+            "unit": "notification-hubs-free-unit",
+            "pushes": "notification-hubs-free-pushes"
+          },
+          "retail": {
+            "unit": {
+              "free": "The Free tier has no charge."
+            },
+            "pushes": {
+              "free": "The Free tier includes 1 million pushes."
+            }
+          }
+        },
+        {
+          "id": "basic",
+          "label": "Basic",
+          "attrs": {},
+          "prices": {
+            "unit": "notification-hubs-basic-unit",
+            "pushes": "notification-hubs-basic-pushes"
+          },
+          "retail": {
+            "unit": {
+              "meterName": "^Basic Unit$",
+              "productName": "^Notification Hubs$"
+            },
+            "pushes": {
+              "meterName": "^Basic Pushes$",
+              "productName": "^Notification Hubs$",
+              "tier": "paid"
+            }
+          }
+        },
+        {
+          "id": "standard",
+          "label": "Standard",
+          "attrs": {},
+          "prices": {
+            "unit": "notification-hubs-standard-unit",
+            "pushes": "notification-hubs-standard-pushes"
+          },
+          "retail": {
+            "unit": {
+              "meterName": "^Standard Unit$",
+              "productName": "^Notification Hubs$",
+              "skuName": "^Standard$"
+            },
+            "pushes": {
+              "meterName": "^Standard Pushes$",
+              "productName": "^Notification Hubs$",
+              "tier": "paid"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "data-factory",
+      "label": "Data Factory pipelines (v2)",
+      "category": "messaging",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/data-factory/data-pipeline/",
+      "note": "Orchestration activity runs, data movement (DIU-hours) and pipeline activity hours by integration runtime. Read and write operations, monitoring operations, inactive pipelines, SSIS and mapping data flows (separate type) are not included.",
+      "inputs": [
+        {
+          "id": "runsK",
+          "label": "Activity runs",
+          "unit": "thousand runs",
+          "help": "Orchestration activity runs a month, in thousands."
+        },
+        {
+          "id": "diuHours",
+          "label": "Data movement",
+          "unit": "DIU-hours",
+          "help": "Data movement a month, in data integration unit-hours."
+        },
+        {
+          "id": "activityHours",
+          "label": "Pipeline activity",
+          "unit": "hours",
+          "help": "External and pipeline activity execution hours a month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "runs",
+          "label": "Orchestration activity runs",
+          "quantity": {
+            "input": "runsK"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "movement",
+          "label": "Data movement",
+          "quantity": {
+            "input": "diuHours"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        },
+        {
+          "id": "activity",
+          "label": "Pipeline activity",
+          "quantity": {
+            "input": "activityHours"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "azure-ir",
+          "label": "Azure integration runtime",
+          "attrs": {},
+          "prices": {
+            "runs": "data-factory-azure-ir-runs",
+            "movement": "data-factory-azure-ir-movement",
+            "activity": "data-factory-azure-ir-activity"
+          },
+          "retail": {
+            "runs": {
+              "meterName": "^Cloud Orchestration Activity Run$",
+              "productName": "^Azure Data Factory v2$",
+              "unit": "1K runs"
+            },
+            "movement": {
+              "meterName": "^Cloud Data Movement$",
+              "productName": "^Azure Data Factory v2$",
+              "usage": true
+            },
+            "activity": {
+              "meterName": "^Cloud Pipeline Activity$",
+              "productName": "^Azure Data Factory v2$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "managed-vnet-ir",
+          "label": "Azure managed VNet integration runtime",
+          "attrs": {},
+          "prices": {
+            "runs": "data-factory-managed-vnet-ir-runs",
+            "movement": "data-factory-managed-vnet-ir-movement",
+            "activity": "data-factory-managed-vnet-ir-activity"
+          },
+          "retail": {
+            "runs": {
+              "meterName": "^Azure Managed VNET Orchestration Activity Run$",
+              "productName": "^Azure Data Factory v2$",
+              "unit": "1K runs"
+            },
+            "movement": {
+              "meterName": "^Azure Managed VNET Data Movement$",
+              "productName": "^Azure Data Factory v2$",
+              "usage": true
+            },
+            "activity": {
+              "meterName": "^Azure Managed VNET Pipeline Activity$",
+              "productName": "^Azure Data Factory v2$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "self-hosted-ir",
+          "label": "Self-hosted integration runtime",
+          "attrs": {},
+          "prices": {
+            "runs": "data-factory-self-hosted-ir-runs",
+            "movement": "data-factory-self-hosted-ir-movement",
+            "activity": "data-factory-self-hosted-ir-activity"
+          },
+          "retail": {
+            "runs": {
+              "meterName": "^Self Hosted Orchestration Activity Run$",
+              "productName": "^Azure Data Factory v2$",
+              "unit": "1K runs"
+            },
+            "movement": {
+              "meterName": "^Self Hosted Data Movement$",
+              "productName": "^Azure Data Factory v2$",
+              "usage": true
+            },
+            "activity": {
+              "meterName": "^Self Hosted Pipeline Activity$",
+              "productName": "^Azure Data Factory v2$",
+              "usage": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "data-factory-dataflow",
+      "label": "Data Factory mapping data flows",
+      "category": "messaging",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/data-factory/data-pipeline/",
+      "note": "vCore-hours of data flow cluster time. Reserved capacity (1 and 3 years) exists for General Purpose and Compute Optimized and is not priced here.",
+      "inputs": [
+        {
+          "id": "vcoreHours",
+          "label": "Cluster time",
+          "unit": "vCore-hours",
+          "help": "Data flow compute a month, in vCore-hours (cores x hours the cluster runs)."
+        }
+      ],
+      "meters": [
+        {
+          "id": "vcore",
+          "label": "Compute",
+          "quantity": {
+            "input": "vcoreHours"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "general-purpose",
+          "label": "General Purpose",
+          "attrs": {},
+          "prices": {
+            "vcore": "data-factory-dataflow-general-purpose-vcore"
+          },
+          "retail": {
+            "vcore": {
+              "productName": "^Azure Data Factory v2 Data Flow - General Purpose$",
+              "meterName": "^vCore$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "compute-optimized",
+          "label": "Compute Optimized",
+          "attrs": {},
+          "prices": {
+            "vcore": "data-factory-dataflow-compute-optimized-vcore"
+          },
+          "retail": {
+            "vcore": {
+              "productName": "^Azure Data Factory v2 Data Flow - Compute Optimized$",
+              "meterName": "^vCore$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "memory-optimized",
+          "label": "Memory Optimized",
+          "attrs": {},
+          "prices": {
+            "vcore": "data-factory-dataflow-memory-optimized-vcore"
+          },
+          "retail": {
+            "vcore": {
+              "productName": "^Azure Data Factory v2 Data Flow - Memory Optimized$",
+              "meterName": "^vCore$",
+              "usage": true
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "unitPrices": [
+    {
+      "id": "service-bus-basic-base",
+      "label": "Service Bus namespace: Base charge, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/service-bus/",
+        "note": "Basic has no base charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "service-bus-basic-ops",
+      "label": "Basic (pay per operation) · Operations",
+      "platform": "azure",
+      "unit": "1M",
+      "price": 0.0708,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Messaging Operations",
+        "filter": "serviceName eq 'Service Bus' and armRegionName eq 'canadacentral'",
+        "note": "Service Bus / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "service-bus-basic-mu",
+      "label": "Service Bus namespace: Messaging units, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/service-bus/",
+        "note": "Messaging units apply to Premium only.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "service-bus-standard-base",
+      "label": "Standard (base charge plus operations) · Base charge",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 14.1655,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Base Unit",
+        "filter": "serviceName eq 'Service Bus' and armRegionName eq 'canadacentral'",
+        "note": "Service Bus / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "service-bus-standard-ops",
+      "label": "Standard (base charge plus operations) · Operations",
+      "platform": "azure",
+      "unit": "1M",
+      "price": 1.1332,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Messaging Operations",
+        "filter": "serviceName eq 'Service Bus' and armRegionName eq 'canadacentral'",
+        "note": "Service Bus / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "service-bus-standard-mu",
+      "label": "Service Bus namespace: Messaging units, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/service-bus/",
+        "note": "Messaging units apply to Premium only.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "service-bus-premium-base",
+      "label": "Service Bus namespace: Base charge, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/service-bus/",
+        "note": "Premium is billed per messaging unit.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "service-bus-premium-ops",
+      "label": "Service Bus namespace: Operations, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/service-bus/",
+        "note": "Operations are included in Premium.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "service-bus-premium-mu",
+      "label": "Premium (per messaging unit) · Messaging units",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 959.147,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Messaging Unit",
+        "filter": "serviceName eq 'Service Bus' and armRegionName eq 'canadacentral'",
+        "note": "Service Bus / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "event-grid-standard-ops",
+      "label": "Standard · Event operations",
+      "platform": "azure",
+      "unit": "1M",
+      "price": 0.8499,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Event Operations",
+        "filter": "serviceName eq 'Event Grid' and armRegionName eq 'canadacentral'",
+        "note": "Event Grid / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "event-grid-standard-mqtt",
+      "label": "Standard · MQTT operations",
+      "platform": "azure",
+      "unit": "1M",
+      "price": 1.4166,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard MQTT Operations",
+        "filter": "serviceName eq 'Event Grid' and armRegionName eq 'canadacentral'",
+        "note": "Event Grid / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "event-grid-standard-tu",
+      "label": "Standard · Throughput units",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 41.391,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Throughput Unit",
+        "filter": "serviceName eq 'Event Grid' and armRegionName eq 'canadacentral'",
+        "note": "Event Grid / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "event-hubs-basic-units",
+      "label": "Basic (throughput units) · Units",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 15.476,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Throughput Unit",
+        "filter": "serviceName eq 'Event Hubs' and armRegionName eq 'canadacentral'",
+        "note": "Event Hubs / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "event-hubs-basic-ingress",
+      "label": "Basic (throughput units) · Ingress events",
+      "platform": "azure",
+      "unit": "1M",
+      "price": 0.0397,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Ingress Events",
+        "filter": "serviceName eq 'Event Hubs' and armRegionName eq 'canadacentral'",
+        "note": "Event Hubs / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "event-hubs-standard-units",
+      "label": "Standard (throughput units) · Units",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 31.025,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Throughput Unit",
+        "filter": "serviceName eq 'Event Hubs' and armRegionName eq 'canadacentral'",
+        "note": "Event Hubs / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "event-hubs-standard-ingress",
+      "label": "Standard (throughput units) · Ingress events",
+      "platform": "azure",
+      "unit": "1M",
+      "price": 0.0397,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Ingress Events",
+        "filter": "serviceName eq 'Event Hubs' and armRegionName eq 'canadacentral'",
+        "note": "Event Hubs / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "event-hubs-premium-units",
+      "label": "Premium (processing units) · Units",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 1275.018,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Processing Unit",
+        "filter": "serviceName eq 'Event Hubs' and armRegionName eq 'canadacentral'",
+        "note": "Event Hubs / Premium",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "event-hubs-premium-ingress",
+      "label": "Event Hubs: Ingress events, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/event-hubs/",
+        "note": "Ingress is included in Premium.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "event-hubs-dedicated-units",
+      "label": "Dedicated (capacity units) · Units",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 7082.46,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Dedicated Capacity Unit",
+        "filter": "serviceName eq 'Event Hubs' and armRegionName eq 'canadacentral'",
+        "note": "Event Hubs / Dedicated",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "event-hubs-dedicated-ingress",
+      "label": "Event Hubs: Ingress events, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/event-hubs/",
+        "note": "Ingress is included in Dedicated.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "logic-apps-consumption-pay-per-action-builtin",
+      "label": "Consumption (pay per action) · Built-in actions",
+      "platform": "azure",
+      "unit": "action",
+      "price": 0.00003541375,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Consumption Built-in Actions",
+        "filter": "serviceName eq 'Logic Apps' and armRegionName eq 'canadacentral'",
+        "note": "Logic Apps / Consumption",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "logic-apps-consumption-pay-per-action-standard",
+      "label": "Consumption (pay per action) · Standard connector actions",
+      "platform": "azure",
+      "unit": "action",
+      "price": 0.0001770687,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Consumption Standard Connector Actions",
+        "filter": "serviceName eq 'Logic Apps' and armRegionName eq 'canadacentral'",
+        "note": "Logic Apps / Consumption",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "logic-apps-consumption-pay-per-action-enterprise",
+      "label": "Consumption (pay per action) · Enterprise connector actions",
+      "platform": "azure",
+      "unit": "action",
+      "price": 0.00141655,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Consumption Enterprise Connector Actions",
+        "filter": "serviceName eq 'Logic Apps' and armRegionName eq 'canadacentral'",
+        "note": "Logic Apps / Consumption",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "logic-apps-standard-ws1-compute",
+      "label": "WS1 (1 vCPU, 3.5 GiB) · Compute",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 256.3395,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard vCPU Duration",
+        "filter": "serviceName eq 'Logic Apps' and armRegionName eq 'canadacentral'",
+        "note": "Logic Apps / Standard; sum of ^Standard vCPU Duration$ + ^Standard Memory Duration$, each x vcpu, memoryGiB",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "logic-apps-standard-ws2-compute",
+      "label": "WS2 (2 vCPU, 7 GiB) · Compute",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 512.679,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard vCPU Duration",
+        "filter": "serviceName eq 'Logic Apps' and armRegionName eq 'canadacentral'",
+        "note": "Logic Apps / Standard; sum of ^Standard vCPU Duration$ + ^Standard Memory Duration$, each x vcpu, memoryGiB",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "logic-apps-standard-ws3-compute",
+      "label": "WS3 (4 vCPU, 14 GiB) · Compute",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 1025.358,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard vCPU Duration",
+        "filter": "serviceName eq 'Logic Apps' and armRegionName eq 'canadacentral'",
+        "note": "Logic Apps / Standard; sum of ^Standard vCPU Duration$ + ^Standard Memory Duration$, each x vcpu, memoryGiB",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "apim-gateway-basic-units",
+      "label": "Basic (classic) · Units",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 208.488,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Unit",
+        "filter": "serviceName eq 'API Management' and armRegionName eq 'canadacentral'",
+        "note": "API Management / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "apim-gateway-standard-units",
+      "label": "Standard (classic) · Units",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 972.725,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Unit",
+        "filter": "serviceName eq 'API Management' and armRegionName eq 'canadacentral'",
+        "note": "API Management / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "apim-gateway-premium-v2-units",
+      "label": "Premium v2 · Units",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 3966.309,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium v2 Unit",
+        "filter": "serviceName eq 'API Management' and armRegionName eq 'canadacentral'",
+        "note": "API Management / Premium v2",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "relay-hybrid-connections-listeners",
+      "label": "Hybrid Connections · Listeners",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 13.87,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hybrid Connections Listener Unit",
+        "filter": "serviceName eq 'Service Bus' and armRegionName eq 'canadacentral'",
+        "note": "Service Bus / Hybrid Connections",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "relay-hybrid-connections-data",
+      "label": "Hybrid Connections · Data transfer",
+      "platform": "azure",
+      "unit": "1 GB",
+      "price": 1.4166,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Hybrid Connections Data Transfer",
+        "filter": "serviceName eq 'Service Bus' and armRegionName eq 'canadacentral'",
+        "note": "Service Bus / Hybrid Connections",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "notification-hubs-free-unit",
+      "label": "Notification Hubs: Namespace, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/notification-hubs/",
+        "note": "The Free tier has no charge.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "notification-hubs-free-pushes",
+      "label": "Notification Hubs: Pushes, no charge",
+      "platform": "azure",
+      "unit": "unit-month",
+      "price": 0,
+      "attrs": {
+        "free": true
+      },
+      "source": {
+        "kind": "vendor-doc",
+        "url": "https://azure.microsoft.com/pricing/details/notification-hubs/",
+        "note": "The Free tier includes 1 million pushes.",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "single-source"
+    },
+    {
+      "id": "notification-hubs-basic-unit",
+      "label": "Basic · Namespace",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 14.1655,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Unit",
+        "filter": "serviceName eq 'Notification Hubs' and armRegionName eq 'canadacentral'",
+        "note": "Notification Hubs / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "notification-hubs-basic-pushes",
+      "label": "Basic · Pushes",
+      "platform": "azure",
+      "unit": "1M",
+      "price": 1.4166,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Basic Pushes",
+        "filter": "serviceName eq 'Notification Hubs' and armRegionName eq 'canadacentral'",
+        "note": "Notification Hubs / Basic",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "notification-hubs-standard-unit",
+      "label": "Standard · Namespace",
+      "platform": "azure",
+      "unit": "1/Month",
+      "price": 283.31,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Unit",
+        "filter": "serviceName eq 'Notification Hubs' and armRegionName eq 'canadacentral'",
+        "note": "Notification Hubs / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "notification-hubs-standard-pushes",
+      "label": "Standard · Pushes",
+      "platform": "azure",
+      "unit": "1M",
+      "price": 14.1655,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Pushes",
+        "filter": "serviceName eq 'Notification Hubs' and armRegionName eq 'canadacentral'",
+        "note": "Notification Hubs / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-factory-azure-ir-runs",
+      "label": "Azure integration runtime · Orchestration activity runs",
+      "platform": "azure",
+      "unit": "1K runs",
+      "price": 1.4166,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cloud Orchestration Activity Run",
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+        "note": "Azure Data Factory v2 / Cloud",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-factory-azure-ir-movement",
+      "label": "Azure integration runtime · Data movement",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.3541,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cloud Data Movement",
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+        "note": "Azure Data Factory v2 / Cloud",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-factory-azure-ir-activity",
+      "label": "Azure integration runtime · Pipeline activity",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.0071,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Cloud Pipeline Activity",
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+        "note": "Azure Data Factory v2 / Cloud",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-factory-managed-vnet-ir-runs",
+      "label": "Azure managed VNet integration runtime · Orchestration activity runs",
+      "platform": "azure",
+      "unit": "1K runs",
+      "price": 1.4166,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Azure Managed VNET Orchestration Activity Run",
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+        "note": "Azure Data Factory v2 / Azure Managed VNET",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-factory-managed-vnet-ir-movement",
+      "label": "Azure managed VNet integration runtime · Data movement",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.3541,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Azure Managed VNET Data Movement",
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+        "note": "Azure Data Factory v2 / Azure Managed VNET",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-factory-managed-vnet-ir-activity",
+      "label": "Azure managed VNet integration runtime · Pipeline activity",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 1.4166,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Azure Managed VNET Pipeline Activity",
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+        "note": "Azure Data Factory v2 / Azure Managed VNET",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-factory-self-hosted-ir-runs",
+      "label": "Self-hosted integration runtime · Orchestration activity runs",
+      "platform": "azure",
+      "unit": "1K runs",
+      "price": 2.1248,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Self Hosted Orchestration Activity Run",
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+        "note": "Azure Data Factory v2 / Self Hosted",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-factory-self-hosted-ir-movement",
+      "label": "Self-hosted integration runtime · Data movement",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.1417,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Self Hosted Data Movement",
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+        "note": "Azure Data Factory v2 / Self Hosted",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-factory-self-hosted-ir-activity",
+      "label": "Self-hosted integration runtime · Pipeline activity",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.0028,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Self Hosted Pipeline Activity",
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+        "note": "Azure Data Factory v2 / Self Hosted",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-factory-dataflow-general-purpose-vcore",
+      "label": "General Purpose · Compute",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.3913,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+        "note": "Azure Data Factory v2 Data Flow - General Purpose / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-factory-dataflow-compute-optimized-vcore",
+      "label": "Compute Optimized · Compute",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.2784,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+        "note": "Azure Data Factory v2 Data Flow - Compute Optimized / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "data-factory-dataflow-memory-optimized-vcore",
+      "label": "Memory Optimized · Compute",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.4954,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "vCore",
+        "filter": "serviceName eq 'Azure Data Factory v2' and armRegionName eq 'canadacentral'",
+        "note": "Azure Data Factory v2 Data Flow - Memory Optimized / vCore",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    }
+  ]
+}

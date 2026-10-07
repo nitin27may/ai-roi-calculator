@@ -1,18 +1,30 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "../src/index.js";
+import { loadCatalog, type UnitPrice } from "../src/index.js";
 import compute from "../data/resources/compute.json" with { type: "json" };
 import database from "../data/resources/database.json" with { type: "json" };
 import storage from "../data/resources/storage.json" with { type: "json" };
+import messaging from "../data/resources/messaging.json" with { type: "json" };
+import network from "../data/resources/network.json" with { type: "json" };
+import security from "../data/resources/security.json" with { type: "json" };
+import monitoring from "../data/resources/monitoring.json" with { type: "json" };
+import data from "../data/resources/data.json" with { type: "json" };
+import licences from "../data/resources/licences.json" with { type: "json" };
+import corePrices from "../data/unit-prices.json" with { type: "json" };
 
 const cat = loadCatalog();
 const byId = new Map(cat.unitPrices.map((u) => [u.id, u]));
 const skus = cat.resourceTypes.flatMap((t) => t.skus.map((s) => ({ t, s })));
+const files = [compute, database, storage, messaging, network, security, monitoring, data, licences] as unknown as { unitPrices: UnitPrice[] }[];
+/** Prices that live in unit-prices.json (refreshed by `pnpm prices:azure`); resource types may point at them. */
+const external = new Set(corePrices.map((u) => u.id));
+/** The price ids a SKU owns (those declared in a resource file); the rest are references. */
+const owned = (s: { prices: Record<string, string> }) => Object.values(s.prices).filter((id) => !external.has(id));
 
 describe("resource catalogue coverage", () => {
   it("has resource types", () => {
     expect(cat.resourceTypes.length).toBeGreaterThan(0);
-    expect(skus.length).toBeGreaterThanOrEqual(250);
-    for (const c of ["compute", "database", "storage"]) expect(cat.resourceTypes.some((t) => t.category === c), c).toBe(true);
+    expect(skus.length).toBeGreaterThanOrEqual(500);
+    for (const c of ["compute", "database", "storage", "messaging", "network", "security", "monitoring", "data", "licences"]) expect(cat.resourceTypes.some((t) => t.category === c), c).toBe(true);
   });
 
   it("has no duplicate SKU ids inside a type", () => {
@@ -23,8 +35,14 @@ describe("resource catalogue coverage", () => {
   it("gives every SKU meter a Retail API rule, on the type or the SKU", () => {
     const bad: string[] = [];
     for (const { t, s } of skus) {
-      if (!t.retail) { bad.push(`${t.id} has no retail block`); continue; }
-      for (const m of t.meters) if (!t.retail.meters[m.id] && !s.retail?.[m.id]) bad.push(`${t.id}/${s.id}/${m.id}`);
+      for (const m of t.meters) {
+        const id = s.prices[m.id];
+        if (id && external.has(id)) continue; // referenced from unit-prices.json
+        const vendorOrManual = id && byId.get(id)?.source.kind !== "azure-retail-api" && !t.retail;
+        if (vendorOrManual) continue; // vendor-doc seat or placeholder written by the scaffold
+        if (!t.retail) { bad.push(`${t.id} has no retail block`); break; }
+        if (!t.retail.meters[m.id] && !s.retail?.[m.id]) bad.push(`${t.id}/${s.id}/${m.id}`);
+      }
     }
     expect(bad).toEqual([]);
   });
@@ -40,7 +58,7 @@ describe("resource catalogue coverage", () => {
 
   it("marks where every price comes from: an API row with meter and filter, or a vendor-doc or derived price with a note", () => {
     const bad: string[] = [];
-    for (const { t, s } of skus) for (const id of Object.values(s.prices)) {
+    for (const { t, s } of skus) for (const id of owned(s)) {
       const u = byId.get(id)!;
       if (u.source.kind === "azure-retail-api" && (!u.source.meterName || !u.source.filter)) bad.push(`${id}: retail-api source without meterName and filter`);
       if (u.source.kind === "azure-retail-api" && u.confidence !== "verified") bad.push(`${id}: retail-api price not verified`);
@@ -115,6 +133,29 @@ describe("resource catalogue coverage", () => {
 
   it("leaves no orphan unit price in a resource file", () => {
     const used = new Set(skus.flatMap(({ s }) => Object.values(s.prices)));
-    expect([...compute.unitPrices, ...database.unitPrices, ...storage.unitPrices].map((u) => u.id).filter((id) => !used.has(id))).toEqual([]);
+    expect(files.flatMap((f) => f.unitPrices).map((u) => u.id).filter((id) => !used.has(id))).toEqual([]);
+  });
+
+  it("references only unit prices that exist in unit-prices.json, and never redefines one in a resource file", () => {
+    const inFiles = files.flatMap((f) => f.unitPrices.map((u) => u.id));
+    expect(inFiles.filter((id) => external.has(id))).toEqual([]);
+    expect(new Set(inFiles).size).toBe(inFiles.length);
+  });
+
+  it("marks every vendor-doc price unverified with a URL, a date and the USD list price it came from", () => {
+    const bad: string[] = [];
+    for (const u of files.flatMap((f) => f.unitPrices)) {
+      if (u.source.kind !== "vendor-doc" || u.attrs?.free === true) continue; // free tiers are priced 0 with a reason
+      if (u.confidence !== "unverified") bad.push(`${u.id}: not unverified`);
+      if (!u.source.url) bad.push(`${u.id}: no url`);
+      const usd = u.attrs?.usdList;
+      if (typeof usd !== "number") bad.push(`${u.id}: no usdList`);
+      else if (Math.abs(u.price! - usd * cat.meta.fx!.usdToCad) > 0.0002) bad.push(`${u.id}: price is not usdList x FX`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it("gives every type a note that says what it leaves out", () => {
+    expect(cat.resourceTypes.filter((t) => !t.note || t.note.length < 20).map((t) => t.id)).toEqual([]);
   });
 });

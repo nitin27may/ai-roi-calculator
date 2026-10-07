@@ -1,0 +1,2325 @@
+{
+  "category": "data",
+  "note": "Part 2 of the catalogue: Fabric, OneLake, Synapse, Databricks (DBU only), Power BI Embedded and Stream Analytics.",
+  "types": [
+    {
+      "id": "fabric-capacity",
+      "label": "Microsoft Fabric capacity",
+      "category": "data",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/microsoft-fabric/",
+      "note": "F SKUs: capacity units (CU) per hour, pay-as-you-go or a 1-year reservation. Every Fabric capacity-usage meter carries the same CU-hour rate; the Power BI one is the reference. OneLake storage is a separate type. The Retail API's 3-year reservation row is exactly three times the 1-year row, so it is not offered. Power BI Pro licences for viewers below F64 are separate (Licences).",
+      "inputs": [
+        {
+          "id": "capacities",
+          "label": "Capacities",
+          "unit": "capacities",
+          "help": "Fabric capacities of this SKU."
+        }
+      ],
+      "meters": [
+        {
+          "id": "capacity",
+          "label": "Capacity",
+          "quantity": {
+            "input": "capacities"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg",
+        "ri1"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {
+          "capacity": {
+            "meterName": "^Power BI Capacity Usage CU$",
+            "productName": "^Fabric Capacity$",
+            "multiplyBy": "cu",
+            "unit": "capacity-month (730 h)",
+            "reservation": {
+              "meterName": "^Fabric Capacity CU$",
+              "productName": "^Fabric Capacity Reservation$"
+            }
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "f2",
+          "label": "F2 (2 CU)",
+          "attrs": {
+            "cu": 2
+          },
+          "prices": {
+            "capacity": "fabric-capacity-f2-capacity"
+          }
+        },
+        {
+          "id": "f4",
+          "label": "F4 (4 CU)",
+          "attrs": {
+            "cu": 4
+          },
+          "prices": {
+            "capacity": "fabric-capacity-f4-capacity"
+          }
+        },
+        {
+          "id": "f8",
+          "label": "F8 (8 CU)",
+          "attrs": {
+            "cu": 8
+          },
+          "prices": {
+            "capacity": "fabric-capacity-f8-capacity"
+          }
+        },
+        {
+          "id": "f16",
+          "label": "F16 (16 CU)",
+          "attrs": {
+            "cu": 16
+          },
+          "prices": {
+            "capacity": "fabric-capacity-f16-capacity"
+          }
+        },
+        {
+          "id": "f32",
+          "label": "F32 (32 CU)",
+          "attrs": {
+            "cu": 32
+          },
+          "prices": {
+            "capacity": "fabric-capacity-f32-capacity"
+          }
+        },
+        {
+          "id": "f64",
+          "label": "F64 (64 CU)",
+          "attrs": {
+            "cu": 64
+          },
+          "prices": {
+            "capacity": "fabric-capacity-f64-capacity"
+          }
+        },
+        {
+          "id": "f128",
+          "label": "F128 (128 CU)",
+          "attrs": {
+            "cu": 128
+          },
+          "prices": {
+            "capacity": "fabric-capacity-f128-capacity"
+          }
+        },
+        {
+          "id": "f256",
+          "label": "F256 (256 CU)",
+          "attrs": {
+            "cu": 256
+          },
+          "prices": {
+            "capacity": "fabric-capacity-f256-capacity"
+          }
+        },
+        {
+          "id": "f512",
+          "label": "F512 (512 CU)",
+          "attrs": {
+            "cu": 512
+          },
+          "prices": {
+            "capacity": "fabric-capacity-f512-capacity"
+          }
+        },
+        {
+          "id": "f1024",
+          "label": "F1024 (1024 CU)",
+          "attrs": {
+            "cu": 1024
+          },
+          "prices": {
+            "capacity": "fabric-capacity-f1024-capacity"
+          }
+        },
+        {
+          "id": "f2048",
+          "label": "F2048 (2048 CU)",
+          "attrs": {
+            "cu": 2048
+          },
+          "prices": {
+            "capacity": "fabric-capacity-f2048-capacity"
+          }
+        }
+      ]
+    },
+    {
+      "id": "onelake-storage",
+      "label": "OneLake storage",
+      "category": "data",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/microsoft-fabric/",
+      "note": "Data stored in OneLake per GB a month. Transactions, BCDR storage and the cache are not included.",
+      "inputs": [
+        {
+          "id": "gb",
+          "label": "Data stored",
+          "unit": "GB",
+          "help": "Data stored in OneLake."
+        }
+      ],
+      "meters": [
+        {
+          "id": "gb",
+          "label": "Stored data",
+          "quantity": {
+            "input": "gb"
+          },
+          "hourly": false,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "hot",
+          "label": "Hot",
+          "attrs": {},
+          "prices": {
+            "gb": "onelake-storage-hot-gb"
+          },
+          "retail": {
+            "gb": {
+              "meterName": "^OneLake Storage Hot Data Stored$",
+              "productName": "^OneLake$",
+              "skuName": "^OneLake Storage Hot$",
+              "unit": "GB-month"
+            }
+          }
+        },
+        {
+          "id": "cool",
+          "label": "Cool",
+          "attrs": {},
+          "prices": {
+            "gb": "onelake-storage-cool-gb"
+          },
+          "retail": {
+            "gb": {
+              "meterName": "^OneLake Storage Cool Data Stored$",
+              "productName": "^OneLake$",
+              "skuName": "^OneLake Storage Cool$",
+              "unit": "GB-month"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "synapse-dedicated-sql",
+      "label": "Synapse dedicated SQL pool",
+      "category": "data",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/synapse-analytics/",
+      "note": "Compute by DWU level (cDWU), per hour, pay-as-you-go or reserved. Every level is the DW100c price times its size. Storage and snapshots are separate. Spark pools, serverless SQL (separate type) and pipelines are not included.",
+      "inputs": [
+        {
+          "id": "pools",
+          "label": "Pools",
+          "unit": "pools",
+          "help": "Dedicated SQL pools of this size, billed per hour while running."
+        }
+      ],
+      "meters": [
+        {
+          "id": "compute",
+          "label": "Compute",
+          "quantity": {
+            "input": "pools"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg",
+        "ri1",
+        "ri3"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {
+          "compute": {
+            "meterName": "^100 DWUs$",
+            "productName": "^Azure Synapse Analytics Dedicated SQL Pool$",
+            "skuName": "^DW100c$",
+            "multiplyBy": "units100",
+            "unit": "pool-month (730 h)"
+          }
+        }
+      },
+      "skus": [
+        {
+          "id": "dw100c",
+          "label": "DW100c (100 DWU)",
+          "attrs": {
+            "dwu": 100,
+            "units100": 1
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw100c-compute"
+          }
+        },
+        {
+          "id": "dw200c",
+          "label": "DW200c (200 DWU)",
+          "attrs": {
+            "dwu": 200,
+            "units100": 2
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw200c-compute"
+          }
+        },
+        {
+          "id": "dw300c",
+          "label": "DW300c (300 DWU)",
+          "attrs": {
+            "dwu": 300,
+            "units100": 3
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw300c-compute"
+          }
+        },
+        {
+          "id": "dw400c",
+          "label": "DW400c (400 DWU)",
+          "attrs": {
+            "dwu": 400,
+            "units100": 4
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw400c-compute"
+          }
+        },
+        {
+          "id": "dw500c",
+          "label": "DW500c (500 DWU)",
+          "attrs": {
+            "dwu": 500,
+            "units100": 5
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw500c-compute"
+          }
+        },
+        {
+          "id": "dw1000c",
+          "label": "DW1000c (1,000 DWU)",
+          "attrs": {
+            "dwu": 1000,
+            "units100": 10
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw1000c-compute"
+          }
+        },
+        {
+          "id": "dw1500c",
+          "label": "DW1500c (1,500 DWU)",
+          "attrs": {
+            "dwu": 1500,
+            "units100": 15
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw1500c-compute"
+          }
+        },
+        {
+          "id": "dw2000c",
+          "label": "DW2000c (2,000 DWU)",
+          "attrs": {
+            "dwu": 2000,
+            "units100": 20
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw2000c-compute"
+          }
+        },
+        {
+          "id": "dw2500c",
+          "label": "DW2500c (2,500 DWU)",
+          "attrs": {
+            "dwu": 2500,
+            "units100": 25
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw2500c-compute"
+          }
+        },
+        {
+          "id": "dw3000c",
+          "label": "DW3000c (3,000 DWU)",
+          "attrs": {
+            "dwu": 3000,
+            "units100": 30
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw3000c-compute"
+          }
+        },
+        {
+          "id": "dw5000c",
+          "label": "DW5000c (5,000 DWU)",
+          "attrs": {
+            "dwu": 5000,
+            "units100": 50
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw5000c-compute"
+          }
+        },
+        {
+          "id": "dw6000c",
+          "label": "DW6000c (6,000 DWU)",
+          "attrs": {
+            "dwu": 6000,
+            "units100": 60
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw6000c-compute"
+          }
+        },
+        {
+          "id": "dw7500c",
+          "label": "DW7500c (7,500 DWU)",
+          "attrs": {
+            "dwu": 7500,
+            "units100": 75
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw7500c-compute"
+          }
+        },
+        {
+          "id": "dw10000c",
+          "label": "DW10000c (10,000 DWU)",
+          "attrs": {
+            "dwu": 10000,
+            "units100": 100
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw10000c-compute"
+          }
+        },
+        {
+          "id": "dw15000c",
+          "label": "DW15000c (15,000 DWU)",
+          "attrs": {
+            "dwu": 15000,
+            "units100": 150
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw15000c-compute"
+          }
+        },
+        {
+          "id": "dw30000c",
+          "label": "DW30000c (30,000 DWU)",
+          "attrs": {
+            "dwu": 30000,
+            "units100": 300
+          },
+          "prices": {
+            "compute": "synapse-dedicated-sql-dw30000c-compute"
+          }
+        }
+      ]
+    },
+    {
+      "id": "synapse-serverless-sql",
+      "label": "Synapse serverless SQL pool",
+      "category": "data",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/synapse-analytics/",
+      "note": "Per TB of data processed. Storage is billed separately.",
+      "inputs": [
+        {
+          "id": "tb",
+          "label": "Data processed",
+          "unit": "TB",
+          "help": "Data processed by queries a month."
+        }
+      ],
+      "meters": [
+        {
+          "id": "tb",
+          "label": "Data processed",
+          "quantity": {
+            "input": "tb"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "standard",
+          "label": "Serverless SQL pool",
+          "attrs": {},
+          "prices": {
+            "tb": "synapse-serverless-sql-standard-tb"
+          },
+          "retail": {
+            "tb": {
+              "meterName": "^Standard Data Processed$",
+              "productName": "^Azure Synapse Analytics Serverless SQL Pool$",
+              "unit": "TB"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "databricks-dbu",
+      "label": "Databricks (DBU only)",
+      "category": "data",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/databricks/",
+      "note": "Databricks units (DBU) only. The virtual machines the cluster runs on are billed separately: add them as VM resources. Serverless SKUs include the compute. Pre-purchase plans, model serving beyond the DBU rate and the compliance add-ons are not included.",
+      "inputs": [
+        {
+          "id": "dbuHours",
+          "label": "DBU consumed",
+          "unit": "DBU-hours",
+          "help": "DBUs consumed a month (DBU rate per node-hour x node-hours)."
+        }
+      ],
+      "meters": [
+        {
+          "id": "dbu",
+          "label": "DBUs",
+          "quantity": {
+            "input": "dbuHours"
+          },
+          "hourly": false,
+          "scalesWithSize": false
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "premium-jobs",
+          "label": "Premium, jobs compute",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-jobs-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium Jobs Compute DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-jobs-photon",
+          "label": "Premium, jobs compute Photon",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-jobs-photon-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium Jobs Compute Photon DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-jobs-light",
+          "label": "Premium, jobs light compute",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-jobs-light-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium Jobs Light Compute DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-all-purpose",
+          "label": "Premium, all-purpose compute",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-all-purpose-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium All-purpose Compute DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-all-purpose-photon",
+          "label": "Premium, all-purpose Photon",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-all-purpose-photon-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium All-Purpose Photon DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-sql-classic",
+          "label": "Premium, SQL classic",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-sql-classic-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium SQL Analytics DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-sql-pro",
+          "label": "Premium, SQL pro",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-sql-pro-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium SQL Compute Pro DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-sql-serverless",
+          "label": "Premium, SQL serverless",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-sql-serverless-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium Serverless SQL DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-dlt-core",
+          "label": "Premium, Delta Live Tables core",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-dlt-core-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium Core Compute Delta Live Tables DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-dlt-pro",
+          "label": "Premium, Delta Live Tables pro",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-dlt-pro-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium Pro Compute Delta Live Tables DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-dlt-advanced",
+          "label": "Premium, Delta Live Tables advanced",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-dlt-advanced-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium Advanced Compute Delta Live Tables DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-serverless-jobs",
+          "label": "Premium, serverless jobs",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-serverless-jobs-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium Automated Serverless Compute DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-serverless-interactive",
+          "label": "Premium, serverless interactive",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-serverless-interactive-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium Interactive Serverless Compute DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-model-training",
+          "label": "Premium, model training",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-model-training-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium Model Training DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "premium-model-serving",
+          "label": "Premium, serverless model serving",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-premium-model-serving-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Premium Serverless Realtime Inferencing DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "standard-jobs",
+          "label": "Standard, jobs compute",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-standard-jobs-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Standard Jobs Compute DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "standard-jobs-photon",
+          "label": "Standard, jobs compute Photon",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-standard-jobs-photon-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Standard Jobs Compute Photon DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "standard-jobs-light",
+          "label": "Standard, jobs light compute",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-standard-jobs-light-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Standard Jobs Light Compute DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "standard-all-purpose",
+          "label": "Standard, all-purpose compute",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-standard-all-purpose-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Standard All-purpose Compute DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "standard-all-purpose-photon",
+          "label": "Standard, all-purpose Photon",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-standard-all-purpose-photon-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Standard All-Purpose Photon DBU$",
+              "usage": true
+            }
+          }
+        },
+        {
+          "id": "standard-sql",
+          "label": "Standard, SQL analytics",
+          "attrs": {},
+          "prices": {
+            "dbu": "databricks-dbu-standard-sql-dbu"
+          },
+          "retail": {
+            "dbu": {
+              "meterName": "^Standard SQL Analytics DBU$",
+              "usage": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "power-bi-embedded",
+      "label": "Power BI Embedded (A SKUs)",
+      "category": "data",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/power-bi-embedded/",
+      "note": "Embedded capacity nodes per hour. Fabric F SKUs are the successor and a separate type.",
+      "inputs": [
+        {
+          "id": "nodes",
+          "label": "Nodes",
+          "unit": "nodes",
+          "help": "Embedded capacities, billed per hour."
+        }
+      ],
+      "meters": [
+        {
+          "id": "node",
+          "label": "Node",
+          "quantity": {
+            "input": "nodes"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Power BI Embedded' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "a1",
+          "label": "A1",
+          "attrs": {},
+          "prices": {
+            "node": "power-bi-embedded-a1-node"
+          },
+          "retail": {
+            "node": {
+              "meterName": "^A1 Node$",
+              "productName": "^Power BI Embedded$",
+              "unit": "node-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "a2",
+          "label": "A2",
+          "attrs": {},
+          "prices": {
+            "node": "power-bi-embedded-a2-node"
+          },
+          "retail": {
+            "node": {
+              "meterName": "^A2 Node$",
+              "productName": "^Power BI Embedded$",
+              "unit": "node-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "a3",
+          "label": "A3",
+          "attrs": {},
+          "prices": {
+            "node": "power-bi-embedded-a3-node"
+          },
+          "retail": {
+            "node": {
+              "meterName": "^A3 Node$",
+              "productName": "^Power BI Embedded$",
+              "unit": "node-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "a4",
+          "label": "A4",
+          "attrs": {},
+          "prices": {
+            "node": "power-bi-embedded-a4-node"
+          },
+          "retail": {
+            "node": {
+              "meterName": "^A4 Node$",
+              "productName": "^Power BI Embedded$",
+              "unit": "node-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "a5",
+          "label": "A5",
+          "attrs": {},
+          "prices": {
+            "node": "power-bi-embedded-a5-node"
+          },
+          "retail": {
+            "node": {
+              "meterName": "^A5 Node$",
+              "productName": "^Power BI Embedded$",
+              "unit": "node-month (730 h)"
+            }
+          }
+        },
+        {
+          "id": "a6",
+          "label": "A6",
+          "attrs": {},
+          "prices": {
+            "node": "power-bi-embedded-a6-node"
+          },
+          "retail": {
+            "node": {
+              "meterName": "^A6 Node$",
+              "productName": "^Power BI Embedded$",
+              "unit": "node-month (730 h)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "stream-analytics",
+      "label": "Stream Analytics",
+      "category": "data",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/stream-analytics/",
+      "note": "Standard streaming units per hour. The V2 SKUs (tiered by hours used) and dedicated clusters are not included.",
+      "inputs": [
+        {
+          "id": "sus",
+          "label": "Streaming units",
+          "unit": "units",
+          "help": "Streaming units, billed per hour."
+        }
+      ],
+      "meters": [
+        {
+          "id": "su",
+          "label": "Streaming units",
+          "quantity": {
+            "input": "sus"
+          },
+          "hourly": true,
+          "scalesWithSize": true
+        }
+      ],
+      "options": [
+        "payg"
+      ],
+      "retail": {
+        "filter": "serviceName eq 'Stream Analytics' and armRegionName eq '{region}'",
+        "productName": ".",
+        "meters": {}
+      },
+      "skus": [
+        {
+          "id": "standard",
+          "label": "Standard",
+          "attrs": {},
+          "prices": {
+            "su": "stream-analytics-standard-su"
+          },
+          "retail": {
+            "su": {
+              "meterName": "^Standard Streaming Unit$",
+              "productName": "^Stream Analytics$",
+              "unit": "unit-month (730 h)"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "unitPrices": [
+    {
+      "id": "fabric-capacity-f2-capacity",
+      "label": "F2 (2 CU) · Capacity",
+      "platform": "azure",
+      "unit": "capacity-month (730 h)",
+      "price": 413.618,
+      "options": {
+        "ri1": {
+          "price": 246.0075,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "Fabric Capacity CU",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Power BI Capacity Usage CU",
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+        "note": "Fabric Capacity / Power BI Capacity Usage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "fabric-capacity-f4-capacity",
+      "label": "F4 (4 CU) · Capacity",
+      "platform": "azure",
+      "unit": "capacity-month (730 h)",
+      "price": 827.236,
+      "options": {
+        "ri1": {
+          "price": 492.015,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "Fabric Capacity CU",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Power BI Capacity Usage CU",
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+        "note": "Fabric Capacity / Power BI Capacity Usage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "fabric-capacity-f8-capacity",
+      "label": "F8 (8 CU) · Capacity",
+      "platform": "azure",
+      "unit": "capacity-month (730 h)",
+      "price": 1654.472,
+      "options": {
+        "ri1": {
+          "price": 984.0301,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "Fabric Capacity CU",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Power BI Capacity Usage CU",
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+        "note": "Fabric Capacity / Power BI Capacity Usage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "fabric-capacity-f16-capacity",
+      "label": "F16 (16 CU) · Capacity",
+      "platform": "azure",
+      "unit": "capacity-month (730 h)",
+      "price": 3308.944,
+      "options": {
+        "ri1": {
+          "price": 1968.06,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "Fabric Capacity CU",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Power BI Capacity Usage CU",
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+        "note": "Fabric Capacity / Power BI Capacity Usage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "fabric-capacity-f32-capacity",
+      "label": "F32 (32 CU) · Capacity",
+      "platform": "azure",
+      "unit": "capacity-month (730 h)",
+      "price": 6617.888,
+      "options": {
+        "ri1": {
+          "price": 3936.12,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "Fabric Capacity CU",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Power BI Capacity Usage CU",
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+        "note": "Fabric Capacity / Power BI Capacity Usage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "fabric-capacity-f64-capacity",
+      "label": "F64 (64 CU) · Capacity",
+      "platform": "azure",
+      "unit": "capacity-month (730 h)",
+      "price": 13235.78,
+      "options": {
+        "ri1": {
+          "price": 7872.241,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "Fabric Capacity CU",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Power BI Capacity Usage CU",
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+        "note": "Fabric Capacity / Power BI Capacity Usage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "fabric-capacity-f128-capacity",
+      "label": "F128 (128 CU) · Capacity",
+      "platform": "azure",
+      "unit": "capacity-month (730 h)",
+      "price": 26471.55,
+      "options": {
+        "ri1": {
+          "price": 15744.48,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "Fabric Capacity CU",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Power BI Capacity Usage CU",
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+        "note": "Fabric Capacity / Power BI Capacity Usage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "fabric-capacity-f256-capacity",
+      "label": "F256 (256 CU) · Capacity",
+      "platform": "azure",
+      "unit": "capacity-month (730 h)",
+      "price": 52943.1,
+      "options": {
+        "ri1": {
+          "price": 31488.96,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "Fabric Capacity CU",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Power BI Capacity Usage CU",
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+        "note": "Fabric Capacity / Power BI Capacity Usage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "fabric-capacity-f512-capacity",
+      "label": "F512 (512 CU) · Capacity",
+      "platform": "azure",
+      "unit": "capacity-month (730 h)",
+      "price": 105886.2,
+      "options": {
+        "ri1": {
+          "price": 62977.92,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "Fabric Capacity CU",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Power BI Capacity Usage CU",
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+        "note": "Fabric Capacity / Power BI Capacity Usage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "fabric-capacity-f1024-capacity",
+      "label": "F1024 (1024 CU) · Capacity",
+      "platform": "azure",
+      "unit": "capacity-month (730 h)",
+      "price": 211772.4,
+      "options": {
+        "ri1": {
+          "price": 125955.8,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "Fabric Capacity CU",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Power BI Capacity Usage CU",
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+        "note": "Fabric Capacity / Power BI Capacity Usage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "fabric-capacity-f2048-capacity",
+      "label": "F2048 (2048 CU) · Capacity",
+      "platform": "azure",
+      "unit": "capacity-month (730 h)",
+      "price": 423544.8,
+      "options": {
+        "ri1": {
+          "price": 251911.7,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "Fabric Capacity CU",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Power BI Capacity Usage CU",
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+        "note": "Fabric Capacity / Power BI Capacity Usage",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "onelake-storage-hot-gb",
+      "label": "Hot · Stored data",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0354,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "OneLake Storage Hot Data Stored",
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+        "note": "OneLake / OneLake Storage Hot",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "onelake-storage-cool-gb",
+      "label": "Cool · Stored data",
+      "platform": "azure",
+      "unit": "GB-month",
+      "price": 0.0195,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "OneLake Storage Cool Data Stored",
+        "filter": "serviceName eq 'Microsoft Fabric' and armRegionName eq 'canadacentral'",
+        "note": "OneLake / OneLake Storage Cool",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw100c-compute",
+      "label": "DW100c (100 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 1375.32,
+      "options": {
+        "ri1": {
+          "price": 944.6028,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 524.7924,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw200c-compute",
+      "label": "DW200c (200 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 2750.64,
+      "options": {
+        "ri1": {
+          "price": 1889.206,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 1049.585,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw300c-compute",
+      "label": "DW300c (300 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 4125.96,
+      "options": {
+        "ri1": {
+          "price": 2833.808,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 1574.377,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw400c-compute",
+      "label": "DW400c (400 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 5501.28,
+      "options": {
+        "ri1": {
+          "price": 3778.411,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 2099.17,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw500c-compute",
+      "label": "DW500c (500 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 6876.6,
+      "options": {
+        "ri1": {
+          "price": 4723.014,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 2623.962,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw1000c-compute",
+      "label": "DW1000c (1,000 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 13753.2,
+      "options": {
+        "ri1": {
+          "price": 9446.028,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 5247.924,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw1500c-compute",
+      "label": "DW1500c (1,500 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 20629.8,
+      "options": {
+        "ri1": {
+          "price": 14169.04,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 7871.886,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw2000c-compute",
+      "label": "DW2000c (2,000 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 27506.4,
+      "options": {
+        "ri1": {
+          "price": 18892.06,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 10495.85,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw2500c-compute",
+      "label": "DW2500c (2,500 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 34383,
+      "options": {
+        "ri1": {
+          "price": 23615.07,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 13119.81,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw3000c-compute",
+      "label": "DW3000c (3,000 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 41259.6,
+      "options": {
+        "ri1": {
+          "price": 28338.08,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 15743.77,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw5000c-compute",
+      "label": "DW5000c (5,000 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 68766,
+      "options": {
+        "ri1": {
+          "price": 47230.14,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 26239.62,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw6000c-compute",
+      "label": "DW6000c (6,000 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 82519.2,
+      "options": {
+        "ri1": {
+          "price": 56676.17,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 31487.55,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw7500c-compute",
+      "label": "DW7500c (7,500 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 103149,
+      "options": {
+        "ri1": {
+          "price": 70845.21,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 39359.43,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw10000c-compute",
+      "label": "DW10000c (10,000 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 137532,
+      "options": {
+        "ri1": {
+          "price": 94460.28,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 52479.24,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw15000c-compute",
+      "label": "DW15000c (15,000 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 206298,
+      "options": {
+        "ri1": {
+          "price": 141690.4,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 78718.86,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-dedicated-sql-dw30000c-compute",
+      "label": "DW30000c (30,000 DWU) · Compute",
+      "platform": "azure",
+      "unit": "pool-month (730 h)",
+      "price": 412596,
+      "options": {
+        "ri1": {
+          "price": 283380.8,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "1 Year reservation, total / 12 months",
+            "retrievedAt": "2026-10-07"
+          }
+        },
+        "ri3": {
+          "price": 157437.7,
+          "source": {
+            "kind": "azure-retail-api",
+            "meterName": "100 DWUs",
+            "note": "3 Years reservation, total / 36 months",
+            "retrievedAt": "2026-10-07"
+          }
+        }
+      },
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "100 DWUs",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Dedicated SQL Pool / DW100c",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "synapse-serverless-sql-standard-tb",
+      "label": "Serverless SQL pool · Data processed",
+      "platform": "azure",
+      "unit": "TB",
+      "price": 7.791,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Data Processed",
+        "filter": "serviceName eq 'Azure Synapse Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Azure Synapse Analytics Serverless SQL Pool / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-jobs-dbu",
+      "label": "Premium, jobs compute · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.425,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Jobs Compute DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Premium Jobs Compute",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-jobs-photon-dbu",
+      "label": "Premium, jobs compute Photon · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.425,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Jobs Compute Photon DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Premium Jobs Compute Photon",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-jobs-light-dbu",
+      "label": "Premium, jobs light compute · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.3116,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Jobs Light Compute DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Premium Jobs Light Compute",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-all-purpose-dbu",
+      "label": "Premium, all-purpose compute · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.7791,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium All-purpose Compute DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Premium All-purpose Compute",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-all-purpose-photon-dbu",
+      "label": "Premium, all-purpose Photon · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.7791,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium All-Purpose Photon DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Premium All-Purpose Photon",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-sql-classic-dbu",
+      "label": "Premium, SQL classic · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.3116,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium SQL Analytics DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Premium SQL Analytics",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-sql-pro-dbu",
+      "label": "Premium, SQL pro · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.8783,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium SQL Compute Pro DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks Regional / Premium SQL Compute Pro",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-sql-serverless-dbu",
+      "label": "Premium, SQL serverless · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 1.1191,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Serverless SQL DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks Regional / Premium Serverless SQL",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-dlt-core-dbu",
+      "label": "Premium, Delta Live Tables core · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.425,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Core Compute Delta Live Tables DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Premium Core Compute Delta Live Tables",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-dlt-pro-dbu",
+      "label": "Premium, Delta Live Tables pro · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.5383,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Pro Compute Delta Live Tables DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Premium Pro Compute Delta Live Tables",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-dlt-advanced-dbu",
+      "label": "Premium, Delta Live Tables advanced · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.7649,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Advanced Compute Delta Live Tables DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Premium Advanced Compute Delta Live Tables",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-serverless-jobs-dbu",
+      "label": "Premium, serverless jobs · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.6658,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Automated Serverless Compute DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks Regional / Premium Automated Serverless Compute",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-serverless-interactive-dbu",
+      "label": "Premium, serverless interactive · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 1.4166,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Interactive Serverless Compute DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks Regional / Premium Interactive Serverless Compute",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-model-training-dbu",
+      "label": "Premium, model training · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.9208,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Model Training DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks Regional / Premium Model Training",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-premium-model-serving-dbu",
+      "label": "Premium, serverless model serving · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.1105,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Premium Serverless Realtime Inferencing DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks Regional / Premium Serverless Realtime Inferencing",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-standard-jobs-dbu",
+      "label": "Standard, jobs compute · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.2125,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Jobs Compute DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Standard Jobs Compute",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-standard-jobs-photon-dbu",
+      "label": "Standard, jobs compute Photon · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.2125,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Jobs Compute Photon DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Standard Jobs Compute Photon",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-standard-jobs-light-dbu",
+      "label": "Standard, jobs light compute · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.0992,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Jobs Light Compute DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Standard Jobs Light Compute",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-standard-all-purpose-dbu",
+      "label": "Standard, all-purpose compute · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.5666,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard All-purpose Compute DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Standard All-purpose Compute",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-standard-all-purpose-photon-dbu",
+      "label": "Standard, all-purpose Photon · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.5666,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard All-Purpose Photon DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Standard All-Purpose Photon",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "databricks-dbu-standard-sql-dbu",
+      "label": "Standard, SQL analytics · DBUs",
+      "platform": "azure",
+      "unit": "1 Hour",
+      "price": 0.3116,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard SQL Analytics DBU",
+        "filter": "serviceName eq 'Azure Databricks' and armRegionName eq 'canadacentral'",
+        "note": "Azure Databricks / Standard SQL Analytics",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "power-bi-embedded-a1-node",
+      "label": "A1 · Node",
+      "platform": "azure",
+      "unit": "node-month (730 h)",
+      "price": 1042.44,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "A1 Node",
+        "filter": "serviceName eq 'Power BI Embedded' and armRegionName eq 'canadacentral'",
+        "note": "Power BI Embedded / A1",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "power-bi-embedded-a2-node",
+      "label": "A2 · Node",
+      "platform": "azure",
+      "unit": "node-month (730 h)",
+      "price": 2076.558,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "A2 Node",
+        "filter": "serviceName eq 'Power BI Embedded' and armRegionName eq 'canadacentral'",
+        "note": "Power BI Embedded / A2",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "power-bi-embedded-a3-node",
+      "label": "A3 · Node",
+      "platform": "azure",
+      "unit": "node-month (730 h)",
+      "price": 4161.365,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "A3 Node",
+        "filter": "serviceName eq 'Power BI Embedded' and armRegionName eq 'canadacentral'",
+        "note": "Power BI Embedded / A3",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "power-bi-embedded-a4-node",
+      "label": "A4 · Node",
+      "platform": "azure",
+      "unit": "node-month (730 h)",
+      "price": 8331.052,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "A4 Node",
+        "filter": "serviceName eq 'Power BI Embedded' and armRegionName eq 'canadacentral'",
+        "note": "Power BI Embedded / A4",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "power-bi-embedded-a5-node",
+      "label": "A5 · Node",
+      "platform": "azure",
+      "unit": "node-month (730 h)",
+      "price": 16670.43,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "A5 Node",
+        "filter": "serviceName eq 'Power BI Embedded' and armRegionName eq 'canadacentral'",
+        "note": "Power BI Embedded / A5",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "power-bi-embedded-a6-node",
+      "label": "A6 · Node",
+      "platform": "azure",
+      "unit": "node-month (730 h)",
+      "price": 33349.76,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "A6 Node",
+        "filter": "serviceName eq 'Power BI Embedded' and armRegionName eq 'canadacentral'",
+        "note": "Power BI Embedded / A6",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    },
+    {
+      "id": "stream-analytics-standard-su",
+      "label": "Standard · Streaming units",
+      "platform": "azure",
+      "unit": "unit-month (730 h)",
+      "price": 113.734,
+      "source": {
+        "kind": "azure-retail-api",
+        "meterName": "Standard Streaming Unit",
+        "filter": "serviceName eq 'Stream Analytics' and armRegionName eq 'canadacentral'",
+        "note": "Stream Analytics / Standard",
+        "retrievedAt": "2026-10-07"
+      },
+      "confidence": "verified"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 Source: Azure Retail Prices API, currency CAD, region canadacentral.
 
-- 31 types, 277 SKUs, 429 of 429 SKU meters priced pay-as-you-go
+- 79 types, 526 SKUs, 747 of 747 SKU meters priced pay-as-you-go
 - 0 unit prices changed or added
 - 0 ambiguous matches, 0 unmatched
 
@@ -21,6 +21,13 @@ Source: Azure Retail Prices API, currency CAD, region canadacentral.
 | container-instances | 2 | 4/4 | 0 | 0 | 0 | 0 | 0 | 0 |
 | static-web-app | 2 | 4/4 | 0 | 0 | 0 | 0 | 0 | 0 |
 | container-registry | 3 | 6/6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| fabric-capacity | 11 | 11/11 | 11 | 0 | 0 | 0 | 0 | 0 |
+| onelake-storage | 2 | 2/2 | 0 | 0 | 0 | 0 | 0 | 0 |
+| synapse-dedicated-sql | 16 | 16/16 | 16 | 16 | 0 | 0 | 0 | 0 |
+| synapse-serverless-sql | 1 | 1/1 | 0 | 0 | 0 | 0 | 0 | 0 |
+| databricks-dbu | 21 | 21/21 | 0 | 0 | 0 | 0 | 0 | 0 |
+| power-bi-embedded | 6 | 6/6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| stream-analytics | 1 | 1/1 | 0 | 0 | 0 | 0 | 0 | 0 |
 | sql-db-vcore | 6 | 12/12 | 4 | 4 | 0 | 0 | 0 | 0 |
 | sql-db-dtu | 9 | 9/9 | 0 | 0 | 0 | 0 | 0 | 0 |
 | sql-mi | 4 | 8/8 | 4 | 4 | 0 | 0 | 0 | 0 |
@@ -33,6 +40,47 @@ Source: Azure Retail Prices API, currency CAD, region canadacentral.
 | cosmos-db-serverless | 1 | 2/2 | 0 | 0 | 0 | 0 | 0 | 0 |
 | redis-cache | 16 | 16/16 | 0 | 0 | 0 | 0 | 0 | 0 |
 | azure-managed-redis | 27 | 27/27 | 22 | 22 | 0 | 0 | 0 | 0 |
+| azure-devops-users | 3 | 3/3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| azure-devops-jobs | 2 | 2/2 | 0 | 0 | 0 | 0 | 0 | 0 |
+| github-seat | 6 | 4/4 | 0 | 0 | 0 | 0 | 0 | 0 |
+| service-bus | 3 | 9/9 | 0 | 0 | 0 | 0 | 0 | 0 |
+| event-grid | 1 | 3/3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| event-hubs | 4 | 8/8 | 0 | 0 | 0 | 0 | 0 | 0 |
+| logic-apps-consumption | 1 | 3/3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| logic-apps-standard | 3 | 3/3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| apim-gateway | 7 | 3/3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| relay | 1 | 2/2 | 0 | 0 | 0 | 0 | 0 | 0 |
+| notification-hubs | 3 | 6/6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| data-factory | 3 | 9/9 | 0 | 0 | 0 | 0 | 0 | 0 |
+| data-factory-dataflow | 3 | 3/3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| log-analytics-ingestion | 11 | 21/21 | 0 | 0 | 0 | 0 | 0 | 0 |
+| log-analytics-retention | 2 | 2/2 | 0 | 0 | 0 | 0 | 0 | 0 |
+| application-insights | 1 | 1/1 | 0 | 0 | 0 | 0 | 0 | 0 |
+| monitor-alerts | 6 | 6/6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| app-configuration | 4 | 12/12 | 0 | 0 | 0 | 0 | 0 | 0 |
+| backup-instance | 8 | 8/8 | 0 | 0 | 0 | 0 | 0 | 0 |
+| backup-storage | 6 | 6/6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| site-recovery | 2 | 2/2 | 0 | 0 | 0 | 0 | 0 | 0 |
+| automation | 2 | 4/4 | 0 | 0 | 0 | 0 | 0 | 0 |
+| vnet-peering | 2 | 4/4 | 0 | 0 | 0 | 0 | 0 | 0 |
+| private-endpoint | 1 | 3/3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| nat-gateway | 1 | 2/2 | 0 | 0 | 0 | 0 | 0 | 0 |
+| public-ip | 4 | 4/4 | 0 | 0 | 0 | 0 | 0 | 0 |
+| app-gateway | 3 | 6/6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| front-door | 2 | 6/6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| load-balancer | 2 | 6/6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| vpn-gateway | 11 | 11/11 | 0 | 0 | 0 | 0 | 0 | 0 |
+| expressroute-gateway | 7 | 7/7 | 0 | 0 | 0 | 0 | 0 | 0 |
+| expressroute-circuit | 32 | 32/32 | 0 | 0 | 0 | 0 | 0 | 0 |
+| azure-firewall | 3 | 6/6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| bastion | 3 | 6/6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| azure-dns | 2 | 4/4 | 0 | 0 | 0 | 0 | 0 | 0 |
+| internet-egress | 11 | 10/10 | 0 | 0 | 0 | 0 | 0 | 0 |
+| key-vault | 2 | 4/4 | 0 | 0 | 0 | 0 | 0 | 0 |
+| managed-hsm | 2 | 2/2 | 0 | 0 | 0 | 0 | 0 | 0 |
+| defender-plan | 9 | 6/6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| defender-database | 3 | 3/3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| sentinel | 9 | 18/18 | 0 | 0 | 0 | 0 | 0 | 0 |
 | blob-storage | 15 | 60/60 | 0 | 0 | 0 | 0 | 0 | 0 |
 | data-lake-gen2 | 10 | 40/40 | 0 | 0 | 0 | 0 | 0 | 0 |
 | files-pay-as-you-go | 6 | 24/24 | 0 | 0 | 0 | 0 | 0 | 0 |

@@ -1,4 +1,4 @@
-import { loadCatalog, type Catalog, type ResourceType, type UnitPrice } from "@roi-calculator/catalog";
+import { loadCatalog, loadCoreCatalog, type Catalog, type ResourceType, type UnitPrice } from "@roi-calculator/catalog";
 
 /**
  * A minimal resource catalogue in test code, so these tests pin the engine's rules and do not move when the real catalogue
@@ -32,5 +32,7 @@ const FIXTURE_UNITS: UnitPrice[] = [
 ];
 /** The real catalogue with its resource types and prices replaced by the fixture above. */
 export function resourceFixtureCatalog(real: Catalog = loadCatalog()): Catalog {
-  return { ...real, resourceTypes: FIXTURE_TYPES, unitPrices: [...real.unitPrices.filter((u) => !real.resourceTypes.some((t) => t.skus.some((s) => Object.values(s.prices).includes(u.id)))), ...FIXTURE_UNITS] };
+  // Keep every price outside the resource files (resource types may reference some of them); drop the resource files' own prices.
+  const core = new Set(loadCoreCatalog().unitPrices.map((u) => u.id));
+  return { ...real, resourceTypes: FIXTURE_TYPES, unitPrices: [...real.unitPrices.filter((u) => core.has(u.id)), ...FIXTURE_UNITS] };
 }
