@@ -1,45 +1,18 @@
-# Handover: AI Cost & ROI Studio
+# Maintainer notes: AI Cost & ROI Studio
 
-What you need to pick this project up on another machine: finish the repository setup, run the app, refresh prices, and continue development.
+How to set the project up, run the app, refresh prices, and continue development.
 
-- **Repository:** https://github.com/nitin27may/ai-roi-calculator (renamed from `token-calculator` on 2026-10-06; GitHub redirects the old URL, but update any local clone with `git remote set-url origin https://github.com/nitin27may/ai-roi-calculator.git`)
-- **State at handover (2026-10-02):** `main` and `claude/research-and-plan` point to the same commit. All work is merged into `main`. 121 tests pass, and the type check and production build are clean.
-
----
-
-## 1. Finish the repository setup (GitHub CLI)
-
-`main` has everything, but GitHub still uses `claude/research-and-plan` as the default branch. On a machine with `gh` logged in:
-
-```bash
-gh auth status                                   # make sure you are logged in as nitin27may
-gh repo edit nitin27may/ai-roi-calculator --default-branch main
-gh repo view nitin27may/ai-roi-calculator --json defaultBranchRef -q .defaultBranchRef.name   # prints: main
-
-# Optional: delete the old branch (identical to main). Only after the default has changed.
-gh api -X DELETE repos/nitin27may/ai-roi-calculator/git/refs/heads/claude/research-and-plan
-```
-
-Recommended after that:
-
-- **Protect `main`.** Require a pull request and passing checks before merging:
-  ```bash
-  gh api -X PUT repos/nitin27may/ai-roi-calculator/branches/main/protection \
-    -F required_status_checks=null -F enforce_admins=false \
-    -F 'required_pull_request_reviews[required_approving_review_count]=0' -F restrictions=null
-  ```
-- **Work on short-lived branches** (`feature/…`) and merge through pull requests from now on.
-- **`docs/PR_DESCRIPTION.md`** summarises everything built so far. Reuse it for release notes.
+- **Repository:** https://github.com/nitin27may/ai-roi-calculator
 
 ---
 
-## 2. Set up a new machine
+## 1. Set up
 
 **Requirements**
 
 - **Node.js 22** (built and tested on 22.22).
 - **pnpm 10.** It is pinned in `package.json` as `pnpm@10.28.0`; `corepack enable` picks the pinned version up.
-- **Git.** `gh` is only needed for section 1.
+- **Git.**
 
 ```bash
 git clone https://github.com/nitin27may/ai-roi-calculator.git
@@ -72,7 +45,7 @@ cloudflared tunnel --url http://localhost:3000    # prints a https://….tryclou
 
 ---
 
-## 3. Refresh prices (do this first on a networked machine)
+## 2. Refresh prices (do this first on a networked machine)
 
 The first live run was on 2026-10-02 (reports dated 2026-10-03, UTC). It needed the mapping fixes listed under "Gotchas from the first live run" below; both scripts now run clean (Azure: 0 mapping errors; Snowflake: 21 of 21 entries matched).
 
@@ -152,7 +125,7 @@ git push -u origin HEAD && gh pr create --fill --base main
 
 ---
 
-## 4. How the code is organised
+## 3. How the code is organised
 
 ```
 apps/web                 Next.js 15 app (App Router, Tailwind v4, Zustand)
@@ -239,7 +212,7 @@ docs/PLAN.md, DESIGN.md  plan and design decisions (DESIGN.md wins where they di
 
 ---
 
-## 5. Checks before every push
+## 4. Checks before every push
 
 ```bash
 pnpm test && pnpm typecheck && pnpm --filter @studio/web build
@@ -252,7 +225,7 @@ CI (`.github/workflows/ci.yml`) runs the same three on every pull request and on
 
 ---
 
-## 6. Open items and ideas
+## 5. Open items and ideas
 
 | Item | Status |
 |---|---|
@@ -273,13 +246,12 @@ CI (`.github/workflows/ci.yml`) runs the same three on every pull request and on
 
 ---
 
-## 7. Where the decisions are written down
+## 6. Where the decisions are written down
 
 - **`docs/DESIGN.md`:** design decisions and why they were made. Read this before redesigning a screen.
 - **`docs/PLAN.md`:** the original plan and scope.
 - **`docs/research/`:** pricing and behaviour research with sources, the starting point when a price looks wrong.
 - **`README.md`:** the feature list.
-- **`docs/PR_DESCRIPTION.md`:** a summary of everything built in the first iteration.
 
 ## Hosting (Cloudflare Pages)
 
@@ -288,7 +260,7 @@ The web app is a static export (`output: "export"` in `apps/web/next.config.ts`;
 Gotchas:
 - Use wrangler 3 for Pages. Wrangler 4 delegates `pages` commands to Workers auto-configuration and will not create or deploy a Pages project from this workspace.
 - `pnpm deploy` is a built-in pnpm command and does not run the script; always use `pnpm run deploy`.
-- Auth is the existing `wrangler login --device` token on nks-ubuntu. Never put a Cloudflare token in the repo.
+- Authenticate with `wrangler login`. Never put a Cloudflare token or account id in the repo.
 - Adding a server route, middleware or `cookies()`/`headers()` call breaks the export. Build will fail; do not remove `output: "export"` to get around it.
 
 ## Batch and processing tiers

@@ -2,7 +2,7 @@
 
 A local, offline ROI calculator for AI use cases: what one costs to **build** and to **run**, and whether it pays back. It includes a token calculator for quick estimates with no project. Everything is priced in **CAD**, and the only providers are **Azure** (Foundry models including Claude on Foundry, Speech, Document Intelligence, Content Understanding, AI Search, Content Safety, evaluation) and **Snowflake Cortex**.
 
-> **Picking this up on a new machine?** Start with [docs/HANDOVER.md](docs/HANDOVER.md): setup, price refresh, code map and open items.
+> **Setting up or maintaining the project?** Start with [docs/HANDOVER.md](docs/HANDOVER.md): setup, price refresh, code map and open items.
 
 - **Build.** Labour from a rate card by delivery phase, plus the **AI Dev Lab**: the tokens and AI services the team uses while building. That covers model bake-offs across candidate models, harness iterations, nightly regression, Foundry evaluation, AI red teaming, the playground and AI coding tools.
 - **Workstreams and people.**
@@ -17,7 +17,7 @@ A local, offline ROI calculator for AI use cases: what one costs to **build** an
   - Synthetic data: generation ÷ pass rate, with an optional judge filter and Batch.
   - Fine-tuning: training per 1M tokens (or per hour for RFT) plus hosting hours. Fine-tune prices are unverified list prices.
 - **Editable dev environment.** Add, remove and re-price the services the team runs while building.
-- **Benefit evidence.** Capabilities can come from a benchmark library ported from workgraph: 12 capabilities, each with sources, a confidence rating and a vendor-funded flag.
+- **Benefit evidence.** Capabilities can come from a benchmark library ported from an earlier internal calculator: 12 capabilities, each with sources, a confidence rating and a vendor-funded flag.
   - Hours are worked out per task, per user-week or per item in a queue.
   - Gross hours × realisation = net hours, valued at the role's rate.
   - Presets (conservative / typical / optimistic) pick each benchmark's saving and the default adoption and realisation.

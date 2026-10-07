@@ -26,14 +26,14 @@ Saved projects and exported JSON files from before the rename must open with ide
 
 | Area | What to add |
 |---|---|
-| Licence | `LICENSE` file and the `license` field in each package.json. MIT is recommended (simple, permissive, fits a calculator). Nitin decides |
+| Licence | `LICENSE` file and the `license` field in each package.json. MIT is recommended (simple, permissive, fits a calculator). The owner decides |
 | Community files | `CONTRIBUTING.md` (setup, the test/typecheck/validate/build chain, branch and PR rules, how to add a resource or price), `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `SECURITY.md` (private reporting via GitHub security advisories), `SUPPORT.md` |
 | GitHub templates | Issue forms: bug, feature request, price correction (resource, region, expected price, source link), new resource request. A PR template with the checklist. `CODEOWNERS` |
 | Automation | Dependabot for npm and GitHub Actions. CodeQL scanning. Secret scanning and push protection on. Branch protection already requires CI |
 | Releases | Semantic version tags, `CHANGELOG.md` (Keep a Changelog), GitHub Releases with notes. The first release is `v1.0.0` after the rename |
 | README | Badges (CI, licence, release), one screenshot, what it does in three lines, quick start, features, a Mermaid architecture diagram, how prices are sourced and refreshed, a disclaimer (estimates from list prices; not a quote), contributing link, roadmap link |
 | Disclaimers and attribution | Prices come from the public Azure Retail Prices API and Snowflake's published rates. State this and the price date. Benchmarks keep their source links |
-| Clean-up before announcing | Remove or neutralise internal references in docs, data and tests. A scan found WorkGraph, personal and internal-host names in README, docs (HANDOVER, PLAN, DESIGN, PR_DESCRIPTION, research/08), `packages/catalog/data/benchmarks.json`, `packages/engine/test/benefits.test.ts`, `scripts/prices/*.ts` and `scripts/seed/seed_catalog.py`. Move internal-only notes out of the repo. Run a full-history secret scan (gitleaks) |
+| Clean-up before announcing | Remove or neutralise internal references in docs, data and tests. A scan found internal project, personal and internal-host names in README, docs (HANDOVER, PLAN, DESIGN, and two internal-only docs now removed), `packages/catalog/data/benchmarks.json`, `packages/engine/test/benefits.test.ts`, `scripts/prices/*.ts` and `scripts/seed/seed_catalog.py`. Move internal-only notes out of the repo. Run a full-history secret scan (gitleaks) |
 | Repo settings | Discussions on; labels (bug, enhancement, pricing, good first issue, help wanted); "Use this template" off; social preview image |
 | Docs | Keep `docs/` as the handbook: architecture, how calculations work, how to add a resource, how to add a recipe, pricing refresh |
 
@@ -49,4 +49,4 @@ Each item is one PR, rebased on main, CI green, then merged and deployed.
 1. Licence: MIT.
 2. Product name in the UI: "ROI Calculator".
 3. Live site: a new Cloudflare Pages project `roi-calculator`. The old token-calculator URL stays live with a notice linking to the new one.
-4. Internal names (WorkGraph, personal and internal host names) are removed from the repo's docs, data and tests. Anything removed is kept as a private copy outside the repo.
+4. Internal project, personal and internal host names are removed from the repo's docs, data and tests. Anything removed is kept as a private copy outside the repo.

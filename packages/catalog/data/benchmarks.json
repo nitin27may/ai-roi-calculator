@@ -1,6 +1,6 @@
 {
   "asOf": "2026-09-06",
-  "source": "Ported from workgraph.ai showcase/cost-calculator catalogue/benchmarks/roi.json",
+  "source": "Ported from an earlier internal calculator benchmark library",
   "notes": "Time-saved benchmarks per capability. Conservative leans on independent trials (Microsoft Research RCT arXiv 2504.11443, UK DBT and Australian DTA trials), optimistic on vendor claims; vendor-funded studies are flagged.",
   "presets": {
     "conservative": {

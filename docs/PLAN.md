@@ -12,7 +12,7 @@ Platform stance: **Azure is the primary AI platform**: models, ingestion, search
 - **This tool, the token calculator,** answers one question: *what will AI consumption cost?* Consumption means tokens plus metered AI services (OCR pages, transcription hours, embeddings, AI Search, evaluation, red teaming, safety). The answer is broken out per lifecycle phase:
   - **development**: month 1, 2, 3… of building, experimenting and evaluating
   - **production**: the monthly run-rate once the use case is live
-- **The ROI calculator** comes later. It will be ported selectively from `workgraph.ai/showcase/cost-calculator`; see [research/08](./research/08-workgraph-showcase-reuse.md) and §11.
+- **The ROI calculator** comes later. It will be ported selectively from an earlier internal calculator; see §11.
   - It owns the end-to-end view: development effort and labour (roles, rate card, delivery phases), the always-on resources, the current-state baseline, benefits, avoided cost and payback.
   - It consumes this tool's output through a narrow contract. It does not recompute tokens.
 
@@ -296,7 +296,7 @@ ModelEntry { id, provider, family, displayName, version, tokenizerFamily, contex
 | Snowflake Service Consumption Table (PDF) | download and parse tables | Cortex credits |
 | Everything else | `manual` entries with `lastVerified` | semantic ranker, agentic retrieval, eval/red-team meter, Content Safety sub-features, Agent Service tools, MAI promos |
 
-**Reuse from the showcase.** Lift `packages/fetcher` `retail.ts` (paging, retry, cache) and `match.ts` (regex matching that refuses ambiguous meters) from workgraph.ai. Also lift its ~20 hand-written Azure OpenAI meter regexes as seed mapping data. Add what it lacks:
+**Reuse from the earlier calculator.** Lift `packages/fetcher` `retail.ts` (paging, retry, cache) and `match.ts` (regex matching that refuses ambiguous meters) from it. Also lift its ~20 hand-written Azure OpenAI meter regexes as seed mapping data. Add what it lacks:
 - discovery across `serviceName eq 'Foundry Models'`, with an unmapped-meter report
 - PTU reservations (it currently drops non-Consumption meters)
 - batch, priority, long-context and cache-write meters
@@ -474,7 +474,7 @@ These must be confirmed from the PDF in P1, or from the customer's `RATE_SHEET_D
 | **P5: Snowflake + PTU** | Snowflake Cortex catalog and component, PTU sizing and break-even view | Azure vs Snowflake comparison works |
 | **P6: Extended components** | 14–21; XLSX/PDF export; projection and growth; sensitivity | |
 | **P7: Multi-user (optional)** | Entra ID, Cosmos DB, org overrides, sharing, deploy to Azure | |
-| **P8: ROI module (after the token calculator is accepted)** | port the ROI, delivery and rate-card logic from workgraph.ai behind the §11 contract | showcase golden ROI tests ported and passing |
+| **P8: ROI module (after the token calculator is accepted)** | port the ROI, delivery and rate-card logic from the earlier calculator behind the §11 contract | showcase golden ROI tests ported and passing |
 
 ---
 
@@ -500,8 +500,6 @@ These must be confirmed from the PDF in P1, or from the customer's `RATE_SHEET_D
 ---
 
 ## 11. Future ROI integration (design now, build in P8)
-
-Full analysis: [research/08](./research/08-workgraph-showcase-reuse.md).
 
 **Port, not copy.**
 - **Keep:** the showcase ROI's capability valuation, cost allocation that reconciles to total (with an unallocated explainer), avoided cost treated as a benefit, transition costs, one-off benefits, rate escalation, fractional payback, delivery/rate-card labour costing, and the benchmark library.

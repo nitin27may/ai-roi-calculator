@@ -1,7 +1,7 @@
 /**
  * How catalogue entries map to Azure Retail Prices API meters. Meter names are inconsistent
  * ("inp" / "Inpt" / "Inp", "Gl" / "glbl"), so every entry carries its own pattern. The chat
- * patterns are ported from workgraph.ai's cost calculator (verified against the API on 2026-09-17).
+ * patterns are ported from an earlier internal cost calculator (verified against the API on 2026-09-17).
  * `{r}` is replaced by the deployment token for Global or Data Zone.
  */
 export const GLOBAL_TOKEN = "(Gl|glbl|Glbl)";
