@@ -1,4 +1,5 @@
 "use client";
+import { isFlatRange } from "@/lib/range";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { cad, cadUnit, kcad } from "@/lib/format";
 
@@ -317,6 +318,14 @@ export function RangeBar({ rows, caption }: { rows: RangeRow[]; caption?: string
           const span = hi - lo || 1;
           const x = (v: number) => Math.round((10000 * (v - lo)) / span) / 100;
           const pos = (v: number) => Math.min(98, Math.max(2, x(v)));
+          if (isFlatRange(r)) {
+            return (
+              <div key={r.id} className="grid grid-cols-1 items-baseline gap-x-2 gap-y-0.5 text-[12px] sm:grid-cols-[minmax(100px,150px)_1fr]">
+                <span className="text-ink-2 sm:truncate" title={r.label}>{r.label}</span>
+                <div className="num flex flex-wrap items-baseline gap-x-2"><span className="font-semibold text-ink">{show(r, r.expected)}</span><span className="text-xs text-muted">same in all three cases</span></div>
+              </div>
+            );
+          }
           return (
             <div key={r.id} className="grid grid-cols-1 items-center gap-x-2 gap-y-0.5 text-[12px] sm:grid-cols-[minmax(100px,150px)_1fr]">
               <span className="text-ink-2 sm:truncate" title={r.label}>{r.label}{r.wide && <span className="ml-1 rounded bg-warn-soft px-1 text-xs font-medium text-warn">Wide</span>}</span>
