@@ -400,6 +400,24 @@ export const PROJECT_SCHEMA_ID = "roi-calculator/project";
 /** The id files carried before the rename. Accepted on load (see migrate.ts) and never written. */
 export const LEGACY_PROJECT_SCHEMA_ID = "ai-cost-roi-studio/project";
 
+/**
+ * A catalogue resource (a VM, an App Service plan) the project runs in production. Priced at 730 hours a month in the
+ * production months until environments arrive (A6). `envIds` is kept for A6 and ignored for now.
+ */
+export const ResourceSchema = z.object({
+  id, label: z.string(),
+  featureId: id.optional(),
+  typeId: id, skuId: id,
+  /** Values for the resource type's inputs, by input id (for example `count`). A missing input counts as 0. */
+  inputs: z.record(n0).default({}),
+  /** Pricing term: pay-as-you-go, or a 1- or 3-year reservation. */
+  term: z.enum(["payg", "ri1", "ri3"]).default("payg"),
+  /** Azure Hybrid Benefit: bring an existing Windows or SQL licence. */
+  ahb: z.boolean().default(false),
+  envIds: z.array(id).optional(),
+});
+export type Resource = z.infer<typeof ResourceSchema>;
+
 const ProjectObject = z.object({
   schema: z.literal(PROJECT_SCHEMA_ID),
   version: z.literal(CURRENT_PROJECT_VERSION),
@@ -460,6 +478,8 @@ const ProjectObject = z.object({
     environment: z.array(FixedItemSchema),
   }),
   workloads: z.array(WorkloadSchema),
+  /** Catalogue resources that run in production; absent or empty means none and adds no ledger lines. Optional so existing project literals and files stay valid. */
+  resources: z.array(ResourceSchema).optional(),
   maintenance: z.discriminatedUnion("mode", [
     z.object({ mode: z.literal("team"), team: z.array(TeamLineSchema) }),
     z.object({ mode: z.literal("pctOfBuild"), pctPerYear: n0 }),

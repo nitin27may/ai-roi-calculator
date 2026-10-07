@@ -6,6 +6,7 @@ export * from "./lines.js";
 export * from "./workloads.js";
 export * from "./devlab.js";
 export * from "./overrides.js";
+export * from "./resources.js";
 export * from "./ledger.js";
 export * from "./roi.js";
 export * from "./levers.js";

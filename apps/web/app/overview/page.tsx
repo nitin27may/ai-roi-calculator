@@ -166,8 +166,8 @@ function Levers() {
 function Alerts() {
   const { ledger } = useLedger();
   if (!ledger.notes.length) return <p className="text-sm text-muted">Nothing needs attention.</p>;
-  const tone = { "promo-ended": "warn", retired: "crit", deprecated: "crit", unverified: "n", "long-context": "warn", routing: "n", unavailable: "crit", "tier-unavailable": "warn", quota: "crit", capacity: "warn" } as const;
-  const label = { "promo-ended": "Promo", retired: "Retires", deprecated: "Deprecated", unverified: "Unverified", "long-context": "Long context", routing: "Routing", unavailable: "Not offered", "tier-unavailable": "Tier fallback", quota: "Over quota", capacity: "Capacity" } as const;
+  const tone = { "promo-ended": "warn", retired: "crit", deprecated: "crit", unverified: "n", "long-context": "warn", routing: "n", unavailable: "crit", "tier-unavailable": "warn", quota: "crit", capacity: "warn", manual: "n", resource: "warn" } as const;
+  const label = { "promo-ended": "Promo", retired: "Retires", deprecated: "Deprecated", unverified: "Unverified", "long-context": "Long context", routing: "Routing", unavailable: "Not offered", "tier-unavailable": "Tier fallback", quota: "Over quota", capacity: "Capacity", manual: "Manual price", resource: "Resource" } as const;
   return (
     <div>
       {ledger.notes.map((n) => (

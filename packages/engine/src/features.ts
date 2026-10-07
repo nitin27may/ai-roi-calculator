@@ -81,6 +81,7 @@ export function featureBreakdown(p: Project, ledger: Ledger): FeatureRow[] {
   };
   for (const f of p.features) row(f.id);
   const wFeature = new Map(p.workloads.map((w) => [w.id, w.featureId ?? SHARED_FEATURE_ID]));
+  for (const r of p.resources ?? []) wFeature.set(`resource:${r.id}`, r.featureId ?? SHARED_FEATURE_ID);
   const wsFeature = new Map(p.build.workstreams.map((w) => [w.id, w.featureId ?? SHARED_FEATURE_ID]));
   const actFeature = new Map(p.build.activities.map((a) => [a.id, activityFeature(p, a) ?? SHARED_FEATURE_ID]));
   for (const w of p.workloads) row(w.featureId ?? SHARED_FEATURE_ID).workloads++;

@@ -287,6 +287,18 @@ Gotchas:
 - **Long context.** `chat` now checks the turn whose own prompt (not the conversation average) first crosses the model's `longContext.threshold`, and splits the month's turns into a standard-rate line and a long-context-rate line by that share. The documents "direct to model" route carries a real `outputTokens` count (was always 0). No Claude catalogue entry has `longContext` — no verified Foundry long-context price was found for Claude, so none was added; don't invent one without a source.
 - **Schema:** every new field is optional with a default, so existing saved `*.aicost.json` files keep validating and (aside from the fixes above, which are deliberate) keep their totals.
 
+## Resource catalogue format (A2)
+
+Typed infrastructure resources (VMs, App Service plans, databases) live in `packages/catalog/data/resources/<category>.json`, one file per category: compute, database, storage, messaging, network, security, monitoring, data, licences. Today only `compute.json` exists and it is **seed data** (three illustrative SKUs, prices marked `unverified`); A3 and A4 replace it with the refreshed catalogue.
+
+- A file is `{ category, note?, types[], unitPrices[] }`. `loadCatalog` validates each file, merges `unitPrices` into `catalog.unitPrices` (so Prices & sources lists them) and exposes `catalog.resourceTypes`. To add a category, add its JSON file and one line to `RESOURCE_FILES` in `packages/catalog/src/index.ts`.
+- A `ResourceType` has `inputs` (what the user enters), `meters` (billed quantities: an input times an optional factor, `hourly`, `scalesWithSize`), `options` (`payg`, `ri1`, `ri3`, `ahb`, `devtest`), an optional `retail` block for the refresh (A3), and `skus`. Each SKU maps meter ids to `unitPriceId`s. Adding a SKU is a data change only.
+- A unit price is CAD per unit-month. For an `hourly` meter it is the cost of 730 hours, scaled by hours / 730 on pay-as-you-go.
+- `UnitPrice.options.{ri1,ri3,ahb,devtest}` hold the other prices, each with its own `source`. `UnitPrice.manual { price, note, retrievedAt }` replaces the pay-as-you-go price, adds a "manual" note to the ledger and shows as "manual" in Prices & sources. The refresh must never overwrite it. Option prices stay as refreshed.
+- A declared option with no price on a unit needs an explicit reason in `attrs["fallback.<option>"]` (for example `fallback.ahb` on a Linux VM). Free items set `attrs.free: true` (the only case where a price may be 0).
+- Engine: `Project.resources[]` (`ResourceSchema`, default empty) priced by `resources.ts` `resourceLines`. Each resource is costed as production at 730 hours in the production months, stream `run`, fixed. A reserved term uses the reserved price when the type offers it, else pay-as-you-go with a note. Hybrid Benefit uses the `ahb` price. A project with no resources adds no lines (the v5 golden test depends on that). `envIds` is stored and ignored until A6.
+- `packages/catalog/test/resources-coverage.test.ts` is the coverage gate: every SKU and meter has an existing price of 0 or more, every declared option has a price or a fallback note, every price has `retrievedAt`, and no price declared in a resource file is orphaned. The help entries for the resource fields (`resourceType` and friends) exist but no screen uses them yet, so `help.test.ts` does not cover them until A7.
+
 ## Plan and progress
 
 The 2026-10-04 audit and the roadmap are in [docs/plan](plan/README.md). The done/pending matrix is [docs/PROGRESS.md](PROGRESS.md); update it in every PR.
