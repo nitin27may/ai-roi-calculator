@@ -9,6 +9,8 @@ import unitPrices from "../data/unit-prices.json" with { type: "json" };
 import snowflake from "../data/snowflake.json" with { type: "json" };
 import benchmarks from "../data/benchmarks.json" with { type: "json" };
 import compute from "../data/resources/compute.json" with { type: "json" };
+import database from "../data/resources/database.json" with { type: "json" };
+import storage from "../data/resources/storage.json" with { type: "json" };
 import { Catalog, ResourceFile } from "./schema.js";
 
 export * from "./schema.js";
@@ -19,7 +21,7 @@ export type { Heuristics } from "./heuristics.js";
  * One entry per file in `data/resources/`, named by category. Adding a category is one import and one line here;
  * lazy per-category loading comes later and can replace this list without changing the file format.
  */
-const RESOURCE_FILES: unknown[] = [compute];
+const RESOURCE_FILES: unknown[] = [compute, database, storage];
 
 function loadResourceFiles(): { types: ResourceFile["types"]; unitPrices: ResourceFile["unitPrices"] } {
   const types: ResourceFile["types"] = [];

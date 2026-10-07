@@ -15,6 +15,8 @@ export const Source = z.object({
   url: z.string().url().optional(),
   meterName: z.string().optional(),
   note: z.string().optional(),
+  /** The Retail API OData filter that returned the row (azure-retail-api sources of resource prices). */
+  filter: z.string().optional(),
   retrievedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 export type Source = z.infer<typeof Source>;
@@ -205,6 +207,59 @@ export const PricingOption = z.enum(["payg", "ri1", "ri3", "ahb", "devtest"]);
 export type PricingOption = z.infer<typeof PricingOption>;
 
 /**
+ * How one meter is found in the Retail API. All patterns are case-insensitive regular expressions and may use
+ * `{armSku}` (the SKU's `armSku`, escaped). `parts` prices a meter as a sum of rows, each times a numeric SKU attribute
+ * (a Functions Premium instance is vCPUs x vCPU-hour rate + GiB x GiB-hour rate).
+ */
+export const MeterRule = z.object({
+  meterName: z.string().optional(),
+  productName: z.union([z.string(), z.record(z.string())]).optional(),
+  skuName: z.string().optional(),
+  /** Lower bound of the tier to take; default 0 (the first tier). `"paid"` takes the lowest tier with a price above 0. */
+  tier: z.union([z.number().nonnegative(), z.literal("paid")]).optional(),
+  /** Unit label of the resulting unit price (default derived from the row's unit of measure). */
+  unit: z.string().optional(),
+  /** Pricing options this meter offers; default is every option the type declares. Others get a fallback note. */
+  options: z.array(z.enum(["payg", "ri1", "ri3", "ahb", "devtest"])).optional(),
+  /** Priced at 0 with a reason, for free tiers and meters that carry no charge. */
+  free: z.string().optional(),
+  /** Divide the row's price by this (a licence listed for a 64 vCPU VM, priced per vCPU). */
+  divisor: z.number().positive().optional(),
+  parts: z.array(z.object({ meterName: z.string(), productName: z.union([z.string(), z.record(z.string())]).optional(), skuName: z.string().optional(), factorAttr: z.string(), tier: z.union([z.number().nonnegative(), z.literal("paid")]).optional() })).optional(),
+});
+export type MeterRule = z.infer<typeof MeterRule>;
+
+export const RetailBlock = z.object({
+  /** OData filter. With `{armSku}` the refresh queries once per SKU, otherwise once for the type. `{region}` is the catalogue region. */
+  filter: z.string(),
+  /** Regex on productName, or one per `attrs.os` ("linux", "windows"). */
+  productName: z.union([z.string(), z.record(z.string())]).optional(),
+  skuName: z.string().optional(),
+  /** Meter id to the rule that prices it (a bare string is a meterName pattern). */
+  meters: z.record(z.union([z.string(), MeterRule])),
+  armSkuToken: z.string().optional(),
+  /** Reserved prices cover compute only: a Windows SKU's reserved price is the Linux reservation plus the Windows licence at pay-as-you-go. */
+  windowsLicence: z.boolean().optional(),
+  /** Small per-unit prices lose digits in CAD (4 decimals); take them from the USD row times the measured FX rate. */
+  precise: z.boolean().optional(),
+  /** Price this type from another region (a global service the Retail API lists under one region), with the reason. */
+  regionOverride: z.string().optional(),
+  regionNote: z.string().optional(),
+});
+export type RetailBlock = z.infer<typeof RetailBlock>;
+
+/**
+ * Azure Hybrid Benefit per type. `linux-twin`: a Windows SKU takes the Linux price of the same size and a Linux SKU has no
+ * Hybrid Benefit. `licence-free`: the licence meter costs 0 when you bring your own licence. `unavailable`: the Retail API
+ * has no compute-only meter, so the type declares no "ahb" option; add a manual price if you hold one.
+ */
+export const AhbRule = z.object({
+  kind: z.enum(["linux-twin", "licence-free", "unavailable"]),
+  note: z.string().min(1),
+});
+export type AhbRule = z.infer<typeof AhbRule>;
+
+/**
  * A kind of Azure (or licensed) resource, such as a virtual machine, with the SKUs you can pick for it.
  * A meter is one billed quantity (compute hours, storage GB). Its `quantity` comes from a resource input times
  * an optional factor. A meter's unit price is CAD per unit-month; for an `hourly` meter that is the cost of
@@ -215,6 +270,8 @@ export const ResourceType = z.object({
   label: z.string(),
   category: ResourceCategory,
   docsUrl: z.string().url().optional(),
+  /** What this type does not cover (disk transactions, backups), shown next to the type. */
+  note: z.string().optional(),
   inputs: z.array(z.object({ id: z.string(), label: z.string(), unit: z.string(), help: z.string() })),
   meters: z.array(z.object({
     id: z.string(),
@@ -224,13 +281,10 @@ export const ResourceType = z.object({
     scalesWithSize: z.boolean(),
   })).min(1),
   options: z.array(PricingOption).default(["payg"]),
-  /** How the price refresh finds this type's meters in the Retail Prices API (used from A3). */
-  retail: z.object({
-    filter: z.string(),
-    productName: z.string().optional(),
-    meters: z.record(z.string()),
-    armSkuToken: z.string(),
-  }).optional(),
+  /** How the price refresh finds this type's meters in the Retail API (see `scripts/prices/resources.ts`). */
+  retail: RetailBlock.optional(),
+  /** Azure Hybrid Benefit rule for this type. Required when `options` includes "ahb". */
+  ahb: AhbRule.optional(),
   skus: z.array(z.object({
     id: z.string(),
     label: z.string(),
@@ -238,6 +292,8 @@ export const ResourceType = z.object({
     armSku: z.string().optional(),
     /** Meter id to the id of the unit price that bills it. */
     prices: z.record(z.string()),
+    /** Meter id to a retail rule for this SKU: replaces the type's rule field by field (a free tier replaces it whole). */
+    retail: z.record(z.union([z.string(), MeterRule])).optional(),
   })).min(1),
 });
 export type ResourceType = z.infer<typeof ResourceType>;

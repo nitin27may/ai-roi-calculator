@@ -11,9 +11,11 @@
     "build": "pnpm -r build",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
-    "prices": "pnpm prices:azure && pnpm prices:snowflake",
+    "prices": "pnpm prices:azure && pnpm prices:snowflake && pnpm prices:resources",
     "prices:azure": "tsx scripts/prices/azure.ts",
     "prices:snowflake": "tsx scripts/prices/snowflake.ts",
+    "prices:scaffold": "tsx scripts/prices/resource-scaffold.ts",
+    "prices:resources": "tsx scripts/prices/resources.ts",
     "validate": "tsx scripts/validate-catalog.ts",
     "deploy": "pnpm --filter @roi-calculator/web build && cd apps/web && npx -y wrangler@3 pages deploy out --project-name token-calculator --branch main --commit-dirty=true"
   },
