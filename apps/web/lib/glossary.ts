@@ -14,6 +14,24 @@ export const GLOSSARY: GlossaryTerm[] = [
     technical: "Saving in a month = current cost minus what remains. A reduce that follows adoption ramps with the adoption ramp; a retire starts in its month; a conditional line that is not assumed saves nothing. People lines rise with rate escalation. Dual-running cost sums, over months where the new run cost is billed, the cost of lines due to go away that has not yet gone.",
   },
   {
+    id: "environment",
+    term: "Environment",
+    plain: "A separate copy of the system that runs for a purpose: dev for building, test for checking, UAT for the business to sign off, production for real use, DR for disaster recovery. You define resources once, as production, and each environment runs a smaller or shorter-lived version of them.",
+    technical: "Each environment has a size factor, a schedule, optional first and last billed months and a pricing choice (pay-as-you-go or dev/test). Production environments are billed from go-live under running cost. Non-production environments are billed in the build months by default and are counted as environment cost, which Running cost only leaves out.",
+  },
+  {
+    id: "size-factor",
+    term: "Size factor",
+    plain: "How big an environment is next to production. 0.5 means half the size, so half the cost for the parts of the price that grow with size.",
+    technical: "Multiplies the quantity-times-price of every meter marked as scaling with size (compute, storage, throughput). Flat meters such as a fixed monthly fee ignore it. Reserved prices are scaled too, but not by the schedule.",
+  },
+  {
+    id: "schedule-hours-per-month",
+    term: "Schedule (hours per month)",
+    plain: "How many hours a month an environment is switched on. A dev environment on for 10 hours a day, 22 days a month, runs 220 hours instead of 730, so it costs about 30% of an always-on copy.",
+    technical: "Hours a day times days a month, or hours a month directly; 730 means always on. Hourly pay-as-you-go and dev/test meters are scaled by hours divided by 730. A reservation bills 730 hours whatever the schedule, so scheduling a reserved resource saves nothing and the line says so.",
+  },
+  {
     id: "snowflake-credit",
     term: "Snowflake credit",
     plain: "Snowflake bills in credits, not dollars. The ROI Calculator shows the credits each workload uses and multiplies them by what one credit costs you in Canadian dollars, so you can see both numbers.",

@@ -448,6 +448,27 @@ export const CurrentLineSchema = z.object({
 });
 export type CurrentLine = z.infer<typeof CurrentLineSchema>;
 
+/**
+ * An environment resources run in (dev, test, UAT, production, DR). Resources are defined once, as production; each
+ * environment scales them by `sizeFactor` (for meters that scale with size) and bills hourly pay-as-you-go meters for
+ * the hours of its `schedule`. The default schedule is 730 hours a month. `fromMonth`/`toMonth` bound the billed
+ * months; an absent bound is the edge of the environment's default phase (build months for non-production,
+ * production months for production).
+ */
+export const EnvironmentSchema = z.object({
+  id, label: z.string(),
+  production: z.boolean().default(false),
+  sizeFactor: n0.default(1),
+  schedule: z.union([
+    z.object({ hoursPerDay: n0, daysPerMonth: n0 }),
+    z.object({ hoursPerMonth: n0 }),
+  ]).default({ hoursPerMonth: 730 }),
+  fromMonth: z.number().int().min(1).optional(),
+  toMonth: z.number().int().min(1).optional(),
+  pricing: z.enum(["payg", "devtest"]).default("payg"),
+});
+export type Environment = z.infer<typeof EnvironmentSchema>;
+
 const ProjectObject = z.object({
   schema: z.literal(PROJECT_SCHEMA_ID),
   version: z.literal(CURRENT_PROJECT_VERSION),
@@ -510,6 +531,8 @@ const ProjectObject = z.object({
   workloads: z.array(WorkloadSchema),
   /** Catalogue resources that run in production; absent or empty means none and adds no ledger lines. Optional so existing project literals and files stay valid. */
   resources: z.array(ResourceSchema).optional(),
+  /** Environments resources run in; absent or empty means one implicit production environment at 730 hours. */
+  environments: z.array(EnvironmentSchema).optional(),
   maintenance: z.discriminatedUnion("mode", [
     z.object({ mode: z.literal("team"), team: z.array(TeamLineSchema) }),
     z.object({ mode: z.literal("pctOfBuild"), pctPerYear: n0 }),

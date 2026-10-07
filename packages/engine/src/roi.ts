@@ -8,9 +8,9 @@ export type CostBasis = Project["roi"]["basis"];
  * Report and Excel use the same words. `label` names the basis; `short` fits in a tile caption; `hint` is the one-line explanation.
  */
 export const COST_BASES: readonly { value: CostBasis; label: string; short: string; hint: string }[] = [
-  { value: "run", label: "Running cost only", short: "running cost only", hint: "Production AI usage and platform. Use this for an app that already exists." },
-  { value: "runMaint", label: "Running + maintenance", short: "running + maintenance", hint: "Adds the support team and transition costs, but not the build." },
-  { value: "full", label: "Full lifecycle", short: "full lifecycle", hint: "Build labour, AI Dev Lab, dev environment, running, maintenance and transition: everything the project costs." },
+  { value: "run", label: "Running cost only", short: "running cost only", hint: "Production AI usage, production infrastructure and platform. Non-production environments are not included. Use this for an app that already exists." },
+  { value: "runMaint", label: "Running + maintenance", short: "running + maintenance", hint: "Adds the support team, transition costs and non-production environments, but not the build." },
+  { value: "full", label: "Full lifecycle", short: "full lifecycle", hint: "Build labour, AI Dev Lab, dev environment, non-production environments, running, maintenance and transition: everything the project costs." },
 ];
 
 /** Display name of a cost basis, e.g. "Full lifecycle". */
@@ -71,8 +71,9 @@ export function basisCost(mo: Month, basis: CostBasis): number {
   const s = mo.byStream;
   const run = s.run + s.platform;
   if (basis === "run") return run;
-  if (basis === "runMaint") return run + s.maint + s.transition;
-  return run + s.maint + s.transition + s.labour + s.devlab + s.devenv;
+  // Non-production environments (stream env) count from "Running + maintenance" up; "Running cost only" is production and platform.
+  if (basis === "runMaint") return run + s.maint + s.transition + (s.env ?? 0);
+  return run + s.maint + s.transition + s.labour + s.devlab + s.devenv + (s.env ?? 0);
 }
 
 /**

@@ -9,7 +9,7 @@ import { oneTimeKey, workloadWindow } from "./features.js";
 import { isCashItem } from "./project.js";
 import { devLabLines, teamLines } from "./devlab.js";
 import { avoidedMonthly, capabilityHours, confidenceWeight, valueItemMonthly } from "./benefits.js";
-import { resourceLines } from "./resources.js";
+import { resourceMonthLines } from "./resources.js";
 import { currentLineSaving, currentLines, currentFullSaving } from "./currentstate.js";
 import { line, sum, type Line, type Stream } from "./lines.js";
 
@@ -33,7 +33,8 @@ export interface Month {
   /** 0..1 adoption in production; 0 during build. */
   adoption: number;
   lines: Line[];
-  byStream: Record<Stream, number>;
+  /** Cost by stream. `env` (non-production environments) is present only when a project has such lines, so v5 totals keep their exact shape; read it with `envCost`. */
+  byStream: Record<Exclude<Stream, "env">, number> & { env?: number };
   benefit: number;
   benefitBy: MonthBenefit;
 }
@@ -49,7 +50,10 @@ export interface Ledger {
 /** The month run-rate figures are read at (see `Ledger.steadyMonth`). */
 export const steadyState = (ledger: Ledger): Month => ledger.months[ledger.steadyMonth - 1] ?? ledger.months.at(-1)!;
 
-export const STREAMS: Stream[] = ["labour", "devlab", "devenv", "run", "platform", "maint", "transition"];
+export const STREAMS: Stream[] = ["labour", "devlab", "devenv", "run", "platform", "maint", "transition", "env"];
+
+/** Non-production environment cost of a month (0 when the project has none). */
+export const envCost = (mo: { byStream: { env?: number } }): number => mo.byStream.env ?? 0;
 
 /**
  * The project as a month-by-month ledger.
@@ -91,12 +95,15 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
           if (it.cadence === "monthly" || m === Math.min(B, it.month ?? 1)) lines.push({ ...cashLine(`devenv:${it.id}`, "devenv", it, "devenv"), once: it.cadence === "once" });
         } else lines.push(line({ id: `devenv:${it.id}`, componentId: "devenv", label: it.label, stream: "devenv", behaviour: "fixed", meter: it.unitPriceId, quantity: it.quantity, unit: book.unit(it.unitPriceId).unit, unitPrice: book.unitPrice(it.unitPriceId), formula: `${it.quantity} × ${book.unit(it.unitPriceId).unit}` }));
       }
+      lines.push(...resourceMonthLines(p, book, m));
       lines = lines.map((l) => {
         if (l.manual) return l;
-        const f = (l.stream === "labour" ? 1 : nonLabourContingency) * devCut;
+        // Infrastructure is not AI-assisted development, so the dev-cost cut does not apply to it.
+        const f = (l.stream === "labour" ? 1 : nonLabourContingency) * (l.stream === "env" || l.componentId.startsWith("resource:") ? 1 : devCut);
         return { ...l, unitPrice: l.unitPrice * f, cost: l.cost * f };
       });
-      buildTotal += sum(lines.map((l) => l.cost));
+      // Environment lines are infrastructure, not build effort, so they stay out of the base of "maintenance as % of build".
+      buildTotal += sum(lines.filter((l) => l.stream !== "env" && !l.componentId.startsWith("resource:")).map((l) => l.cost));
     } else {
       const k = m - B; // production month, 1-based
       const r = p.timeline.adoptionRampMonths;
@@ -122,7 +129,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
           }
         }
       }
-      lines.push(...resourceLines(p, book));
+      lines.push(...resourceMonthLines(p, book, m));
       const maint = p.maintenance.mode === "none" ? []
         : p.maintenance.mode === "team"
         ? teamLines(p, p.maintenance.team, "maint", "maintenance", maintCut * esc)
@@ -166,8 +173,11 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
     }
     for (const o of p.benefits.oneOff) if (m === o.month) benefitBy.oneOff += o.amount;
     lines = applyFreeAllowances(lines, book);
-    const byStream = Object.fromEntries(STREAMS.map((s) => [s, 0])) as Record<Stream, number>;
-    for (const l of lines) byStream[l.stream] += l.cost;
+    const byStream = Object.fromEntries(STREAMS.filter((s) => s !== "env").map((s) => [s, 0])) as Month["byStream"];
+    for (const l of lines) {
+      if (l.stream === "env") byStream.env = (byStream.env ?? 0) + l.cost;
+      else byStream[l.stream] += l.cost;
+    }
     const benefit = sum(Object.values(benefitBy.capabilities)) + benefitBy.avoided + benefitBy.oneOff + sum(Object.values(benefitBy.value)) + sum(Object.values(benefitBy.currentState));
     months.push({ m, date, phase: m <= B ? "build" : "production", adoption, lines, byStream, benefit, benefitBy });
   }
@@ -188,10 +198,10 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
     steadyMonth: steady,
     notes: [...book.notes.values()],
     totals: {
-      build: sum(buildMonths.map((x) => x.byStream.labour + x.byStream.devlab + x.byStream.devenv)),
+      build: sum(buildMonths.map((x) => x.byStream.labour + x.byStream.devlab + x.byStream.devenv + envCost(x))),
       buildLabour: sum(buildMonths.map((x) => x.byStream.labour)),
       devLab: sum(buildMonths.map((x) => x.byStream.devlab)),
-      runRate: firstFull.byStream.run + firstFull.byStream.platform - onceCost,
+      runRate: firstFull.byStream.run + firstFull.byStream.platform + envCost(firstFull) - onceCost,
       maintRate: firstFull.byStream.maint,
       benefitRate: sum([...capFull.values()]) + sum(p.benefits.avoidedCosts.map((a) => avoidedMonthly(p, a) * confidenceWeight(a.confidencePct))) + sum(p.benefits.value.map((v) => valueItemMonthly(p, v) * confidenceWeight(v.confidencePct))) + currentFullSaving(p),
     },

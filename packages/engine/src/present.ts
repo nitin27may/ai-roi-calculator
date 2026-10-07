@@ -62,6 +62,9 @@ export function costSplit(ledger: Ledger): CostSplitPart[] {
   const t = { build: 0, run: 0, platform: 0, maint: 0 };
   for (const m of ledger.months) {
     t.build += m.byStream.labour + m.byStream.devlab + m.byStream.devenv;
+    // Non-production environments split by phase: build months with the build, production months with platform cost.
+    if (m.phase === "build") t.build += m.byStream.env ?? 0;
+    else t.platform += m.byStream.env ?? 0;
     t.run += m.byStream.run;
     t.platform += m.byStream.platform;
     t.maint += m.byStream.maint + m.byStream.transition;

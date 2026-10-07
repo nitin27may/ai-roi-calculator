@@ -13,6 +13,7 @@ const STREAMS = [
   { key: "devlab", label: "AI Dev Lab", color: "var(--build)" },
   { key: "run", label: "Production AI usage", color: "var(--run)" },
   { key: "platform", label: "Platform", color: "var(--platform)" },
+  { key: "env", label: "Environments", color: "var(--platform)" },
   { key: "maint", label: "Maintenance & transition", color: "var(--maint)" },
 ];
 
@@ -45,9 +46,10 @@ export default function Report() {
     prices: pricesUsedRows(ledger, catalog),
   }), [p, ledger]);
   const t = ledger.totals, B = p.timeline.buildMonths;
-  const rows = ledger.months.map((m) => ({ labour: m.byStream.labour, devlab: m.byStream.devlab + m.byStream.devenv, run: m.byStream.run, platform: m.byStream.platform, maint: m.byStream.maint + m.byStream.transition, benefit: m.benefit }));
+  const rows = ledger.months.map((m) => ({ labour: m.byStream.labour, devlab: m.byStream.devlab + m.byStream.devenv, run: m.byStream.run, platform: m.byStream.platform, env: m.byStream.env ?? 0, maint: m.byStream.maint + m.byStream.transition, benefit: m.benefit }));
   const basis = BASIS_WORDS[p.roi.basis];
-  const streams = s.labourExcluded ? STREAMS.filter((x) => x.key !== "labour") : STREAMS;
+  const hasEnv = ledger.months.some((m) => (m.byStream.env ?? 0) > 0);
+  const streams = STREAMS.filter((x) => (x.key !== "labour" || !s.labourExcluded) && (x.key !== "env" || hasEnv));
   const devById = new Map<string, number>();
   for (const m of ledger.months.slice(0, B)) for (const l of m.lines) if (l.stream === "devlab") devById.set(l.componentId, (devById.get(l.componentId) ?? 0) + l.cost);
   const firstFull = steadyState(ledger);
