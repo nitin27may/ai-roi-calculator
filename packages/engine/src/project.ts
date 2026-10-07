@@ -418,8 +418,19 @@ export const TeamLineSchema = z.object({
 /** A what-if: edits applied to a copy of the project. Arrays in a path are addressed by element id. */
 export const ScenarioEditSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("set"), path: z.array(z.union([z.string(), z.number()])).min(1), value: z.unknown() }),
-  z.object({ kind: z.literal("lever"), leverId: id }),
+  /** `amount` is the lever's own setting (a percent or a number of months, see `LeverParam` in levers.ts); absent means the lever's default. */
+  z.object({ kind: z.literal("lever"), leverId: id, amount: z.number().optional() }),
   z.object({ kind: z.literal("scaleUsage"), factor: z.number().positive() }),
+  /**
+   * Scale labour rates by `factor`. `scope` "delivery" (default) moves build and maintenance team rates only, so the value of
+   * an hour saved and current-state people costs stay put; "all" also moves benefit value and current-state people cost.
+   */
+  z.object({ kind: z.literal("scaleRates"), factor: z.number().positive(), scope: z.enum(["delivery", "all"]).optional() }),
+  /**
+   * Move a date by `by` months (negative is earlier). "decommission": every current-state line's change month, never before
+   * go-live. "golive": go-live and the build length (1 to 24 months), with what follows go-live moving too (see `shiftGoLive`).
+   */
+  z.object({ kind: z.literal("shiftMonths"), target: z.enum(["decommission", "golive"]), by: z.number().int() }),
 ]);
 export const ScenarioSchema = z.object({ id, label: z.string(), edits: z.array(ScenarioEditSchema) });
 export type Scenario = z.infer<typeof ScenarioSchema>;
