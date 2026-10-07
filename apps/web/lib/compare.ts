@@ -1,5 +1,6 @@
 import { formatIrr, type ComparedProject } from "@roi-calculator/engine";
 import { cad, fmt } from "./format";
+import type { ExtraFigures } from "./portfolio";
 
 export interface CompareRow {
   id: keyof Omit<ComparedProject, "name">;
@@ -30,3 +31,18 @@ export function bestIndex(values: (number | null)[], lowerIsBetter: boolean): nu
   const tied = have.filter((x) => x.v === best.v).length > 1;
   return tied ? -1 : best.i;
 }
+
+export interface ExtraCompareRow {
+  id: keyof ExtraFigures;
+  label: string;
+  lowerIsBetter: boolean;
+  table: (v: number | null) => string;
+}
+
+/** Rows added by the portfolio view. A project without the data shows "n/a" and takes no part in the Best mark. */
+export const EXTRA_COMPARE_ROWS: ExtraCompareRow[] = [
+  { id: "discountedPaybackMonth", label: "Discounted payback", lowerIsBetter: true, table: (v) => (v === null ? "n/a" : `Month ${v}`) },
+  { id: "savingPerMonth", label: "Saving per month from current state", lowerIsBetter: false, table: (v) => (v === null ? "n/a" : cad(v)) },
+  { id: "scorecardComposite", label: "Scorecard composite", lowerIsBetter: false, table: (v) => (v === null ? "n/a" : `${fmt(v, 1)}% better`) },
+  { id: "monetisedMonthly", label: "Monetised scorecard value per month", lowerIsBetter: false, table: (v) => (v === null ? "n/a" : cad(v)) },
+];

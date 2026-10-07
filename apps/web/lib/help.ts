@@ -156,6 +156,8 @@ export const HELP = {
 
   // Settings page
   reportAuthor: e("The name printed on the report cover as its author or owner. It is kept in this browser only and is not part of the saved estimate.", "Text", "Priya Nair, Finance Business Partner.", "You choose it. Empty means the cover shows no author."),
+  portfolioGroupBy: e("How the project cards are arranged: in one list, or in a group for each type of change. A project with several types appears in each of its groups.", "None or Type", "Type shows an Automation group and an AI group; a project typed both appears in each.", "Nothing is chosen until you pick; your choice is remembered in this browser."),
+  portfolioFilter: e("Shows only projects of the types you switch on. With none on, every project shows. A project with no type set matches Not set.", "One or more types", "Switch on AI to see every project with an AI feature, including mixed ones.", "Nothing is on until you choose; your choice is remembered in this browser."),
   projectName: e("The name of this estimate, shown in the sidebar, reports and exports.", "Text", "Claims assistant, phase 1.", "You choose it."),
   startMonth: e("The calendar month in which the build starts. It labels the months on every chart and export.", "Month and year", "January 2027.", "Starts from the sample project. It does not change any cost."),
   buildMonths: e("How many months the build phase lasts. Dev Lab spend and team cost run during this time. Production starts after it.", "Months", "6 means build runs in months 1 to 6 and go-live is month 7.", SAMPLE, { limit: "the ROI Calculator models builds of 1 to 24 months" }),
