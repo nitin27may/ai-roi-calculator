@@ -9,6 +9,8 @@ import { resolveAssumptions } from "./assumptions.js";
 import { requestVolumes } from "./hosting.js";
 import { userCounts } from "./runcost.js";
 import { capabilityVolume, roiAssumptions } from "./benefits.js";
+import { hidesAiChoices, usesAi } from "./types.js";
+import { hasDecommissionLines, hasSeatVolume, hasTransactionVolume, scaleCurrentCosts, scaleResourceQuantities, scaleVolumes, shiftDecommission } from "./transforms.js";
 
 export interface SensitivityRow {
   id: string;
@@ -164,6 +166,10 @@ export function sensitivity(p: Project, cat: Catalog): { base: number; combined:
   const npv = (q: Project, c: Catalog = cat) => computeRoi(buildLedger(q, c), q.roi.basis, q.roi.discountRatePct, roiOptions(q)).npv;
   const hasBenchmarked = p.benefits.capabilities.some((c) => (c.driver ?? "hours") !== "hours");
   const B = p.timeline.buildMonths;
+  /** A project that has chosen types and none is AI: the AI-only drivers are not offered. Blank and legacy projects keep them. */
+  const noAi = hidesAiChoices(p) && !usesAi(p);
+  const hasResources = (p.resources?.length ?? 0) > 0;
+  const hasCurrentSavings = (p.currentState?.lines ?? []).some((l) => l.change.mode !== "keep");
   const drivers: Driver[] = [
     {
       id: "evidence", label: "Time saved per task (benchmark column)", applies: () => hasBenchmarked,
@@ -176,20 +182,26 @@ export function sensitivity(p: Project, cat: Catalog): { base: number; combined:
     { id: "users", label: "Users / volume of the work", low: ["−30%", (q) => scaleCapabilityVolume(q, 0.7)], high: ["+30%", (q) => scaleCapabilityVolume(q, 1.3)] },
     { id: "valueOfTime", label: "Value of an hour saved (benefit roles' rates)", low: ["−20%", (q) => scaleRates(q, benefitRoles(p), 0.8)], high: ["+20%", (q) => scaleRates(q, benefitRoles(p), 1.2)] },
     { id: "deliveryRates", label: "Delivery team rates", applies: () => p.build.includeLabour && p.build.team.some((t) => t.costed !== false), low: ["+20%", (q) => scaleDeliveryRates(q, deliveryRoles(p), 1.2)], high: ["−20%", (q) => scaleDeliveryRates(q, deliveryRoles(p), 0.8)] },
-    { id: "runVolume", label: "AI run volume (same benefit)", low: ["×1.5", (q) => scaleRunOnly(q, 1.5, cat)], high: ["×0.7", (q) => scaleRunOnly(q, 0.7, cat)] },
+    { id: "runVolume", label: "AI run volume (same benefit)", applies: () => !noAi, low: ["×1.5", (q) => scaleRunOnly(q, 1.5, cat)], high: ["×0.7", (q) => scaleRunOnly(q, 0.7, cat)] },
     { id: "buildLength", label: "Build length (team stays on)", low: [`${Math.min(24, B + 2)} months`, (q) => setBuildLength(q, Math.min(24, B + 2))], high: [`${Math.max(1, B - 2)} months`, (q) => setBuildLength(q, Math.max(1, B - 2))] },
     { id: "ramp", label: "Adoption ramp", low: [`${p.timeline.adoptionRampMonths * 2 || 6} months`, (q) => { q.timeline.adoptionRampMonths = Math.min(24, p.timeline.adoptionRampMonths * 2 || 6); }], high: [`${Math.floor(p.timeline.adoptionRampMonths / 2)} months`, (q) => { q.timeline.adoptionRampMonths = Math.floor(p.timeline.adoptionRampMonths / 2); }] },
-    { id: "tokenPrice", label: "Token prices (model list prices)", applies: () => modelSpend(p, cat).length > 0, low: ["+25%", (_q, x) => { x.cat = scaleTokenPrices(x.cat, 1.25); }], high: ["−25%", (_q, x) => { x.cat = scaleTokenPrices(x.cat, 0.75); }] },
+    { id: "tokenPrice", label: "Token prices (model list prices)", applies: () => !noAi && modelSpend(p, cat).length > 0, low: ["+25%", (_q, x) => { x.cat = scaleTokenPrices(x.cat, 1.25); }], high: ["−25%", (_q, x) => { x.cat = scaleTokenPrices(x.cat, 0.75); }] },
     {
-      id: "cacheHit", label: "Prompt cache hit rate", applies: () => cacheWorkloads(p).length > 0,
+      id: "cacheHit", label: "Prompt cache hit rate", applies: () => !noAi && cacheWorkloads(p).length > 0,
       low: ["half as many hits", (q) => { for (const w of q.workloads as unknown as CachedWorkload[]) if (typeof w.cacheHit === "number") w.cacheHit *= 0.5; }],
       high: ["half the misses gone", (q) => { for (const w of q.workloads as unknown as CachedWorkload[]) if (typeof w.cacheHit === "number") w.cacheHit += (1 - w.cacheHit) * 0.5; }],
     },
     {
-      id: "modelSwap", label: cheaper || dearer ? `Model choice (${(cheaper ?? dearer)!.from})` : "Model choice", applies: () => cheaper !== null || dearer !== null,
+      id: "modelSwap", label: cheaper || dearer ? `Model choice (${(cheaper ?? dearer)!.from})` : "Model choice", applies: () => !noAi && (cheaper !== null || dearer !== null),
       low: [dearer ? `to ${dearer.to.label}` : "no change", (q) => { if (dearer) swapModel(q, dearer.from, dearer.to.id); }],
       high: [cheaper ? `to ${cheaper.to.label}` : "no change", (q) => { if (cheaper) swapModel(q, cheaper.from, cheaper.to.id); }],
     },
+    // Generic drivers (A13): each shows only when the project has the parts it moves.
+    { id: "resourceCost", label: "Resource and environment cost", applies: () => hasResources, low: ["+20%", (q) => { scaleResourceQuantities(q, 1.2); }], high: ["−20%", (q) => { scaleResourceQuantities(q, 0.8); }] },
+    { id: "currentSavings", label: "Current-state savings", applies: () => hasCurrentSavings, low: ["−20%", (q) => { scaleCurrentCosts(q, 0.8); }], high: ["+20%", (q) => { scaleCurrentCosts(q, 1.2); }] },
+    { id: "transactionVolume", label: "Transaction volume (fees and current-state costs)", applies: () => hasTransactionVolume(p), low: ["+30%", (q) => { scaleVolumes(q, 1.3, "transactions"); }], high: ["−30%", (q) => { scaleVolumes(q, 0.7, "transactions"); }] },
+    { id: "seatCount", label: "Seat count", applies: () => hasSeatVolume(p), low: ["+25%", (q) => { scaleVolumes(q, 1.25, "seats"); }], high: ["−25%", (q) => { scaleVolumes(q, 0.75, "seats"); }] },
+    { id: "decommissionMonth", label: "Decommission timing", applies: () => hasDecommissionLines(p), low: ["6 months later", (q) => { shiftDecommission(q, 6); }], high: ["6 months earlier", (q) => { shiftDecommission(q, -6); }] },
     { id: "fx", label: "Exchange rate (USD-priced Azure services)", low: ["+5%", (_q, x) => { x.cat = scaleFx(x.cat, 1.05); }], high: ["−5%", (_q, x) => { x.cat = scaleFx(x.cat, 0.95); }] },
     { id: "growth", label: "Usage growth per year", low: ["0%", (q) => { q.roi.growthPctPerYear = 0; }], high: [`${Math.max(20, p.roi.growthPctPerYear * 2)}%`, (q) => { q.roi.growthPctPerYear = Math.max(20, p.roi.growthPctPerYear * 2); }] },
   ];

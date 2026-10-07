@@ -424,6 +424,25 @@ Catalogue: 53 types and 258 SKUs in `messaging.json` (Service Bus, Event Grid, E
 - **Gotcha.** The first card carries `data-tour="projects-list"`; with grouping on only the first group's first card does, so a mixed project does not duplicate the tour target.
 - Tests: `apps/web/test/portfolio.test.ts`.
 
+## Generic scenario and sensitivity levers (A13)
+
+Code: `packages/engine/src/transforms.ts` holds the transforms; `levers.ts`, `scenarios.ts` and `sensitivity.ts` call them, so a lever, a saved scenario edit and a sensitivity bar always mean the same change.
+
+- **New scenario edits:** `{ kind: "scaleRates", factor, scope? }` and `{ kind: "shiftMonths", target: "decommission" | "golive", by }`. A lever edit may carry `amount`. All optional, so old files parse unchanged; no schema version bump.
+- **Levers** (`LEVERS`, each with `group: "ai" | "generic"`, optional `param` bounds, `saves`). `applicableLevers()` lists the ones that fit; `evaluateLevers()` (Overview, Report) lists only cost levers (`saves`), so the AI list is unchanged. `leverEffect()` gives the cost and NPV change shown in the scenario panel.
+  - **Reserved coverage** (`reserve1y`, `reserve3y`, 10 to 100%, default 50): every pay-as-you-go resource with a cheaper reserved price for the term is split in production into a pay-as-you-go row (1 - c of every quantity input) and a reserved row (c). Non-production keeps the whole resource at pay-as-you-go (reserved bills 730 h). Quantities can be fractional: a blend, not a purchase order.
+  - **SKU size** (`skuUp`, `skuDown`, one step): siblings are the same type with identical text attributes (OS, series, tier), ordered by pay-as-you-go price (unit price x quantity factor, summed over meters). Only types where every SKU has a numeric size attribute (vCPU, memory, GiB) qualify. No sibling in the direction: the resource is skipped.
+  - **Non-production hours** (`envHours`, 10 to 100% of today's hours, default 50): scales hours per day (capped at 24) or monthly hours of non-production environments. Reserved still bills 730.
+  - **Volume** (`volume`, 25 to 400%, default 120): transaction-fee volumes, per-transaction current-state volumes and seat counts that are typed in. Volumes read from another workload follow it. AI workloads, hosting requests and benefit volumes do not move.
+  - **Build length** (`deliveryLength`, 50 to 200%, default 120): build months x factor, rounded, 1 to 24. Explicit team and phase windows scale in proportion (start floor((k-1) r)+1, end ceil(k r)); people and hours a month stay, so labour moves with length; people x weeks lines keep total hours. Months after go-live shift by the change.
+  - **Go-live** (`goLive`, -12 to +12 months, default +3) and the edit `shiftMonths golive`: build length changes by the shift; open-ended and to-the-end windows follow; explicit months after go-live (hypercare, later environments, workload and benefit start months, current-state change months) shift too. The horizon does not move.
+  - **Decommission date** (`decommission`, -12 to +24 months, default +6) and the edit `shiftMonths decommission`: every reduced or retired current-state line's change month moves, never before go-live; kept lines stay.
+  - **Labour rates** (`labourRates`, 50 to 150%, default 110) and the edit `scaleRates`: scope `delivery` (default) scales build and maintenance team rates only. A role used only by delivery has its rate-card rate scaled; a role that also values a benefit or a current-state people line keeps its rate and its team lines get a manual rate instead, so benefit value and current-state cost never move. Scope `all` moves every rate and manual rate.
+  - **Adoption** (`adoptionRamp`, 0 to 24 months, default half of today's; `adoptionShare`, 10 to 100%, default 80, sets `roi.adoptionPct`).
+- **Sensitivity drivers added:** resource and environment cost (+-20% of every resource quantity), current-state savings (+-20% of each line's cost today), transaction volume (+-30%), seat count (+-25%), decommission timing (6 months later or earlier). Build length, delivery rates and adoption ramp already existed. Each appears only when the project has the parts. AI-only drivers (AI run volume, token prices, cache hit, model choice) are hidden when `hidesAiChoices && !usesAi`; blank and legacy projects keep them.
+- **Gotchas:** `totals.build` includes non-production environment cost, so labour tests sum the `labour` stream. A saved lever edit that no longer applies to the project is ignored, not an error. The Scenarios lever picker starts empty on purpose (nothing preselected).
+- **Tests:** `packages/engine/test/generic-levers.test.ts`.
+
 ## Plan and progress
 
 The 2026-10-04 audit and the roadmap are in [docs/plan](plan/README.md). The done/pending matrix is [docs/PROGRESS.md](PROGRESS.md); update it in every PR.

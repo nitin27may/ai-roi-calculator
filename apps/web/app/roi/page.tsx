@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
-import { COST_BASES, LEVERS, applyScenario, buildLabel, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityVolume, workloadVolume, sensitivity, capabilityHours, compareScenarios, computeAllocation, linkCapabilityToFeature, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@roi-calculator/engine";
+import { COST_BASES, applicableLevers, leverEffect, applyScenario, buildLabel, avoidedMonthly, beforeAfter, capabilityFromBenchmark, capabilityVolume, workloadVolume, sensitivity, capabilityHours, compareScenarios, computeAllocation, linkCapabilityToFeature, ensureBenchmarkRole, roiAssumptions, type Capability, type ScenarioEdit } from "@roi-calculator/engine";
 import { Card, CardHead, Field, NumberInput, Pill, Seg, Select, TextInput, TrashButton } from "@/components/ui";
 import type { HelpId } from "@/lib/help";
 import { CumulativeLine, Legend } from "@/components/charts";
@@ -187,7 +187,7 @@ function Tornado() {
         <thead><tr><th>Input</th><th className="n">Low</th><th className="n">NPV</th><th className="n">High</th><th className="n">NPV</th><th className="n">Swing</th></tr></thead>
         <tbody>{rows.map((r) => <tr key={r.id}><td>{r.label}</td><td className="n">{r.lowLabel}</td><td className="n">{cad(r.low)}</td><td className="n">{r.highLabel}</td><td className="n">{cad(r.high)}</td><td className="n font-semibold">{cad(r.swing)}</td></tr>)}</tbody>
       </table>
-      <p className="text-xs text-muted">Red: NPV below the base; green: above. Benefit inputs use the benchmark library&apos;s conservative and optimistic values; others move by the amounts shown. AI run volume scales production usage with the benefit held, so it isolates token and service cost.</p>
+      <p className="text-xs text-muted">Red: NPV below the base; green: above. Benefit inputs use the benchmark library&apos;s conservative and optimistic values; others move by the amounts shown. Only inputs the project has are listed. AI run volume (AI projects only) scales production usage with the benefit held, so it isolates token and service cost; decommission timing moves every reduced or retired current-state line by six months.</p>
     </div>
   );
 }
@@ -479,7 +479,14 @@ function Scenarios() {
   const [wid, setWid] = useState(llmWorkloads[0]?.id ?? "");
   const [model, setModel] = useState("gpt-5.4-mini");
   const [num, setNum] = useState(50);
-  const [lever, setLever] = useState(LEVERS[0]!.id);
+  const levers = useMemo(() => applicableLevers(project, catalog), [project]);
+  // Nothing is preselected: the lever and its setting start empty until the user picks a lever.
+  const [lever, setLever] = useState("");
+  const [leverNum, setLeverNum] = useState<number | null>(null);
+  const picked = levers.find((l) => l.id === lever);
+  const leverSetting = picked?.param ? (leverNum ?? picked.param.default(project)) : undefined;
+  const effect = useMemo(() => (picked ? leverEffect(project, catalog, picked, leverSetting) : null), [project, picked, leverSetting]);
+  const leverText = picked ? `${picked.label}${picked.param ? `: ${leverSetting}${picked.param.unit === "%" ? "%" : ` month${leverSetting === 1 ? "" : "s"}`}` : ""}` : "";
   const [preset, setPreset] = useState<"conservative" | "typical" | "optimistic">("conservative");
   const devIdx = project.build.team.findIndex((t) => t.experiments);
 
@@ -489,7 +496,7 @@ function Scenarios() {
       : kind === "scale" ? { edit: { kind: "scaleUsage", factor: num / 100 }, text: `Usage at ${num}%` }
       : kind === "buildMonths" ? { edit: { kind: "set", path: ["timeline", "buildMonths"], value: Math.round(num) }, text: `Build for ${Math.round(num)} months` }
       : kind === "developers" && devIdx >= 0 ? { edit: { kind: "set", path: ["build", "team", devIdx, "people"], value: num }, text: `${num} experimenting developers` }
-      : kind === "lever" ? { edit: { kind: "lever", leverId: lever }, text: LEVERS.find((l) => l.id === lever)!.label }
+      : kind === "lever" && picked ? { edit: { kind: "lever", leverId: picked.id, ...(leverSetting !== undefined ? { amount: leverSetting } : {}) }, text: leverText }
       : kind === "preset" ? { edit: { kind: "set", path: ["roi", "benefitPreset"], value: preset }, text: `${preset} benefits` }
       : null;
     if (e) setDraft([...draft, e]);
@@ -535,10 +542,18 @@ function Scenarios() {
           <Field label="Change" help="scnChange"><Select value={kind} onChange={(v) => setKind(v as EditKind)} options={[{ value: "model", label: "Model for a workload" }, { value: "scale", label: "Usage volume (%)" }, { value: "buildMonths", label: "Build months" }, { value: "developers", label: "Experimenting developers" }, { value: "lever", label: "Apply a savings lever" }, { value: "preset", label: "Benefit preset" }]} /></Field>
           {kind === "model" && <><Field label="Workload" help="scnWorkload"><Select value={wid} onChange={(v) => { setWid(v); setModel(modelChoices(v)[0]?.value ?? ""); }} options={llmWorkloads.map((w) => ({ value: w.id, label: w.label }))} /></Field><Field label="Model" help="scnModel"><Select value={modelChoices(wid).some((o) => o.value === model) ? model : (modelChoices(wid)[0]?.value ?? "")} onChange={setModel} options={modelChoices(wid)} /></Field></>}
           {(kind === "scale" || kind === "buildMonths" || kind === "developers") && <Field label={kind === "scale" ? "Percent of baseline" : kind === "buildMonths" ? "Months" : "People"} help="scnValue"><NumberInput value={num} min={kind === "scale" ? 1 : 1} max={kind === "scale" ? 1000 : 24} onChange={setNum} /></Field>}
-          {kind === "lever" && <Field label="Lever" help="scnLever"><Select value={lever} onChange={setLever} options={LEVERS.map((l) => ({ value: l.id, label: l.label }))} /></Field>}
+          {kind === "lever" && <Field label="Lever" help="scnLever"><Select value={lever} onChange={(v) => { setLever(v); setLeverNum(null); }} options={[{ value: "", label: levers.length ? "Choose a lever" : "No lever applies to this project" }, ...levers.map((l) => ({ value: l.id, label: l.label }))]} /></Field>}
+          {kind === "lever" && picked?.param && <Field label={picked.param.label} help="scnLeverAmount"><NumberInput value={leverSetting!} min={picked.param.min} max={picked.param.max} step={picked.param.step} suffix={picked.param.unit === "%" ? "%" : "months"} onChange={setLeverNum} /></Field>}
           {kind === "preset" && <Field label="Preset" help="scnPreset"><Select value={preset} onChange={(v) => setPreset(v as typeof preset)} options={[{ value: "conservative", label: "Conservative" }, { value: "typical", label: "Typical" }, { value: "optimistic", label: "Optimistic" }]} /></Field>}
-          <button type="button" className="flex h-[30px] w-fit items-center gap-1.5 rounded-md border border-line px-2.5 text-xs font-medium hover:bg-surface-2" onClick={addEdit}><Plus size={14} />Add change</button>
+          <button type="button" className="flex h-[30px] w-fit items-center gap-1.5 rounded-md border border-line px-2.5 text-xs font-medium hover:bg-surface-2 disabled:opacity-50" disabled={kind === "lever" && !picked} onClick={addEdit}><Plus size={14} />Add change</button>
         </div>
+        {kind === "lever" && picked && effect && (
+          <div className="mt-2 rounded-r-md border-l-[3px] border-accent bg-accent-soft px-3 py-2 text-[12.5px]" data-testid="lever-detail">
+            <div>{picked.detail}</div>
+            {picked.param && <div className="mt-1 text-muted">{picked.param.help} Allowed range {picked.param.min} to {picked.param.max} {picked.param.unit === "%" ? "percent" : "months"}.</div>}
+            <div className="mt-1">On its own this changes total cost by <b>{effect.cost >= 0 ? "+" : "−"}{cad(Math.abs(effect.cost))}</b> and NPV by <b>{effect.npv >= 0 ? "+" : "−"}{cad(Math.abs(effect.npv))}</b>.</div>
+          </div>
+        )}
         {draft.length > 0 && (
           <div className="mt-3 flex flex-col gap-2">
             <div className="flex flex-wrap gap-1.5">{draft.map((d, i) => <Pill key={i}>{d.text}</Pill>)}</div>
