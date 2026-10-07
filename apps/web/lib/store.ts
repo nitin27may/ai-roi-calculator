@@ -46,7 +46,9 @@ interface State {
 let lastEditAt = 0;
 const newId = () => `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 const now = () => new Date().toISOString();
-const firstEntry = (): LibraryEntry => ({ id: "sample", project: meetingIntelligence, updatedAt: now() });
+/** Fixed, not now(): the static export is built on one day and opened on another, so a clock value here would differ between server HTML and first client render. hydrate() stamps the real time. */
+export const INITIAL_UPDATED_AT = "1970-01-01T00:00:00.000Z";
+const firstEntry = (): LibraryEntry => ({ id: "sample", project: meetingIntelligence, updatedAt: INITIAL_UPDATED_AT });
 /** Stands in for `project` while the library is empty so pages never read undefined; the shell shows an empty state instead and nothing edits it. */
 const PLACEHOLDER: Project = meetingIntelligence;
 
@@ -117,7 +119,7 @@ export const useStudio = create<State>((set, get) => {
       } catch {
         /* fall through to the sample */
       }
-      set({ hydrated: true });
+      set({ hydrated: true, library: get().library.map((e) => (e.updatedAt === INITIAL_UPDATED_AT ? { ...e, updatedAt: now() } : e)) });
     },
     edit: (fn) => {
       const draft = structuredClone(get().project);
