@@ -338,6 +338,18 @@ The page that edits environments and resources is `/infrastructure` (A7, below).
 - Gotcha: a zustand selector must not return a fresh `?? []` (infinite render); default after selecting.
 - Tests: `packages/engine/test/infrastructure.test.ts`, `apps/web/test/infrastructure.test.ts`.
 
+## Run cost beyond AI (A8)
+
+Three workload kinds, added to the union (old files parse, no version bump): `seats`, `contract`, `transactionFee`. Engine in `runcost.ts`, panels in `apps/web/components/run-cost-panels.tsx`, add-menu labels "Seats and licences", "Vendor or support contract", "Per-transaction fee". They are not AI kinds (`NON_AI_WORKLOADS`), so they stay in the Run add menu when only non-AI types are chosen. A new item is empty and costs nothing until a price source is chosen.
+
+- `seats { seats, volumeFrom?, unitPriceId? | cadPerSeat?, followsAdoption, freeSeats? }`: (seats or the linked workload's users, minus free seats) x price per seat-month. Stream `platform`; behaviour `usage` when `followsAdoption` (ramp share and growth apply), else `fixed` (every seat from go-live). `volumeFrom` takes a chat workload's users or another seats item's seats (`userCounts`); there is no project-level user count. Catalogue prices offered are units `seat-month`, `user-month`, `licence-month`.
+- `contract { amountCad, cadence: monthly | yearly, escalationPct? }` plus the common start and end months: stream `platform`, fixed. A yearly amount is accrued as one twelfth a month. Escalation is `(1 + pct) ^ whole years since the contract's start month` (go-live unless `startMonth` is set), applied in `ledger.ts` (`contractEscalation`) and written into the line formula.
+- `transactionFee { volumePerMonth, volumeFrom?, unitPriceId? | cadPerTxn? }`: volume x price per transaction, stream `run`, behaviour `usage` (ramp and growth). A catalogue price per 1K, 10K or 1M is divided down to one transaction. `volumeFrom` uses `requestVolumes`, which now includes `transactionFee`. Its one-time volume uses `volumePerMonth` and ignores `volumeFrom`.
+- Empty seats, a zero amount, a zero volume or a missing price add no line (the v5 golden test depends on that). Unknown `volumeFrom` ids fail `projectIssues`.
+- Known wording gap for A15: Excel, Overview and Report call the `run` stream "Production AI usage", so per-transaction fees sit under that label. Left alone on purpose; the wording sweep owns it.
+- Run page: the workload remove button now asks inline first, naming the monthly cost and the links lost (all kinds).
+- Tests: `packages/engine/test/run-cost.test.ts`, `apps/web/test/run-cost-state.test.ts`, gating in `nav-gating.test.ts`; help ids `seats*`, `contract*`, `txn*`.
+
 ## Plan and progress
 
 The 2026-10-04 audit and the roadmap are in [docs/plan](plan/README.md). The done/pending matrix is [docs/PROGRESS.md](PROGRESS.md); update it in every PR.

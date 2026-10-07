@@ -263,6 +263,25 @@ export const WorkloadSchema = z.discriminatedUnion("kind", [
     requestsPerMonth: n0, volumeFrom: id.optional(), items: z.array(HostingItemSchema),
   }),
   z.object({
+    /**
+     * Seats and licences (A8). Seats come from `seats`, or from another workload's user count (`volumeFrom`). Price is a catalogue
+     * price (`unitPriceId`, a seat-month price) or your own (`cadPerSeat`). `followsAdoption` ramps the seat count with the
+     * adoption ramp; otherwise every seat is billed from go-live. `freeSeats` are included in the plan and not billed.
+     */
+    kind: z.literal("seats"), id, label: z.string(), ...Common,
+    seats: n0, volumeFrom: id.optional(), unitPriceId: id.optional(), cadPerSeat: n0.optional(), followsAdoption: z.boolean(), freeSeats: n0.optional(),
+  }),
+  z.object({
+    /** A vendor or support contract: `amountCad` per month or per year (billed as one twelfth a month), rising `escalationPct` each year. Start and end months come from the common timing fields. */
+    kind: z.literal("contract"), id, label: z.string(), ...Common,
+    amountCad: n0, cadence: z.enum(["monthly", "yearly"]), escalationPct: z.number().min(0).max(100).optional(),
+  }),
+  z.object({
+    /** A per-transaction fee (payment processing, e-signature envelopes, SMS). Volume is entered or taken from another workload; the price is a catalogue price (`unitPriceId`) or your own per transaction (`cadPerTxn`). Scales with adoption and growth like other usage. */
+    kind: z.literal("transactionFee"), id, label: z.string(), ...Common,
+    volumePerMonth: n0, volumeFrom: id.optional(), unitPriceId: id.optional(), cadPerTxn: n0.optional(),
+  }),
+  z.object({
     kind: z.literal("voiceAgent"), id, label: z.string(), ...Common, deployment, tier, modelId: id, callsPerMonth: n0, minutesPerCall: z.number().positive(),
     turnsPerCall: z.number().int().positive(), agentTalkShare: share, systemPromptTokens: n0, cacheHit: share,
     /** Phone or ACS calling cost per minute in CAD (0 for web/app voice). */
@@ -596,7 +615,7 @@ export function projectIssues(p: z.infer<typeof ProjectObject>): { path: (string
   const workstreams = new Set(p.build.workstreams.map((w) => w.id));
   const feat = (path: (string | number)[], fid: string | undefined) => { if (fid !== undefined && !features.has(fid)) out.push({ path, message: `Unknown feature "${fid}"` }); };
   p.workloads.forEach((w, i) => feat(["workloads", i, "featureId"], w.featureId));
-  p.workloads.forEach((w, i) => { if (w.kind === "hosting" && w.volumeFrom !== undefined && !workloads.has(w.volumeFrom)) out.push({ path: ["workloads", i, "volumeFrom"], message: `Unknown workload "${w.volumeFrom}"` }); });
+  p.workloads.forEach((w, i) => { if ((w.kind === "hosting" || w.kind === "seats" || w.kind === "transactionFee") && w.volumeFrom !== undefined && !workloads.has(w.volumeFrom)) out.push({ path: ["workloads", i, "volumeFrom"], message: `Unknown workload "${w.volumeFrom}"` }); });
   p.build.workstreams.forEach((w, i) => feat(["build", "workstreams", i, "featureId"], w.featureId));
   p.build.activities.forEach((a, i) => feat(["build", "activities", i, "featureId"], a.featureId));
   p.benefits.capabilities.forEach((c, i) => {

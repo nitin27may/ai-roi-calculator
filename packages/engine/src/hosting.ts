@@ -17,6 +17,7 @@ export function requestVolume(w: Workload): number | undefined {
     case "contentSafety": return w.requestsPerMonth;
     case "continuousEval": return w.interactionsPerMonth;
     case "hosting": return w.requestsPerMonth;
+    case "transactionFee": return w.volumePerMonth;
     default: return undefined;
   }
 }

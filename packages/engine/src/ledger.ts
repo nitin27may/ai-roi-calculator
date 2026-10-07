@@ -1,6 +1,7 @@
 import type { Catalog } from "@roi-calculator/catalog";
 import { resolveAssumptions } from "./assumptions.js";
 import { requestVolumes } from "./hosting.js";
+import { contractEscalation, isRunCostKind, userCounts } from "./runcost.js";
 import { PriceBook, monthDate, type PriceNote } from "./pricing.js";
 import type { Project } from "./project.js";
 import type { Percentile } from "./harness.js";
@@ -11,7 +12,7 @@ import { devLabLines, teamLines } from "./devlab.js";
 import { avoidedMonthly, capabilityHours, confidenceWeight, valueItemMonthly } from "./benefits.js";
 import { resourceMonthLines } from "./resources.js";
 import { currentLineSaving, currentLines, currentFullSaving } from "./currentstate.js";
-import { line, sum, type Line, type Stream } from "./lines.js";
+import { cad, line, sum, type Line, type Stream } from "./lines.js";
 
 export interface MonthBenefit {
   /** Value of time saved, by capability id. */
@@ -70,6 +71,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
   const harnesses = new Map(p.harnesses.map((h) => [h.id, h]));
   const assumptions = resolveAssumptions(p);
   const volumes = requestVolumes(p.workloads);
+  const users = userCounts(p.workloads);
   const devCut = 1 - p.roi.devCutPct / 100;
   const maintCut = 1 - p.roi.maintCutPct / 100;
   const rates = new Map(p.rateCard.map((r) => [r.id, r.hourlyRate]));
@@ -115,15 +117,21 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
         const win = workloadWindow(p, w);
         const active = m >= win.start && m <= win.end;
         const usage = (win.ramp === 0 ? 1 : Math.min(1, (m - win.start + 1) / win.ramp)) * g;
-        for (const l of workloadLines(w, { book, date, harnesses, percentile, language: p.settings.language, assumptions, volumes })) {
+        for (const l of workloadLines(w, { book, date, harnesses, percentile, language: p.settings.language, assumptions, volumes, users })) {
           if (l.once) { if (m === Math.max(B + 1, l.onceMonth ?? win.start)) lines.push(l); continue; }
           if (!active) continue;
-          lines.push(l.behaviour === "usage" ? { ...l, quantity: l.quantity * usage, cost: l.cost * usage } : l);
+          if (w.kind === "contract") {
+            const f = contractEscalation(w, win.start, m);
+            lines.push(f === 1 ? l : { ...l, unitPrice: l.unitPrice * f, cost: l.cost * f, formula: `${l.formula} · year ${Math.floor((m - win.start) / 12) + 1}: × ${f.toFixed(4)} = ${cad(l.cost * f, 2)} this month` });
+          } else if (isRunCostKind(w.kind) && l.behaviour === "usage") {
+            lines.push({ ...l, quantity: l.quantity * usage, cost: l.cost * usage, formula: usage < 1 ? `${l.formula} · ${Math.round(usage * 100)}% of full volume this month (ramp and growth)` : l.formula });
+          } else lines.push(l.behaviour === "usage" ? { ...l, quantity: l.quantity * usage, cost: l.cost * usage } : l);
         }
         const key = oneTimeKey(w);
         if (w.oneTime && key && m === Math.max(B + 1, w.oneTime.month ?? win.start)) {
           const once = { ...w, [key]: w.oneTime.volume } as typeof w;
-          for (const l of workloadLines(once, { book, date, harnesses, percentile, language: p.settings.language, assumptions, volumes })) {
+          if (once.kind === "transactionFee") delete once.volumeFrom;
+          for (const l of workloadLines(once, { book, date, harnesses, percentile, language: p.settings.language, assumptions, volumes, users })) {
             if (l.behaviour !== "usage" || l.once) continue;
             lines.push({ ...l, id: `${l.id}:once`, label: `${l.label} (one-time volume)`, behaviour: "fixed", once: true });
           }

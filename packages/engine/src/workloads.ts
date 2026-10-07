@@ -6,6 +6,7 @@ import { fmtInt, line, type Line } from "./lines.js";
 import { tokenSpread } from "./spread.js";
 import { imageCost } from "./images.js";
 import { ASSUMPTION_DEFAULTS, type Assumptions } from "./assumptions.js";
+import { runCostLines } from "./runcost.js";
 import { HOURS_PER_MONTH, MINUTES_PER_MONTH, sizePtu } from "./ptu-size.js";
 
 export interface WorkloadContext {
@@ -19,6 +20,8 @@ export interface WorkloadContext {
   assumptions?: Assumptions;
   /** Requests a month by workload id, for hosting items that take their volume from another workload. */
   volumes?: Map<string, number>;
+  /** Users (or seats) by workload id, for seat workloads that take their count from another workload. */
+  users?: Map<string, number>;
 }
 
 const H = heuristics;
@@ -358,6 +361,8 @@ export function workloadLines(w: Workload, c: WorkloadContext): Line[] {
         return { ...l, formula: `${fmtInt(volume)} requests × ${it.unitsPer1KRequests} ${book.unit(it.unitPriceId).unit} per 1K requests at CAD ${l.unitPrice.toFixed(4)}` };
       });
     }
+    case "seats": case "contract": case "transactionFee":
+      return runCostLines(w, c, book);
     case "voiceAgent": {
       const v = voiceCall(w, book, { input: A.voiceFunctionCallInputTokens, output: A.voiceFunctionCallOutputTokens });
       const out = [line({ id: `${id}:realtime`, componentId: id, label: `${w.label}: ${book.realtimeModel(w.modelId).label}`, stream: "run", behaviour: "usage", meter: w.modelId, quantity: w.callsPerMonth, unit: "call", unitPrice: v.cost,

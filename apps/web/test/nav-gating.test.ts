@@ -23,7 +23,7 @@ describe("Capacity (PTU) nav gating", () => {
 });
 
 describe("add-menu gating", () => {
-  const kinds = [{ kind: "chat" }, { kind: "fixed" }, { kind: "hosting" }];
+  const kinds = [{ kind: "chat" }, { kind: "fixed" }, { kind: "hosting" }, { kind: "seats" }, { kind: "contract" }, { kind: "transactionFee" }];
   const acts = [{ kind: "bakeoff" }, { kind: "tooling" }];
   it("shows everything until a type is chosen, and when a feature is AI", () => {
     expect(workloadKindsFor(blank(), kinds)).toEqual(kinds);
@@ -32,7 +32,7 @@ describe("add-menu gating", () => {
   });
   it("hides AI kinds when types are chosen and none is AI", () => {
     const p = typed(blank(), ["saas"]);
-    expect(workloadKindsFor(p, kinds).map((k) => k.kind)).toEqual(["fixed", "hosting"]);
+    expect(workloadKindsFor(p, kinds).map((k) => k.kind)).toEqual(["fixed", "hosting", "seats", "contract", "transactionFee"]);
     expect(activityKindsFor(p, acts).map((k) => k.kind)).toEqual(["tooling"]);
   });
 });

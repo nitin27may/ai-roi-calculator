@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { creditSummary, DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, PROJECT_TYPE_LIST, availableIn, resolveAssumptions, type AzureDeployment, cascadeCall, agentAddedFor, featureBreakdown, harnessUsage, newFeature, newHarness, newWorkload, removeFeature, removeWorkload, simulateHarness, sizeSearch, steadyState, voiceCall, workloadRange, type Workload } from "@roi-calculator/engine";
+import { isRunCostKind, creditSummary, DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, PROJECT_TYPE_LIST, availableIn, resolveAssumptions, type AzureDeployment, cascadeCall, agentAddedFor, featureBreakdown, harnessUsage, newFeature, newHarness, newWorkload, removeFeature, removeWorkload, simulateHarness, sizeSearch, steadyState, voiceCall, workloadRange, type Workload } from "@roi-calculator/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Pill, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
 import { Plus } from "lucide-react";
 import { RangeBar } from "@/components/charts";
@@ -14,14 +14,16 @@ import { workloadKindsFor } from "@/lib/nav";
 import { cad, fmt } from "@/lib/format";
 import { CostItems, FeatureSelect, WorkloadTiming } from "@/components/feature-fields";
 import { SnowflakeCredits } from "@/components/snowflake-credits";
+import { ContractPanel, SeatsPanel, TransactionFeePanel } from "@/components/run-cost-panels";
 import { CapacityPanel, HostingPanel, ImagesPanel, ToolFeesPanel } from "@/components/p10-panels";
 
 const GROUP: Record<Workload["kind"], string> = {
   transcription: "Ingestion", documents: "Ingestion", email: "Ingestion", embeddings: "Retrieval", aiSearch: "Retrieval", retrieval: "Retrieval",
   chat: "Conversation", agent: "Agents", continuousEval: "Quality & safety", contentSafety: "Quality & safety", llm: "Other AI usage", fixed: "Platform",
   voiceAgent: "Voice", snowflakeComplete: "Snowflake", snowflakeFunction: "Snowflake", cortexSearch: "Snowflake", hosting: "Platform",
+  seats: "Licences, contracts and fees", contract: "Licences, contracts and fees", transactionFee: "Licences, contracts and fees",
 };
-const ORDER = ["Ingestion", "Retrieval", "Conversation", "Voice", "Agents", "Quality & safety", "Snowflake", "Other AI usage", "Platform"];
+const ORDER = ["Ingestion", "Retrieval", "Conversation", "Voice", "Agents", "Quality & safety", "Snowflake", "Other AI usage", "Platform", "Licences, contracts and fees"];
 
 export default function Run() {
   const { project, ledger } = useLedger();
@@ -45,7 +47,7 @@ export default function Run() {
   const rowOf = (w: Workload, g: string) => {
     const usage = steady.lines.some((l) => l.componentId === w.id && l.behaviour === "usage");
     const timed = w.startMonth !== undefined || w.endMonth !== undefined || w.rampMonths !== undefined || w.oneTime !== undefined;
-    return <ListRow key={w.id} selected={sel === w.id} onClick={() => setSel(w.id)} title={w.label} sub={`${hasFeatures ? `${g} · ` : ""}${summary(w)}${creditsOf(w.id) > 0 ? ` · ${fmt(creditsOf(w.id))} credits` : ""}`} aside={<>{timed && <Pill>timed</Pill>} <Pill>{usage ? "usage" : "fixed"}</Pill></>} value={cad(costOf(w.id))} />;
+    return <ListRow key={w.id} selected={sel === w.id} onClick={() => setSel(w.id)} title={w.label} sub={`${hasFeatures ? `${g} · ` : ""}${summary(w)}${isRunCostKind(w.kind) ? ` · ${cad(costOf(w.id))} a month` : ""}${creditsOf(w.id) > 0 ? ` · ${fmt(creditsOf(w.id))} credits` : ""}`} aside={<>{timed && <Pill>timed</Pill>} <Pill>{usage ? "usage" : "fixed"}</Pill></>} value={cad(costOf(w.id))} />;
   };
 
   return (
@@ -105,6 +107,9 @@ function summary(w: Workload): string {
     case "llm": return `${fmt(w.callsPerMonth)} calls · ${w.modelId}`;
     case "fixed": return w.items.map((i) => i.label).join(" · ");
     case "hosting": return `${w.items.length} item${w.items.length === 1 ? "" : "s"} · ${fmt(w.requestsPerMonth)} requests`;
+    case "seats": return `${w.volumeFrom !== undefined ? "Seats from another workload" : `${fmt(w.seats)} seats`}${w.followsAdoption ? " · ramps with adoption" : ""}`;
+    case "contract": return `${cad(w.amountCad)} ${w.cadence === "yearly" ? "a year" : "a month"}${(w.escalationPct ?? 0) > 0 ? ` · +${w.escalationPct}% a year` : ""}`;
+    case "transactionFee": return w.volumeFrom !== undefined ? "Volume from another workload" : `${fmt(w.volumePerMonth)} transactions`;
     case "voiceAgent": return `${fmt(w.callsPerMonth)} calls × ${w.minutesPerCall} min · ${w.modelId}`;
     case "snowflakeComplete": return `${fmt(w.rowsPerMonth)} rows · ${w.modelId.replace(/^sf:/, "")}`;
     case "snowflakeFunction": return `${fmt(w.rowsPerMonth)} rows · ${catalog.unitPrices.find((u) => u.id === w.functionId)?.label}`;
@@ -254,7 +259,14 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
     <>
       <ItemHeader label={w.label} sub={summary(w)} removeLabel="Remove workload"
         onRename={(v) => edit((d) => { const x = d.workloads.find((y) => y.id === w.id); if (x) x.label = v; })}
-        onRemove={() => { edit((d) => removeWorkload(d, w.id)); onRemoved(); }} />
+        onRemove={() => setConfirmRemove(true)} />
+      {confirmRemove && (
+        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">
+          <span>Remove &quot;{w.label}&quot;? Its {cad(total)} a month leaves the run cost, and any capability or feature that used it loses the link.</span>
+          <button type="button" className="rounded border border-line bg-surface px-2 py-0.5 text-crit" onClick={() => { edit((d) => removeWorkload(d, w.id)); onRemoved(); }}>Remove workload</button>
+          <button type="button" className="rounded border border-line bg-surface px-2 py-0.5 text-ink-2" onClick={() => setConfirmRemove(false)}>Keep it</button>
+        </div>
+      )}
       <div className="font-display text-[26px] font-bold">{cad(total)}<span className="ml-1.5 font-sans text-xs font-normal text-muted">per month at full adoption{(w.kind === "agent" || w.kind === "chat" || w.kind === "llm") ? ` · ${percentile.toUpperCase()}` : ""}</span></div>
       {creditSummary(lines).length > 0 && <div className="-mt-2 text-xs text-muted" data-testid="credit-line">{creditSummary(lines).map((t) => `${fmt(t.credits)} ${t.type === "ai" ? "AI" : "platform"} credits at ${cad(t.cadPerCredit, 2)} each (${t.manual ? "manual rate" : "catalogue rate"})`).join(" · ")} = {cad(total, 2)}</div>}
       <WorkloadRange w={w} />
@@ -262,6 +274,9 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
       {WORKLOAD_SPECS[w.kind] && <Fields specs={WORKLOAD_SPECS[w.kind]!} value={w as unknown as Record<string, unknown>} locate={locate} />}
       {w.kind === "documents" && <DocumentRoute id={w.id} />}
       {w.kind === "hosting" && <HostingPanel w={w} />}
+      {w.kind === "seats" && <SeatsPanel key={w.id} w={w} />}
+      {w.kind === "contract" && <ContractPanel key={w.id} w={w} />}
+      {w.kind === "transactionFee" && <TransactionFeePanel key={w.id} w={w} />}
       {(w.kind === "chat" || w.kind === "agent") && <ToolFeesPanel w={w} />}
       {(w.kind === "chat" || w.kind === "llm") && <ImagesPanel w={w} />}
       {(w.kind === "chat" || w.kind === "llm" || w.kind === "agent") && <CapacityPanel w={w} />}
