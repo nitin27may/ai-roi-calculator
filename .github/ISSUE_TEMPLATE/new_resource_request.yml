@@ -1,0 +1,34 @@
+name: New resource request
+description: Ask for an Azure or Snowflake resource, SKU or model to be added
+labels: [enhancement, pricing]
+body:
+  - type: input
+    id: resource
+    attributes:
+      label: Resource
+      description: Service, SKU or model name.
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: [Azure, Snowflake, Other]
+    validations:
+      required: true
+  - type: input
+    id: region
+    attributes:
+      label: Region
+  - type: input
+    id: pricing
+    attributes:
+      label: Pricing page or API link
+      placeholder: https://
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it is needed
+      description: The kind of project you are costing.

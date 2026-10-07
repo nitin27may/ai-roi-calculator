@@ -1,0 +1,46 @@
+name: Price correction
+description: A price in the catalogue is wrong or out of date
+labels: [pricing]
+body:
+  - type: input
+    id: resource
+    attributes:
+      label: Resource
+      description: The service, SKU or model, as named in the app.
+      placeholder: Document Intelligence Read
+    validations:
+      required: true
+  - type: input
+    id: region
+    attributes:
+      label: Region
+      placeholder: Canada Central
+    validations:
+      required: true
+  - type: input
+    id: current
+    attributes:
+      label: Price shown in the app
+  - type: input
+    id: expected
+    attributes:
+      label: Expected price
+      description: Include currency and unit.
+      placeholder: CAD 2.15 per 1K pages
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source link
+      description: The vendor page or API response that shows the price.
+      placeholder: https://
+    validations:
+      required: true
+  - type: input
+    id: date
+    attributes:
+      label: Date you checked the source
+      placeholder: 2026-10-06
+    validations:
+      required: true

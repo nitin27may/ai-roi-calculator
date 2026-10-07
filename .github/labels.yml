@@ -1,0 +1,22 @@
+# Labels used in this repository. Created with `gh label create`; this file is documentation.
+- name: bug
+  color: d73a4a
+  description: Something is not working
+- name: enhancement
+  color: a2eeef
+  description: New feature or request
+- name: pricing
+  color: 0e8a16
+  description: Price data, price scripts or a price correction
+- name: good first issue
+  color: 7057ff
+  description: Good for newcomers
+- name: help wanted
+  color: 008672
+  description: Extra attention is needed
+- name: documentation
+  color: 0075ca
+  description: Improvements or additions to documentation
+- name: dependencies
+  color: 0366d6
+  description: Dependency updates
