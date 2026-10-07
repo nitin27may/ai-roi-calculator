@@ -136,7 +136,7 @@ describe("current state flows through the benefit pipeline", () => {
 
   it("a saving follows its line's feature", () => {
     const q = chequeProject();
-    q.features = [{ id: "f1", label: "Payments" }];
+    q.features = [{ id: "f1", label: "Payments", types: [] }];
     q.currentState!.lines[0]!.featureId = "f1";
     const rows = featureBreakdown(q, buildLedger(q, cat));
     expect(rows.find((r) => r.id === "f1")!.benefit).toBeGreaterThan(0);
