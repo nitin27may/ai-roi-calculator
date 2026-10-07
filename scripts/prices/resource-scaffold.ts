@@ -13,6 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { formatResourceFile } from "./format.js";
+import { buildPart2 } from "./resource-scaffold-part2.js";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const OUT = join(ROOT, "packages/catalog/data/resources");
@@ -571,16 +572,22 @@ export function buildFiles(): Record<string, Json> {
     ["database", database, "Part 1 of the catalogue: Azure SQL (vCore, DTU, Managed Instance), SQL Server licences for VMs, PostgreSQL and MySQL flexible servers, Cosmos DB, Azure Cache for Redis and Azure Managed Redis."],
     ["storage", storage, "Part 1 of the catalogue: Blob, Data Lake Gen2, Files, Queue and Table storage."],
   ] as [string, Json[], string][]) files[category] = { category, note, types, unitPrices: [] };
+  Object.assign(files, buildPart2());
   return files;
 }
 
 function main() {
+  // `pnpm prices:scaffold -- messaging network` rewrites only the named categories.
+  const only = process.argv.slice(2).filter((a) => !a.startsWith("-"));
   const built = buildFiles();
   for (const [category, file] of Object.entries(built)) {
+    if (only.length && !only.includes(category)) continue;
     const path = join(OUT, `${category}.json`);
     const existing: Json = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : { unitPrices: [] };
     const used = new Set(file.types.flatMap((t: Json) => t.skus.flatMap((s: Json) => Object.values(s.prices))));
-    file.unitPrices = (existing.unitPrices as Json[]).filter((u) => used.has(u.id) && !String(u.id).startsWith("seed-"));
+    // Vendor-doc and placeholder prices come from the scaffold itself (`file.unitPrices`); Retail API prices are kept from the existing file.
+    const own = new Set((file.unitPrices as Json[]).map((u) => u.id));
+    file.unitPrices = [...(existing.unitPrices as Json[]).filter((u) => used.has(u.id) && !own.has(u.id) && !String(u.id).startsWith("seed-")), ...file.unitPrices];
     writeFileSync(path, formatResourceFile(file));
     console.log(`${category}: ${file.types.length} types, ${file.types.reduce((n: number, t: Json) => n + t.skus.length, 0)} SKUs`);
   }
