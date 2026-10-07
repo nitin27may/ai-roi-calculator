@@ -40,7 +40,7 @@ describe("v2 to v3 migration keeps every total", () => {
       for (const [k, v] of Object.entries(entry.golden.totals)) close((ledger.totals as Record<string, number>)[k]!, v);
       expect(ledger.months).toHaveLength(entry.golden.byStream.length);
       ledger.months.forEach((mo, i) => {
-        for (const [s, v] of Object.entries(entry.golden.byStream[i]!)) close(mo.byStream[s as keyof typeof mo.byStream], v);
+        for (const [s, v] of Object.entries(entry.golden.byStream[i]!)) close(mo.byStream[s as keyof typeof mo.byStream] ?? 0, v);
         close(mo.benefit, entry.golden.benefit[i]!);
         expect(mo.lines.length).toBe(entry.golden.lineCount[i]);
       });

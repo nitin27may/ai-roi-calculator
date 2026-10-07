@@ -25,7 +25,7 @@ export interface Allocation {
   sharedPool: number;
 }
 
-const SHARED: Stream[] = ["labour", "devlab", "devenv", "platform", "maint", "transition"];
+const SHARED: Stream[] = ["labour", "devlab", "devenv", "platform", "maint", "transition", "env"];
 
 /**
  * Splits the horizon's cost (under the chosen basis) across capabilities so each one gets its
@@ -35,7 +35,7 @@ const SHARED: Stream[] = ["labour", "devlab", "devenv", "platform", "maint", "tr
  * Allocated + unallocated always equals the total cost.
  */
 export function computeAllocation(p: Project, ledger: Ledger, basis: CostBasis): Allocation {
-  const included = new Set<Stream>(basis === "run" ? ["run", "platform"] : basis === "runMaint" ? ["run", "platform", "maint", "transition"] : [...SHARED, "run"]);
+  const included = new Set<Stream>(basis === "run" ? ["run", "platform"] : basis === "runMaint" ? ["run", "platform", "maint", "transition", "env"] : [...SHARED, "run"]);
   const byComponent = new Map<string, { label: string; cost: number; stream: Stream }>();
   const linked = new Set(p.benefits.capabilities.flatMap((c) => capabilityLinks(c)));
   for (const mo of ledger.months) {
@@ -44,7 +44,7 @@ export function computeAllocation(p: Project, ledger: Ledger, basis: CostBasis):
       // Build cost of a workstream a capability links to is direct cost of that capability.
       const ws = l.workstreamId && linked.has(l.workstreamId) ? l.workstreamId : null;
       const key = l.stream === "run" ? l.componentId : ws ?? `shared:${l.stream}`;
-      const label = l.stream === "run" ? (p.workloads.find((w) => w.id === l.componentId)?.label ?? l.componentId) : ws ? (p.build.workstreams.find((w) => w.id === ws)?.label ?? ws) : l.stream;
+      const label = l.stream === "run" ? (p.workloads.find((w) => w.id === l.componentId)?.label ?? l.componentId) : ws ? (p.build.workstreams.find((w) => w.id === ws)?.label ?? ws) : l.stream === "env" ? "Environments" : l.stream;
       const e = byComponent.get(key) ?? { label, cost: 0, stream: l.stream };
       e.cost += l.cost;
       byComponent.set(key, e);

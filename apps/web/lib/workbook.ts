@@ -7,7 +7,7 @@ const MONEY = '"C$"#,##0.00';
 
 /** Monthly figures for the picture on the Summary sheet. */
 export const chartMonths = (ledger: Ledger): ChartMonth[] =>
-  ledger.months.map((m) => ({ build: m.byStream.labour, devlab: m.byStream.devlab + m.byStream.devenv, run: m.byStream.run, platform: m.byStream.platform, maint: m.byStream.maint + m.byStream.transition, benefit: m.benefit }));
+  ledger.months.map((m) => ({ build: m.byStream.labour, devlab: m.byStream.devlab + m.byStream.devenv, run: m.byStream.run, platform: m.byStream.platform + (m.byStream.env ?? 0), maint: m.byStream.maint + m.byStream.transition, benefit: m.benefit }));
 
 /** Rows of the "How sure are we" table: full numbers in every case, with a plain note when the range is wide. */
 export function rangeTableRows(p: Project, ledger: Ledger, roi: RoiResult, cat: Catalog): Row[] {

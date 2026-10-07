@@ -137,8 +137,8 @@ export function alertSummary(ledger: Ledger): AlertGroup[] {
   return order.filter((id) => byGroup.has(id)).map((id) => ({ id, label: ALERT_LABEL[id], count: byGroup.get(id)!.length, items: byGroup.get(id)!.slice(0, 3) }));
 }
 
-const STREAM_WORD: Record<Stream, string> = { labour: "Building", devlab: "Building", devenv: "Building", run: "Running", platform: "Platform", maint: "Maintenance", transition: "Maintenance" };
-const STREAM_DRIVER_COLOR: Record<Stream, DriverColor> = { labour: "labour", devlab: "devlab", devenv: "devlab", run: "run", platform: "platform", maint: "maint", transition: "maint" };
+const STREAM_WORD: Record<Stream, string> = { labour: "Building", devlab: "Building", devenv: "Building", run: "Running", platform: "Platform", maint: "Maintenance", transition: "Maintenance", env: "Environments" };
+const STREAM_DRIVER_COLOR: Record<Stream, DriverColor> = { labour: "labour", devlab: "devlab", devenv: "devlab", run: "run", platform: "platform", maint: "maint", transition: "maint", env: "platform" };
 
 /**
  * Top 5 cost lines over the whole plan (by stream and label, summed across months) plus an
@@ -286,7 +286,7 @@ export function monthRows(ledger: Ledger, roi: RoiResult): Row[] {
   const hasCurrent = ledger.months.some((mo) => Object.keys(mo.benefitBy.currentState).length > 0);
   return ledger.months.map((mo, i) => ({
     Month: mo.m, Date: mo.date, Phase: mo.phase, Adoption: Math.round(mo.adoption * 100) / 100,
-    "Build labour": r2(mo.byStream.labour), "AI Dev Lab": r2(mo.byStream.devlab), "Dev environment": r2(mo.byStream.devenv),
+    "Build labour": r2(mo.byStream.labour), "AI Dev Lab": r2(mo.byStream.devlab), "Dev environment": r2(mo.byStream.devenv), Environments: r2(mo.byStream.env ?? 0),
     "Production AI usage": r2(mo.byStream.run), "Platform": r2(mo.byStream.platform), Maintenance: r2(mo.byStream.maint), Transition: r2(mo.byStream.transition),
     [`Cost (${roi.basis})`]: r2(basisCost(mo, roi.basis)), Benefit: r2(mo.benefit),
     // Only when the project has current-state lines, so other projects' sheets keep their columns.

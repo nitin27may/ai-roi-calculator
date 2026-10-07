@@ -1,7 +1,7 @@
 import type { ProcessingTier } from "@roi-calculator/catalog";
 
-/** Which part of the lifecycle a cost belongs to. */
-export type Stream = "labour" | "devlab" | "devenv" | "run" | "platform" | "maint" | "transition";
+/** Which part of the lifecycle a cost belongs to. `env` is the cost of non-production environments (A6). */
+export type Stream = "labour" | "devlab" | "devenv" | "run" | "platform" | "maint" | "transition" | "env";
 
 /** usage: scales with adoption in production. fixed: billed in full from go-live. */
 export type Behaviour = "usage" | "fixed";
