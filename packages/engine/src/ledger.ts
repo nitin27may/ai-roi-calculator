@@ -9,6 +9,7 @@ import { oneTimeKey, workloadWindow } from "./features.js";
 import { isCashItem } from "./project.js";
 import { devLabLines, teamLines } from "./devlab.js";
 import { avoidedMonthly, capabilityHours, confidenceWeight, valueItemMonthly } from "./benefits.js";
+import { resourceLines } from "./resources.js";
 import { line, sum, type Line, type Stream } from "./lines.js";
 
 export interface MonthBenefit {
@@ -118,6 +119,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
           }
         }
       }
+      lines.push(...resourceLines(p, book));
       const maint = p.maintenance.mode === "none" ? []
         : p.maintenance.mode === "team"
         ? teamLines(p, p.maintenance.team, "maint", "maintenance", maintCut * esc)

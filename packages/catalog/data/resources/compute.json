@@ -1,0 +1,87 @@
+{
+  "category": "compute",
+  "note": "SEED DATA. Three illustrative SKUs so the resource format and the engine can be tested. Prices are rounded CAD per 730-hour month, not Retail API values. A3 and A4 replace this file with the refreshed catalogue.",
+  "types": [
+    {
+      "id": "vm",
+      "label": "Virtual machine",
+      "category": "compute",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/virtual-machines/windows/",
+      "inputs": [{ "id": "count", "label": "Machines", "unit": "machines", "help": "How many identical machines run in production." }],
+      "meters": [{ "id": "compute", "label": "Compute", "quantity": { "input": "count" }, "hourly": true, "scalesWithSize": true }],
+      "options": ["payg", "ri1", "ri3", "ahb"],
+      "retail": {
+        "filter": "serviceName eq 'Virtual Machines' and armRegionName eq 'canadacentral' and priceType eq 'Consumption'",
+        "meters": { "compute": "^D4s v5$" },
+        "armSkuToken": "Standard_D4s_v5"
+      },
+      "skus": [
+        { "id": "d4s-v5-linux", "label": "D4s v5, Linux (4 vCPU, 16 GiB)", "attrs": { "os": "linux", "vcpu": 4, "memoryGiB": 16, "seed": true }, "armSku": "Standard_D4s_v5", "prices": { "compute": "seed-vm-d4sv5-linux" } },
+        { "id": "d4s-v5-windows", "label": "D4s v5, Windows (4 vCPU, 16 GiB)", "attrs": { "os": "windows", "vcpu": 4, "memoryGiB": 16, "seed": true }, "armSku": "Standard_D4s_v5", "prices": { "compute": "seed-vm-d4sv5-windows" } }
+      ]
+    },
+    {
+      "id": "app-service-plan",
+      "label": "App Service plan",
+      "category": "compute",
+      "docsUrl": "https://azure.microsoft.com/pricing/details/app-service/linux/",
+      "inputs": [{ "id": "instances", "label": "Instances", "unit": "instances", "help": "Number of instances the plan scales out to in production." }],
+      "meters": [{ "id": "plan", "label": "Plan instances", "quantity": { "input": "instances" }, "hourly": true, "scalesWithSize": true }],
+      "options": ["payg", "ri1", "ri3"],
+      "retail": {
+        "filter": "serviceName eq 'Azure App Service' and armRegionName eq 'canadacentral' and priceType eq 'Consumption'",
+        "productName": "Azure App Service Premium v3 Plan - Linux",
+        "meters": { "plan": "^P1 v3$" },
+        "armSkuToken": "P1v3"
+      },
+      "skus": [
+        { "id": "p1v3-linux", "label": "Premium v3 P1v3, Linux (2 vCPU, 8 GiB)", "attrs": { "os": "linux", "vcpu": 2, "memoryGiB": 8, "seed": true }, "prices": { "plan": "seed-asp-p1v3-linux" } }
+      ]
+    }
+  ],
+  "unitPrices": [
+    {
+      "id": "seed-vm-d4sv5-linux",
+      "label": "Seed: VM D4s v5 Linux",
+      "platform": "azure",
+      "unit": "VM-month (730 h)",
+      "price": 200,
+      "attrs": { "seed": true, "fallback.ahb": "Linux has no licence component, so Hybrid Benefit does not apply; pay-as-you-go is used." },
+      "options": {
+        "ri1": { "price": 125, "source": { "kind": "derived", "note": "Seed data, illustrative.", "retrievedAt": "2026-10-06" } },
+        "ri3": { "price": 80, "source": { "kind": "derived", "note": "Seed data, illustrative.", "retrievedAt": "2026-10-06" } }
+      },
+      "source": { "kind": "derived", "url": "https://azure.microsoft.com/pricing/details/virtual-machines/linux/", "note": "Seed data, illustrative; replaced by the Retail API refresh in A3.", "retrievedAt": "2026-10-06" },
+      "confidence": "unverified"
+    },
+    {
+      "id": "seed-vm-d4sv5-windows",
+      "label": "Seed: VM D4s v5 Windows",
+      "platform": "azure",
+      "unit": "VM-month (730 h)",
+      "price": 390,
+      "attrs": { "seed": true },
+      "options": {
+        "ri1": { "price": 315, "source": { "kind": "derived", "note": "Seed data, illustrative.", "retrievedAt": "2026-10-06" } },
+        "ri3": { "price": 270, "source": { "kind": "derived", "note": "Seed data, illustrative.", "retrievedAt": "2026-10-06" } },
+        "ahb": { "price": 200, "source": { "kind": "derived", "note": "Seed data: the Linux twin price.", "retrievedAt": "2026-10-06" } }
+      },
+      "source": { "kind": "derived", "url": "https://azure.microsoft.com/pricing/details/virtual-machines/windows/", "note": "Seed data, illustrative; replaced by the Retail API refresh in A3.", "retrievedAt": "2026-10-06" },
+      "confidence": "unverified"
+    },
+    {
+      "id": "seed-asp-p1v3-linux",
+      "label": "Seed: App Service P1v3 Linux",
+      "platform": "azure",
+      "unit": "instance-month (730 h)",
+      "price": 160,
+      "attrs": { "seed": true },
+      "options": {
+        "ri1": { "price": 120, "source": { "kind": "derived", "note": "Seed data, illustrative.", "retrievedAt": "2026-10-06" } },
+        "ri3": { "price": 90, "source": { "kind": "derived", "note": "Seed data, illustrative.", "retrievedAt": "2026-10-06" } }
+      },
+      "source": { "kind": "derived", "url": "https://azure.microsoft.com/pricing/details/app-service/linux/", "note": "Seed data, illustrative; replaced by the Retail API refresh in A3.", "retrievedAt": "2026-10-06" },
+      "confidence": "unverified"
+    }
+  ]
+}

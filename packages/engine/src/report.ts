@@ -110,6 +110,8 @@ const ALERT_GROUP: Record<PriceNote["kind"], AlertGroup["id"]> = {
   routing: "other",
   quota: "other",
   capacity: "other",
+  manual: "other",
+  resource: "other",
 };
 const ALERT_LABEL: Record<AlertGroup["id"], string> = {
   notOffered: "Not offered in this deployment",

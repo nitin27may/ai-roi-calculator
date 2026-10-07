@@ -58,7 +58,7 @@ export interface TokenUsage {
 }
 
 export interface PriceNote {
-  kind: "promo-ended" | "deprecated" | "retired" | "unverified" | "long-context" | "routing" | "unavailable" | "tier-unavailable" | "quota" | "capacity";
+  kind: "promo-ended" | "deprecated" | "retired" | "unverified" | "long-context" | "routing" | "unavailable" | "tier-unavailable" | "quota" | "capacity" | "manual" | "resource";
   message: string;
 }
 
@@ -286,9 +286,21 @@ export class PriceBook {
   unitPrice(id: string): number {
     const u = this.unit(id);
     if (u.confidence === "unverified") this.note(`unverified:${u.id}`, { kind: "unverified", message: `${u.label} price is unverified` });
+    if (u.manual) {
+      this.note(`manual:${u.id}`, { kind: "manual", message: `${u.label}: manual price ${u.manual.price} (${u.manual.note}, ${u.manual.retrievedAt}) replaces the refreshed price` });
+      return u.manual.price;
+    }
     if (u.price !== undefined) return u.price;
     const credit = u.creditType === "platform" ? this.platformCreditCad() : this.aiCreditCad();
     return (u.credits ?? 0) * credit;
+  }
+
+  /**
+   * Price of an entry under a pricing option other than pay-as-you-go (`ri1`, `ri3`, `ahb`, `devtest`), or undefined
+   * when the entry has none. A manual price replaces the pay-as-you-go price only; option prices stay as refreshed.
+   */
+  optionPrice(id: string, option: "ri1" | "ri3" | "ahb" | "devtest"): number | undefined {
+    return this.unit(id).options?.[option]?.price;
   }
 
   searchTier(id: string) {

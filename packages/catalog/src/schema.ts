@@ -165,6 +165,14 @@ export const SpeechEngine = z.object({
 });
 export type SpeechEngine = z.infer<typeof SpeechEngine>;
 
+/** A price for a pricing option other than pay-as-you-go (same unit as the entry's `price`). */
+export const OptionPrice = z.object({ price: z.number().nonnegative(), source: Source });
+export type OptionPrice = z.infer<typeof OptionPrice>;
+
+/** A hand-typed price that wins over the refreshed one; a price refresh never overwrites it. */
+export const ManualPrice = z.object({ price: z.number().nonnegative(), note: z.string().min(1), retrievedAt: isoDate });
+export type ManualPrice = z.infer<typeof ManualPrice>;
+
 export const UnitPrice = z.object({
   id: z.string(),
   label: z.string(),
@@ -177,12 +185,71 @@ export const UnitPrice = z.object({
   /** Free allowance per month, in this entry's own unit (e.g. 1 for "1K queries" = 1,000 queries). */
   freePerMonth: z.number().nonnegative().optional(),
   attrs: z.record(z.union([z.number(), z.string(), z.boolean()])).optional(),
+  /** Reserved (1 or 3 years), Hybrid Benefit and dev/test prices, in this entry's unit. Absent means the option has no price here. */
+  options: z.object({ ri1: OptionPrice, ri3: OptionPrice, ahb: OptionPrice, devtest: OptionPrice }).partial().optional(),
+  /** When set, `manual.price` replaces `price` (pay-as-you-go) and the entry shows a "manual" note. */
+  manual: ManualPrice.optional(),
   promo: Promo.optional(),
   lifecycle: Lifecycle.optional(),
   source: Source,
   confidence: Confidence,
 });
 export type UnitPrice = z.infer<typeof UnitPrice>;
+
+export const ResourceCategory = z.enum(["compute", "database", "storage", "messaging", "network", "security", "monitoring", "data", "licences"]);
+export type ResourceCategory = z.infer<typeof ResourceCategory>;
+export const RESOURCE_CATEGORIES = ResourceCategory.options;
+
+/** Pricing options a resource type can offer: pay-as-you-go, 1- or 3-year reserved, Azure Hybrid Benefit, dev/test rates. */
+export const PricingOption = z.enum(["payg", "ri1", "ri3", "ahb", "devtest"]);
+export type PricingOption = z.infer<typeof PricingOption>;
+
+/**
+ * A kind of Azure (or licensed) resource, such as a virtual machine, with the SKUs you can pick for it.
+ * A meter is one billed quantity (compute hours, storage GB). Its `quantity` comes from a resource input times
+ * an optional factor. A meter's unit price is CAD per unit-month; for an `hourly` meter that is the cost of
+ * 730 hours, scaled by hours / 730 when the resource runs on a schedule.
+ */
+export const ResourceType = z.object({
+  id: z.string(),
+  label: z.string(),
+  category: ResourceCategory,
+  docsUrl: z.string().url().optional(),
+  inputs: z.array(z.object({ id: z.string(), label: z.string(), unit: z.string(), help: z.string() })),
+  meters: z.array(z.object({
+    id: z.string(),
+    label: z.string().optional(),
+    quantity: z.object({ input: z.string(), factor: z.number().positive().optional() }),
+    hourly: z.boolean(),
+    scalesWithSize: z.boolean(),
+  })).min(1),
+  options: z.array(PricingOption).default(["payg"]),
+  /** How the price refresh finds this type's meters in the Retail Prices API (used from A3). */
+  retail: z.object({
+    filter: z.string(),
+    productName: z.string().optional(),
+    meters: z.record(z.string()),
+    armSkuToken: z.string(),
+  }).optional(),
+  skus: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    attrs: z.record(z.union([z.number(), z.string(), z.boolean()])).default({}),
+    armSku: z.string().optional(),
+    /** Meter id to the id of the unit price that bills it. */
+    prices: z.record(z.string()),
+  })).min(1),
+});
+export type ResourceType = z.infer<typeof ResourceType>;
+
+/** One file in `data/resources/`: the types of a category and the unit prices only they use. */
+export const ResourceFile = z.object({
+  category: ResourceCategory,
+  note: z.string().optional(),
+  types: z.array(ResourceType),
+  unitPrices: z.array(UnitPrice),
+});
+export type ResourceFile = z.infer<typeof ResourceFile>;
 
 export const SearchTier = z.object({
   id: z.enum(["free", "basic", "s1", "s2", "s3", "s3hd", "l1", "l2"]),
@@ -279,7 +346,9 @@ export const Catalog = z.object({
   realtimeModels: z.array(RealtimeModel),
   ptu: Ptu,
   searchTiers: z.array(SearchTier),
+  /** Includes the prices declared in `data/resources/*.json`. */
   unitPrices: z.array(UnitPrice),
+  resourceTypes: z.array(ResourceType).default([]),
   snowflake: SnowflakeSettingsDefaults,
   benchmarks: BenchmarkLibrary,
 });
