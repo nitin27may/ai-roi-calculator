@@ -7,6 +7,13 @@ import { fmtInt, line, sum, type Line } from "./lines.js";
 import { resolveAssumptions } from "./assumptions.js";
 import { lineActiveIn, lineMonthlyHours, phaseOf, windowMonths } from "./delivery.js";
 
+const fmtNum = (v: number) => String(Math.round(v * 10000) / 10000);
+
+/** Percent of build hours AI-assisted development saves for a role (0 when the role is not listed). */
+export function aiAssistPct(p: Project, roleId: string): number {
+  return p.build.aiAssist?.productivityPctByRole[roleId] ?? 0;
+}
+
 /** Meter id on lines whose amount was typed in; it is not a catalogue price. */
 export const MANUAL_METER = "manual-entry";
 /** Component id of the fixed monthly Dev Lab allowance line. */
@@ -233,11 +240,14 @@ export function teamLines(p: Project, team: Project["build"]["team"], stream: "l
     const label = phaseName ? `${phaseName}: ${who}` : who;
     // Effort (people x weeks x hours per week) is a build-labour input: spread over the line's window. Maintenance lines use people x hours.
     const byEffort = stream === "labour" && t.effort !== undefined;
-    const hours = stream === "labour" ? lineMonthlyHours(p, t) : t.people * t.hoursPerMonth;
+    const baseHours = stream === "labour" ? lineMonthlyHours(p, t) : t.people * t.hoursPerMonth;
+    // AI-assisted development (A10): listed roles bill fewer hours. Build labour only; maintenance lines are not touched.
+    const assistPct = stream === "labour" ? aiAssistPct(p, t.roleId) : 0;
+    const hours = baseHours * (1 - assistPct / 100);
     const rate = t.rateOverride ?? r.hourlyRate;
     const base = { componentId, stream, behaviour: "fixed" as const, meter: `role:${t.roleId}`, unit: "hour", unitPrice: rate * factor, seat: stream === "labour" ? i : undefined };
-    const amount = byEffort ? `${t.effort!.people} × ${t.effort!.weeks} wk × ${t.effort!.hoursPerWeek} h/wk ÷ ${windowMonths(p, t)} months = ${Math.round(hours * 100) / 100}` : `${t.people} × ${t.hoursPerMonth}`;
-    const formula = (share: number) => `${amount} h${share !== 1 ? ` × ${Math.round(share * 100)}%` : ""} × CAD ${rate}/h${t.rateOverride !== undefined ? " (manual rate)" : ""}${factor !== 1 ? ` × ${factor.toFixed(2)}` : ""}`;
+    const amount = byEffort ? `${t.effort!.people} × ${t.effort!.weeks} wk × ${t.effort!.hoursPerWeek} h/wk ÷ ${windowMonths(p, t)} months = ${Math.round(baseHours * 100) / 100}` : `${t.people} × ${t.hoursPerMonth}`;
+    const formula = (share: number) => `${amount} h${assistPct > 0 ? ` × ${fmtNum(1 - assistPct / 100)} (${assistPct}% AI-assisted)` : ""}${share !== 1 ? ` × ${Math.round(share * 100)}%` : ""} × CAD ${rate}/h${t.rateOverride !== undefined ? " (manual rate)" : ""}${factor !== 1 ? ` × ${factor.toFixed(2)}` : ""}`;
     const id = `${componentId}:${t.phase ?? ""}:${t.roleId}:${i}`;
     const allocs = stream === "labour" && m !== undefined ? (t.allocations ?? []).filter((a) => activeIn(m, a)) : [];
     if (!allocs.length) return [line({ ...base, id, label, quantity: hours, formula: formula(1) })];

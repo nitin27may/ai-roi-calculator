@@ -47,7 +47,7 @@ function WideNote({ s, anchor }: { s: Summary; anchor: boolean }) {
 export function HeadlineTiles({ s, linkWide = true }: { s: Summary; linkWide?: boolean }) {
   const tiles: { label: string; value: string; sub?: string; range?: ReactNode }[] = [
     { label: "Total cost over plan", value: cad(s.totalCost), sub: `${s.horizonMonths} months · ${s.basisLabel}`, range: moneyBand(s.range.totalCost).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.totalCost) },
-    { label: "Build", value: cad(s.build), sub: s.labourExcluded ? LABOUR_EXCLUDED_TEXT : s.labourPartial ? s.labourPartial : `${fmt(s.devLabShare * 100)}% AI Dev Lab`, range: moneyBand(s.range.build).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.build) },
+    { label: "Build", value: cad(s.build), sub: s.labourExcluded ? LABOUR_EXCLUDED_TEXT : s.labourPartial ? s.labourPartial : `${fmt(s.devLabShare * 100)}% engineering tools & lab`, range: moneyBand(s.range.build).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.build) },
     { label: "Annual run (steady state)", value: cad(s.steadyStateAnnualRun), sub: "run + platform + maintenance", range: moneyBand(s.range.annualRun).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.annualRun) },
     { label: "Benefit per year", value: cad(s.benefitPerYear), sub: "at full adoption", range: moneyBand(s.range.totalBenefit).wide ? <WideNote s={s} anchor={linkWide} /> : undefined },
     { label: "NPV", value: cad(s.npv), sub: `at ${s.discountRatePct}% · ${s.basisLabel}`, range: moneyBand(s.range.npv).wide ? <WideNote s={s} anchor={linkWide} /> : span(s.range.npv) },
@@ -99,6 +99,28 @@ export function ScorecardTile({ s, className = "px-3.5 pb-3.5" }: { s: Summary; 
   ];
   return (
     <dl className={`grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-[12.5px] ${className}`} data-testid="scorecard-tile">
+      {rows.map(([k, v, note]) => (
+        <div key={k} className="contents">
+          <dt className="text-ink-2">{k}<small className="block text-muted">{note}</small></dt>
+          <dd className="num self-center text-right font-semibold">{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/** AI-assisted development: hours and labour saved against seat and token cost. Render only when `s.aiAssist` is set. */
+export function AiAssistTile({ s, className = "px-3.5 pb-3.5" }: { s: Summary; className?: string }) {
+  const a = s.aiAssist;
+  if (!a) return null;
+  const rows: [string, string, string][] = [
+    ["Build hours saved", `${fmt(a.hoursSaved, 0)} h`, "team hours not billed, build months and hypercare"],
+    ["Labour saved", cad(a.labourSaved), "with contingency, as the lines are billed"],
+    ["Seat and token cost", cad(a.toolCost), "AI coding tools over the build"],
+    ["Net saving", cad(a.net), "labour saved minus seat and token cost"],
+  ];
+  return (
+    <dl className={`grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-[12.5px] ${className}`} data-testid="ai-assist-tile">
       {rows.map(([k, v, note]) => (
         <div key={k} className="contents">
           <dt className="text-ink-2">{k}<small className="block text-muted">{note}</small></dt>

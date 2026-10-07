@@ -110,10 +110,22 @@ export const GLOSSARY: GlossaryTerm[] = [
     technical: "Provisioned Throughput Units. Each model publishes tokens per minute per PTU, with a minimum deployment size and a purchase increment. The Capacity page sizes PTUs from peak requests per minute, prompt and response size and the cached share.",
   },
   {
+    id: "engineering-tools-lab",
+    term: "Engineering tools & lab",
+    plain: "Everything the team needs to build besides people's time: developer tools and licences, test environments, load and performance testing, AI-assisted development, and, for AI projects, the AI experiments.",
+    technical: "The Build page section that groups tools and licences (cash items billed as the development environment), test environments (modelled on the Infrastructure page), AI-assisted development (a productivity percentage per role plus the AI coding tools activity) and the optional AI experiments. The underlying streams keep their names, devlab and devenv.",
+  },
+  {
+    id: "ai-assisted-development",
+    term: "AI-assisted development",
+    plain: "Developers using AI coding tools to finish the same work in fewer hours. You set the hours it saves as a percentage per role, and the seat and token cost of the tools is counted against the saving.",
+    technical: "build.aiAssist holds a percentage per rate-card role. A team line for a listed role bills hours times (1 minus the percentage), in build months and hypercare. It multiplies with the development-cost cut on the Value and ROI page, so setting both counts the saving twice. The Summary net saving is labour saved, with contingency as billed, minus the cost of the AI coding tools activity over the build.",
+  },
+  {
     id: "ai-dev-lab",
     term: "AI Dev Lab",
-    plain: "The model spend of the build phase: the experiments, test runs and evaluations the team runs while building the feature, before anyone uses it in production.",
-    technical: "A set of build-phase activities (bake-off, iterations, regression, evaluation, red team, playground, synthetic data, fine-tuning, tooling) priced from the same token prices as production and shown apart from labour in the build cost.",
+    plain: "The AI experiments of the build phase: the test runs, comparisons and evaluations the team runs on models while building the feature, before anyone uses it in production.",
+    technical: "A set of build-phase activities (bake-off, iterations, regression, evaluation, red team, playground, synthetic data, fine-tuning) priced from the same token prices as production and shown apart from labour in the build cost. It is the AI experiments part of Engineering tools & lab, and is shown only when the project uses AI.",
   },
   {
     id: "dev-lab-typed-cost",

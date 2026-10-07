@@ -112,7 +112,9 @@ export const CatalogItemSchema = z.object({ id, label: z.string(), unitPriceId: 
  * A free-text cost with no catalogue price: a CAD amount a month, or once. `month` is the project
  * month a one-time amount lands in (defaults to the first month of the workload, or of the build for the dev environment).
  */
-export const CashItemSchema = z.object({ id, label: z.string(), amountCad: n0, cadence: z.enum(["monthly", "once"]).default("monthly"), month: z.number().int().positive().optional() });
+export const CashItemSchema = z.object({ id, label: z.string(), amountCad: n0, cadence: z.enum(["monthly", "once"]).default("monthly"), month: z.number().int().positive().optional(),
+  /** Build tools only (A10): the amount is per person, multiplied by the people on the build team in the billed month. Absent means a fixed amount. */
+  perPerson: z.boolean().optional() });
 export const FixedItemSchema = z.union([CatalogItemSchema, CashItemSchema]);
 export type FixedItem = z.infer<typeof FixedItemSchema>;
 export type CashItem = z.infer<typeof CashItemSchema>;
@@ -590,6 +592,11 @@ const ProjectObject = z.object({
     environment: z.array(FixedItemSchema),
     /** Non-labour delivery costs (vendor, training, communications, data migration); absent or empty adds nothing. */
     deliveryCosts: z.array(DeliveryCostSchema).optional(),
+    /**
+     * AI-assisted development (A10): the share of build hours AI tools save, per rate-card role, in percent (0 to 90). Absent or
+     * empty changes nothing. It multiplies with `roi.devCutPct`, so setting both counts the same saving twice.
+     */
+    aiAssist: z.object({ productivityPctByRole: z.record(z.string(), z.number().min(0).max(90)) }).optional(),
   }),
   workloads: z.array(WorkloadSchema),
   /** Catalogue resources that run in production; absent or empty means none and adds no ledger lines. Optional so existing project literals and files stay valid. */

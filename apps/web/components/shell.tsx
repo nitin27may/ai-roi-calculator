@@ -246,7 +246,7 @@ function KpiBar() {
   const envBuild = ledger.months.slice(0, B).reduce((x, m) => x + envCost(m), 0);
   const basis = { run: "running cost only", runMaint: "running + maintenance", full: "full lifecycle" }[project.roi.basis];
   const k = [
-    [`Build · months 1–${B}`, cad(t.build), labourExcluded(project) ? "Build labour excluded" : labourPartialText(project) || `${cad(t.devLab)} of it AI Dev Lab${envBuild > 0 ? `, ${cad(envBuild)} environments` : ""}`],
+    [`Build · months 1–${B}`, cad(t.build), labourExcluded(project) ? "Build labour excluded" : labourPartialText(project) || `${cad(t.devLab)} of it engineering tools & lab${envBuild > 0 ? `, ${cad(envBuild)} environments` : ""}`],
     ["Production run-rate", `${cad(t.runRate)}/mo`, `+ ${cad(t.maintRate)} maintenance`],
     ["Benefit at full adoption", `${cad(t.benefitRate)}/mo`, `${project.benefits.capabilities.length + project.benefits.avoidedCosts.length} sources`],
     ["Payback", roi.paybackMonth ? `Month ${roi.paybackMonth}` : `> ${H} months`, basis],

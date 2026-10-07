@@ -7,7 +7,7 @@ import { BulletBar, CumulativeLine, RangeBar, RankedBars, ViewToggle, Waterfall 
 import { Story } from "@/components/story";
 import { MonthLegend } from "@/components/months";
 import { Dumbbell } from "@/components/charts-compare";
-import { CumulativeTable, CurrentVsTargetTile, DriversTable, FinanceMeasures, HeadlineTiles, RiskSummary, ScorecardTile, VerdictChip, WATERFALL_COST_IDS, WaterfallTable, wideDrivers } from "@/components/summary-parts";
+import { AiAssistTile, CumulativeTable, CurrentVsTargetTile, DriversTable, FinanceMeasures, HeadlineTiles, RiskSummary, ScorecardTile, VerdictChip, WATERFALL_COST_IDS, WaterfallTable, wideDrivers } from "@/components/summary-parts";
 import { catalog, useSummary } from "@/lib/compute";
 import { cad, cadUnit } from "@/lib/format";
 
@@ -50,6 +50,13 @@ export default function Summary() {
         <Card className="shrink-0">
           <CardHead title="Scorecard" sub={<>Non-financial benefits next to the financial tiles; they are not in NPV unless monetised. <Link href="/roi" className="underline">Edit the scorecard on the ROI page →</Link></>} />
           <ScorecardTile s={s} />
+        </Card>
+      )}
+
+      {s.aiAssist && (
+        <Card className="shrink-0">
+          <CardHead title="AI-assisted development" sub={<>Build hours AI coding tools save, against what the seats and tokens cost. <Link href="/build" className="underline">Edit on the Build page →</Link></>} />
+          <AiAssistTile s={s} />
         </Card>
       )}
 

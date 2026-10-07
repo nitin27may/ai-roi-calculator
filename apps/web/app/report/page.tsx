@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DEPLOYMENT_LABEL, LABOUR_EXCLUDED_TEXT, WIDE_RANGE_TEXT, buildLabel, compareScenarios, computeAllocation, currentStateRows, evaluateLevers, moneyBand, pricesUsedRows, scorecardRows, steadyState } from "@roi-calculator/engine";
 import { CumulativeLine, Legend, RankedBars, StackedBars, Waterfall } from "@/components/charts";
 import { Field, TextInput } from "@/components/ui";
-import { CurrentVsTargetTile, FinanceMeasures, HeadlineTiles, RiskSummary, VerdictChip, WATERFALL_COST_IDS, wideDrivers } from "@/components/summary-parts";
+import { AiAssistTile, CurrentVsTargetTile, FinanceMeasures, HeadlineTiles, RiskSummary, VerdictChip, WATERFALL_COST_IDS, wideDrivers } from "@/components/summary-parts";
 import { catalog, useSummary } from "@/lib/compute";
 import { cad, fmt } from "@/lib/format";
 import { useStudio } from "@/lib/store";
@@ -123,6 +123,12 @@ export default function Report() {
             <section className="break-inside-avoid">
               <h2 className="mb-1.5 text-[15px] font-bold">Current vs target</h2>
               <CurrentVsTargetTile s={s} className="" />
+            </section>
+          )}
+          {s.aiAssist && (
+            <section className="break-inside-avoid">
+              <h2 className="mb-1.5 text-[15px] font-bold">AI-assisted development</h2>
+              <AiAssistTile s={s} className="" />
             </section>
           )}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

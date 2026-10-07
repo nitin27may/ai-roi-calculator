@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
-import { Plus } from "lucide-react";
-import { envCost, ACTIVITY_KINDS, ALLOWANCE_ID, MANUAL_METER, allowanceActive, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, labourExcluded, labourPartialText, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, addAllocationPeriod, allocationPeriods, overlappingPeriods, peakAllocation, removeAllocationPeriod, removeWorkstream, setAllocation, updateAllocationPeriod, setPlanValue, workstreamBreakdown, hypercareExtends, lineWindow, lineMonthlyHours, setEffort, setEffortMode, setLinePhase, type DevActivity, type PlanShape, type Workstream } from "@roi-calculator/engine";
+import { ChevronDown, Plus } from "lucide-react";
+import { envCost, showsAiExperiments, ACTIVITY_KINDS, ALLOWANCE_ID, MANUAL_METER, allowanceActive, PLAN_SHAPES, applyShape, devLabByMeter, developerBreakdown, labourExcluded, labourPartialText, hasPlan, inPlanWindow, WORKSTREAM_TEMPLATES, addWorkstreamFromTemplate, newActivity, planValues, addAllocationPeriod, allocationPeriods, overlappingPeriods, peakAllocation, removeAllocationPeriod, removeWorkstream, setAllocation, updateAllocationPeriod, setPlanValue, workstreamBreakdown, hypercareExtends, lineWindow, lineMonthlyHours, setEffort, setEffortMode, setLinePhase, type DevActivity, type PlanShape, type Workstream } from "@roi-calculator/engine";
 import { RateCardEditor } from "@/components/rate-card";
+import { AiAssistPanel, TestEnvironmentsPanel, ToolsPanel } from "@/components/engineering-lab";
 import { DeliveryCostsPanel, PhasesPanel } from "@/components/delivery-model";
 import { HelpTip } from "@/components/help-tip";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
@@ -15,7 +16,7 @@ import { activityKindsFor } from "@/lib/nav";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
 import { Legend, Spark, StackedBars } from "@/components/charts";
 import { ACTIVITY_SPECS, Fields } from "@/components/fields";
-import { CostItems, FeatureSelect } from "@/components/feature-fields";
+import { FeatureSelect } from "@/components/feature-fields";
 import { catalog, modelOptions, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
 import { cad, fmt } from "@/lib/format";
@@ -24,10 +25,15 @@ const COLORS = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)", "var(--s5)",
 
 export default function Build() {
   const [sel, setSel] = useState("all");
+  const [expOpen, setExpOpen] = useState(true);
   const { project, ledger } = useLedger();
   const B = project.timeline.buildMonths;
   const buildMonths = ledger.months.slice(0, B);
-  const acts = project.build.activities;
+  const acts = project.build.activities.filter((a) => a.kind !== "tooling");
+  const tooling = project.build.activities.find((a) => a.kind === "tooling");
+  const showExperiments = showsAiExperiments(project);
+  const toolCost = (id: string) => buildMonths.reduce((t, m) => t + m.lines.filter((l) => l.componentId === id).reduce((s, l) => s + l.cost, 0), 0);
+  const assist = project.build.aiAssist;
   const series = (id: string) => buildMonths.map((m) => m.lines.filter((l) => l.componentId === id && l.stream === "devlab").reduce((s, l) => s + l.cost, 0));
   const devEnv = buildMonths.map((m) => m.byStream.devenv);
   const envNote = buildMonths.some((m) => envCost(m) > 0) ? ` and environments (${cad(buildMonths.reduce((t, m) => t + envCost(m), 0))}, see Infrastructure)` : "";
@@ -41,9 +47,9 @@ export default function Build() {
   return (
     <div className="grid h-full min-h-0 gap-3.5 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
       <Card>
-        <CardHead title={`Build, months 1–${B}`} sub={labourExcluded(project) ? `AI Dev Lab, dev environment and delivery costs${envNote}. Build labour excluded` : labourPartialText(project) ? `Labour, AI Dev Lab, dev environment and delivery costs${envNote}. ${labourPartialText(project)}` : `Labour, AI Dev Lab, dev environment and delivery costs${envNote}`}><span className="num text-sm">{cad(ledger.totals.build)}</span></CardHead>
+        <CardHead title={`Build, months 1–${B}`} sub={labourExcluded(project) ? `Engineering tools & lab, dev environment and delivery costs${envNote}. Build labour excluded` : labourPartialText(project) ? `Labour, engineering tools & lab, dev environment and delivery costs${envNote}. ${labourPartialText(project)}` : `Labour, engineering tools & lab, dev environment and delivery costs${envNote}`}><span className="num text-sm">{cad(ledger.totals.build)}</span></CardHead>
         <div data-tour="build-list" role="listbox" aria-label="Build cost items" aria-orientation="vertical" onKeyDown={listboxKeys} className="min-h-0 flex-1 overflow-auto">
-          <ListRow selected={sel === "all"} onClick={() => setSel("all")} title="AI Dev Lab, all activities" sub="tokens and AI services while building" aside={<Spark values={allDev} color="var(--s2)" />} value={cad(devTotal)} />
+          <ListRow selected={sel === "all"} onClick={() => setSel("all")} title="Engineering tools & lab, by month" sub="tools, AI-assisted development and AI experiments while building" aside={<Spark values={allDev} color="var(--s2)" />} value={cad(devTotal)} />
           <GroupHead>Labour</GroupHead>
           <ListRow selected={sel === "team"} onClick={() => setSel("team")} title="Team & rate card" sub={!labourExcluded(project) ? project.build.team.map((t) => t.name ?? `${t.people} ${project.rateCard.find((r) => r.id === t.roleId)?.label ?? t.roleId}`).join(" · ") : "Build labour excluded: the team only drives Dev Lab volumes"} value={labourExcluded(project) ? "Excluded" : cad(labTotal)} />
           <GroupHead>Delivery</GroupHead>
@@ -61,18 +67,30 @@ export default function Build() {
             }} />
             {project.build.workstreams.length === 0 && <p className="mt-1.5 text-xs text-muted">A workstream is a feature (one or more agents). Allocate people to it to cost the build per feature and per developer.</p>}
           </div>
-          <GroupHead>AI Dev Lab activities</GroupHead>
-          {acts.map((a, i) => (
-            <ListRow key={a.id} selected={sel === a.id} onClick={() => setSel(a.id)} title={a.label} sub={`${a.workstreamId ? `${wsName(a.workstreamId)} · ` : ""}${describe(a)}`} aside={<Spark values={series(a.id)} color={COLORS[i % COLORS.length]!} />} value={cad(series(a.id).reduce((x, y) => x + y, 0))} />
-          ))}
-          <div className="px-3.5 py-2.5"><AddActivity onAdded={setSel} /></div>
-          <GroupHead>Environment</GroupHead>
-          <ListRow selected={sel === "env"} onClick={() => setSel("env")} title="Dev environment" sub={project.build.environment.map((e) => e.label).join(" · ")} value={cad(devEnv.reduce((x, y) => x + y, 0))} />
+          <GroupHead>Engineering tools & lab</GroupHead>
+          <ListRow selected={sel === "env"} onClick={() => setSel("env")} title="Tools and licences" sub={project.build.environment.length ? project.build.environment.map((e) => e.label).join(" · ") : "IDE, CI/CD, test tooling, load testing, dev services"} value={cad(devEnv.reduce((x, y) => x + y, 0))} />
+          <ListRow selected={sel === "testenv"} onClick={() => setSel("testenv")} title="Test environments" sub="Dev, test and UAT, modelled on Infrastructure" value={cad(buildMonths.reduce((t, m) => t + envCost(m), 0))} />
+          <ListRow selected={sel === "aiassist"} onClick={() => setSel("aiassist")} title="AI-assisted development" sub={assist ? `Hours saved: ${Object.entries(assist.productivityPctByRole).map(([r, v]) => `${project.rateCard.find((x) => x.id === r)?.label ?? r} ${v}%`).join(" · ")}` : tooling ? "Seats and tokens set; no hours saved entered" : "Hours saved per role, against seat and token cost"} value={tooling ? cad(toolCost(tooling.id)) : assist ? "C$0" : "Not set"} />
+          {showExperiments && (
+            <>
+              <button type="button" aria-expanded={expOpen} aria-controls="ai-experiments" onClick={() => setExpOpen((o) => !o)} className="flex w-full items-center justify-between px-3.5 pb-1 pt-3 text-left text-xs font-semibold uppercase tracking-wide text-muted hover:text-ink">
+                <span>AI experiments ({acts.length})</span><ChevronDown size={14} className={`transition-transform motion-reduce:transition-none ${expOpen ? "" : "-rotate-90"}`} aria-hidden="true" />
+              </button>
+              {expOpen && (
+                <div id="ai-experiments">
+                  {acts.map((a) => (
+                    <ListRow key={a.id} selected={sel === a.id} onClick={() => setSel(a.id)} title={a.label} sub={`${a.workstreamId ? `${wsName(a.workstreamId)} · ` : ""}${describe(a)}`} aside={<Spark values={series(a.id)} color={COLORS[project.build.activities.indexOf(a) % COLORS.length]!} />} value={cad(series(a.id).reduce((x, y) => x + y, 0))} />
+                  ))}
+                  <div className="px-3.5 py-2.5"><AddActivity onAdded={setSel} /></div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </Card>
       <Card>
         <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto scroll-hint p-3.5">
-          {sel === "all" ? <AllActivities /> : sel === "team" ? <Team /> : sel === "env" ? <DevEnvironment /> : sel === "phases" ? <PhasesPanel /> : sel === "delivery" ? <DeliveryCostsPanel /> : sel.startsWith("ws:") ? <WorkstreamPanel id={sel.slice(3)} onRemoved={() => setSel("all")} onOpen={setSel} /> : <Activity id={sel} onRemoved={() => setSel("all")} />}
+          {sel === "all" ? <AllActivities /> : sel === "team" ? <Team /> : sel === "env" ? <ToolsPanel onOpenAi={() => setSel("aiassist")} /> : sel === "testenv" ? <TestEnvironmentsPanel /> : sel === "aiassist" ? <AiAssistPanel onRemoved={() => setSel("aiassist")} /> : sel === "phases" ? <PhasesPanel /> : sel === "delivery" ? <DeliveryCostsPanel /> : sel.startsWith("ws:") ? <WorkstreamPanel id={sel.slice(3)} onRemoved={() => setSel("all")} onOpen={setSel} /> : <Activity id={sel} onRemoved={() => setSel("all")} />}
         </div>
       </Card>
     </div>
@@ -122,11 +140,11 @@ function AllActivities() {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div><h2 className="text-base font-bold">AI Dev Lab by month</h2><div className="text-xs text-muted">Labour is shown separately</div></div>
+        <div><h2 className="text-base font-bold">Engineering tools & lab by month</h2><div className="text-xs text-muted">Seats, tokens and AI experiments. Labour and tools are shown separately</div></div>
         <Seg label="View" value={view} onChange={setView} options={[{ value: "chart", label: "Chart" }, { value: "plan", label: "Plan" }, { value: "grid", label: "Cost grid" }, { value: "ws", label: "Workstreams" }, { value: "people", label: "People" }, { value: "models", label: "Models" }]} />
       </div>
       <div className="rounded-r-md border-l-[3px] border-accent bg-accent-soft px-3 py-2 text-[12.5px]">
-        <b>{cad(ledger.totals.devLab)} over {B} months</b>, the same as <b>{fmt(ledger.totals.devLab / Math.max(1, runRate), 1)} months</b> of production run cost including maintenance. The largest activity is <b>{top?.label}</b>.
+        <b>{cad(ledger.totals.devLab)} over {B} months</b>, the same as <b>{fmt(ledger.totals.devLab / Math.max(1, runRate), 1)} months</b> of production run cost including maintenance. {top ? <>The largest activity is <b>{top.label}</b>.</> : null}
         {allowance && <> A fixed allowance of <b>{cad(project.build.devLabMonthlyCad!)}</b> a month replaces the calculated spend (change it in Settings).</>}
       </div>
       <MonthLegend />
@@ -191,9 +209,9 @@ function ByWorkstream() {
   if (project.build.workstreams.length === 0) return <p className="text-sm text-muted">No workstreams yet. Add one from the list to split the build by feature.</p>;
   return (
     <div className="overflow-auto">
-      <TableNote>Build cost by feature (workstream) and month, in C$. Labour comes from the people you allocate to each workstream (Team &amp; rate card), and AI Dev Lab from the activities assigned to it. {MONTH_TABLE_NOTES.headcount}</TableNote>
+      <TableNote>Build cost by feature (workstream) and month, in C$. Labour comes from the people you allocate to each workstream (Team &amp; rate card), and engineering tools & lab from the activities assigned to it. {MONTH_TABLE_NOTES.headcount}</TableNote>
       <table className="data">
-        <thead><tr><th>Workstream</th><th className="n">People (avg)</th><th className="n">Labour</th><th className="n">AI Dev Lab</th><th className="n">Total</th>{Array.from({ length: B }, (_, i) => <MonthTh key={i} m={i + 1} />)}</tr></thead>
+        <thead><tr><th>Workstream</th><th className="n">People (avg)</th><th className="n">Labour</th><th className="n">Engineering tools & lab</th><th className="n">Total</th>{Array.from({ length: B }, (_, i) => <MonthTh key={i} m={i + 1} />)}</tr></thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.id || "project"}>
@@ -221,11 +239,11 @@ function ByPerson() {
     <div className="flex flex-col gap-3 overflow-auto">
       <TableNote className="mb-0">Spend per person by month, in C$ per person. It is the team&apos;s Dev Lab spend divided by the developers running experiments, so removing a developer raises everyone else&apos;s share only for activities that do not scale with people (bake-off, regression, red teaming).</TableNote>
       <div className="flex flex-wrap items-end gap-3">
-        <Field label="AI Dev Lab budget per person per month" help="devBudget"><NumberInput value={budget ?? 0} suffix="CAD" onChange={(v) => edit((d) => { d.build.devBudgetPerMonth = v > 0 ? v : undefined; })} /></Field>
-        <p className="max-w-md text-xs text-muted">Monthly columns are AI Dev Lab spend per person. Workstream activities are charged to the people on that workstream by their share; project-wide ones to everyone running experiments. 0 = no budget. This is a limit the plan is checked against; it never changes the cost. A fixed monthly AI Dev Lab allowance (Settings) does change the cost, and this per-person limit is then checked against that allowance. The same two settings are under Settings, AI Dev Lab.</p>
+        <Field label="Engineering tools & lab budget per person per month" help="devBudget"><NumberInput value={budget ?? 0} suffix="CAD" onChange={(v) => edit((d) => { d.build.devBudgetPerMonth = v > 0 ? v : undefined; })} /></Field>
+        <p className="max-w-md text-xs text-muted">Monthly columns are engineering tools & lab spend per person. Workstream activities are charged to the people on that workstream by their share; project-wide ones to everyone running experiments. 0 = no budget. This is a limit the plan is checked against; it never changes the cost. A fixed monthly engineering tools & lab allowance (Settings) does change the cost, and this per-person limit is then checked against that allowance. The same two settings are under Settings, engineering tools & lab.</p>
       </div>
       <table className="data">
-        <thead><tr><th>Person / line</th><th className="n">Labour</th><th className="n">AI Dev Lab</th>{Array.from({ length: B }, (_, i) => <MonthTh key={i} m={i + 1} />)}</tr></thead>
+        <thead><tr><th>Person / line</th><th className="n">Labour</th><th className="n">Engineering tools & lab</th>{Array.from({ length: B }, (_, i) => <MonthTh key={i} m={i + 1} />)}</tr></thead>
         <tbody>
           {shown.map((r) => (
             <tr key={r.seat}>
@@ -251,7 +269,7 @@ function ByModel() {
   const name = (m: string) => m === MANUAL_METER ? "Typed in by hand (cells and allowance)" : catalog.chatModels.find((c) => c.id === m)?.label ?? catalog.unitPrices.find((u) => u.id === m)?.label ?? m;
   return (
     <div className="flex flex-col gap-1.5">
-      <TableNote>Total AI Dev Lab spend on each model or service over all {project.timeline.buildMonths} build months, in C$ and as a share of the Dev Lab total. Each bar adds up every activity that uses that model.</TableNote>
+      <TableNote>Total engineering tools & lab spend on each model or service over all {project.timeline.buildMonths} build months, in C$ and as a share of the Dev Lab total. Each bar adds up every activity that uses that model.</TableNote>
       <WhereFrom to="/prices" toLabel="Prices & sources">the models chosen on each activity, the tokens those activities use, and each model&apos;s price.</WhereFrom>
       {rows.map((r) => (
         <div key={r.meter} className="grid grid-cols-[minmax(140px,240px)_1fr_auto] items-center gap-2.5 text-[12.5px]">
@@ -282,7 +300,7 @@ function WorkstreamPanel({ id, onRemoved, onOpen }: { id: string; onRemoved: () 
         <div role="note" className="rounded-md bg-warn-soft px-3 py-2 text-[12.5px] text-warn">Nobody is allocated to this workstream yet, so its iterations and playground work cost nothing. Give people a share of their time below.</div>
       )}
       <div className="max-w-xs"><FeatureSelect value={w.featureId} onChange={(v) => upd((x) => { if (v) x.featureId = v; else delete x.featureId; })} /></div>
-      <div className="font-display text-[26px] font-bold">{cad(row.total)}<span className="ml-1.5 font-sans text-xs font-normal text-muted">{cad(row.labour)} labour · {cad(row.devlab)} AI Dev Lab · {fmt(row.people, 2)} people on average</span></div>
+      <div className="font-display text-[26px] font-bold">{cad(row.total)}<span className="ml-1.5 font-sans text-xs font-normal text-muted">{cad(row.labour)} labour · {cad(row.devlab)} engineering tools & lab · {fmt(row.people, 2)} people on average</span></div>
       <div>
         <h3 className="mb-1.5 text-sm font-semibold">People</h3>
         <table className="data">
@@ -389,9 +407,9 @@ function Team() {
     <>
       <div><h2 className="text-base font-bold">Team & rate card</h2><div className="text-xs text-muted">Labour for the build in CAD. Ticked lines run AI experiments and drive per-developer Dev Lab volumes.</div></div>
       <div className="font-display text-[26px] font-bold">{labourExcluded(project) ? "Excluded" : cad(ledger.totals.buildLabour)}</div>
-      {labourPartialText(project) && <p className="rounded-md bg-warn-soft px-2.5 py-1.5 text-xs text-warn">{labourPartialText(project)}. Unticked lines still count as people for the AI Dev Lab but add no cost.</p>}
+      {labourPartialText(project) && <p className="rounded-md bg-warn-soft px-2.5 py-1.5 text-xs text-warn">{labourPartialText(project)}. Unticked lines still count as people for the engineering tools & lab but add no cost.</p>}
       <LabourExcludeToggle />
-      {!project.build.includeLabour && <p className="rounded-md bg-warn-soft px-2.5 py-1.5 text-xs text-warn">Build labour excluded: nothing below is costed. People and experiment ticks still set the AI Dev Lab volumes, and the rates still value time saved and maintenance.</p>}
+      {!project.build.includeLabour && <p className="rounded-md bg-warn-soft px-2.5 py-1.5 text-xs text-warn">Build labour excluded: nothing below is costed. People and experiment ticks still set the engineering tools & lab volumes, and the rates still value time saved and maintenance.</p>}
       <div className="flex-none overflow-x-auto">
       <table className="data">
         <thead><tr><th><span className="inline-flex items-center gap-0.5">Costed<HelpTip id="teamCosted" label="Costed" /></span></th><th>Name</th><th><span className="inline-flex items-center gap-0.5">Phase<HelpTip id="teamPhase" label="Phase" /></span></th><th>Role</th><th className="n">People</th><th className="n"><span className="inline-flex items-center gap-0.5">Effort<HelpTip id="teamEffortMode" label="Effort" /></span></th><th className="n">From</th><th className="n">To</th><th>Experiments</th><th className="n"><span className="inline-flex items-center gap-0.5">Manual rate (CAD/h)<HelpTip id="rateOverride" label="Manual rate" /></span></th><th className="n">Build cost</th><th /></tr></thead>
@@ -478,23 +496,6 @@ function AllocationMatrix() {
       </table>
       <p className="mt-1.5 text-xs text-muted">Set the months someone spends on a workstream in its panel (e.g. moves from one feature to another in month 4). Labour follows these shares. Iterations and playground work in a workstream scale with the people on it; bake-offs, regression and red teaming in a workstream run once, however many people share it.</p>
     </div>
-  );
-}
-
-/** Fixed and metered services the team runs while building (per month). */
-function DevEnvironment() {
-  const { project, ledger } = useLedger();
-  const B = project.timeline.buildMonths;
-  const lines = ledger.months.slice(0, B).flatMap((m) => m.lines.filter((l) => l.stream === "devenv"));
-  return (
-    <>
-      <div><h2 className="text-base font-bold">Dev environment</h2><div className="text-xs text-muted">Services the team runs while building, billed every build month: dev search index, API gateway, logging, sandboxes.</div></div>
-      <div className="font-display text-[26px] font-bold">{cad(lines.reduce((s, l) => s + l.cost, 0))}<span className="ml-1.5 font-sans text-xs font-normal text-muted">over {B} months</span></div>
-      <CostItems items={project.build.environment} locate={(d) => d.build.environment} idPrefix="env" firstMonthLabel="build month 1" />
-      <WhereFrom to="/prices" toLabel="Prices & sources">the items listed above (quantity times catalogue price). These are fixed monthly services, so they do not change with headcount.</WhereFrom>
-      <p className="text-xs text-muted">Catalogue items are before free allowances; the total above applies them. A free-text cost needs no catalogue price: enter C$ per month or once.</p>
-      <Explain title="How this is calculated" lines={lines} months={B} />
-    </>
   );
 }
 

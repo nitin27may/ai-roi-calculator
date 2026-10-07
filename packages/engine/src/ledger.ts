@@ -9,7 +9,7 @@ import { cashLine, workloadLines } from "./workloads.js";
 import { oneTimeKey, workloadWindow } from "./features.js";
 import { isCashItem } from "./project.js";
 import { devLabLines, teamLines } from "./devlab.js";
-import { hypercareExtends } from "./delivery.js";
+import { hypercareExtends, lineActiveIn } from "./delivery.js";
 import { avoidedMonthly, capabilityHours, confidenceWeight, valueItemMonthly } from "./benefits.js";
 import { resourceMonthLines } from "./resources.js";
 import { currentLineSaving, currentLines, currentFullSaving } from "./currentstate.js";
@@ -101,7 +101,7 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
       lines.push(...devLabLines(p, m, book, date));
       for (const it of p.build.environment) {
         if (isCashItem(it)) {
-          if (it.cadence === "monthly" || m === Math.min(B, it.month ?? 1)) lines.push({ ...cashLine(`devenv:${it.id}`, "devenv", it, "devenv"), once: it.cadence === "once" });
+          if (it.cadence === "monthly" || m === Math.min(B, it.month ?? 1)) lines.push({ ...cashLine(`devenv:${it.id}`, "devenv", it, "devenv", it.perPerson ? sum(p.build.team.filter((t) => lineActiveIn(p, t, m)).map((t) => t.people)) : undefined), once: it.cadence === "once" });
         } else lines.push(line({ id: `devenv:${it.id}`, componentId: "devenv", label: it.label, stream: "devenv", behaviour: "fixed", meter: it.unitPriceId, quantity: it.quantity, unit: book.unit(it.unitPriceId).unit, unitPrice: book.unitPrice(it.unitPriceId), formula: `${it.quantity} × ${book.unit(it.unitPriceId).unit}` }));
       }
       lines.push(...resourceMonthLines(p, book, m));
