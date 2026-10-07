@@ -8,6 +8,12 @@ export interface GlossaryTerm {
 
 export const GLOSSARY: GlossaryTerm[] = [
   {
+    id: "current-state",
+    term: "Current state and dual running",
+    plain: "Current state is what the work costs today, line by line: people, licences, infrastructure and costs per transaction such as stock, postage or courier. Each line can be kept, reduced or retired from a chosen month. Dual running is the stretch where the old cost is still being paid while the new one already is.",
+    technical: "Saving in a month = current cost minus what remains. A reduce that follows adoption ramps with the adoption ramp; a retire starts in its month; a conditional line that is not assumed saves nothing. People lines rise with rate escalation. Dual-running cost sums, over months where the new run cost is billed, the cost of lines due to go away that has not yet gone.",
+  },
+  {
     id: "snowflake-credit",
     term: "Snowflake credit",
     plain: "Snowflake bills in credits, not dollars. The ROI Calculator shows the credits each workload uses and multiplies them by what one credit costs you in Canadian dollars, so you can see both numbers.",

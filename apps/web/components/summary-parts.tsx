@@ -67,6 +67,27 @@ export function HeadlineTiles({ s, linkWide = true }: { s: Summary; linkWide?: b
   );
 }
 
+/** Current state against the target, from `summarize()`. Render only when `s.currentLineCount > 0`. */
+export function CurrentVsTargetTile({ s, className = "px-3.5 pb-3.5" }: { s: Summary; className?: string }) {
+  const c = s.currentVsTarget;
+  const rows: [string, string, string][] = [
+    ["Current cost per month", cad(c.currentMonthly), `${s.currentLineCount} line${s.currentLineCount === 1 ? "" : "s"}, before any change`],
+    ["Target run cost per month", cad(c.targetMonthly), "steady state: running, platform and maintenance"],
+    ["Saving per month", cad(c.saving), "every change in effect, full adoption"],
+    ["Dual-running cost", cad(c.dualRunningCost), "current cost still paid while the target is billed"],
+  ];
+  return (
+    <dl className={`grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-[12.5px] ${className}`} data-testid="current-vs-target">
+      {rows.map(([k, v, note]) => (
+        <div key={k} className="contents">
+          <dt className="text-ink-2">{k}<small className="block text-muted">{note}</small></dt>
+          <dd className="num self-center text-right font-semibold">{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 /** Finance measures as label/value rows. IRR is capped in text and its range shows only when it is narrow. */
 export function FinanceMeasures({ s, className = "px-3.5 pb-3.5" }: { s: Summary; className?: string }) {
   const irr = irrBand(s.range.irrPct);

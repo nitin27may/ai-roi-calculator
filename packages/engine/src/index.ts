@@ -14,6 +14,7 @@ export * from "./allocation.js";
 export * from "./scenarios.js";
 export * from "./templates.js";
 export * from "./report.js";
+export * from "./currentstate.js";
 export * from "./ptu.js";
 export * from "./hosting.js";
 export * from "./images.js";

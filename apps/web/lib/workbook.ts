@@ -1,5 +1,5 @@
 import type { Workbook } from "exceljs";
-import { WIDE_RANGE_TEXT, avoidedMonthly, buildLabel, labourExcluded, capabilityHours, computeAllocation, irrBand, lineItemRows, moneyBand, monthRows, pricesUsedRows, summarize, summaryRows, type Ledger, type Project, type RoiResult, type Row } from "@roi-calculator/engine";
+import { WIDE_RANGE_TEXT, avoidedMonthly, buildLabel, labourExcluded, capabilityHours, computeAllocation, irrBand, lineItemRows, moneyBand, monthRows, pricesUsedRows, currentLines, currentStateRows, summarize, summaryRows, type Ledger, type Project, type RoiResult, type Row } from "@roi-calculator/engine";
 import type { Catalog } from "@roi-calculator/catalog";
 import type { ChartMonth } from "./xlsx-chart";
 
@@ -96,7 +96,7 @@ export async function buildWorkbook(p: Project, ledger: Ledger, roi: RoiResult, 
   const a = computeAllocation(p, ledger, p.roi.basis);
   sheet("ROI by capability", [
     ...a.capabilities.map((c) => ({ Capability: c.label, Benefit: Math.round(c.benefit), "Direct cost": Math.round(c.direct), "Shared cost": Math.round(c.shared), Net: Math.round(c.net), ROI: c.roi === null ? "" : `${Math.round(c.roi * 100)}%` })),
-    { Capability: "Project-level benefits (avoided costs, one-offs)", Benefit: Math.round(a.projectBenefit), "Direct cost": "", "Shared cost": "", Net: "", ROI: "" },
+    { Capability: `Project-level benefits (avoided costs, one-offs${currentLines(p).length > 0 ? ", current-state savings" : ""})`, Benefit: Math.round(a.projectBenefit), "Direct cost": "", "Shared cost": "", Net: "", ROI: "" },
     { Capability: "Unallocated cost", Benefit: "", "Direct cost": Math.round(a.unallocated.cost), "Shared cost": "", Net: "", ROI: "" },
   ], ["Benefit", "Direct cost", "Shared cost", "Net"]);
   sheet("Assumptions", [
@@ -109,6 +109,8 @@ export async function buildWorkbook(p: Project, ledger: Ledger, roi: RoiResult, 
     { Section: "ROI", Item: "Rate escalation per year", Value: p.roi.rateEscalationPctPerYear, Unit: "%" },
     { Section: "ROI", Item: "Discount rate", Value: p.roi.discountRatePct, Unit: "%" },
   ]);
+  // Only for projects that itemise what the work costs today, so other workbooks keep their sheets.
+  if (currentLines(p).length > 0) sheet("Current state", currentStateRows(p), ["Cost per month today (CAD)", "Saving per month, change in full effect (CAD)"]);
   sheet("Prices used", pricesUsedRows(ledger, cat));
   return wb;
 }

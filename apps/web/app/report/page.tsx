@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { DEPLOYMENT_LABEL, LABOUR_EXCLUDED_TEXT, WIDE_RANGE_TEXT, buildLabel, compareScenarios, computeAllocation, evaluateLevers, moneyBand, pricesUsedRows, steadyState } from "@roi-calculator/engine";
+import { DEPLOYMENT_LABEL, LABOUR_EXCLUDED_TEXT, WIDE_RANGE_TEXT, buildLabel, compareScenarios, computeAllocation, currentStateRows, evaluateLevers, moneyBand, pricesUsedRows, steadyState } from "@roi-calculator/engine";
 import { CumulativeLine, Legend, RankedBars, StackedBars, Waterfall } from "@/components/charts";
 import { Field, TextInput } from "@/components/ui";
-import { FinanceMeasures, HeadlineTiles, RiskSummary, VerdictChip, WATERFALL_COST_IDS, wideDrivers } from "@/components/summary-parts";
+import { CurrentVsTargetTile, FinanceMeasures, HeadlineTiles, RiskSummary, VerdictChip, WATERFALL_COST_IDS, wideDrivers } from "@/components/summary-parts";
 import { catalog, useSummary } from "@/lib/compute";
 import { cad, fmt } from "@/lib/format";
 import { useStudio } from "@/lib/store";
@@ -115,6 +115,12 @@ export default function Report() {
               <RankedBars rows={s.costDrivers} className="flex flex-col gap-1.5" />
             </section>
           </div>
+          {s.currentLineCount > 0 && (
+            <section className="break-inside-avoid">
+              <h2 className="mb-1.5 text-[15px] font-bold">Current vs target</h2>
+              <CurrentVsTargetTile s={s} className="" />
+            </section>
+          )}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <section className="break-inside-avoid">
               <h2 className="mb-1.5 text-[15px] font-bold">Finance measures</h2>
@@ -161,6 +167,15 @@ export default function Report() {
               </table>
             </section>
           </div>
+          {s.currentLineCount > 0 && (
+            <section className="break-inside-avoid">
+              <h3 className="mb-1.5 text-[15px] font-bold">What the work costs today, and what changes</h3>
+              <table className="data [&_td.n]:whitespace-normal [&_td.n]:font-sans">
+                <thead><tr><th>Item</th><th>Basis</th><th className="n">Per month</th><th>Change</th><th className="n">Saving per month</th></tr></thead>
+                <tbody>{currentStateRows(p).map((r) => <tr key={String(r.Item)}><td>{r.Item}</td><td>{r.Basis}</td><td className="n">{cad(Number(r["Cost per month today (CAD)"]))}</td><td>{r.Change}</td><td className="n">{cad(Number(r["Saving per month, change in full effect (CAD)"]))}</td></tr>)}</tbody>
+              </table>
+            </section>
+          )}
           <section className="break-inside-avoid">
             <h3 className="mb-1 text-[15px] font-bold">How sure are we</h3>
             <p className="mb-2 max-w-[80ch] text-[12.5px] text-ink-2">

@@ -7,7 +7,7 @@ import { BulletBar, CumulativeLine, RangeBar, RankedBars, ViewToggle, Waterfall 
 import { Story } from "@/components/story";
 import { MonthLegend } from "@/components/months";
 import { Dumbbell } from "@/components/charts-compare";
-import { CumulativeTable, DriversTable, FinanceMeasures, HeadlineTiles, RiskSummary, VerdictChip, WATERFALL_COST_IDS, WaterfallTable, wideDrivers } from "@/components/summary-parts";
+import { CumulativeTable, CurrentVsTargetTile, DriversTable, FinanceMeasures, HeadlineTiles, RiskSummary, VerdictChip, WATERFALL_COST_IDS, WaterfallTable, wideDrivers } from "@/components/summary-parts";
 import { catalog, useSummary } from "@/lib/compute";
 import { cad, cadUnit } from "@/lib/format";
 
@@ -38,6 +38,13 @@ export default function Summary() {
       <div className="shrink-0" data-tour="summary-tiles">
         <HeadlineTiles s={s} />
       </div>
+
+      {s.currentLineCount > 0 && (
+        <Card className="shrink-0">
+          <CardHead title="Current vs target" sub={<>What the work costs today against the new run cost. <Link href="/roi" className="underline">Edit current state on the ROI page →</Link></>} />
+          <CurrentVsTargetTile s={s} />
+        </Card>
+      )}
 
       <div className="grid shrink-0 gap-3.5 lg:grid-cols-2" data-tour="summary-charts">
         <Card id="how-sure">

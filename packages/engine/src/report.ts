@@ -9,6 +9,7 @@ import { beforeAfter, workloadVolume } from "./benefits.js";
 import { sensitivity, type SensitivityRow } from "./sensitivity.js";
 import { projectRange, type ProjectRange } from "./ranges.js";
 import { verdictFor } from "./present.js";
+import { currentLines, currentVsTarget, type CurrentVsTarget } from "./currentstate.js";
 
 export type Row = Record<string, string | number>;
 
@@ -97,6 +98,10 @@ export interface Summary {
   alerts: AlertGroup[];
   sensitivityTop3: SensitivityRow[];
   verdict: Verdict;
+  /** Current state against the target, in CAD a month; all zero when the project has no current-state lines. See `CurrentVsTarget`. */
+  currentVsTarget: CurrentVsTarget;
+  /** Number of current-state lines, so the Summary can hide the tile when there are none. */
+  currentLineCount: number;
 }
 
 const ALERT_GROUP: Record<PriceNote["kind"], AlertGroup["id"]> = {
@@ -246,7 +251,19 @@ export function summarize(p: Project, ledger: Ledger, roi: RoiResult, cat: Catal
     alerts: alertSummary(ledger),
     sensitivityTop3: sensitivity(p, cat).rows.slice(0, 3),
     verdict,
+    currentVsTarget: currentVsTarget(p, ledger),
+    currentLineCount: currentLines(p).length,
   };
+}
+
+/** Summary rows for current state against target; only added when the project has current-state lines. */
+function currentRows(c: CurrentVsTarget): Row[] {
+  return [
+    { Item: "Current cost per month (before any change)", Value: r2(c.currentMonthly) },
+    { Item: "Target run cost per month (steady state)", Value: r2(c.targetMonthly) },
+    { Item: "Current-state saving per month (all changes in effect)", Value: r2(c.saving) },
+    { Item: "Dual-running cost (current cost still paid while the target runs)", Value: r2(c.dualRunningCost) },
+  ];
 }
 
 /** Every priced line in every month, with the formula that produced it. */
@@ -266,11 +283,15 @@ export function lineItemRows(ledger: Ledger): Row[] {
 
 /** One row per month: cost by stream, benefit, the basis cost and the cumulative position. */
 export function monthRows(ledger: Ledger, roi: RoiResult): Row[] {
+  const hasCurrent = ledger.months.some((mo) => Object.keys(mo.benefitBy.currentState).length > 0);
   return ledger.months.map((mo, i) => ({
     Month: mo.m, Date: mo.date, Phase: mo.phase, Adoption: Math.round(mo.adoption * 100) / 100,
     "Build labour": r2(mo.byStream.labour), "AI Dev Lab": r2(mo.byStream.devlab), "Dev environment": r2(mo.byStream.devenv),
     "Production AI usage": r2(mo.byStream.run), "Platform": r2(mo.byStream.platform), Maintenance: r2(mo.byStream.maint), Transition: r2(mo.byStream.transition),
-    [`Cost (${roi.basis})`]: r2(basisCost(mo, roi.basis)), Benefit: r2(mo.benefit), "Cumulative net": r2(roi.cumulative[i]!),
+    [`Cost (${roi.basis})`]: r2(basisCost(mo, roi.basis)), Benefit: r2(mo.benefit),
+    // Only when the project has current-state lines, so other projects' sheets keep their columns.
+    ...(hasCurrent ? { "Current-state savings": r2(sum(Object.values(mo.benefitBy.currentState))) } : {}),
+    "Cumulative net": r2(roi.cumulative[i]!),
   }));
 }
 
@@ -305,6 +326,7 @@ export function summaryRows(p: Project, ledger: Ledger, roi: RoiResult, cat: Cat
     { Item: "Payback month, discounted", Value: s.discountedPaybackMonth ?? "Not within plan" },
     { Item: "IRR (annual)", Value: s.irrPct === null ? "Not defined" : `${s.irrPct.toFixed(1)}%` },
     ...(s.hurdleRatePct !== null ? [{ Item: `Hurdle rate ${s.hurdleRatePct}%`, Value: s.clearsHurdle === null ? "n/a" : s.clearsHurdle ? "Cleared" : "Not cleared" }] : []),
+    ...(s.currentLineCount > 0 ? currentRows(s.currentVsTarget) : []),
     { Item: "Total cost, low to high", Value: `${r2(s.range.totalCost.low)} to ${r2(s.range.totalCost.high)}` },
     { Item: "NPV, low to high", Value: `${r2(s.range.npv.low)} to ${r2(s.range.npv.high)}` },
     { Item: "Verdict", Value: `${s.verdict.text} · NPV ${s.verdict.npvPositive ? "positive" : "negative"}` },

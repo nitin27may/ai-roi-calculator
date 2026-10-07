@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadCatalog } from "@roi-calculator/catalog";
-import { buildLedger, computeRoi, meetingIntelligence, roiOptions } from "@roi-calculator/engine";
+import { ProjectSchema, blankProject, buildLedger, computeRoi, meetingIntelligence, roiOptions, type Project } from "@roi-calculator/engine";
 import { buildWorkbook, chartMonths, rangeTableRows } from "../lib/workbook";
 import { CHART_SERIES, axisLabel, drawMonthlyChart, niceMax, type Ctx2D } from "../lib/xlsx-chart";
 
@@ -65,5 +65,36 @@ describe("chart drawing", () => {
     expect(niceMax(0)).toBe(1);
     expect(axisLabel(25_000)).toBe("C$25k");
     expect(axisLabel(500)).toBe("C$500");
+  });
+});
+
+describe("current state in the workbook", () => {
+  const cheque = (): Project => {
+    const q = blankProject("Cheques", "2027-01-01");
+    q.timeline = { buildMonths: 6, horizonMonths: 36, adoptionRampMonths: 6 };
+    q.currentState = { lines: [
+      { id: "post", label: "Postage", category: "transaction", basis: { kind: "perTransaction", unitCostCad: 1.2, volumePerMonth: 10000 }, change: { mode: "reduce", pct: 90, followsAdoption: true } },
+      { id: "lease", label: "Printer lease", category: "infrastructure", basis: { kind: "monthly", amountCad: 1500 }, change: { mode: "retire", fromMonth: 18 }, decommission: { conditional: true, condition: "Lease ended", assumed: false } },
+    ] };
+    return ProjectSchema.parse(q);
+  };
+
+  it("adds a Current state sheet only when the project has lines, in plain wording", async () => {
+    const q = cheque();
+    const l = buildLedger(q, catalog, "p50");
+    const r = computeRoi(l, q.roi.basis, q.roi.discountRatePct, roiOptions(q));
+    const wb = await buildWorkbook(q, l, r, catalog);
+    expect(wb.worksheets.map((w) => w.name)).toContain("Current state");
+    const sheet = wb.getWorksheet("Current state")!;
+    const cells = (ws: typeof sheet) => { const out: string[] = []; ws.eachRow((row) => row.eachCell((c) => out.push(String(c.value)))); return out.join(" | "); };
+    const text = cells(sheet);
+    expect(text).toContain("Postage");
+    expect(text).toContain("not assumed: it stays");
+    expect(cells(wb.getWorksheet("Summary")!)).toContain("Dual-running cost");
+    // The wording of the new rows is generic: the project does not have to involve AI.
+    const added = cells(sheet) + " " + cells(wb.getWorksheet("Summary")!).split(" | ").filter((c) => /Current|Dual-running|Target run/.test(c)).join(" ");
+    expect(added).not.toMatch(/\bAI\b/);
+    const plain = await buildWorkbook(p, ledger, roi, catalog);
+    expect(plain.worksheets.map((w) => w.name)).not.toContain("Current state");
   });
 });
