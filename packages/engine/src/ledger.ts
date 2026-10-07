@@ -9,6 +9,7 @@ import { cashLine, workloadLines } from "./workloads.js";
 import { oneTimeKey, workloadWindow } from "./features.js";
 import { isCashItem } from "./project.js";
 import { devLabLines, teamLines } from "./devlab.js";
+import { hypercareExtends } from "./delivery.js";
 import { avoidedMonthly, capabilityHours, confidenceWeight, valueItemMonthly } from "./benefits.js";
 import { resourceMonthLines } from "./resources.js";
 import { currentLineSaving, currentLines, currentFullSaving } from "./currentstate.js";
@@ -34,8 +35,8 @@ export interface Month {
   /** 0..1 adoption in production; 0 during build. */
   adoption: number;
   lines: Line[];
-  /** Cost by stream. `env` (non-production environments) is present only when a project has such lines, so v5 totals keep their exact shape; read it with `envCost`. */
-  byStream: Record<Exclude<Stream, "env">, number> & { env?: number };
+  /** Cost by stream. `env` (non-production environments) and `delivery` (non-labour delivery costs) are present only when a project has such lines, so v5 totals keep their exact shape; read them with `envCost` and `deliveryCost`. */
+  byStream: Record<Exclude<Stream, "env" | "delivery">, number> & { env?: number; delivery?: number };
   benefit: number;
   benefitBy: MonthBenefit;
 }
@@ -51,7 +52,10 @@ export interface Ledger {
 /** The month run-rate figures are read at (see `Ledger.steadyMonth`). */
 export const steadyState = (ledger: Ledger): Month => ledger.months[ledger.steadyMonth - 1] ?? ledger.months.at(-1)!;
 
-export const STREAMS: Stream[] = ["labour", "devlab", "devenv", "run", "platform", "maint", "transition", "env"];
+export const STREAMS: Stream[] = ["labour", "devlab", "devenv", "run", "platform", "maint", "transition", "env", "delivery"];
+
+/** Non-labour delivery cost of a month (0 when the project has none). */
+export const deliveryCost = (mo: { byStream: { delivery?: number } }): number => mo.byStream.delivery ?? 0;
 
 /** Non-production environment cost of a month (0 when the project has none). */
 export const envCost = (mo: { byStream: { env?: number } }): number => mo.byStream.env ?? 0;
@@ -98,14 +102,18 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
         } else lines.push(line({ id: `devenv:${it.id}`, componentId: "devenv", label: it.label, stream: "devenv", behaviour: "fixed", meter: it.unitPriceId, quantity: it.quantity, unit: book.unit(it.unitPriceId).unit, unitPrice: book.unitPrice(it.unitPriceId), formula: `${it.quantity} × ${book.unit(it.unitPriceId).unit}` }));
       }
       lines.push(...resourceMonthLines(p, book, m));
+      for (const d of p.build.deliveryCosts ?? []) {
+        if (d.cadence === "monthly" || m === Math.min(B, d.month ?? 1)) lines.push({ ...cashLine(`delivery:${d.id}`, "delivery", d, "delivery"), once: d.cadence === "once" });
+      }
       lines = lines.map((l) => {
         if (l.manual) return l;
-        // Infrastructure is not AI-assisted development, so the dev-cost cut does not apply to it.
-        const f = (l.stream === "labour" ? 1 : nonLabourContingency) * (l.stream === "env" || l.componentId.startsWith("resource:") ? 1 : devCut);
+        // Infrastructure and delivery costs (vendor, training) are not AI-assisted development, so the dev-cost cut does not apply to them.
+        const f = (l.stream === "labour" ? 1 : nonLabourContingency) * (l.stream === "env" || l.stream === "delivery" || l.componentId.startsWith("resource:") ? 1 : devCut);
         return { ...l, unitPrice: l.unitPrice * f, cost: l.cost * f };
       });
       // Environment lines are infrastructure, not build effort, so they stay out of the base of "maintenance as % of build".
-      buildTotal += sum(lines.filter((l) => l.stream !== "env" && !l.componentId.startsWith("resource:")).map((l) => l.cost));
+      // Delivery costs count in it, like the dev environment; they are scaled by devCut because the base is divided by it again below.
+      buildTotal += sum(lines.filter((l) => l.stream !== "env" && !l.componentId.startsWith("resource:")).map((l) => (l.stream === "delivery" ? l.cost * devCut : l.cost)));
     } else {
       const k = m - B; // production month, 1-based
       const r = p.timeline.adoptionRampMonths;
@@ -138,6 +146,8 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
         }
       }
       lines.push(...resourceMonthLines(p, book, m));
+      // Hypercare: team lines in the hypercare phase keep billing as labour after go-live, with contingency and the dev-cost cut like any build line. teamLines bills nothing else past the build (see lineWindow).
+      if (p.build.includeLabour && hypercareExtends(p)) lines.push(...teamLines(p, p.build.team, "labour", "team", contingency * devCut, m));
       const maint = p.maintenance.mode === "none" ? []
         : p.maintenance.mode === "team"
         ? teamLines(p, p.maintenance.team, "maint", "maintenance", maintCut * esc)
@@ -181,9 +191,10 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
     }
     for (const o of p.benefits.oneOff) if (m === o.month) benefitBy.oneOff += o.amount;
     lines = applyFreeAllowances(lines, book);
-    const byStream = Object.fromEntries(STREAMS.filter((s) => s !== "env").map((s) => [s, 0])) as Month["byStream"];
+    const byStream = Object.fromEntries(STREAMS.filter((s) => s !== "env" && s !== "delivery").map((s) => [s, 0])) as Month["byStream"];
     for (const l of lines) {
       if (l.stream === "env") byStream.env = (byStream.env ?? 0) + l.cost;
+      else if (l.stream === "delivery") byStream.delivery = (byStream.delivery ?? 0) + l.cost;
       else byStream[l.stream] += l.cost;
     }
     const benefit = sum(Object.values(benefitBy.capabilities)) + benefitBy.avoided + benefitBy.oneOff + sum(Object.values(benefitBy.value)) + sum(Object.values(benefitBy.currentState));
@@ -200,14 +211,16 @@ export function buildLedger(p: Project, catalog: Catalog, percentile: Percentile
     if (full <= win.end) steady = Math.max(steady, Math.min(full, last.m));
   }
   const firstFull = months[steady - 1]!;
+  /** Hypercare labour billed after go-live (0 unless a hypercare phase runs past the build): part of the cost of delivering. */
+  const hypercare = sum(months.filter((x) => x.phase === "production").map((x) => x.byStream.labour));
   const onceCost = sum(firstFull.lines.filter((l) => l.once && (l.stream === "run" || l.stream === "platform")).map((l) => l.cost));
   return {
     months,
     steadyMonth: steady,
     notes: [...book.notes.values()],
     totals: {
-      build: sum(buildMonths.map((x) => x.byStream.labour + x.byStream.devlab + x.byStream.devenv + envCost(x))),
-      buildLabour: sum(buildMonths.map((x) => x.byStream.labour)),
+      build: sum(buildMonths.map((x) => x.byStream.labour + x.byStream.devlab + x.byStream.devenv + envCost(x) + deliveryCost(x))) + hypercare,
+      buildLabour: sum(buildMonths.map((x) => x.byStream.labour)) + hypercare,
       devLab: sum(buildMonths.map((x) => x.byStream.devlab)),
       runRate: firstFull.byStream.run + firstFull.byStream.platform + envCost(firstFull) - onceCost,
       maintRate: firstFull.byStream.maint,

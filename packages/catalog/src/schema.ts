@@ -331,6 +331,8 @@ export const BenchmarkLibrary = z.object({
   asOf: isoDate, source: z.string(), notes: z.string(),
   presets: z.object({ conservative: z.object({ adoptionPct: z.number(), realisationPct: z.number(), rationale: z.string() }), typical: z.object({ adoptionPct: z.number(), realisationPct: z.number(), rationale: z.string() }), optimistic: z.object({ adoptionPct: z.number(), realisationPct: z.number(), rationale: z.string() }) }),
   roles: z.array(z.object({ id: z.string(), label: z.string(), hourlyRate: z.number().nonnegative(), source: z.string() })),
+  /** Standard delivery roles offered by "Add role from the standard list". Never added to a project by themselves. */
+  availableRoles: z.array(z.object({ id: z.string(), label: z.string(), hourlyRate: z.number().nonnegative(), source: z.string(), confidence: Confidence })).default([]),
   capabilities: z.array(Benchmark),
 });
 

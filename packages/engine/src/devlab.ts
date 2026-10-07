@@ -5,6 +5,7 @@ import { simulateHarness, reasoningTokens, type ReasoningEffort } from "./harnes
 import { evaluationLines } from "./workloads.js";
 import { fmtInt, line, sum, type Line } from "./lines.js";
 import { resolveAssumptions } from "./assumptions.js";
+import { lineActiveIn, lineMonthlyHours, phaseOf, windowMonths } from "./delivery.js";
 
 /** Meter id on lines whose amount was typed in; it is not a catalogue price. */
 export const MANUAL_METER = "manual-entry";
@@ -201,7 +202,7 @@ const activeIn = (m: number, x: { fromMonth?: number | undefined; toMonth?: numb
  */
 export function seatEffort(p: Project, m: number, onlyExperimenting = true): { seat: number; people: number; byWorkstream: Record<string, number>; projectWide: number }[] {
   return p.build.team.map((t, seat) => {
-    const people = (!onlyExperimenting || t.experiments) && activeIn(m, t) ? t.people : 0;
+    const people = (!onlyExperimenting || t.experiments) && lineActiveIn(p, t, m) ? t.people : 0;
     const allocs = (t.allocations ?? []).filter((a) => activeIn(m, a));
     const total = sum(allocs.map((a) => a.share));
     const scale = total > 1 ? 1 / total : 1;
@@ -213,7 +214,7 @@ export function seatEffort(p: Project, m: number, onlyExperimenting = true): { s
 
 /** People running experiments in build month m (all build months when m is omitted). */
 export function developers(p: Project, m?: number): number {
-  return sum(p.build.team.filter((t) => t.experiments && (m === undefined || (m >= (t.fromMonth ?? 1) && m <= (t.toMonth ?? Infinity)))).map((t) => t.people));
+  return sum(p.build.team.filter((t) => t.experiments && (m === undefined || lineActiveIn(p, t, m))).map((t) => t.people));
 }
 
 /**
@@ -223,16 +224,20 @@ export function developers(p: Project, m?: number): number {
 export function teamLines(p: Project, team: Project["build"]["team"], stream: "labour" | "maint", componentId: string, factor = 1, m?: number): Line[] {
   const rates = new Map(p.rateCard.map((r) => [r.id, r]));
   const wsLabel = new Map(p.build.workstreams.map((w) => [w.id, w.label]));
-  const active = team.map((t, i) => [t, i] as const).filter(([t]) => (m === undefined || activeIn(m, t)) && (stream !== "labour" || t.costed !== false));
+  const active = team.map((t, i) => [t, i] as const).filter(([t]) => (m === undefined || lineActiveIn(p, t, m)) && (stream !== "labour" || t.costed !== false));
   return active.flatMap(([t, i]) => {
     const r = rates.get(t.roleId);
     if (!r) throw new Error(`Unknown role ${t.roleId}`);
     const who = t.name ? `${t.name} (${r.label})` : r.label;
-    const label = t.phase ? `${t.phase}: ${who}` : who;
-    const hours = t.people * t.hoursPerMonth;
+    const phaseName = t.phase ?? phaseOf(p, t)?.label;
+    const label = phaseName ? `${phaseName}: ${who}` : who;
+    // Effort (people x weeks x hours per week) is a build-labour input: spread over the line's window. Maintenance lines use people x hours.
+    const byEffort = stream === "labour" && t.effort !== undefined;
+    const hours = stream === "labour" ? lineMonthlyHours(p, t) : t.people * t.hoursPerMonth;
     const rate = t.rateOverride ?? r.hourlyRate;
     const base = { componentId, stream, behaviour: "fixed" as const, meter: `role:${t.roleId}`, unit: "hour", unitPrice: rate * factor, seat: stream === "labour" ? i : undefined };
-    const formula = (share: number) => `${t.people} × ${t.hoursPerMonth} h${share !== 1 ? ` × ${Math.round(share * 100)}%` : ""} × CAD ${rate}/h${t.rateOverride !== undefined ? " (manual rate)" : ""}${factor !== 1 ? ` × ${factor.toFixed(2)}` : ""}`;
+    const amount = byEffort ? `${t.effort!.people} × ${t.effort!.weeks} wk × ${t.effort!.hoursPerWeek} h/wk ÷ ${windowMonths(p, t)} months = ${Math.round(hours * 100) / 100}` : `${t.people} × ${t.hoursPerMonth}`;
+    const formula = (share: number) => `${amount} h${share !== 1 ? ` × ${Math.round(share * 100)}%` : ""} × CAD ${rate}/h${t.rateOverride !== undefined ? " (manual rate)" : ""}${factor !== 1 ? ` × ${factor.toFixed(2)}` : ""}`;
     const id = `${componentId}:${t.phase ?? ""}:${t.roleId}:${i}`;
     const allocs = stream === "labour" && m !== undefined ? (t.allocations ?? []).filter((a) => activeIn(m, a)) : [];
     if (!allocs.length) return [line({ ...base, id, label, quantity: hours, formula: formula(1) })];

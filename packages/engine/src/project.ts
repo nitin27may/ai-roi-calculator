@@ -378,6 +378,21 @@ export const WorkstreamSchema = z.object({
   evaluated: z.boolean().default(true),
 });
 
+/** A delivery phase: a label and the project months it covers. Hypercare may run past `buildMonths` into production months. */
+export const DeliveryPhaseSchema = z.object({ id, label: z.string(), fromMonth: z.number().int().positive(), toMonth: z.number().int().positive() });
+export type DeliveryPhase = z.infer<typeof DeliveryPhaseSchema>;
+
+/** Non-labour delivery cost categories. */
+export const DELIVERY_COST_CATEGORIES = ["vendor", "training", "comms", "dataMigration", "other"] as const;
+export type DeliveryCostCategory = (typeof DELIVERY_COST_CATEGORIES)[number];
+/** A non-labour cost of delivering the project (vendor work, training, communications, data migration). Billed in build months as stream `delivery`. */
+export const DeliveryCostSchema = CashItemSchema.extend({ category: z.enum(DELIVERY_COST_CATEGORIES) });
+export type DeliveryCost = z.infer<typeof DeliveryCostSchema>;
+
+/** Effort entered as people x weeks x hours per week; spread evenly over the line's month window. */
+export const EffortSchema = z.object({ people: n0, weeks: n0, hoursPerWeek: n0 });
+export type Effort = z.infer<typeof EffortSchema>;
+
 export const TeamLineSchema = z.object({
   roleId: id, people: n0, hoursPerMonth: n0, experiments: z.boolean().default(false),
   /** A named seat ("Priya", "Dev A"); unnamed lines are role counts. */
@@ -386,6 +401,10 @@ export const TeamLineSchema = z.object({
   allocations: z.array(AllocationSchema).optional(),
   /** Delivery phase name and the build months it covers (defaults to the whole build). */
   phase: z.string().optional(),
+  /** The project delivery phase (`timeline.phases`) this line belongs to. With no from/to month the line follows the phase's months. */
+  phaseId: id.optional(),
+  /** People x weeks x hours per week, instead of hours per month. Total hours are spread evenly over the line's month window (see delivery.ts). */
+  effort: EffortSchema.optional(),
   fromMonth: z.number().int().positive().optional(),
   toMonth: z.number().int().positive().optional(),
   /** When false, this build line is not costed (the person already exists) but still drives Dev Lab volumes. Absent means costed. */
@@ -525,6 +544,8 @@ const ProjectObject = z.object({
     buildMonths: z.number().int().min(1).max(24),
     horizonMonths: z.number().int().min(12).max(120),
     adoptionRampMonths: z.number().int().min(0).max(24),
+    /** Delivery phases; absent or empty means none (nothing is added until "Use standard phases" is clicked). */
+    phases: z.array(DeliveryPhaseSchema).optional(),
   }),
   features: z.array(FeatureSchema).default([]),
   rateCard: z.array(RoleSchema),
@@ -546,6 +567,8 @@ const ProjectObject = z.object({
     contingencyScope: z.enum(["labour", "all"]).default("labour"),
     activities: z.array(DevActivitySchema),
     environment: z.array(FixedItemSchema),
+    /** Non-labour delivery costs (vendor, training, communications, data migration); absent or empty adds nothing. */
+    deliveryCosts: z.array(DeliveryCostSchema).optional(),
   }),
   workloads: z.array(WorkloadSchema),
   /** Catalogue resources that run in production; absent or empty means none and adds no ledger lines. Optional so existing project literals and files stay valid. */

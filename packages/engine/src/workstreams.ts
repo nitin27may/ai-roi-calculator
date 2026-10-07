@@ -74,6 +74,8 @@ export function developerBreakdown(p: Project, ledger: Ledger): { rows: Develope
     people: t.people, labour: 0, devlab: 0, devlabByMonth: Array(B).fill(0), perPersonByMonth: Array(B).fill(0), overBudget: [],
   }));
   let unattributed = 0;
+  // Hypercare labour after go-live belongs to its team line too.
+  for (const mo of ledger.months.slice(B)) for (const l of mo.lines) if (l.stream === "labour" && l.seat !== undefined) rows[l.seat]!.labour += l.cost;
   for (const mo of ledger.months.slice(0, B)) {
     const eff = seatEffort(p, mo.m);
     for (const l of mo.lines) {

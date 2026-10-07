@@ -32,6 +32,24 @@ export const GLOSSARY: GlossaryTerm[] = [
     technical: "Hours a day times days a month, or hours a month directly; 730 means always on. Hourly pay-as-you-go and dev/test meters are scaled by hours divided by 730. A reservation bills 730 hours whatever the schedule, so scheduling a reserved resource saves nothing and the line says so.",
   },
   {
+    id: "delivery-phase",
+    term: "Delivery phase",
+    plain: "A stage of the build, such as discovery, design, build, test, migration and cutover, deploy and hypercare. Team lines can be placed in a phase so the cost reads by stage.",
+    technical: "A phase is a label with a first and last project month. The standard list is spread over the build months by choice, never added on its own. A team line in a phase follows the phase's months unless it has its own From and To. Phases may overlap.",
+  },
+  {
+    id: "hypercare",
+    term: "Hypercare",
+    plain: "The weeks after go-live when the delivery team stays close to the system to fix early problems. It is the one delivery phase that can run past the end of the build.",
+    technical: "Team lines in the hypercare phase are billed as labour in the production months the phase covers, with contingency, and are counted with build cost. No other line is billed after the last build month. Without a hypercare phase that ends after the build, nothing is billed after go-live.",
+  },
+  {
+    id: "delivery-costs",
+    term: "Delivery costs",
+    plain: "Costs of getting the project live that are not people's time and not infrastructure: vendor or integrator work, training, communications, data migration.",
+    technical: "Each item is a one-off amount in a build month or a monthly amount in every build month, in its own stream. They count in build cost and the Full lifecycle basis only, take contingency when it covers all costs, are not reduced by the AI dev-cost cut, and are in the base of maintenance as a percent of build, like the dev environment.",
+  },
+  {
     id: "snowflake-credit",
     term: "Snowflake credit",
     plain: "Snowflake bills in credits, not dollars. The ROI Calculator shows the credits each workload uses and multiplies them by what one credit costs you in Canadian dollars, so you can see both numbers.",

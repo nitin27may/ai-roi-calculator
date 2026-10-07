@@ -43,3 +43,14 @@ export function rateEscalationNote(pct: number, exampleRate: number): string {
   const y = (n: number) => Math.round(exampleRate * (1 + pct / 100) ** n * 100) / 100;
   return `Rate escalation is ${pct}% a year from the second production year. It raises maintenance labour and the value of hours saved (a C$${exampleRate} rate becomes C$${y(1)} in production year 2 and C$${y(2)} in year 3). It does not change build labour.`;
 }
+
+/**
+ * Adds a role from the catalogue's standard list to a project's rate card and returns its id (the existing one when
+ * the role is already there). Keeps the standard id unless another role holds it. Mutates `p`.
+ */
+export function addStandardRole(p: Project, role: { id: string; label: string; hourlyRate: number }): string {
+  const existing = p.rateCard.find((r) => r.id === role.id);
+  if (existing) return existing.id;
+  p.rateCard.push({ id: role.id, label: role.label, hourlyRate: role.hourlyRate });
+  return role.id;
+}

@@ -14,6 +14,7 @@ const STREAMS = [
   { key: "run", label: "Production AI usage", color: "var(--run)" },
   { key: "platform", label: "Platform", color: "var(--platform)" },
   { key: "env", label: "Environments", color: "var(--platform)" },
+  { key: "delivery", label: "Delivery costs", color: "var(--build-2)" },
   { key: "maint", label: "Maintenance & transition", color: "var(--maint)" },
 ];
 
@@ -46,10 +47,11 @@ export default function Report() {
     prices: pricesUsedRows(ledger, catalog),
   }), [p, ledger]);
   const t = ledger.totals, B = p.timeline.buildMonths;
-  const rows = ledger.months.map((m) => ({ labour: m.byStream.labour, devlab: m.byStream.devlab + m.byStream.devenv, run: m.byStream.run, platform: m.byStream.platform, env: m.byStream.env ?? 0, maint: m.byStream.maint + m.byStream.transition, benefit: m.benefit }));
+  const rows = ledger.months.map((m) => ({ labour: m.byStream.labour, devlab: m.byStream.devlab + m.byStream.devenv, run: m.byStream.run, platform: m.byStream.platform, env: m.byStream.env ?? 0, delivery: m.byStream.delivery ?? 0, maint: m.byStream.maint + m.byStream.transition, benefit: m.benefit }));
   const basis = BASIS_WORDS[p.roi.basis];
   const hasEnv = ledger.months.some((m) => (m.byStream.env ?? 0) > 0);
-  const streams = STREAMS.filter((x) => (x.key !== "labour" || !s.labourExcluded) && (x.key !== "env" || hasEnv));
+  const hasDelivery = ledger.months.some((m) => (m.byStream.delivery ?? 0) > 0);
+  const streams = STREAMS.filter((x) => (x.key !== "labour" || !s.labourExcluded) && (x.key !== "env" || hasEnv) && (x.key !== "delivery" || hasDelivery));
   const devById = new Map<string, number>();
   for (const m of ledger.months.slice(0, B)) for (const l of m.lines) if (l.stream === "devlab") devById.set(l.componentId, (devById.get(l.componentId) ?? 0) + l.cost);
   const firstFull = steadyState(ledger);
@@ -223,6 +225,7 @@ export default function Report() {
                   <tr><td>Labour</td><td className="n">{s.labourExcluded ? "Excluded" : cad(t.buildLabour)}</td></tr>
                   {p.build.activities.map((a) => <tr key={a.id}><td>{a.label}</td><td className="n">{cad(devById.get(a.id) ?? 0)}</td></tr>)}
                   <tr><td>Dev environment</td><td className="n">{cad(ledger.months.slice(0, B).reduce((sum, m) => sum + m.byStream.devenv, 0))}</td></tr>
+                  {hasDelivery && <tr><td>Delivery costs</td><td className="n">{cad(ledger.months.reduce((sum, m) => sum + (m.byStream.delivery ?? 0), 0))}</td></tr>}
                   <tr className="total"><td>Total</td><td className="n">{cad(t.build)}</td></tr>
                 </tbody>
               </table>
