@@ -1,14 +1,16 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { creditSummary, DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, availableIn, resolveAssumptions, type AzureDeployment, cascadeCall, agentAddedFor, featureBreakdown, harnessUsage, newFeature, newHarness, newWorkload, removeFeature, removeWorkload, simulateHarness, sizeSearch, steadyState, voiceCall, workloadRange, type Workload } from "@roi-calculator/engine";
+import { creditSummary, DEPLOYMENT_LABEL, DEPLOYMENTS, PriceBook, WORKLOAD_KINDS, PROJECT_TYPE_LIST, availableIn, resolveAssumptions, type AzureDeployment, cascadeCall, agentAddedFor, featureBreakdown, harnessUsage, newFeature, newHarness, newWorkload, removeFeature, removeWorkload, simulateHarness, sizeSearch, steadyState, voiceCall, workloadRange, type Workload } from "@roi-calculator/engine";
 import { Card, CardHead, Field, GroupHead, ListRow, NumberInput, Pill, Seg, Select, TrashButton, listboxKeys } from "@/components/ui";
 import { Plus } from "lucide-react";
 import { RangeBar } from "@/components/charts";
+import { HelpTip } from "@/components/help-tip";
 import { Explain } from "@/components/explain";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
 import { Fields, HARNESS_SPECS, WAREHOUSE_SPECS, WORKLOAD_SPECS } from "@/components/fields";
 import { catalog, modelOptions, useLedger } from "@/lib/compute";
 import { useStudio } from "@/lib/store";
+import { workloadKindsFor } from "@/lib/nav";
 import { cad, fmt } from "@/lib/format";
 import { CostItems, FeatureSelect, WorkloadTiming } from "@/components/feature-fields";
 import { SnowflakeCredits } from "@/components/snowflake-credits";
@@ -122,10 +124,11 @@ function AddHarness({ onAdded }: { onAdded: (id: string) => void }) {
 
 function AddWorkload({ onAdded, featureId }: { onAdded: (id: string) => void; featureId?: string }) {
   const edit = useStudio((s) => s.edit);
+  const project = useStudio((s) => s.project);
   const [notice, setNotice] = useState("");
   return (
     <>
-      <AddMenu label="Add workload" items={WORKLOAD_KINDS} onPick={(kind) => {
+      <AddMenu label="Add workload" items={workloadKindsFor(project, WORKLOAD_KINDS)} onPick={(kind) => {
         let id = "";
         let agent = false;
         edit((d) => { agent = agentAddedFor(d, kind); const w = newWorkload(d, kind); id = w.id; if (featureId) w.featureId = featureId; d.workloads.push(w); });
@@ -169,6 +172,19 @@ function Inspector({ sel, onRemoved }: { sel: string; onRemoved: () => void }) {
         <Field label="What it does" help="featureDescription">
           <input aria-label="Description" className="rounded-md border border-line bg-surface-2 px-2 py-1.5 text-[13px] text-ink" value={f.description ?? ""} onChange={(e) => edit((d) => { const x = d.features.find((y) => y.id === id); if (x) { if (e.target.value) x.description = e.target.value; else delete x.description; } })} />
         </Field>
+        <fieldset className="flex flex-col gap-1.5" data-testid="feature-types">
+          <legend className="mb-1 flex items-center gap-0.5 text-xs text-muted">Type of change<HelpTip id="featureTypes" label="Type of change" /></legend>
+          <div className="grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
+            {PROJECT_TYPE_LIST.map((t) => (
+              <label key={t.type} className="flex items-start gap-2 text-[13px]">
+                <input type="checkbox" className="mt-1" checked={f.types.includes(t.type)}
+                  onChange={(e) => edit((d) => { const x = d.features.find((y) => y.id === id); if (x) x.types = e.target.checked ? [...x.types, t.type] : x.types.filter((y) => y !== t.type); })} />
+                <span><span className="block font-medium">{t.label}</span><span className="block text-xs text-muted">{t.detail}</span></span>
+              </label>
+            ))}
+          </div>
+          <p className="text-xs text-muted">Pick every type that applies; none is chosen for you. This only decides which pages and add-menu entries are shown, never a cost.</p>
+        </fieldset>
         {row && (
           <table className="data">
             <thead><tr><th>Over {project.timeline.horizonMonths} months</th><th className="n">C$</th></tr></thead>

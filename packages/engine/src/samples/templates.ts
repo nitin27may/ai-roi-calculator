@@ -26,7 +26,7 @@ export function blankProject(name: string, startDate = nextMonth()): Project {
 
 /** Put everything a template built (except shared platform costs) in one named feature, so a new project starts with a feature to rename and split. */
 function oneFeature(p: Project, label: string): Project {
-  p.features = [{ id: "feature-1", label }];
+  p.features = [{ id: "feature-1", label, types: [] }];
   for (const w of p.workloads) if (w.kind !== "fixed") w.featureId = "feature-1";
   for (const a of p.build.activities) a.featureId = "feature-1";
   for (const c of p.benefits.capabilities) c.featureId = "feature-1";

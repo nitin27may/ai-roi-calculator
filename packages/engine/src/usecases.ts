@@ -219,7 +219,7 @@ class Out {
     const a = this.a;
     const ben = makeBenefits(a, volume, extra.workloadIds ?? this.workloads.filter((w) => w.kind !== "fixed").map((w) => w.id), this.workstreams.map((w) => w.id));
     return {
-      feature: { id: a.featureId, label: a.label }, workloads: this.workloads, harnesses: this.harnesses, workstreams: this.workstreams, activities: this.activities,
+      feature: { id: a.featureId, label: a.label, types: [] }, workloads: this.workloads, harnesses: this.harnesses, workstreams: this.workstreams, activities: this.activities,
       capabilities: ben.capabilities, avoidedCosts: ben.avoidedCosts, oneOff: ben.oneOff, value: ben.value, assumptions: [...this.assumptions, ...ben.assumptions], volume,
     };
   }

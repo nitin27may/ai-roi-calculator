@@ -91,8 +91,9 @@ describe("v4 to v5 migration keeps every total", () => {
       const saved = v4(project);
       const migrated = ProjectSchema.parse(migrateProject(structuredClone(saved)));
       const current = ProjectSchema.parse(project);
-      expect(migrated.version).toBe(5);
-      expect(migrated).toEqual({ ...current, version: 5 });
+      expect(migrated.version).toBe(CURRENT_PROJECT_VERSION);
+      // v6 adds feature types (see types-migration.test.ts); everything else is identical.
+      expect(migrated).toEqual({ ...current, version: CURRENT_PROJECT_VERSION, features: migrated.features });
       const a = buildLedger(migrated, cat), b = buildLedger(current, cat);
       expect(a.totals).toEqual(b.totals);
       a.months.forEach((mo, i) => {

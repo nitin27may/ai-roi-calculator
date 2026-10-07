@@ -386,13 +386,17 @@ export type Scenario = z.infer<typeof ScenarioSchema>;
 export type ScenarioEdit = z.infer<typeof ScenarioEditSchema>;
 
 /** Bump when the project shape changes; add a step in migrate.ts for every bump. */
-export const CURRENT_PROJECT_VERSION = 5;
+export const CURRENT_PROJECT_VERSION = 6;
 
 /**
  * A feature: the unit an executive funds. It owns workloads (run), workstreams and Dev Lab activities (build)
  * and benefit capabilities, each pointing at it with `featureId`. Items with no `featureId` are shared by the project.
  */
-export const FeatureSchema = z.object({ id, label: z.string(), description: z.string().optional() });
+export const PROJECT_TYPES = ["newApp", "enhancement", "automation", "replatform", "saas", "ai"] as const;
+export const ProjectTypeSchema = z.enum(PROJECT_TYPES);
+export type ProjectType = z.infer<typeof ProjectTypeSchema>;
+/** `types` is the kind of change a feature is; empty means not chosen yet (nothing is preselected). */
+export const FeatureSchema = z.object({ id, label: z.string(), description: z.string().optional(), types: z.array(ProjectTypeSchema).default([]) });
 export type Feature = z.infer<typeof FeatureSchema>;
 
 /** Schema id written into every project file. The product was renamed from "AI Cost & ROI Studio" on 2026-10-06. */

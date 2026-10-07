@@ -10,6 +10,7 @@ import { Explain } from "@/components/explain";
 import { MonthLegend, MonthTh, TableNote, WhereFrom } from "@/components/months";
 import { MONTH_TABLE_NOTES } from "@/lib/months";
 import { LabourExcludeToggle } from "@/components/labour-excluded";
+import { activityKindsFor } from "@/lib/nav";
 import { AddMenu, ItemHeader } from "@/components/add-menu";
 import { Legend, Spark, StackedBars } from "@/components/charts";
 import { ACTIVITY_SPECS, Fields } from "@/components/fields";
@@ -348,7 +349,7 @@ function WorkstreamPanel({ id, onRemoved, onOpen }: { id: string; onRemoved: () 
           {acts.map((a) => <button key={a.id} type="button" className="rounded-md border border-line px-2.5 py-1 text-xs hover:bg-surface-2" onClick={() => onOpen(a.id)}>{a.label}</button>)}
         </div>
         <div className="mt-2">
-          <AddMenu label="Add activity to this workstream" items={ACTIVITY_KINDS} onPick={(kind) => {
+          <AddMenu label="Add activity to this workstream" items={activityKindsFor(project, ACTIVITY_KINDS)} onPick={(kind) => {
             let newId = "";
             edit((d) => {
               const a = newActivity(d, kind);
@@ -476,8 +477,9 @@ function DevEnvironment() {
 
 function AddActivity({ onAdded }: { onAdded: (id: string) => void }) {
   const edit = useStudio((s) => s.edit);
+  const project = useStudio((s) => s.project);
   return (
-    <AddMenu label="Add activity" items={ACTIVITY_KINDS} onPick={(kind) => {
+    <AddMenu label="Add activity" items={activityKindsFor(project, ACTIVITY_KINDS)} onPick={(kind) => {
       let id = "";
       edit((d) => { const a = newActivity(d, kind); id = a.id; d.build.activities.push(a); });
       if (id) onAdded(id);

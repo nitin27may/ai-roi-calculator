@@ -157,6 +157,48 @@ export const GLOSSARY: GlossaryTerm[] = [
     plain: "How hard an activity runs in a given month. 100% means the full volumes set on the activity, 50% means half and 0% means it is switched off that month.",
     technical: "A per-month multiplier between 0 and 1 applied to an AI Dev Lab activity's volumes before pricing. Labour and any per-person items additionally scale with headcount where the activity says so.",
   },
+  {
+    id: "project-type",
+    term: "Project type",
+    plain: "The kind of change a feature is. There are six: new application or process, enhancement to an existing application, automation, replatform or migration, replace with SaaS, and AI. A feature can have more than one, and none is chosen until you pick it.",
+    technical: "Stored as a list on each feature. The project's types are the union across its features. Types only decide what is shown: the Capacity (PTU) page and the AI choices in the Build and Run add menus appear when a feature is AI or the project already has AI workloads or Dev Lab activities. They never change a cost.",
+  },
+  {
+    id: "type-new-app",
+    term: "New application or process",
+    plain: "Something built or set up from scratch, with nothing existing to change.",
+    technical: "Project type newApp. Its costs are the build and the run of the new thing; any current cost it replaces is entered separately.",
+  },
+  {
+    id: "type-enhancement",
+    term: "Enhancement to an existing application",
+    plain: "New capability added to a system that stays in place.",
+    technical: "Project type enhancement. Only the added work and the added running cost belong in the estimate.",
+  },
+  {
+    id: "type-automation",
+    term: "Automation",
+    plain: "Replacing manual steps with software or robots, so people spend their time on something else.",
+    technical: "Project type automation. The benefit is usually time saved or cost avoided; it needs no AI workloads, so the AI pages stay hidden.",
+  },
+  {
+    id: "type-replatform",
+    term: "Replatform or migration",
+    plain: "Moving an existing system to a new platform or host, often to cut running cost or retire old hardware.",
+    technical: "Project type replatform. The estimate is the migration build plus the new platform's running cost, set against what the old platform costs.",
+  },
+  {
+    id: "type-saas",
+    term: "Replace with SaaS",
+    plain: "Retiring a system you run and buying a hosted product instead.",
+    technical: "Project type saas. Subscription or seat fees replace the running cost; the build is mostly configuration, integration and migration.",
+  },
+  {
+    id: "type-ai",
+    term: "AI",
+    plain: "A feature that uses models, agents or other AI services. Choosing it keeps the AI pages, such as Capacity (PTU), and the AI choices in the add menus visible.",
+    technical: "Project type ai. It is also treated as true for any project that already has AI workloads or Dev Lab activities other than AI coding tools, so older projects keep their AI pages.",
+  },
 ];
 
 export const glossaryById = (id: string): GlossaryTerm | undefined => GLOSSARY.find((g) => g.id === id);

@@ -9,8 +9,8 @@ export const meetingIntelligence: Project = {
   settings: { azureDeployment: "dataZone", language: "en", snowflake: { routing: "global", edition: "enterprise" } },
   timeline: { buildMonths: 6, horizonMonths: 36, adoptionRampMonths: 6 },
   features: [
-    { id: "notes", label: "Notes and follow-up", description: "Transcribe meetings, write notes, extract actions and send follow-ups." },
-    { id: "ask", label: "Ask my meetings", description: "Answer questions over past meetings and shared documents." },
+    { id: "notes", label: "Notes and follow-up", description: "Transcribe meetings, write notes, extract actions and send follow-ups.", types: ["ai"] },
+    { id: "ask", label: "Ask my meetings", description: "Answer questions over past meetings and shared documents.", types: ["ai"] },
   ],
   rateCard: [
     { id: "dev", label: "AI developer", hourlyRate: 95 },
